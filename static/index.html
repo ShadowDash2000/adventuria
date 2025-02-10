@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Поле Монополии</title>
+    <link href="/main.css" rel="stylesheet">
+    <link href="/graph-modal/graph-modal.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&display=swap" rel="stylesheet">
+
+    <link href="/dice.css" rel="stylesheet">
+</head>
+<body>
+<button class="btn-reset modal-btn modal-1" data-graph-path="auth" data-graph-animation="fadeInUp"
+        data-graph-speed="100">ВХОД
+</button>
+<button class="btn-reset modal-btn modal-1" data-graph-path="dice" data-graph-animation="fadeInUp"
+        data-graph-speed="100">DICE
+</button>
+<button class="btn-reset modal-btn modal-1" data-graph-path="game-result" data-graph-animation="fadeInUp"
+        data-graph-speed="100">GAME RESULT
+</button>
+<button class="btn-reset modal-btn modal-1" data-graph-path="game-picker" data-graph-animation="fadeInUp"
+        data-graph-speed="100">GAME PICKER
+</button>
+<div class="table">
+    <div class="board">
+        <div class="center">
+            <h1 class="title">ПРИКЛЮЧПОПИЯ</h1>
+            <div class="actions-buttons">
+                <button class="button game-roll hidden" data-graph-path="dice" data-graph-animation="fadeInUp"
+                        data-graph-speed="100">РОЛЛ</button>
+                <button class="button game-result hidden" data-graph-path="game-result" data-graph-animation="fadeInUp"
+                        data-graph-speed="100">ЗАВЕРШИТЬ ПРОХОЖДЕНИЕ</button>
+                <button class="button game-picker hidden" data-graph-path="game-picker" data-graph-animation="fadeInUp"
+                        data-graph-speed="100">ВЫБРАТЬ ИГРУ</button>
+            </div>
+        </div>
+
+        <div id="start" class="space corner go"></div>
+
+        <div class="row vertical-row left-row"></div>
+
+        <div id="jail" class="space corner jail"></div>
+
+        <div class="row horizontal-row top-row"></div>
+
+        <div id="big-win" class="space corner free-parking"></div>
+
+        <div class="row vertical-row right-row"></div>
+
+        <div id="preset" class="space corner go-to-jail"></div>
+
+        <div class="row horizontal-row bottom-row"></div>
+    </div>
+</div>
+<div class="graph-modal">
+    <div class="graph-modal__container" role="dialog" aria-modal="true" data-graph-target="auth">
+        <button class="btn-reset graph-modal__close js-modal-close" aria-label="Закрыть модальное окно"></button>
+        <div class="graph-modal__content">
+            <form id="auth" class="graph-modal__auth">
+                <input name="login" type="text">
+                <input name="password" type="password">
+                <button type="submit">Войти</button>
+            </form>
+        </div>
+    </div>
+    <div class="graph-modal__container" role="dialog" aria-modal="true" data-graph-target="game-result">
+        <button class="btn-reset graph-modal__close js-modal-close" aria-label="Закрыть модальное окно"></button>
+        <div class="graph-modal__content game-result">
+            <h2>РЕЗУЛЬТАТ ИГРЫ</h2>
+            <div class="game-title">{{GAME NAME}}</div>
+            <textarea placeholder="Комментарий к пройденой игре, к дропу или реролу..."></textarea>
+            <div class="container">
+                <button class="button reroll" data-action="reroll">РЕРОЛ</button>
+                <button class="button drop" data-action="drop">ДРОП</button>
+                <button class="button done" data-action="done">ПРОШЁЛ</button>
+            </div>
+        </div>
+    </div>
+    <div class="graph-modal__container" role="dialog" aria-modal="true" data-graph-target="game-picker">
+        <button class="btn-reset graph-modal__close js-modal-close" aria-label="Закрыть модальное окно"></button>
+        <div class="graph-modal__content game-picker">
+            <h2>ВЫБОР ИГРЫ</h2>
+            <a href="https://gamegauntlets.com/" target="_blank">--------> Game Gauntlets <--------</a>
+            <form id="game-picker">
+                <input autocomplete="off" name="game" type="text" placeholder="Название игры, выпавшей на gamegauntlets.com">
+                <button id="choose-game" class="button" type="submit">Выбрать игру</button>
+            </form>
+        </div>
+    </div>
+    <div class="graph-modal__container dice" role="dialog" aria-modal="true" data-graph-target="dice">
+        <div class="container">
+            <div class="scene">
+                <div class="cube" id="dice">
+                    <div class="face front one">
+                        <div class="dot-container">
+                            <div class="dot"></div>
+                        </div>
+                    </div>
+                    <div class="face back six">
+                        <div class="dot-container">
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                        </div>
+                    </div>
+                    <div class="face right three">
+                        <div class="dot-container">
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                        </div>
+                    </div>
+                    <div class="face left four">
+                        <div class="dot-container">
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                        </div>
+                    </div>
+                    <div class="face top five">
+                        <div class="dot-container">
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                        </div>
+                    </div>
+                    <div class="face bottom two">
+                        <div class="dot-container">
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="roll-result hidden">
+                <span>Результат: </span>
+                <span class="roll-result__number">{{ROLL RESULT}}</span>
+            </div>
+            <div class="cell hidden">
+                <img src="kiryu.gif">
+                <div class="cell-info">
+                    <span class="cell-info__name">{{CELL NAME}}</span>
+                    <div class="cell-info__description">{{CELL DESCRIPTION}}</div>
+                </div>
+            </div>
+            <button id="roll" class="button">Бросить кубик</button>
+            <button class="button choose-game hidden" data-graph-path="game-picker" data-graph-animation="fadeInUp"
+                    data-graph-speed="100">Выбрать игру
+            </button>
+        </div>
+    </div>
+</div>
+</body>
+<script defer src="/pocketbase/pocketbase.umd.js"></script>
+<script defer src="/graph-modal/graph-modal.min.js"></script>
+<script defer src="/main.js"></script>
+<script defer src="/dice.js"></script>
+</html>
