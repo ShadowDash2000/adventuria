@@ -1,0 +1,58 @@
+.wheel-modal {
+    display: flex;
+    justify-content: center;
+}
+
+.wheel-container {
+    all: unset;
+    aspect-ratio: 1 / 1;
+    container-type: inline-size;
+    direction: ltr;
+    display: grid;
+    position: relative;
+    width: 80%;
+
+    & > * { position: absolute; }
+
+    button {
+        aspect-ratio: 1 / 1;
+        background: hsla(0, 0%, 100%, .8);
+        border: 0;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 5cqi;
+        place-self: center;
+        width: 20cqi;
+    }
+
+    ul {
+        all: unset;
+        clip-path: inset(0 0 0 0 round 50%);
+        display: grid;
+        inset: 0;
+        place-content: center start;
+
+        li {
+            font-family: "Dela Gothic One", serif;
+            color: white;
+            text-shadow:
+                    3px 3px 0 #000,
+                    -1px -1px 0 #000,
+                    1px -1px 0 #000,
+                    -1px 1px 0 #000,
+                    1px 1px 0 #000;
+
+            align-content: center;
+            clip-path: polygon(0% 0%, 100% 50%, 0% 100%);
+            display: grid;
+            font-size: 5cqi;
+            grid-area: 1 / -1;
+            padding-left: 1ch;
+            transform-origin: center right;
+            user-select: none;
+            width: 50cqi;
+        }
+    }
+}
+
+* { box-sizing: border-box; }

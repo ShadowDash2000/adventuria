@@ -11,6 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&display=swap" rel="stylesheet">
 
     <link href="/dice.css" rel="stylesheet">
+    <link href="/wheel.css" rel="stylesheet">
 </head>
 <body>
 <button class="btn-reset modal-btn modal-1" data-graph-path="auth" data-graph-animation="fadeInUp"
@@ -24,6 +25,12 @@
 </button>
 <button class="btn-reset modal-btn modal-1" data-graph-path="game-picker" data-graph-animation="fadeInUp"
         data-graph-speed="100">GAME PICKER
+</button>
+<button class="btn-reset modal-btn modal-1" data-graph-path="wheel" data-graph-animation="fadeInUp"
+        data-graph-speed="100">WHEEL
+</button>
+<button class="btn-reset modal-btn modal-1" data-graph-path="submit" data-graph-animation="fadeInUp"
+        data-graph-speed="100">SUBMIT
 </button>
 <div class="table">
     <div class="board">
@@ -80,6 +87,17 @@
             </div>
         </div>
     </div>
+    <div class="graph-modal__container" role="dialog" aria-modal="true" data-graph-target="submit">
+        <button class="btn-reset graph-modal__close js-modal-close" aria-label="Закрыть модальное окно"></button>
+        <div class="graph-modal__content submit">
+            <h2>ВЫ УВЕРЕНЫ?</h2>
+            <div class="text">{{TEXT}}</div>
+            <div class="container">
+                <button class="button decline" data-action="decline">НЕТ</button>
+                <button class="button accept" data-action="accept">ДА</button>
+            </div>
+        </div>
+    </div>
     <div class="graph-modal__container" role="dialog" aria-modal="true" data-graph-target="game-picker">
         <button class="btn-reset graph-modal__close js-modal-close" aria-label="Закрыть модальное окно"></button>
         <div class="graph-modal__content game-picker">
@@ -89,6 +107,15 @@
                 <input autocomplete="off" name="game" type="text" placeholder="Название игры, выпавшей на gamegauntlets.com">
                 <button id="choose-game" class="button" type="submit">Выбрать игру</button>
             </form>
+        </div>
+    </div>
+    <div class="graph-modal__container" role="dialog" aria-modal="true" data-graph-target="wheel">
+        <button class="btn-reset graph-modal__close js-modal-close" aria-label="Закрыть модальное окно"></button>
+        <div class="graph-modal__content wheel-modal">
+            <div class="wheel-container">
+                <ul class="wheel" id="wheel"></ul>
+                <button class="start-btn">START</button>
+            </div>
         </div>
     </div>
     <div class="graph-modal__container dice" role="dialog" aria-modal="true" data-graph-target="dice">
@@ -165,4 +192,5 @@
 <script defer src="/graph-modal/graph-modal.min.js"></script>
 <script defer src="/main.js"></script>
 <script defer src="/dice.js"></script>
+<script defer src="/wheel.js"></script>
 </html>

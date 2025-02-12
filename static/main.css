@@ -347,6 +347,49 @@ h1, h2, h3, h4, h5, h6 {
     }
 }
 
+.graph-modal__content.submit {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+
+    h2 {
+        font-family: "Dela Gothic One", serif;
+        text-align: center;
+        font-size: 64px;
+        padding-bottom: 40px;
+    }
+
+    .text {
+        font-family: "Dela Gothic One", serif;
+        text-align: center;
+        font-size: 24px;
+        padding-bottom: 18px;
+    }
+
+    .container {
+        display: flex;
+        justify-content: space-evenly;
+        gap: 30px;
+
+        font-size: 48px;
+
+        .button {
+            font-family: "Dela Gothic One", serif;
+            color: white;
+            border: none;
+            padding: 10px 50px;
+        }
+
+        .decline {
+            background-color: #c72020;
+        }
+
+        .accept {
+            background-color: #20c723;
+        }
+    }
+}
+
 .graph-modal__content.game-picker {
     display: flex;
     align-items: center;

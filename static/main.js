@@ -15,24 +15,39 @@ document.addEventListener('DOMContentLoaded', async () => {
             const activeModal = modal.modal.querySelector('.graph-modal-open');
             const modalName = activeModal.dataset.graphTarget;
 
-            if (modalName === 'game-result') {
-                const res = await fetch('/api/game-result', {
-                    method: "GET",
-                    headers: {
-                        "Authorization": auth.token,
-                    },
-                });
+            switch (modalName) {
+                case 'game-result':
+                    const res = await fetch('/api/game-result', {
+                        method: "GET",
+                        headers: {
+                            "Authorization": auth.token,
+                        },
+                    });
 
-                if (!res.ok) return;
+                    if (!res.ok) return;
 
-                const json = await res.json();
+                    const json = await res.json();
 
-                const gameTitle = activeModal.querySelector('.game-title');
-                gameTitle.innerHTML = json.game;
+                    const gameTitle = activeModal.querySelector('.game-title');
+                    gameTitle.innerHTML = json.game;
 
-                if (!json.canDrop) {
-                    activeModal.querySelector('.button.drop').classList.add('hidden');
-                }
+                    if (!json.canDrop) {
+                        activeModal.querySelector('.button.drop').classList.add('hidden');
+                    }
+                    break;
+                case 'wheel':
+                    let items = [
+                        {id: 1, src: "kiryu.gif", text: 'TEXT 1'},
+                        {id: 2, src: "kiryu.gif", text: 'TEXT 2'},
+                        {id: 3, src: "kiryu.gif", text: 'TEXT 3'},
+                        {id: 4, src: "kiryu.gif", text: 'TEXT 4'}
+                    ];
+
+                    createWheel(items);
+                    activeModal.querySelector('.start-btn').addEventListener('click', () => {
+                        startSpin(items, 2, 6);
+                    });
+                    break;
             }
         },
     });
@@ -130,7 +145,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         rollDice(json.roll, 4);
 
-        setTimeout(() => {
+        setTimeout(async () => {
             const modal = document.querySelector('.graph-modal__container.dice');
             const rollResult = modal.querySelector('.roll-result');
             const cell = modal.querySelector('.cell');
@@ -146,6 +161,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             rollButton.classList.add('hidden');
             modal.querySelector('.choose-game').classList.remove('hidden');
+
+            await updateInnerField();
 
         }, 4000);
     });
@@ -165,6 +182,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 "game": gamePicker.querySelector('input[name="game"]').value,
             }),
         });
+
+        await updateInnerField();
+
+        modal.close();
     });
 
     async function showActionButtons() {
@@ -190,8 +211,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             button = actionsButtons.querySelector('button.game-roll');
         }
 
-        if (json.cellType !== 'game') {
-            button = 'test';
+        if (!button) {
+            switch (json.cellType) {
+                case 'game':
+                    break;
+                case 'start':
+                default:
+                    button = actionsButtons.querySelector('button.game-roll');
+                    break;
+            }
         }
 
         if (!button) {
@@ -221,14 +249,47 @@ document.addEventListener('DOMContentLoaded', async () => {
     const dropButton = gameResultModal.querySelector('.button.drop');
     const doneButton = gameResultModal.querySelector('.button.done');
 
-    rerollButton.addEventListener('click', actions);
-    dropButton.addEventListener('click', actions);
-    doneButton.addEventListener('click', actions);
+    rerollButton.addEventListener('click', gameResultActions);
+    dropButton.addEventListener('click', gameResultActions);
+    doneButton.addEventListener('click', gameResultActions);
 
-    async function actions(e) {
+    const submitModal = document.querySelector('.graph-modal__content.submit');
+    const submitDeclineButton = submitModal.querySelector('.button.decline');
+    const submitAcceptButton = submitModal.querySelector('.button.accept');
+
+    submitDeclineButton.addEventListener('click', submitActions);
+    submitAcceptButton.addEventListener('click', submitActions);
+
+    async function gameResultActions(e) {
         e.preventDefault();
 
         const action = e.currentTarget.dataset.action;
+
+        submitModal.dataset.action = action;
+        submitModal.dataset.previousModal = 'game-result';
+
+        const text = submitModal.querySelector('.text');
+
+        switch (action) {
+            case 'reroll':
+                text.innerHTML = 'Вы уверены, что хотите рерольнуть игру?';
+                break;
+            case 'drop':
+                text.innerHTML = 'Вы уверены, что хотите дропнуть игру?';
+                break;
+            case 'done':
+                text.innerHTML = 'Вы уверены, что хотите завершить прохождение?';
+        }
+
+        modal.close();
+        modal.open('submit');
+    }
+
+    document.addEventListener('modal.submit.accept', async (e) => {
+        const action = e.detail.action;
+        const previousModal = e.detail.previousModal;
+
+        if (previousModal !== 'game-result') return;
 
         const res = await fetch('/api/' + action, {
             method: "POST",
@@ -243,6 +304,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (!res.ok) return;
 
+        await updateInnerField();
+
         if (action === 'done') {
             modal.close();
             modal.open('dice');
@@ -250,5 +313,32 @@ document.addEventListener('DOMContentLoaded', async () => {
             modal.close();
             modal.open('game-picker');
         }
+    });
+
+    async function submitActions(e) {
+        e.preventDefault();
+
+        const action = e.currentTarget.dataset.action;
+        const modalAction = submitModal.dataset.action;
+        const previousModal = submitModal.dataset.previousModal;
+
+        switch (action) {
+            case 'decline':
+                modal.close();
+                modal.open(previousModal);
+                break;
+            case 'accept':
+                document.dispatchEvent(new CustomEvent("modal.submit.accept", {
+                    detail: {
+                        action: modalAction,
+                        previousModal: previousModal,
+                    },
+                }))
+                break;
+        }
+    }
+
+    async function updateInnerField() {
+        await showActionButtons();
     }
 });
