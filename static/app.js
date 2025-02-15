@@ -72,9 +72,7 @@ class App {
             cellNode.querySelector('img').src = "/api/files/" + cell.collectionId + "/" + cell.id + "/" + cell.icon;
             cellNode.querySelector('.name').innerHTML = cell.name;
 
-            cellContainer.appendChild(cellNode);
-
-            this.cellsList[key]['cellElement'] = cellContainer;
+            this.cellsList[key]['cellElement'] = cellContainer.appendChild(cellNode.firstElementChild);
         }
     }
 
@@ -117,7 +115,7 @@ class App {
     async showActionButtons() {
         if (!this.isAuthorized) return;
 
-        const res = await fetch('/api/get-last-action', {
+        const res = await fetch('/api/get-next-step-type', {
             method: "GET",
             headers: {
                 "Authorization": this.auth.token,
@@ -135,35 +133,17 @@ class App {
         }
 
         let button;
-        if (json.canRoll) {
-            button = actionsButtons.querySelector('button.game-roll');
-        }
 
-        if (!button) {
-            switch (json.cellType) {
-                case 'game':
-                    break;
-                case 'start':
-                default:
-                    button = actionsButtons.querySelector('button.game-roll');
-                    break;
-            }
-        }
-
-        if (!button) {
-            switch (json.status) {
-                case 'inProgress':
-                    button = actionsButtons.querySelector('button.game-result');
-                    break;
-                case 'reroll':
-                case 'drop':
-                case 'notChosen':
-                    button = actionsButtons.querySelector('button.game-picker');
-                    break;
-                case 'done':
-                default:
-                    button = actionsButtons.querySelector('button.game-roll');
-            }
+        switch (json.nextStepType) {
+            case 'chooseResult':
+                button = actionsButtons.querySelector('button.game-result');
+                break;
+            case 'chooseGame':
+                button = actionsButtons.querySelector('button.game-picker');
+                break;
+            case 'roll':
+            default:
+                button = actionsButtons.querySelector('button.game-roll');
         }
 
         button.classList.remove('hidden');

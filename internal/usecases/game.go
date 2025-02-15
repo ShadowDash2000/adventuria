@@ -2,203 +2,47 @@ package usecases
 
 import (
 	"adventuria/internal/adventuria"
+	"adventuria/pkg/cache"
 	"errors"
-	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
-	"math/rand/v2"
-	"net/http"
 	"slices"
+	"time"
 )
 
-type Game struct{}
-
-func NewGame() *Game {
-	return &Game{}
+type Game struct {
+	app   core.App
+	users *cache.MemoryCache[*User]
+	cells []*core.Record
 }
 
-func (g *Game) ChooseGame(game string, e *core.RequestEvent) error {
-	actions, err := e.App.FindRecordsByFilter(
-		"actions",
-		"user.id = {:userId}",
-		"-created",
-		1,
-		0,
-		dbx.Params{"userId": e.Auth.Id},
-	)
-	if err != nil {
-		e.JSON(http.StatusInternalServerError, err.Error())
-		return err
+func NewGame(app core.App) *Game {
+	return &Game{
+		app:   app,
+		users: cache.NewMemoryCache[*User](30*time.Minute, false),
 	}
-
-	if len(actions) == 0 {
-		e.JSON(http.StatusNotFound, "You must complete the last action")
-		return nil
-	}
-
-	action := actions[0]
-	errs := e.App.ExpandRecord(action, []string{"cell"}, nil)
-	if len(errs) > 0 {
-		e.JSON(http.StatusInternalServerError, errs)
-		return nil
-	}
-
-	cell := action.ExpandedOne("cell")
-	cellFields := cell.FieldsData()
-	actionFields := action.FieldsData()
-
-	if cellFields["type"].(string) == "special" {
-		e.JSON(http.StatusBadRequest, "You must choose a special position")
-		return nil
-	}
-
-	if cellFields["code"].(string) == adventuria.SpecialCellBigWin &&
-		actionFields["status"].(string) != adventuria.ActionStatusReroll {
-		e.JSON(http.StatusNotFound, "You can choose a game on Big Win only if last one was rerolled")
-		return nil
-	}
-
-	statuses := []string{
-		adventuria.ActionStatusNotChosen,
-		adventuria.ActionStatusReroll,
-		adventuria.ActionStatusDrop,
-	}
-
-	if !slices.Contains(statuses, actionFields["status"].(string)) {
-		e.JSON(http.StatusNotFound, "You must complete the last action")
-		return nil
-	}
-
-	statuses = []string{
-		adventuria.ActionStatusReroll,
-		adventuria.ActionStatusDrop,
-	}
-	if slices.Contains(statuses, actionFields["status"].(string)) {
-		record := core.NewRecord(action.Collection())
-		record.Set("user", e.Auth.Id)
-		record.Set("cell", actionFields["cell"].(string))
-		record.Set("status", adventuria.ActionStatusInProgress)
-		record.Set("game", game)
-		err = e.App.Save(record)
-		if err != nil {
-			e.JSON(http.StatusInternalServerError, err.Error())
-			return err
-		}
-	} else {
-		action.Set("status", adventuria.ActionStatusInProgress)
-		action.Set("game", game)
-		err = e.App.Save(action)
-		if err != nil {
-			e.JSON(http.StatusInternalServerError, err.Error())
-			return err
-		}
-	}
-
-	return nil
 }
 
-func (g *Game) GetLastAction(e *core.RequestEvent) (bool, *core.Record, *core.Record, error) {
-	actions, err := e.App.FindRecordsByFilter(
-		"actions",
-		"user.id = {:userId}",
-		"-created",
-		1,
-		0,
-		dbx.Params{"userId": e.Auth.Id},
-	)
+func (g *Game) GetUser(auth *core.Record) (*User, error) {
+	user, ok := g.users.Get(auth.Id)
+	if ok {
+		return user, nil
+	}
+
+	user, err := NewUser(g.app, auth)
 	if err != nil {
-		return false, nil, nil, err
+		return nil, err
 	}
 
-	if len(actions) == 0 {
-		e.JSON(http.StatusOK, map[string]interface{}{
-			"status":  "",
-			"canRoll": true,
-		})
-		return true, nil, nil, nil
-	}
-
-	action := actions[0]
-	actionFields := action.FieldsData()
-	errs := e.App.ExpandRecord(action, []string{"cell"}, nil)
-	if len(errs) > 0 {
-		for _, err = range errs {
-			return false, nil, nil, err
-		}
-	}
-
-	cell := action.ExpandedOne("cell")
-	cellFields := cell.FieldsData()
-	canRoll := true
-
-	statuses := []string{
-		adventuria.ActionStatusNotChosen,
-		adventuria.ActionStatusReroll,
-		adventuria.ActionStatusDrop,
-		adventuria.ActionStatusInProgress,
-	}
-	if slices.Contains(statuses, actionFields["status"].(string)) {
-		canRoll = false
-	}
-
-	if cellFields["code"].(string) == adventuria.SpecialCellBigWin &&
-		actionFields["status"].(string) == adventuria.ActionStatusReroll {
-		canRoll = true
-	}
-
-	return canRoll, action, cell, err
+	g.users.Set(auth.Id, user)
+	return user, nil
 }
 
-func (g *Game) Reroll(comment string, e *core.RequestEvent) error {
-	actions, err := e.App.FindRecordsByFilter(
-		"actions",
-		"user.id = {:userId}",
-		"-created",
-		1,
-		0,
-		dbx.Params{"userId": e.Auth.Id},
-	)
-	if err != nil {
-		e.JSON(http.StatusInternalServerError, err.Error())
-		return err
+func (g *Game) GetCells() ([]*core.Record, error) {
+	if len(g.cells) > 0 {
+		return g.cells, nil
 	}
 
-	if len(actions) == 0 {
-		e.JSON(http.StatusNotFound, "You must complete the last action")
-		return nil
-	}
-
-	action := actions[0]
-	actionFields := action.FieldsData()
-	statuses := []string{adventuria.ActionStatusInProgress}
-
-	if !slices.Contains(statuses, actionFields["status"].(string)) {
-		e.JSON(http.StatusNotFound, "You must complete the last action")
-		return nil
-	}
-
-	action.Set("status", adventuria.ActionStatusReroll)
-	action.Set("comment", comment)
-	err = e.App.Save(action)
-	if err != nil {
-		e.JSON(http.StatusInternalServerError, err.Error())
-		return err
-	}
-
-	return nil
-}
-
-func (g *Game) Move(n *int, status *string, e *core.RequestEvent) (*core.Record, *core.Record, error) {
-	user, err := e.App.FindRecordById("users", e.Auth.Id)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	actionsCollection, err := e.App.FindCollectionByNameOrId("actions")
-	if err != nil {
-		return nil, nil, err
-	}
-
-	cells, err := e.App.FindRecordsByFilter(
+	cells, err := g.app.FindRecordsByFilter(
 		"cells",
 		"",
 		"sort",
@@ -206,31 +50,113 @@ func (g *Game) Move(n *int, status *string, e *core.RequestEvent) (*core.Record,
 		-1,
 	)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	if status == nil {
-		status = new(string)
-		*status = adventuria.ActionStatusNotChosen
+	if len(cells) == 0 {
+		return nil, errors.New("no cells found")
 	}
 
-	userFields := user.FieldsData()
-	cellsPassed := int(userFields["cellsPassed"].(float64))
-	currentCellNum := (cellsPassed + *n) % len(cells)
-	currentCell := cells[currentCellNum]
+	g.cells = cells
 
-	record := core.NewRecord(actionsCollection)
-	record.Set("user", e.Auth.Id)
-	record.Set("cell", currentCell.Id)
-	record.Set("roll", n)
-	record.Set("status", *status)
-	err = e.App.Save(record)
+	return g.cells, nil
+}
+
+func (g *Game) ChooseGame(game string, auth *core.Record) error {
+	user, err := g.GetUser(auth)
+	if err != nil {
+		return err
+	}
+
+	nextStepType, err := user.GetNextStepType()
+	if err != nil {
+		return err
+	}
+
+	if nextStepType != adventuria.UserNextStepChooseGame {
+		return errors.New("next step isn't choose game")
+	}
+
+	action := user.actions[0]
+	actionFields := action.FieldsData()
+
+	statuses := []string{
+		adventuria.ActionStatusReroll,
+		adventuria.ActionStatusDrop,
+	}
+	if slices.Contains(statuses, actionFields["status"].(string)) {
+		record := core.NewRecord(action.Collection())
+		record.Set("user", auth.Id)
+		record.Set("cell", actionFields["cell"].(string))
+		record.Set("status", adventuria.ActionStatusInProgress)
+		record.Set("game", game)
+		err = user.AddAction(record)
+		if err != nil {
+			return err
+		}
+	} else {
+		action.Set("status", adventuria.ActionStatusInProgress)
+		action.Set("game", game)
+		err = g.app.Save(action)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (g *Game) GetNextStepType(auth *core.Record) (string, error) {
+	user, err := g.GetUser(auth)
+	if err != nil {
+		return "", err
+	}
+
+	nextStepType, err := user.GetNextStepType()
+	if err != nil {
+		return "", err
+	}
+
+	return nextStepType, nil
+}
+
+func (g *Game) Move(n int, status string, auth *core.Record) (*core.Record, *core.Record, error) {
+	user, err := g.GetUser(auth)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	user.Set("cellsPassed", cellsPassed+*n)
-	err = e.App.Save(user)
+	actionsCollection, err := g.app.FindCollectionByNameOrId(adventuria.TableActions)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	cells, err := g.GetCells()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if status == "" {
+		status = adventuria.ActionStatusNone
+	}
+
+	userFields := user.user.FieldsData()
+	cellsPassed := int(userFields["cellsPassed"].(float64))
+	currentCellNum := (cellsPassed + n) % len(cells)
+	currentCell := cells[currentCellNum]
+
+	record := core.NewRecord(actionsCollection)
+	record.Set("user", auth.Id)
+	record.Set("cell", currentCell.Id)
+	record.Set("roll", n)
+	record.Set("status", status)
+	err = user.AddAction(record)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	user.user.Set("cellsPassed", cellsPassed+n)
+	err = g.app.Save(user.user)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -238,126 +164,85 @@ func (g *Game) Move(n *int, status *string, e *core.RequestEvent) (*core.Record,
 	return record, currentCell, nil
 }
 
-func (g *Game) Roll(n *int, status *string, e *core.RequestEvent) (int, *core.Record, error) {
-	actions, err := e.App.FindRecordsByFilter(
-		"actions",
-		"user.id = {:userId}",
-		"-created",
-		1,
-		0,
-		dbx.Params{"userId": e.Auth.Id},
-	)
+func (g *Game) Reroll(comment string, auth *core.Record) error {
+	user, err := g.GetUser(auth)
+	if err != nil {
+		return err
+	}
+
+	nextStepType, err := user.GetNextStepType()
+	if err != nil {
+		return err
+	}
+
+	if nextStepType != adventuria.UserNextStepChooseResult {
+		return errors.New("next step isn't choose result")
+	}
+
+	action := user.actions[0]
+	action.Set("status", adventuria.ActionStatusReroll)
+	action.Set("comment", comment)
+	err = g.app.Save(action)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (g *Game) Roll(auth *core.Record) (int, *core.Record, error) {
+	user, err := g.GetUser(auth)
 	if err != nil {
 		return 0, nil, err
 	}
 
-	if len(actions) > 0 {
-		action := actions[0]
-		actionFields := action.FieldsData()
-		statuses := []string{adventuria.ActionStatusDone}
-
-		if actionFields["status"] != "" && !slices.Contains(statuses, actionFields["status"].(string)) {
-			return 0, nil, errors.New("last action isn't done yet")
-		}
-	}
-
-	if n == nil {
-		n = new(int)
-		*n = rand.IntN(6-1) + 1
-	}
-
-	_, currentCell, err := g.Move(n, status, e)
-
-	return *n, currentCell, nil
-}
-
-func (g *Game) CanDrop(e *core.RequestEvent) (bool, error) {
-	actions, err := e.App.FindRecordsByFilter(
-		"actions",
-		"user.id = {:userId}",
-		"-created",
-		3,
-		0,
-		dbx.Params{"userId": e.Auth.Id},
-	)
+	nextStepType, err := user.GetNextStepType()
 	if err != nil {
-		return false, err
+		return 0, nil, err
 	}
 
-	if len(actions) == 0 {
-		return false, nil
+	if nextStepType != adventuria.UserNextStepRoll {
+		return 0, nil, errors.New("next step isn't roll")
 	}
 
-	if len(actions) == 3 {
-		previousActions := actions[1:3]
-		i := 0
+	n := DiceTypeD4.Roll()
 
-		for _, previousAction := range previousActions {
-			previousActionFields := previousAction.FieldsData()
+	_, currentCell, err := g.Move(n, adventuria.ActionStatusGameNotChosen, auth)
 
-			if previousActionFields["status"].(string) == adventuria.ActionStatusDrop {
-				i++
-			}
-		}
-
-		if i >= 2 {
-			return false, nil
-		}
-	}
-
-	action := actions[0]
-	actionFields := action.FieldsData()
-
-	if actionFields["status"].(string) != adventuria.ActionStatusInProgress {
-		return false, nil
-	}
-
-	return true, nil
+	return n, currentCell, nil
 }
 
-func (g *Game) Drop(comment string, e *core.RequestEvent) error {
-	canDrop, err := g.CanDrop(e)
+func (g *Game) Drop(comment string, auth *core.Record) error {
+	user, err := g.GetUser(auth)
 	if err != nil {
 		return err
 	}
 
-	if !canDrop {
-		return errors.New("not allowed to drop")
-	}
-
-	actions, err := e.App.FindRecordsByFilter(
-		"actions",
-		"user.id = {:userId}",
-		"-created",
-		2,
-		0,
-		dbx.Params{"userId": e.Auth.Id},
-	)
+	nextStepType, err := user.GetNextStepType()
 	if err != nil {
 		return err
 	}
 
-	action := actions[0]
-	actionFields := action.FieldsData()
-
-	errs := e.App.ExpandRecord(action, []string{"user", "cell"}, nil)
-	if len(errs) > 0 {
-		for _, err = range errs {
-			return err
-		}
+	if nextStepType != adventuria.UserNextStepChooseResult {
+		return errors.New("next step isn't choose result")
 	}
 
-	user := action.ExpandedOne("user")
-	cell := action.ExpandedOne("cell")
-	userFields := user.FieldsData()
+	cell, err := user.GetCurrentCell()
+	if err != nil {
+		return err
+	}
+
+	action := user.actions[0]
+	actionFields := action.FieldsData()
+	userFields := user.user.FieldsData()
 	cellFields := cell.FieldsData()
 
-	if cellFields["code"].(string) != adventuria.SpecialCellBigWin {
+	if cellFields["code"].(string) != adventuria.CellTypeBigWin {
 		points := userFields["points"].(float64) - 2
 
-		user.Set("points", points)
+		user.user.Set("points", points)
 
-		err = e.App.Save(user)
+		err = g.app.Save(user.user)
 		if err != nil {
 			return err
 		}
@@ -365,23 +250,17 @@ func (g *Game) Drop(comment string, e *core.RequestEvent) error {
 
 	action.Set("status", adventuria.ActionStatusDrop)
 	action.Set("comment", comment)
-	err = e.App.Save(action)
+	err = g.app.Save(action)
 	if err != nil {
 		return err
 	}
 
-	if len(actions) > 1 {
-		previousAction := actions[1]
+	if len(user.actions) > 1 {
+		previousAction := user.actions[1]
 		previousActionFields := previousAction.FieldsData()
 
 		if previousActionFields["status"].(string) == adventuria.ActionStatusDrop {
-			cells, err := e.App.FindRecordsByFilter(
-				"cells",
-				"",
-				"sort",
-				-1,
-				-1,
-			)
+			cells, err := g.GetCells()
 			if err != nil {
 				return err
 			}
@@ -393,7 +272,7 @@ func (g *Game) Drop(comment string, e *core.RequestEvent) error {
 			var jailCell *core.Record
 			for _, cell := range cells {
 				cellFields := cell.FieldsData()
-				if cellFields["code"].(string) == adventuria.SpecialCellJail {
+				if cellFields["code"].(string) == adventuria.CellTypeJail {
 					jailCell = cell
 					break
 				}
@@ -409,20 +288,21 @@ func (g *Game) Drop(comment string, e *core.RequestEvent) error {
 			currentCellNum := cellsPassed % len(cells)
 
 			jailCellPos := int(jailCellFields["sort"].(float64))
-			roll := jailCellPos - currentCellNum
 
-			status := ""
-
-			_, _, err = g.Move(&roll, &status, e)
+			_, _, err = g.Move(
+				jailCellPos-currentCellNum,
+				adventuria.ActionStatusGameNotChosen,
+				auth,
+			)
 			if err != nil {
 				return err
 			}
-		} else if actionFields["status"].(string) == adventuria.ActionStatusInProgress {
+		} else {
 			record := core.NewRecord(action.Collection())
-			record.Set("user", e.Auth.Id)
+			record.Set("user", auth.Id)
 			record.Set("cell", actionFields["cell"].(string))
-			record.Set("status", adventuria.ActionStatusNotChosen)
-			err = e.App.Save(record)
+			record.Set("status", adventuria.ActionStatusGameNotChosen)
+			err = user.AddAction(record)
 			if err != nil {
 				return err
 			}
@@ -432,90 +312,96 @@ func (g *Game) Drop(comment string, e *core.RequestEvent) error {
 	return nil
 }
 
-func (g *Game) Done(comment string, e *core.RequestEvent) error {
-	actions, err := e.App.FindRecordsByFilter(
-		"actions",
-		"user.id = {:userId}",
-		"-created",
-		1,
-		0,
-		dbx.Params{"userId": e.Auth.Id},
-	)
+func (g *Game) Done(comment string, auth *core.Record) error {
+	user, err := g.GetUser(auth)
 	if err != nil {
-		e.JSON(http.StatusInternalServerError, err.Error())
 		return err
 	}
 
-	if len(actions) == 0 {
-		e.JSON(http.StatusNotFound, "You must complete the last action")
-		return nil
+	nextStepType, err := user.GetNextStepType()
+	if err != nil {
+		return err
 	}
 
-	action := actions[0]
-	actionFields := action.FieldsData()
-	statuses := []string{adventuria.ActionStatusInProgress}
-
-	if !slices.Contains(statuses, actionFields["status"].(string)) {
-		e.JSON(http.StatusNotFound, "You must complete the last action")
-		return nil
+	if nextStepType != adventuria.UserNextStepChooseResult {
+		return errors.New("next step isn't choose result")
 	}
 
+	cell, err := user.GetCurrentCell()
+	if err != nil {
+		return err
+	}
+
+	action := user.actions[0]
 	action.Set("status", adventuria.ActionStatusDone)
 	action.Set("comment", comment)
-	err = e.App.Save(action)
+	err = g.app.Save(action)
 	if err != nil {
-		e.JSON(http.StatusInternalServerError, err.Error())
 		return err
 	}
 
-	errs := e.App.ExpandRecord(action, []string{"user"}, nil)
-	if len(errs) > 0 {
-		e.JSON(http.StatusInternalServerError, errs)
-		return nil
-	}
-
-	errs = e.App.ExpandRecord(action, []string{"cell"}, nil)
-	if len(errs) > 0 {
-		e.JSON(http.StatusInternalServerError, errs)
-		return nil
-	}
-
-	user := action.ExpandedOne("user")
-	userFields := user.FieldsData()
-	cell := action.ExpandedOne("cell")
+	userFields := user.user.FieldsData()
 	cellFields := cell.FieldsData()
 
-	user.Set("points", userFields["points"].(float64)+cellFields["points"].(float64))
-	err = e.App.Save(user)
+	user.user.Set("points", userFields["points"].(float64)+cellFields["points"].(float64))
+	err = g.app.Save(user.user)
 	if err != nil {
-		e.JSON(http.StatusInternalServerError, err.Error())
 		return err
 	}
 
 	return nil
 }
 
-func (g *Game) GameResult(e *core.RequestEvent) (bool, *core.Record, error) {
-	actions, err := e.App.FindRecordsByFilter(
-		"actions",
-		"user.id = {:userId}",
-		"-created",
-		2,
-		0,
-		dbx.Params{"userId": e.Auth.Id},
+func (g *Game) GameResult(auth *core.Record) (bool, bool, *core.Record, error) {
+	user, err := g.GetUser(auth)
+	if err != nil {
+		return false, false, nil, err
+	}
+
+	if len(user.actions) == 0 {
+		return false, false, nil, errors.New("no active actions to record game result")
+	}
+
+	canDrop, err := user.CanDrop()
+	if err != nil {
+		return false, false, nil, err
+	}
+
+	isInJail, err := user.IsInJail()
+	if err != nil {
+		return false, false, nil, err
+	}
+
+	return canDrop, isInJail, user.actions[0], nil
+}
+
+// RollRandomCell
+// Роллить рандомную клетку можно только находясь в тюрьме.
+// Можно роллить только из клеток типа - game.
+/*func (g *Game) RollRandomCell(e *core.RequestEvent) (string, error) {
+	isInJail, err := g.user.IsInJail()
+	if err != nil {
+		return "", err
+	}
+
+	if !isInJail {
+		return "", errors.New("you can roll random cell only in jail")
+	}
+
+	cells, err := e.App.FindRecordsByFilter(
+		"cells",
+		"type = game",
+		"sort",
+		-1,
+		-1,
 	)
 	if err != nil {
-		return false, nil, err
+		return "", err
 	}
 
-	if len(actions) == 0 {
-		return false, nil, errors.New("no active actions to record game result")
-	}
+	n := rand.IntN(len(cells)-1) + 1
 
-	canDrop, err := g.CanDrop(e)
-	if err != nil {
-		return false, nil, err
-	}
+	cell := cells[n]
 
-	return canDrop, actions[0], nil
-}
+	return cell.Id, nil
+}*/

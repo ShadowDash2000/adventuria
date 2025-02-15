@@ -15,7 +15,7 @@ func main() {
 
 	app := pocketbase.New()
 
-	game := usecases.NewGame()
+	game := usecases.NewGame(app.App)
 	handlers := handlers.New(game)
 
 	app.OnServe().BindFunc(func(se *core.ServeEvent) error {
@@ -27,12 +27,14 @@ func main() {
 		g.POST("/roll", handlers.RollHandler)
 		g.POST("/choose-game", handlers.ChooseGameHandler)
 
-		g.GET("/get-last-action", handlers.GetLastActionHandler)
+		g.GET("/get-next-step-type", handlers.GetNextStepTypeHandler)
 		g.GET("/game-result", handlers.GameResultHandler)
 
 		g.POST("/reroll", handlers.RerollHandler)
 		g.POST("/drop", handlers.DropHandler)
 		g.POST("/done", handlers.DoneHandler)
+
+		//g.POST("/roll-random-cell", handlers.RollRandomCellHandler)
 
 		return se.Next()
 	})

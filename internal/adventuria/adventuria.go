@@ -1,14 +1,25 @@
 package adventuria
 
 const (
-	ActionStatusNotChosen  string = "notChosen"
-	ActionStatusReroll     string = "reroll"
-	ActionStatusDrop       string = "drop"
-	ActionStatusDone       string = "done"
-	ActionStatusInProgress string = "inProgress"
+	TableUsers   = "users"
+	TableActions = "actions"
+	TableCells   = "cells"
 
-	SpecialCellStart  string = "start"
-	SpecialCellJail   string = "jail"
-	SpecialCellBigWin string = "big-win"
-	SpecialCellPreset string = "preset"
+	ActionStatusNone          = "none"
+	ActionStatusGameNotChosen = "gameNotChosen"
+	ActionStatusReroll        = "reroll"
+	ActionStatusDrop          = "drop"
+	ActionStatusDone          = "done"
+	ActionStatusInProgress    = "inProgress"
+
+	CellTypeGame   = "game"
+	CellTypeStart  = "start"
+	CellTypeJail   = "jail"
+	CellTypeBigWin = "big-win"
+	CellTypePreset = "preset"
+
+	UserNextStepRoll         = "roll"
+	UserNextStepChooseResult = "chooseResult"
+	UserNextStepChooseGame   = "chooseGame"
+	UserNextStepRollCell     = "rollCell"
 )
