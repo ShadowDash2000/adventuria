@@ -68,7 +68,7 @@ h1, h2, h3, h4, h5, h6 {
             1px 1px 0 #000;
     grid-column: 2 / 11;
     grid-row: 2 / 11;
-    background: url("kiryu.gif");
+    background: url("img/kiryu.gif");
     background-size: 100% 100%;
     display: grid;
     grid-template-columns: repeat(7, 1fr);

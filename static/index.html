@@ -35,6 +35,22 @@
 <div class="table">
     <div class="board">
         <div class="center">
+            <table class="users">
+                <thead>
+                <tr>
+                    <th></th>
+                    <th>Имя</th>
+                    <th>Очки</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td><img src="/img/kiryu.gif" alt="Аватар" width="50" height="50"></td>
+                    <td>TEST</td>
+                    <td>1200</td>
+                </tr>
+                </tbody>
+            </table>
             <h1 class="title">ПРИКЛЮЧПОПИЯ</h1>
             <div class="actions-buttons">
                 <button class="button game-roll hidden" data-graph-path="dice" data-graph-animation="fadeInUp"
@@ -120,61 +136,13 @@
     </div>
     <div class="graph-modal__container dice" role="dialog" aria-modal="true" data-graph-target="dice">
         <div class="container">
-            <div class="scene">
-                <div class="cube" id="dice">
-                    <div class="face front one">
-                        <div class="dot-container">
-                            <div class="dot"></div>
-                        </div>
-                    </div>
-                    <div class="face back six">
-                        <div class="dot-container">
-                            <div class="dot"></div>
-                            <div class="dot"></div>
-                            <div class="dot"></div>
-                            <div class="dot"></div>
-                            <div class="dot"></div>
-                            <div class="dot"></div>
-                        </div>
-                    </div>
-                    <div class="face right three">
-                        <div class="dot-container">
-                            <div class="dot"></div>
-                            <div class="dot"></div>
-                            <div class="dot"></div>
-                        </div>
-                    </div>
-                    <div class="face left four">
-                        <div class="dot-container">
-                            <div class="dot"></div>
-                            <div class="dot"></div>
-                            <div class="dot"></div>
-                            <div class="dot"></div>
-                        </div>
-                    </div>
-                    <div class="face top five">
-                        <div class="dot-container">
-                            <div class="dot"></div>
-                            <div class="dot"></div>
-                            <div class="dot"></div>
-                            <div class="dot"></div>
-                            <div class="dot"></div>
-                        </div>
-                    </div>
-                    <div class="face bottom two">
-                        <div class="dot-container">
-                            <div class="dot"></div>
-                            <div class="dot"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <div class="scene"></div>
             <div class="roll-result hidden">
                 <span>Результат: </span>
                 <span class="roll-result__number">{{ROLL RESULT}}</span>
             </div>
             <div class="cell hidden">
-                <img src="kiryu.gif">
+                <img src="img/kiryu.gif">
                 <div class="cell-info">
                     <span class="cell-info__name">{{CELL NAME}}</span>
                     <div class="cell-info__description">{{CELL DESCRIPTION}}</div>
@@ -187,10 +155,77 @@
         </div>
     </div>
 </div>
+<template id="cell-template">
+    <div class="space property">
+        <div class="container">
+            <img src="/img/undefined.jpg">
+            <div class="name">{{NAME}}</div>
+            <div class="color-bar light-blue"></div>
+            <div class="users"></div>
+        </div>
+    </div>
+</template>
+<template id="special-cell-template">
+    <div class="container">
+        <img src="/img/undefined.jpg">
+        <div class="name">{{NAME}}</div>
+        <div class="users"></div>
+    </div>
+</template>
+<template id="d4-template">
+    <div class="cube">
+        <div class="face front one">
+            <div class="dot-container">
+                <div class="dot"></div>
+            </div>
+        </div>
+        <div class="face back six">
+            <div class="dot-container">
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            </div>
+        </div>
+        <div class="face right three">
+            <div class="dot-container">
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            </div>
+        </div>
+        <div class="face left four">
+            <div class="dot-container">
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            </div>
+        </div>
+        <div class="face top five">
+            <div class="dot-container">
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            </div>
+        </div>
+        <div class="face bottom two">
+            <div class="dot-container">
+                <div class="dot"></div>
+                <div class="dot"></div>
+            </div>
+        </div>
+    </div>
+</template>
 </body>
-<script defer src="/pocketbase/pocketbase.umd.js"></script>
-<script defer src="/graph-modal/graph-modal.min.js"></script>
-<script defer src="/main.js"></script>
-<script defer src="/dice.js"></script>
-<script defer src="/wheel.js"></script>
+<script defer type="module" src="/modal/auth.js"></script>
+<script defer type="module" src="/modal/game-picker.js"></script>
+<script defer type="module" src="/modal/game-result.js"></script>
+<script defer type="module" src="/modal/roll.js"></script>
+<script defer type="module" src="/modal/wheel.js"></script>
+<script defer type="module" src="/modal/submit.js"></script>
 </html>

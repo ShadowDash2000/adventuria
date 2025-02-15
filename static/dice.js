@@ -1,19 +1,52 @@
-function rollDice(forcedValue = null, duration = 4) {
-    const dice = document.getElementById('dice');
-    const rolls = [
+const rolls = {
+    'd4': [
         {x: 0, y: 0, value: 1},
         {x: 90, y: 0, value: 2},
         {x: 0, y: -90, value: 3},
         {x: 0, y: 90, value: 4},
         {x: -90, y: 0, value: 5},
-        {x: 180, y: 0, value: 6}
-    ];
+        {x: 180, y: 0, value: 6},
+    ],
+}
 
-    let roll = forcedValue ? rolls.find(r => r.value === forcedValue) : rolls[Math.floor(Math.random() * 6)];
+export default class Dice {
+    constructor() {
+        this.dicesTemplates = {
+            'd4': document.getElementById('d4-template'),
+        }
+        this.dices = [];
+    }
 
-    let randomX = Math.floor(Math.random() * 4 + 4) * 360;
-    let randomY = Math.floor(Math.random() * 4 + 4) * 360;
+    initDices(dices, container) {
+        this.dices = [];
+        container.innerHTML = '';
 
-    dice.style.transition = `transform ${duration}s ease-in-out`;
-    dice.style.transform = `rotateX(${randomX + roll.x}deg) rotateY(${randomY + roll.y}deg)`;
+        dices.forEach((dice) => {
+            if (!this.dicesTemplates[dice]) return;
+
+            const diceTemplate = this.dicesTemplates[dice].content.cloneNode(true);
+            const newDice = container.appendChild(diceTemplate.firstElementChild);
+
+            this.dices.push({
+                'type': dice,
+                'element': newDice,
+            });
+        });
+    }
+
+    rollDice(values = null, duration = 4) {
+        for (const key in this.dices) {
+            const dice = this.dices[key];
+
+            const roll = values[key] ?
+                rolls[dice.type].find(r => r.value === values[key]) :
+                rolls[dice.type][Math.floor(Math.random() * rolls[dice.type].length)];
+
+            let randomX = Math.floor(Math.random() * 4 + 4) * 360;
+            let randomY = Math.floor(Math.random() * 4 + 4) * 360;
+
+            dice.element.style.transition = `transform ${duration}s ease-in-out`;
+            dice.element.style.transform = `rotateX(${randomX + roll.x}deg) rotateY(${randomY + roll.y}deg)`;
+        }
+    }
 }

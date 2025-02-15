@@ -11,6 +11,7 @@
     display: grid;
     position: relative;
     width: 80%;
+    contain: layout paint;
 
     & > * { position: absolute; }
 

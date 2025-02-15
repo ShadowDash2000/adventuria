@@ -1,13 +1,20 @@
 .scene {
+    gap: 150px;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 350px;
-    height: 350px;
+    flex-wrap: wrap;
     perspective: 600px;
+    padding: 100px 0;
+
+    @media only screen and (max-width: 768px) {
+        gap: 50px;
+    }
 }
 
 .cube {
+    display: flex;
+    justify-content: center;
     width: 200px;
     height: 200px;
     position: relative;
