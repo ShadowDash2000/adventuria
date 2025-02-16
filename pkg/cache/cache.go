@@ -6,8 +6,9 @@ import (
 )
 
 type MemoryCache[T any] struct {
-	data sync.Map
-	ttl  time.Duration
+	data         sync.Map
+	ttl          time.Duration
+	preventClean bool
 }
 
 type cacheItem[T any] struct {
@@ -15,11 +16,16 @@ type cacheItem[T any] struct {
 	expiresAt time.Time
 }
 
-func NewMemoryCache[T any](ttl time.Duration, preventClear bool) *MemoryCache[T] {
-	cache := &MemoryCache[T]{ttl: ttl}
-	if !preventClear {
+func NewMemoryCache[T any](ttl time.Duration, preventClean bool) *MemoryCache[T] {
+	cache := &MemoryCache[T]{
+		ttl:          ttl,
+		preventClean: preventClean,
+	}
+
+	if !preventClean {
 		cache.startGC(5 * time.Minute)
 	}
+
 	return cache
 }
 
@@ -38,7 +44,7 @@ func (c *MemoryCache[T]) Get(key string) (T, bool) {
 	}
 
 	cachedItem := item.(cacheItem[T])
-	if time.Now().After(cachedItem.expiresAt) {
+	if !c.preventClean && time.Now().After(cachedItem.expiresAt) {
 		c.data.Delete(key)
 		var zero T
 		return zero, false

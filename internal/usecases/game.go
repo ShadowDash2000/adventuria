@@ -6,19 +6,21 @@ import (
 	"errors"
 	"github.com/pocketbase/pocketbase/core"
 	"slices"
+	"sync"
 	"time"
 )
 
 type Game struct {
 	app   core.App
+	mx    sync.Mutex
 	users *cache.MemoryCache[*User]
-	cells []*core.Record
+	cells map[int]*core.Record
 }
 
 func NewGame(app core.App) *Game {
 	return &Game{
 		app:   app,
-		users: cache.NewMemoryCache[*User](30*time.Minute, false),
+		users: cache.NewMemoryCache[*User](5*time.Minute, false),
 	}
 }
 
@@ -28,7 +30,7 @@ func (g *Game) GetUser(auth *core.Record) (*User, error) {
 		return user, nil
 	}
 
-	user, err := NewUser(g.app, auth)
+	user, err := NewUser(auth.Id, g.app)
 	if err != nil {
 		return nil, err
 	}
@@ -37,13 +39,13 @@ func (g *Game) GetUser(auth *core.Record) (*User, error) {
 	return user, nil
 }
 
-func (g *Game) GetCells() ([]*core.Record, error) {
-	if len(g.cells) > 0 {
+func (g *Game) GetCells() (map[int]*core.Record, error) {
+	if g.cells != nil {
 		return g.cells, nil
 	}
 
 	cells, err := g.app.FindRecordsByFilter(
-		"cells",
+		adventuria.TableCells,
 		"",
 		"sort",
 		-1,
@@ -57,7 +59,14 @@ func (g *Game) GetCells() ([]*core.Record, error) {
 		return nil, errors.New("no cells found")
 	}
 
-	g.cells = cells
+	g.mx.Lock()
+	defer g.mx.Unlock()
+
+	g.cells = make(map[int]*core.Record, len(cells))
+	for _, cell := range cells {
+		cellFields := cell.FieldsData()
+		g.cells[int(cellFields["sort"].(float64))] = cell
+	}
 
 	return g.cells, nil
 }

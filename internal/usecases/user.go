@@ -9,23 +9,24 @@ import (
 )
 
 type User struct {
-	app     core.App
-	auth    *core.Record
-	user    *core.Record
-	actions []*core.Record
+	app       core.App
+	userId    string
+	user      *core.Record
+	actions   []*core.Record
+	Inventory *Inventory
 }
 
-func NewUser(app core.App, auth *core.Record) (*User, error) {
+func NewUser(userId string, app core.App) (*User, error) {
+	if userId == "" {
+		return nil, errors.New("you're not authorized")
+	}
+
 	u := &User{
-		app:  app,
-		auth: auth,
+		app:    app,
+		userId: userId,
 	}
 
 	var err error
-
-	if u.auth.Id == "" {
-		return nil, errors.New("you're not authorized")
-	}
 
 	err = u.UpdateUser()
 	if err != nil {
@@ -37,12 +38,17 @@ func NewUser(app core.App, auth *core.Record) (*User, error) {
 		return nil, err
 	}
 
+	u.Inventory, err = NewInventory(userId, app)
+	if err != nil {
+		return nil, err
+	}
+
 	return u, nil
 }
 
 func (u *User) UpdateUser() error {
 	var err error
-	u.user, err = u.app.FindRecordById("users", u.auth.Id)
+	u.user, err = u.app.FindRecordById("users", u.userId)
 	if err != nil {
 		return err
 	}
@@ -74,7 +80,7 @@ func (u *User) UpdateActions(limit int) error {
 		"-created",
 		limit,
 		0,
-		dbx.Params{"userId": u.auth.Id},
+		dbx.Params{"userId": u.userId},
 	)
 	if err != nil {
 		return err

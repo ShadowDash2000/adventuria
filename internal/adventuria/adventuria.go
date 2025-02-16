@@ -1,9 +1,12 @@
 package adventuria
 
 const (
-	TableUsers   = "users"
-	TableActions = "actions"
-	TableCells   = "cells"
+	TableUsers          = "users"
+	TableActions        = "actions"
+	TableCells          = "cells"
+	TableItems          = "items"
+	TableInventory      = "inventory"
+	TableActionsEffects = "actionsEffects"
 
 	ActionStatusNone          = "none"
 	ActionStatusGameNotChosen = "gameNotChosen"
