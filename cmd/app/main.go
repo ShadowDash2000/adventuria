@@ -16,6 +16,14 @@ func main() {
 	app := pocketbase.New()
 
 	game := usecases.NewGame(app.App)
+
+	app.OnBootstrap().BindFunc(func(e *core.BootstrapEvent) error {
+		if err := e.Next(); err != nil {
+			return err
+		}
+		return game.Init()
+	})
+
 	handlers := handlers.New(game)
 
 	app.OnServe().BindFunc(func(se *core.ServeEvent) error {

@@ -5,19 +5,19 @@ import (
 	"time"
 )
 
-type MemoryCache[T any] struct {
+type MemoryCache[K comparable, V any] struct {
 	data         sync.Map
 	ttl          time.Duration
 	preventClean bool
 }
 
-type cacheItem[T any] struct {
-	value     T
+type cacheItem[V any] struct {
+	value     V
 	expiresAt time.Time
 }
 
-func NewMemoryCache[T any](ttl time.Duration, preventClean bool) *MemoryCache[T] {
-	cache := &MemoryCache[T]{
+func NewMemoryCache[K comparable, V any](ttl time.Duration, preventClean bool) *MemoryCache[K, V] {
+	cache := &MemoryCache[K, V]{
 		ttl:          ttl,
 		preventClean: preventClean,
 	}
@@ -29,42 +29,55 @@ func NewMemoryCache[T any](ttl time.Duration, preventClean bool) *MemoryCache[T]
 	return cache
 }
 
-func (c *MemoryCache[T]) Set(key string, value T) {
-	c.data.Store(key, cacheItem[T]{
+func (c *MemoryCache[K, V]) Set(key K, value V) {
+	c.data.Store(key, cacheItem[V]{
 		value:     value,
 		expiresAt: time.Now().Add(c.ttl),
 	})
 }
 
-func (c *MemoryCache[T]) Get(key string) (T, bool) {
+func (c *MemoryCache[K, V]) Get(key K) (V, bool) {
 	item, found := c.data.Load(key)
 	if !found {
-		var zero T
+		var zero V
 		return zero, false
 	}
 
-	cachedItem := item.(cacheItem[T])
+	cachedItem := item.(cacheItem[V])
 	if !c.preventClean && time.Now().After(cachedItem.expiresAt) {
 		c.data.Delete(key)
-		var zero T
+		var zero V
 		return zero, false
 	}
 
 	return cachedItem.value, true
 }
 
-func (c *MemoryCache[T]) Delete(key string) {
+func (c *MemoryCache[K, V]) Delete(key K) {
 	c.data.Delete(key)
 }
 
-func (c *MemoryCache[T]) startGC(interval time.Duration) {
+func (c *MemoryCache[K, V]) Count() int {
+	i := 0
+	c.data.Range(func(k, v interface{}) bool {
+		i++
+		return true
+	})
+	return i
+}
+
+func (c *MemoryCache[K, V]) Clear() {
+	c.data.Clear()
+}
+
+func (c *MemoryCache[K, V]) startGC(interval time.Duration) {
 	go func() {
 		for {
 			time.Sleep(interval)
 			now := time.Now()
 
 			c.data.Range(func(key, value interface{}) bool {
-				cacheItem := value.(cacheItem[T])
+				cacheItem := value.(cacheItem[V])
 				if now.After(cacheItem.expiresAt) {
 					c.data.Delete(key)
 				}

@@ -64,11 +64,9 @@ func NewInventory(userId string, app core.App) (*Inventory, error) {
 	i.inventory = make(map[string]*core.Record)
 	i.items = make(map[string]Usable)
 	for _, record := range inventory {
-		recordFields := record.FieldsData()
-		itemFields := itemsList[recordFields["item"].(string)].FieldsData()
-
+		item := itemsList[record.GetString("item")]
 		i.inventory[record.Id] = record
-		i.items[record.Id] = NewItem(itemFields["type"].(string), userId)
+		i.items[record.Id] = NewItem(item.GetString("type"), userId)
 	}
 
 	return i, nil

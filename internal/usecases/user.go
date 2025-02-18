@@ -28,12 +28,12 @@ func NewUser(userId string, app core.App) (*User, error) {
 
 	var err error
 
-	err = u.UpdateUser()
+	err = u.fetchUser()
 	if err != nil {
 		return nil, err
 	}
 
-	err = u.UpdateActions(3)
+	err = u.fetchUserActions(3)
 	if err != nil {
 		return nil, err
 	}
@@ -43,12 +43,31 @@ func NewUser(userId string, app core.App) (*User, error) {
 		return nil, err
 	}
 
+	u.bindHooks()
+
 	return u, nil
 }
 
-func (u *User) UpdateUser() error {
+func (u *User) bindHooks() {
+	u.app.OnRecordAfterCreateSuccess(adventuria.TableActions).BindFunc(func(e *core.RecordEvent) error {
+		userId := e.Record.GetString("user")
+		if userId == u.userId {
+			u.addAction(e.Record)
+		}
+		return e.Next()
+	})
+
+	u.app.OnRecordAfterUpdateSuccess(adventuria.TableUsers).BindFunc(func(e *core.RecordEvent) error {
+		if e.Record.Id == u.userId {
+			u.user = e.Record
+		}
+		return e.Next()
+	})
+}
+
+func (u *User) fetchUser() error {
 	var err error
-	u.user, err = u.app.FindRecordById("users", u.userId)
+	u.user, err = u.app.FindRecordById(adventuria.TableUsers, u.userId)
 	if err != nil {
 		return err
 	}
@@ -56,26 +75,10 @@ func (u *User) UpdateUser() error {
 	return nil
 }
 
-func (u *User) AddAction(action *core.Record) error {
-	if action.Collection().Name != adventuria.TableActions {
-		return errors.New("invalid collection")
-	}
-
-	err := u.app.Save(action)
-	if err != nil {
-		return err
-	}
-
-	copy(u.actions[1:], u.actions)
-	u.actions[0] = action
-
-	return nil
-}
-
-func (u *User) UpdateActions(limit int) error {
+func (u *User) fetchUserActions(limit int) error {
 	var err error
 	u.actions, err = u.app.FindRecordsByFilter(
-		"actions",
+		adventuria.TableActions,
 		"user.id = {:userId}",
 		"-created",
 		limit,
@@ -87,6 +90,11 @@ func (u *User) UpdateActions(limit int) error {
 	}
 
 	return nil
+}
+
+func (u *User) addAction(action *core.Record) {
+	copy(u.actions[1:], u.actions)
+	u.actions[0] = action
 }
 
 func (u *User) CanRoll() (bool, error) {
@@ -200,6 +208,22 @@ func (u *User) GetCurrentCell() (*core.Record, error) {
 	}
 
 	return action.ExpandedOne("cell"), nil
+}
+
+func (u *User) GetPoints() int {
+	return u.user.GetInt("points")
+}
+
+func (u *User) GetCellsPassed() int {
+	return u.user.GetInt("cellsPassed")
+}
+
+func (u *User) Set(key string, value any) {
+	u.user.Set(key, value)
+}
+
+func (u *User) Save() error {
+	return u.app.Save(u.user)
 }
 
 // GetNextStepType

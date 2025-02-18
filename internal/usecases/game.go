@@ -6,73 +6,99 @@ import (
 	"errors"
 	"github.com/pocketbase/pocketbase/core"
 	"slices"
-	"sync"
-	"time"
 )
 
 type Game struct {
-	app   core.App
-	mx    sync.Mutex
-	users *cache.MemoryCache[*User]
-	cells map[int]*core.Record
+	app        core.App
+	users      *cache.MemoryCache[string, *User]
+	cells      *cache.MemoryCache[int, *core.Record]
+	cellByCode *cache.MemoryCache[string, *core.Record]
 }
 
 func NewGame(app core.App) *Game {
 	return &Game{
-		app:   app,
-		users: cache.NewMemoryCache[*User](5*time.Minute, false),
+		app:        app,
+		users:      cache.NewMemoryCache[string, *User](0, true),
+		cells:      cache.NewMemoryCache[int, *core.Record](0, true),
+		cellByCode: cache.NewMemoryCache[string, *core.Record](0, true),
 	}
 }
 
-func (g *Game) GetUser(auth *core.Record) (*User, error) {
-	user, ok := g.users.Get(auth.Id)
+func (g *Game) Init() error {
+	err := g.fetchCells()
+	if err != nil {
+		return err
+	}
+
+	g.bindHooks()
+
+	return nil
+}
+
+func (g *Game) bindHooks() {
+	g.app.OnRecordAfterCreateSuccess(adventuria.TableCells).BindFunc(func(e *core.RecordEvent) error {
+		g.cells.Set(e.Record.GetInt("sort"), e.Record)
+		if cellCode := e.Record.GetString("code"); cellCode != "" {
+			g.cellByCode.Set(cellCode, e.Record)
+		}
+		return e.Next()
+	})
+	g.app.OnRecordAfterDeleteSuccess(adventuria.TableCells).BindFunc(func(e *core.RecordEvent) error {
+		g.cells.Delete(e.Record.GetInt("sort"))
+		if cellCode := e.Record.GetString("code"); cellCode != "" {
+			g.cellByCode.Delete(cellCode)
+		}
+		return e.Next()
+	})
+}
+
+func (g *Game) GetUser(userId string) (*User, error) {
+	user, ok := g.users.Get(userId)
 	if ok {
 		return user, nil
 	}
 
-	user, err := NewUser(auth.Id, g.app)
+	user, err := NewUser(userId, g.app)
 	if err != nil {
 		return nil, err
 	}
 
-	g.users.Set(auth.Id, user)
+	g.users.Set(userId, user)
 	return user, nil
 }
 
-func (g *Game) GetCells() (map[int]*core.Record, error) {
-	if g.cells != nil {
-		return g.cells, nil
-	}
+func (g *Game) fetchCells() error {
+	g.cells.Clear()
+	g.cellByCode.Clear()
 
 	cells, err := g.app.FindRecordsByFilter(
 		adventuria.TableCells,
 		"",
 		"sort",
-		-1,
-		-1,
+		0,
+		0,
 	)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	if len(cells) == 0 {
-		return nil, errors.New("no cells found")
+		return errors.New("no cells found")
 	}
 
-	g.mx.Lock()
-	defer g.mx.Unlock()
-
-	g.cells = make(map[int]*core.Record, len(cells))
 	for _, cell := range cells {
-		cellFields := cell.FieldsData()
-		g.cells[int(cellFields["sort"].(float64))] = cell
+		g.cells.Set(cell.GetInt("sort"), cell)
+		code := cell.GetString("code")
+		if code != "" {
+			g.cellByCode.Set(code, cell)
+		}
 	}
 
-	return g.cells, nil
+	return nil
 }
 
 func (g *Game) ChooseGame(game string, auth *core.Record) error {
-	user, err := g.GetUser(auth)
+	user, err := g.GetUser(auth.Id)
 	if err != nil {
 		return err
 	}
@@ -99,7 +125,7 @@ func (g *Game) ChooseGame(game string, auth *core.Record) error {
 		record.Set("cell", actionFields["cell"].(string))
 		record.Set("status", adventuria.ActionStatusInProgress)
 		record.Set("game", game)
-		err = user.AddAction(record)
+		err = g.app.Save(record)
 		if err != nil {
 			return err
 		}
@@ -116,7 +142,7 @@ func (g *Game) ChooseGame(game string, auth *core.Record) error {
 }
 
 func (g *Game) GetNextStepType(auth *core.Record) (string, error) {
-	user, err := g.GetUser(auth)
+	user, err := g.GetUser(auth.Id)
 	if err != nil {
 		return "", err
 	}
@@ -130,7 +156,7 @@ func (g *Game) GetNextStepType(auth *core.Record) (string, error) {
 }
 
 func (g *Game) Move(n int, status string, auth *core.Record) (*core.Record, *core.Record, error) {
-	user, err := g.GetUser(auth)
+	user, err := g.GetUser(auth.Id)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -140,32 +166,26 @@ func (g *Game) Move(n int, status string, auth *core.Record) (*core.Record, *cor
 		return nil, nil, err
 	}
 
-	cells, err := g.GetCells()
-	if err != nil {
-		return nil, nil, err
-	}
-
 	if status == "" {
 		status = adventuria.ActionStatusNone
 	}
 
-	userFields := user.user.FieldsData()
-	cellsPassed := int(userFields["cellsPassed"].(float64))
-	currentCellNum := (cellsPassed + n) % len(cells)
-	currentCell := cells[currentCellNum]
+	cellsPassed := user.GetCellsPassed()
+	currentCellNum := (cellsPassed + n) % g.cells.Count()
+	currentCell, _ := g.cells.Get(currentCellNum)
 
 	record := core.NewRecord(actionsCollection)
 	record.Set("user", auth.Id)
 	record.Set("cell", currentCell.Id)
 	record.Set("roll", n)
 	record.Set("status", status)
-	err = user.AddAction(record)
+	err = g.app.Save(record)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	user.user.Set("cellsPassed", cellsPassed+n)
-	err = g.app.Save(user.user)
+	user.Set("cellsPassed", cellsPassed+n)
+	err = user.Save()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -174,7 +194,7 @@ func (g *Game) Move(n int, status string, auth *core.Record) (*core.Record, *cor
 }
 
 func (g *Game) Reroll(comment string, auth *core.Record) error {
-	user, err := g.GetUser(auth)
+	user, err := g.GetUser(auth.Id)
 	if err != nil {
 		return err
 	}
@@ -200,7 +220,7 @@ func (g *Game) Reroll(comment string, auth *core.Record) error {
 }
 
 func (g *Game) Roll(auth *core.Record) (int, *core.Record, error) {
-	user, err := g.GetUser(auth)
+	user, err := g.GetUser(auth.Id)
 	if err != nil {
 		return 0, nil, err
 	}
@@ -222,7 +242,7 @@ func (g *Game) Roll(auth *core.Record) (int, *core.Record, error) {
 }
 
 func (g *Game) Drop(comment string, auth *core.Record) error {
-	user, err := g.GetUser(auth)
+	user, err := g.GetUser(auth.Id)
 	if err != nil {
 		return err
 	}
@@ -243,15 +263,13 @@ func (g *Game) Drop(comment string, auth *core.Record) error {
 
 	action := user.actions[0]
 	actionFields := action.FieldsData()
-	userFields := user.user.FieldsData()
-	cellFields := cell.FieldsData()
 
-	if cellFields["code"].(string) != adventuria.CellTypeBigWin {
-		points := userFields["points"].(float64) - 2
+	if cell.GetString("type") != adventuria.CellTypeBigWin {
+		points := user.GetPoints() - 2
 
-		user.user.Set("points", points)
+		user.Set("points", points)
 
-		err = g.app.Save(user.user)
+		err = user.Save()
 		if err != nil {
 			return err
 		}
@@ -269,34 +287,13 @@ func (g *Game) Drop(comment string, auth *core.Record) error {
 		previousActionFields := previousAction.FieldsData()
 
 		if previousActionFields["status"].(string) == adventuria.ActionStatusDrop {
-			cells, err := g.GetCells()
-			if err != nil {
-				return err
-			}
-
-			if len(cells) == 0 {
-				return errors.New("no cells found")
-			}
-
-			var jailCell *core.Record
-			for _, cell := range cells {
-				cellFields := cell.FieldsData()
-				if cellFields["code"].(string) == adventuria.CellTypeJail {
-					jailCell = cell
-					break
-				}
-			}
-
-			if jailCell == nil {
+			jailCell, ok := g.cellByCode.Get("jail")
+			if !ok {
 				return errors.New("jail cell not found")
 			}
 
-			jailCellFields := jailCell.FieldsData()
-
-			cellsPassed := int(userFields["cellsPassed"].(float64))
-			currentCellNum := cellsPassed % len(cells)
-
-			jailCellPos := int(jailCellFields["sort"].(float64))
+			currentCellNum := user.GetCellsPassed() % g.cells.Count()
+			jailCellPos := jailCell.GetInt("sort")
 
 			_, _, err = g.Move(
 				jailCellPos-currentCellNum,
@@ -311,7 +308,7 @@ func (g *Game) Drop(comment string, auth *core.Record) error {
 			record.Set("user", auth.Id)
 			record.Set("cell", actionFields["cell"].(string))
 			record.Set("status", adventuria.ActionStatusGameNotChosen)
-			err = user.AddAction(record)
+			err = g.app.Save(record)
 			if err != nil {
 				return err
 			}
@@ -322,7 +319,7 @@ func (g *Game) Drop(comment string, auth *core.Record) error {
 }
 
 func (g *Game) Done(comment string, auth *core.Record) error {
-	user, err := g.GetUser(auth)
+	user, err := g.GetUser(auth.Id)
 	if err != nil {
 		return err
 	}
@@ -349,11 +346,8 @@ func (g *Game) Done(comment string, auth *core.Record) error {
 		return err
 	}
 
-	userFields := user.user.FieldsData()
-	cellFields := cell.FieldsData()
-
-	user.user.Set("points", userFields["points"].(float64)+cellFields["points"].(float64))
-	err = g.app.Save(user.user)
+	user.Set("points", user.GetPoints()+cell.GetInt("points"))
+	err = user.Save()
 	if err != nil {
 		return err
 	}
@@ -362,7 +356,7 @@ func (g *Game) Done(comment string, auth *core.Record) error {
 }
 
 func (g *Game) GameResult(auth *core.Record) (bool, bool, *core.Record, error) {
-	user, err := g.GetUser(auth)
+	user, err := g.GetUser(auth.Id)
 	if err != nil {
 		return false, false, nil, err
 	}
