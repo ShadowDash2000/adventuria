@@ -1,21 +1,21 @@
 package handlers
 
 import (
-	"adventuria/internal/usecases"
+	"adventuria/internal/adventuria"
 	"github.com/pocketbase/pocketbase/core"
 	"net/http"
 )
 
 type Handlers struct {
-	Game *usecases.Game
+	Game *adventuria.Game
 }
 
-func New(g *usecases.Game) *Handlers {
+func New(g *adventuria.Game) *Handlers {
 	return &Handlers{Game: g}
 }
 
 func (h *Handlers) RollHandler(e *core.RequestEvent) error {
-	n, currentCell, err := h.Game.Roll(e.Auth)
+	n, currentCell, err := h.Game.Roll(e.Auth.Id)
 	if err != nil {
 		e.JSON(http.StatusInternalServerError, err.Error())
 		return err
@@ -51,7 +51,7 @@ func (h *Handlers) ChooseGameHandler(e *core.RequestEvent) error {
 		return nil
 	}
 
-	err := h.Game.ChooseGame(data.Game, e.Auth)
+	err := h.Game.ChooseGame(data.Game, e.Auth.Id)
 	if err != nil {
 		e.JSON(http.StatusInternalServerError, err.Error())
 		return nil
@@ -62,7 +62,7 @@ func (h *Handlers) ChooseGameHandler(e *core.RequestEvent) error {
 }
 
 func (h *Handlers) GetNextStepTypeHandler(e *core.RequestEvent) error {
-	nextStepType, err := h.Game.GetNextStepType(e.Auth)
+	nextStepType, err := h.Game.GetNextStepType(e.Auth.Id)
 	if err != nil {
 		e.JSON(http.StatusInternalServerError, err.Error())
 		return nil
@@ -84,7 +84,7 @@ func (h *Handlers) RerollHandler(e *core.RequestEvent) error {
 		return nil
 	}
 
-	err := h.Game.Reroll(data.Comment, e.Auth)
+	err := h.Game.Reroll(data.Comment, e.Auth.Id)
 	if err != nil {
 		e.JSON(http.StatusInternalServerError, err.Error())
 		return err
@@ -105,7 +105,7 @@ func (h *Handlers) DropHandler(e *core.RequestEvent) error {
 		return nil
 	}
 
-	err = h.Game.Drop(data.Comment, e.Auth)
+	err = h.Game.Drop(data.Comment, e.Auth.Id)
 	if err != nil {
 		e.JSON(http.StatusInternalServerError, err.Error())
 		return err
@@ -125,7 +125,7 @@ func (h *Handlers) DoneHandler(e *core.RequestEvent) error {
 		return nil
 	}
 
-	err := h.Game.Done(data.Comment, e.Auth)
+	err := h.Game.Done(data.Comment, e.Auth.Id)
 	if err != nil {
 		e.JSON(http.StatusInternalServerError, err.Error())
 		return err
@@ -136,7 +136,7 @@ func (h *Handlers) DoneHandler(e *core.RequestEvent) error {
 }
 
 func (h *Handlers) GameResultHandler(e *core.RequestEvent) error {
-	canDrop, isInJail, action, err := h.Game.GameResult(e.Auth)
+	isInJail, action, err := h.Game.GetLastAction(e.Auth.Id)
 	if err != nil {
 		e.JSON(http.StatusInternalServerError, err.Error())
 		return err
@@ -146,7 +146,6 @@ func (h *Handlers) GameResultHandler(e *core.RequestEvent) error {
 
 	e.JSON(http.StatusOK, map[string]interface{}{
 		"game":     actionFields["game"].(string),
-		"canDrop":  canDrop,
 		"isInJail": isInJail,
 	})
 

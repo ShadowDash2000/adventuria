@@ -1,19 +1,19 @@
 package adventuria
 
 const (
-	TableUsers          = "users"
-	TableActions        = "actions"
-	TableCells          = "cells"
-	TableItems          = "items"
-	TableInventory      = "inventory"
-	TableActionsEffects = "actionsEffects"
+	TableUsers     = "users"
+	TableActions   = "actions"
+	TableCells     = "cells"
+	TableItems     = "items"
+	TableInventory = "inventory"
 
-	ActionStatusNone          = "none"
-	ActionStatusGameNotChosen = "gameNotChosen"
-	ActionStatusReroll        = "reroll"
-	ActionStatusDrop          = "drop"
-	ActionStatusDone          = "done"
-	ActionStatusInProgress    = "inProgress"
+	ActionTypeRoll       = "roll"
+	ActionTypeReroll     = "reroll"
+	ActionTypeDrop       = "drop"
+	ActionTypeDone       = "done"
+	ActionTypeGame       = "game"
+	ActionTypeRollCell   = "rollCell"
+	ActionTypeRollPreset = "rollPreset"
 
 	CellTypeGame   = "game"
 	CellTypeStart  = "start"
@@ -21,8 +21,11 @@ const (
 	CellTypeBigWin = "big-win"
 	CellTypePreset = "preset"
 
-	UserNextStepRoll         = "roll"
-	UserNextStepChooseResult = "chooseResult"
-	UserNextStepChooseGame   = "chooseGame"
-	UserNextStepRollCell     = "rollCell"
+	UserNextStepRoll             = "roll"
+	UserNextStepChooseResult     = "chooseResult"
+	UserNextStepChooseGame       = "chooseGame"
+	UserNextStepRollJailCell     = "rollJailCell"
+	UserNextStepRollBigWin       = "rollBigWin"
+	UserNextStepRollOnBigWinDrop = "rollOnBigWinDrop"
+	UserNextStepRollPreset       = "rollPreset"
 )

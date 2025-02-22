@@ -1,4 +1,4 @@
-package usecases
+package adventuria
 
 import "math/rand/v2"
 

@@ -57,6 +57,10 @@ func (c *MemoryCache[K, V]) Delete(key K) {
 	c.data.Delete(key)
 }
 
+func (c *MemoryCache[K, V]) Range(f func(k, v interface{}) bool) {
+	c.data.Range(f)
+}
+
 func (c *MemoryCache[K, V]) Count() int {
 	i := 0
 	c.data.Range(func(k, v interface{}) bool {

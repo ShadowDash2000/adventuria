@@ -1,8 +1,8 @@
 package main
 
 import (
+	"adventuria/internal/adventuria"
 	"adventuria/internal/http/handlers/v1"
-	"adventuria/internal/usecases"
 	"github.com/pocketbase/pocketbase"
 	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/core"
@@ -15,7 +15,7 @@ func main() {
 
 	app := pocketbase.New()
 
-	game := usecases.NewGame(app.App)
+	game := adventuria.NewGame(app.App)
 
 	app.OnBootstrap().BindFunc(func(e *core.BootstrapEvent) error {
 		if err := e.Next(); err != nil {
