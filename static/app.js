@@ -150,6 +150,7 @@ class App {
             case 'rollBigWin':
             case 'rollMovie':
             case 'rollPreset':
+            case 'rollItem':
                 button = actionsButtons.querySelector('button.wheel');
                 break;
         }

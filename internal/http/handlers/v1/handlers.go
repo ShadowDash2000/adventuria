@@ -179,6 +179,20 @@ func (h *Handlers) RollMovieHandler(e *core.RequestEvent) error {
 	return nil
 }
 
+func (h *Handlers) RollItemHandler(e *core.RequestEvent) error {
+	itemId, err := h.Game.RollItem(e.Auth.Id)
+	if err != nil {
+		e.JSON(http.StatusInternalServerError, err.Error())
+		return err
+	}
+
+	e.JSON(http.StatusOK, map[string]interface{}{
+		"itemId": itemId,
+	})
+
+	return nil
+}
+
 func (h *Handlers) GetRollEffectsHandler(e *core.RequestEvent) error {
 	effects, err := h.Game.GetRollEffects(e.Auth.Id)
 	if err != nil {

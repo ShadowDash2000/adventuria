@@ -16,6 +16,7 @@ const (
 	ActionTypeRollCell   = "rollCell"
 	ActionTypeRollPreset = "rollPreset"
 	ActionTypeRollMovie  = "rollMovie"
+	ActionTypeRollItem   = "rollItem"
 
 	CellTypeGame   = "game"
 	CellTypeStart  = "start"
@@ -23,6 +24,7 @@ const (
 	CellTypeBigWin = "big-win"
 	CellTypePreset = "preset"
 	CellTypeMovie  = "movie"
+	CellTypeItem   = "item"
 
 	UserNextStepRoll             = "roll"
 	UserNextStepChooseResult     = "chooseResult"
@@ -33,4 +35,5 @@ const (
 	UserNextStepRollPreset       = "rollPreset"
 	UserNextStepRollMovie        = "rollMovie"
 	UserNextStepMovieResult      = "movieResult"
+	UserNextStepRollItem         = "rollItem"
 )

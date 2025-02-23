@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (modalName !== 'wheel') return;
 
-        let items = [];
+        let wheelItems = [];
         switch (app.nextStepType) {
             case 'rollJailCell':
                 const cells = await app.pb.collection('cells').getFullList({
@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
 
                 for (const cell of cells) {
-                    items.push({
+                    wheelItems.push({
                         id: cell.id,
                         src: "/api/files/" + cell.collectionId + "/" + cell.id + "/" + cell.icon,
                         text: cell.name
@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
 
                 for (const game of games) {
-                    items.push({
+                    wheelItems.push({
                         id: game.id,
                         src: "/api/files/" + game.collectionId + "/" + game.id + "/" + game.icon,
                         text: game.name
@@ -47,17 +47,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
 
                 for (const movie of movies) {
-                    items.push({
+                    wheelItems.push({
                         id: movie.id,
                         src: "/api/files/" + movie.collectionId + "/" + movie.id + "/" + movie.icon,
                         text: movie.name
                     });
                 }
                 break;
+            case 'rollItem':
+                const items = await app.pb.collection('items').getFullList({
+                    filter: 'isRollable = true',
+                });
+
+                for (const item of items) {
+                    wheelItems.push({
+                        id: item.id,
+                        src: "/api/files/" + item.collectionId + "/" + item.id + "/" + item.icon,
+                        text: item.name
+                    });
+                }
+                break;
         }
 
-        if (items) {
-            wheel.createWheel(items);
+        if (wheelItems) {
+            wheel.createWheel(wheelItems);
             startButton.addEventListener('click', startSpin);
         }
     });
@@ -79,6 +92,9 @@ async function startSpin() {
             break;
         case 'rollMovie':
             url = '/api/roll-movie';
+            break;
+        case 'rollItem':
+            url = '/api/roll-item';
             break;
     }
 

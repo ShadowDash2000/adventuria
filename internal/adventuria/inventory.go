@@ -1,6 +1,7 @@
 package adventuria
 
 import (
+	"errors"
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
 	"maps"
@@ -10,15 +11,17 @@ import (
 )
 
 type Inventory struct {
-	app    core.App
-	userId string
-	items  map[string]*InventoryItem
+	app      core.App
+	userId   string
+	items    map[string]*InventoryItem
+	maxSlots int
 }
 
-func NewInventory(userId string, app core.App) (*Inventory, error) {
+func NewInventory(userId string, maxSlots int, app core.App) (*Inventory, error) {
 	i := &Inventory{
-		app:    app,
-		userId: userId,
+		app:      app,
+		userId:   userId,
+		maxSlots: maxSlots,
 	}
 
 	err := i.fetchInventory()
@@ -76,15 +79,39 @@ func (i *Inventory) fetchInventory() error {
 	return nil
 }
 
-func (i *Inventory) AddItem(item *core.Record) error {
+func (i *Inventory) SetMaxSlots(maxSlots int) {
+	i.maxSlots = maxSlots
+}
+
+func (i *Inventory) GetAvailableSlots() int {
+	usedSlots := 0
+	for _, item := range i.items {
+		if item.IsUsingSlot() {
+			usedSlots++
+		}
+	}
+	return i.maxSlots - usedSlots
+}
+
+func (i *Inventory) AddItem(itemId string) error {
+	if i.GetAvailableSlots() <= 0 {
+		return errors.New("no available slots")
+	}
+
 	inventoryCollection, err := i.app.FindCollectionByNameOrId(TableInventory)
+	if err != nil {
+		return err
+	}
+
+	item, err := i.app.FindRecordById(TableItems, itemId)
 	if err != nil {
 		return err
 	}
 
 	record := core.NewRecord(inventoryCollection)
 	record.Set("user", i.userId)
-	record.Set("item", item.Id)
+	record.Set("item", itemId)
+	record.Set("isActive", item.GetBool("isActiveByDefault"))
 	err = i.app.Save(record)
 	if err != nil {
 		return err

@@ -498,3 +498,53 @@ func (g *Game) RollMovie(userId string) (string, error) {
 
 	return movie.Id, nil
 }
+
+func (g *Game) RollItem(userId string) (string, error) {
+	user, err := g.GetUser(userId)
+	if err != nil {
+		return "", err
+	}
+
+	nextStepType, err := user.GetNextStepType()
+	if err != nil {
+		return "", err
+	}
+
+	if nextStepType != UserNextStepRollItem {
+		return "", errors.New("next step isn't roll item")
+	}
+
+	items, err := g.app.FindRecordsByFilter(
+		TableItems,
+		"isRollable = true",
+		"",
+		0,
+		0,
+	)
+	if err != nil {
+		return "", err
+	}
+
+	if len(items) == 0 {
+		return "", errors.New("items not found")
+	}
+
+	item := items[rand.Intn(len(items)-1)]
+
+	record := core.NewRecord(user.lastAction.Collection())
+	record.Set("user", userId)
+	record.Set("cell", user.lastAction.GetString("cell"))
+	record.Set("type", ActionTypeRollItem)
+	record.Set("value", item.Id)
+	err = g.app.Save(record)
+	if err != nil {
+		return "", err
+	}
+
+	err = user.Inventory.AddItem(item.Id)
+	if err != nil {
+		return "", err
+	}
+
+	return item.Id, nil
+}

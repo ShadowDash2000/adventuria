@@ -39,3 +39,7 @@ func (ii *InventoryItem) GetEffects(event string) any {
 
 	return ii.item.GetEffects(event)
 }
+
+func (ii *InventoryItem) IsUsingSlot() bool {
+	return ii.item.IsUsingSlot()
+}

@@ -36,7 +36,7 @@ func NewUser(userId string, app core.App) (*User, error) {
 		return nil, err
 	}
 
-	u.Inventory, err = NewInventory(userId, app)
+	u.Inventory, err = NewInventory(userId, u.user.GetInt("maxInventorySlots"), app)
 	if err != nil {
 		return nil, err
 	}
@@ -58,6 +58,7 @@ func (u *User) bindHooks() {
 	u.app.OnRecordAfterUpdateSuccess(TableUsers).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == u.userId {
 			u.user = e.Record
+			u.Inventory.SetMaxSlots(e.Record.GetInt("maxInventorySlots"))
 		}
 		return e.Next()
 	})
@@ -216,6 +217,13 @@ func (u *User) GetNextStepType() (string, error) {
 			nextStepType = UserNextStepRollMovie
 		case ActionTypeRollMovie:
 			nextStepType = UserNextStepMovieResult
+		}
+	case CellTypeItem:
+		switch lastActionType {
+		case ActionTypeRoll:
+			nextStepType = UserNextStepRollItem
+		case ActionTypeRollItem:
+			nextStepType = UserNextStepRoll
 		}
 	}
 

@@ -10,6 +10,10 @@ type Usable interface {
 	GetEffects(string) any
 	GetOrder() int
 	SetItem(*core.Record)
+	IsUsingSlot() bool
+	IsActiveByDefault() bool
+	CanDrop() bool
+	GetItemRecord() *core.Record
 }
 
 const (
@@ -69,6 +73,22 @@ func (i *Item) GetOrder() int {
 
 func (i *Item) SetItem(item *core.Record) {
 	i.item = item
+}
+
+func (i *Item) IsUsingSlot() bool {
+	return i.item.GetBool("isUsingSlot")
+}
+
+func (i *Item) IsActiveByDefault() bool {
+	return i.item.GetBool("isActiveByDefault")
+}
+
+func (i *Item) CanDrop() bool {
+	return i.item.GetBool("canDrop")
+}
+
+func (i *Item) GetItemRecord() *core.Record {
+	return i.item
 }
 
 type ItemDiceMultiplier struct {
