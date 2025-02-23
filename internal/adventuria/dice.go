@@ -3,8 +3,8 @@ package adventuria
 import "math/rand/v2"
 
 type Dice struct {
-	Type      string
-	MaxNumber int
+	Type      string `json:"type"`
+	MaxNumber int    `json:"maxNumber"`
 }
 
 var Dices = map[string]Dice{

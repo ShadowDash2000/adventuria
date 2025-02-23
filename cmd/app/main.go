@@ -37,12 +37,14 @@ func main() {
 
 		g.GET("/get-next-step-type", handlers.GetNextStepTypeHandler)
 		g.GET("/game-result", handlers.GameResultHandler)
+		g.GET("/get-roll-effects", handlers.GetRollEffectsHandler)
 
 		g.POST("/reroll", handlers.RerollHandler)
 		g.POST("/drop", handlers.DropHandler)
 		g.POST("/done", handlers.DoneHandler)
 
-		//g.POST("/roll-random-cell", handlers.RollRandomCellHandler)
+		g.POST("/roll-cell", handlers.RollCellHandler)
+		g.POST("/roll-movie", handlers.RollMovieHandler)
 
 		return se.Next()
 	})

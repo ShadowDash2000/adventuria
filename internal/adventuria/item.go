@@ -9,10 +9,12 @@ import (
 type Usable interface {
 	GetEffects(string) any
 	GetOrder() int
+	SetItem(*core.Record)
 }
 
 const (
 	ItemTypeDiceMultiplier = "diceMultiplier"
+	ItemTypeDiceIncrement  = "diceIncrement"
 	ItemTypeSafeDrop       = "safeDrop"
 	ItemTypeChangeDices    = "changeDices"
 
@@ -27,17 +29,19 @@ const (
 )
 
 var items = map[string]Usable{
-	ItemTypeSafeDrop: &ItemSafeDrop{},
+	ItemTypeDiceMultiplier: &ItemDiceMultiplier{},
+	ItemTypeDiceIncrement:  &ItemDiceIncrement{},
+	ItemTypeSafeDrop:       &ItemSafeDrop{},
 }
 
 type OnRollEffects struct {
-	DiceMultiplier int
-	DiceIncrement  int
-	Dices          []Dice
+	DiceMultiplier int    `json:"diceMultiplier"`
+	DiceIncrement  int    `json:"diceIncrement"`
+	Dices          []Dice `json:"dices"`
 }
 
 type OnDropEffects struct {
-	IsSafeDrop bool
+	IsSafeDrop bool `json:"isSafeDrop"`
 }
 
 type Item struct {
@@ -50,6 +54,8 @@ func NewItem(record *core.Record) (Usable, error) {
 		return nil, errors.New("item type not found")
 	}
 
+	item.SetItem(record)
+
 	return item, nil
 }
 
@@ -61,6 +67,10 @@ func (i *Item) GetOrder() int {
 	return i.item.GetInt("order")
 }
 
+func (i *Item) SetItem(item *core.Record) {
+	i.item = item
+}
+
 type ItemDiceMultiplier struct {
 	Item
 }
@@ -68,8 +78,23 @@ type ItemDiceMultiplier struct {
 func (i *ItemDiceMultiplier) GetEffects(event string) any {
 	switch event {
 	case ItemUseTypeOnRoll:
-		return OnRollEffects{
+		return &OnRollEffects{
 			DiceMultiplier: i.item.GetInt("value"),
+		}
+	}
+
+	return nil
+}
+
+type ItemDiceIncrement struct {
+	Item
+}
+
+func (i *ItemDiceIncrement) GetEffects(event string) any {
+	switch event {
+	case ItemUseTypeOnRoll:
+		return &OnRollEffects{
+			DiceIncrement: i.item.GetInt("value"),
 		}
 	}
 
@@ -105,7 +130,7 @@ func (i *ItemChangeDices) GetEffects(event string) any {
 
 	switch event {
 	case ItemUseTypeOnRoll:
-		return OnRollEffects{Dices: dices}
+		return &OnRollEffects{Dices: dices}
 	}
 
 	return nil

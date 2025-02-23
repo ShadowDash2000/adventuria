@@ -12,12 +12,28 @@ document.addEventListener('DOMContentLoaded', () => {
     rollResult = rollModal.querySelector('.roll-result');
     cell = rollModal.querySelector('.cell');
 
-    document.addEventListener('modal.open', (e) => {
+    document.addEventListener('modal.open', async (e) => {
         const modalName = e.detail.modalName;
 
         if (modalName !== 'dice') return;
 
-        dice.initDices(['d4', 'd4'], scene);
+        const res = await fetch('/api/get-roll-effects', {
+            method: "GET",
+            headers: {
+                "Authorization": app.auth.token,
+            },
+        });
+
+        if (!res.ok) return;
+
+        const json = await res.json();
+        
+        let dices = [];
+        for (const dice of json.dices) {
+            dices.push(dice.type);
+        }
+
+        dice.initDices(dices, scene);
 
         rollButton.addEventListener('click', roll);
     });
@@ -43,7 +59,7 @@ async function roll() {
 
     const duration = 4;
 
-    dice.rollDice([json.roll], duration);
+    dice.rollDice(json.diceRolls, duration);
 
     setTimeout(async () => {
         rollResult.querySelector('.roll-result__number').innerHTML = json.roll;

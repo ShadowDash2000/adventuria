@@ -1,6 +1,8 @@
 package adventuria
 
-import "github.com/pocketbase/pocketbase/core"
+import (
+	"github.com/pocketbase/pocketbase/core"
+)
 
 type InventoryItem struct {
 	app     core.App

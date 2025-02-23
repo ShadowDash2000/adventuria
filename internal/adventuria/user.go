@@ -93,46 +93,8 @@ func (u *User) fetchUserAction() error {
 	return nil
 }
 
-func (u *User) IsSafeDrop() (bool, error) {
-	type Action struct {
-		Type string `db:"type"`
-	}
-
-	var actions []Action
-
-	err := u.app.DB().NewQuery(`
-            SELECT type
-            FROM (
-                SELECT type,
-                       SUM(CASE WHEN type = {:actionTypeDone} THEN 1 ELSE 0 END) 
-                       OVER (ORDER BY created DESC) AS flag
-                FROM {:actionsTable}
-                WHERE user = {:userId}
-            ) subquery
-            WHERE flag = 0
-            ORDER BY created DESC
-        `).
-		Bind(dbx.Params{
-			"actionTypeDone": ActionTypeDone,
-			"actionsTable":   TableActions,
-			"userId":         u.userId,
-		}).All(&actions)
-	if err != nil {
-		return false, err
-	}
-
-	dropCount := 0
-	for _, action := range actions {
-		if action.Type == ActionTypeDrop {
-			dropCount++
-		}
-	}
-
-	if dropCount >= 2 {
-		return false, nil
-	}
-
-	return true, nil
+func (u *User) IsSafeDrop() bool {
+	return u.GetDropsInARow() < 2
 }
 
 func (u *User) IsInJail() bool {
@@ -156,6 +118,10 @@ func (u *User) GetCurrentCell() (*core.Record, error) {
 
 func (u *User) GetPoints() int {
 	return u.user.GetInt("points")
+}
+
+func (u *User) GetDropsInARow() int {
+	return u.user.GetInt("dropsInARow")
 }
 
 func (u *User) GetCellsPassed() int {
@@ -243,6 +209,13 @@ func (u *User) GetNextStepType() (string, error) {
 			nextStepType = UserNextStepChooseResult
 		case ActionTypeDone:
 			nextStepType = UserNextStepRoll
+		}
+	case CellTypeMovie:
+		switch lastActionType {
+		case ActionTypeRoll:
+			nextStepType = UserNextStepRollMovie
+		case ActionTypeRollMovie:
+			nextStepType = UserNextStepMovieResult
 		}
 	}
 

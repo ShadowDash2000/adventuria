@@ -26,6 +26,8 @@ func NewInventory(userId string, app core.App) (*Inventory, error) {
 		return nil, err
 	}
 
+	i.bindHooks()
+
 	return i, nil
 }
 
@@ -33,6 +35,12 @@ func (i *Inventory) bindHooks() {
 	i.app.OnRecordAfterCreateSuccess(TableInventory).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.GetString("user") == i.userId {
 			i.items[e.Record.Id], _ = NewInventoryItem(e.Record, i.app)
+		}
+		return e.Next()
+	})
+	i.app.OnRecordAfterUpdateSuccess(TableInventory).BindFunc(func(e *core.RecordEvent) error {
+		if e.Record.GetString("user") == i.userId {
+			i.items[e.Record.Id].invItem = e.Record
 		}
 		return e.Next()
 	})
@@ -60,6 +68,9 @@ func (i *Inventory) fetchInventory() error {
 	i.items = make(map[string]*InventoryItem)
 	for _, item := range inventory {
 		i.items[item.Id], err = NewInventoryItem(item, i.app)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -87,9 +98,9 @@ func (i *Inventory) GetEffects(event string) (any, []string) {
 
 	switch event {
 	case ItemUseTypeOnDrop:
-		effects = OnDropEffects{}
+		effects = &OnDropEffects{}
 	case ItemUseTypeOnRoll:
-		effects = OnRollEffects{}
+		effects = &OnRollEffects{}
 	default:
 		return nil, nil
 	}
@@ -102,15 +113,15 @@ func (i *Inventory) GetEffects(event string) (any, []string) {
 
 	var itemsIds []string
 	effectsValue := reflect.ValueOf(effects).Elem()
-	fields := reflect.VisibleFields(reflect.TypeOf(effects))
+	fields := reflect.VisibleFields(effectsValue.Type())
 	for _, itemId := range keys {
 		item := i.items[itemId]
-		itemEffects := item.GetEffects(ItemUseTypeOnDrop)
+		itemEffects := item.GetEffects(event)
 		if itemEffects == nil {
 			continue
 		}
 
-		itemValue := reflect.ValueOf(itemEffects)
+		itemValue := reflect.ValueOf(itemEffects).Elem()
 		for _, field := range fields {
 			fieldValue := itemValue.FieldByIndex(field.Index)
 			if fieldValue.IsZero() {
@@ -159,6 +170,15 @@ func (i *Inventory) ApplyEffects(event string) (any, error) {
 	return effects, nil
 }
 
+func (i *Inventory) GetOnRollEffects() OnRollEffects {
+	effects, _ := i.GetEffects(ItemUseTypeOnRoll)
+	if effects == nil {
+		return OnRollEffects{}
+	}
+
+	return *(effects.(*OnRollEffects))
+}
+
 func (i *Inventory) ApplyOnDropEffects() (OnDropEffects, error) {
 	effects, err := i.ApplyEffects(ItemUseTypeOnDrop)
 	if err != nil {
@@ -168,7 +188,7 @@ func (i *Inventory) ApplyOnDropEffects() (OnDropEffects, error) {
 		return OnDropEffects{}, nil
 	}
 
-	return effects.(OnDropEffects), nil
+	return *(effects.(*OnDropEffects)), nil
 }
 
 func (i *Inventory) ApplyOnRollEffects() (OnRollEffects, error) {
@@ -180,5 +200,5 @@ func (i *Inventory) ApplyOnRollEffects() (OnRollEffects, error) {
 		return OnRollEffects{}, nil
 	}
 
-	return effects.(OnRollEffects), nil
+	return *(effects.(*OnRollEffects)), nil
 }

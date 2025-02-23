@@ -3,6 +3,7 @@ package adventuria
 import (
 	"adventuria/pkg/cache"
 	"errors"
+	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
 	"math/rand"
 )
@@ -37,6 +38,13 @@ func (g *Game) Init() error {
 func (g *Game) bindHooks() {
 	// CELLS
 	g.app.OnRecordAfterCreateSuccess(TableCells).BindFunc(func(e *core.RecordEvent) error {
+		g.cells.Set(e.Record.GetInt("sort"), e.Record)
+		if cellCode := e.Record.GetString("code"); cellCode != "" {
+			g.cellByCode.Set(cellCode, e.Record)
+		}
+		return e.Next()
+	})
+	g.app.OnRecordAfterUpdateSuccess(TableCells).BindFunc(func(e *core.RecordEvent) error {
 		g.cells.Set(e.Record.GetInt("sort"), e.Record)
 		if cellCode := e.Record.GetString("code"); cellCode != "" {
 			g.cellByCode.Set(cellCode, e.Record)
@@ -112,7 +120,7 @@ func (g *Game) ChooseGame(game string, userId string) error {
 	record.Set("user", userId)
 	record.Set("cell", user.lastAction.GetString("cell"))
 	record.Set("type", ActionTypeGame)
-	record.Set("game", game)
+	record.Set("value", game)
 	err = g.app.Save(record)
 	if err != nil {
 		return err
@@ -189,7 +197,7 @@ func (g *Game) Reroll(comment string, userId string) error {
 	record.Set("cell", user.lastAction.GetString("cell"))
 	record.Set("type", ActionTypeReroll)
 	record.Set("comment", comment)
-	record.Set("game", user.lastAction.GetString("game"))
+	record.Set("value", user.lastAction.GetString("value"))
 	err = g.app.Save(record)
 	if err != nil {
 		return err
@@ -198,24 +206,24 @@ func (g *Game) Reroll(comment string, userId string) error {
 	return nil
 }
 
-func (g *Game) Roll(userId string) (int, *core.Record, error) {
+func (g *Game) Roll(userId string) (int, []int, *core.Record, error) {
 	user, err := g.GetUser(userId)
 	if err != nil {
-		return 0, nil, err
+		return 0, nil, nil, err
 	}
 
 	nextStepType, err := user.GetNextStepType()
 	if err != nil {
-		return 0, nil, err
+		return 0, nil, nil, err
 	}
 
 	if nextStepType != UserNextStepRoll {
-		return 0, nil, errors.New("next step isn't roll")
+		return 0, nil, nil, errors.New("next step isn't roll")
 	}
 
 	effects, err := user.Inventory.ApplyOnRollEffects()
 	if err != nil {
-		return 0, nil, err
+		return 0, nil, nil, err
 	}
 
 	var dices []Dice
@@ -227,16 +235,20 @@ func (g *Game) Roll(userId string) (int, *core.Record, error) {
 		dices = []Dice{DiceTypeD6, DiceTypeD6}
 	}
 
-	for _, dice := range dices {
-		n += dice.Roll()
+	diceRolls := make([]int, len(dices))
+	for i, dice := range dices {
+		diceRolls[i] = dice.Roll()
+		n += diceRolls[i]
 	}
 
-	n *= effects.DiceMultiplier
+	if effects.DiceMultiplier > 0 {
+		n *= effects.DiceMultiplier
+	}
 	n += effects.DiceIncrement
 
 	_, currentCell, err := g.Move(n, userId)
 
-	return n, currentCell, nil
+	return n, diceRolls, currentCell, nil
 }
 
 func (g *Game) Drop(comment string, userId string) error {
@@ -269,29 +281,22 @@ func (g *Game) Drop(comment string, userId string) error {
 	record.Set("cell", user.lastAction.GetString("cell"))
 	record.Set("type", ActionTypeDrop)
 	record.Set("comment", comment)
-	record.Set("game", user.lastAction.GetString("game"))
+	record.Set("value", user.lastAction.GetString("value"))
 	err = g.app.Save(record)
 	if err != nil {
 		return err
 	}
 
 	if !effects.IsSafeDrop && cell.GetString("type") != CellTypeBigWin {
-		points := user.GetPoints() - 2
-
-		user.Set("points", points)
+		user.Set("points", user.GetPoints()-2)
+		user.Set("dropsInARow", user.GetDropsInARow()+1)
 
 		err = user.Save()
 		if err != nil {
 			return err
 		}
 
-		var isSafeDrop bool
-		isSafeDrop, err = user.IsSafeDrop()
-		if err != nil {
-			return err
-		}
-
-		if !isSafeDrop {
+		if !user.IsSafeDrop() {
 			if err = g.GoToJail(userId); err != nil {
 				return err
 			}
@@ -326,12 +331,13 @@ func (g *Game) Done(comment string, userId string) error {
 	record.Set("cell", user.lastAction.GetString("cell"))
 	record.Set("type", ActionTypeDone)
 	record.Set("comment", comment)
-	record.Set("game", user.lastAction.GetString("game"))
+	record.Set("value", user.lastAction.GetString("value"))
 	err = g.app.Save(record)
 	if err != nil {
 		return err
 	}
 
+	user.Set("dropsInARow", 0)
 	user.Set("isInJail", false)
 	user.Set("points", user.GetPoints()+cell.GetInt("points"))
 	err = user.Save()
@@ -392,19 +398,43 @@ func (g *Game) GetCellsByType(t string) []*core.Record {
 	return gameCells
 }
 
-func (g *Game) RollCell(userId string) (*core.Record, error) {
+func (g *Game) GetRollEffects(userId string) (OnRollEffects, error) {
 	user, err := g.GetUser(userId)
 	if err != nil {
-		return nil, err
+		return OnRollEffects{}, err
 	}
 
 	nextStepType, err := user.GetNextStepType()
 	if err != nil {
-		return nil, err
+		return OnRollEffects{}, err
+	}
+
+	if nextStepType != UserNextStepRoll {
+		return OnRollEffects{}, errors.New("next step isn't roll")
+	}
+
+	effects := user.Inventory.GetOnRollEffects()
+
+	if effects.Dices == nil {
+		effects.Dices = []Dice{DiceTypeD6, DiceTypeD6}
+	}
+
+	return effects, nil
+}
+
+func (g *Game) RollCell(userId string) (string, error) {
+	user, err := g.GetUser(userId)
+	if err != nil {
+		return "", err
+	}
+
+	nextStepType, err := user.GetNextStepType()
+	if err != nil {
+		return "", err
 	}
 
 	if nextStepType != UserNextStepRollJailCell {
-		return nil, errors.New("next step isn't roll jail cell")
+		return "", errors.New("next step isn't roll jail cell")
 	}
 
 	gameCells := g.GetCellsByType(CellTypeGame)
@@ -414,11 +444,57 @@ func (g *Game) RollCell(userId string) (*core.Record, error) {
 	record.Set("user", userId)
 	record.Set("cell", user.lastAction.GetString("cell"))
 	record.Set("type", ActionTypeRollCell)
-	record.Set("game", user.lastAction.GetString("game"))
+	record.Set("value", cell.Id)
 	err = g.app.Save(record)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	return cell, nil
+	return cell.Id, nil
+}
+
+func (g *Game) RollMovie(userId string) (string, error) {
+	user, err := g.GetUser(userId)
+	if err != nil {
+		return "", err
+	}
+
+	nextStepType, err := user.GetNextStepType()
+	if err != nil {
+		return "", err
+	}
+
+	if nextStepType != UserNextStepRollMovie {
+		return "", errors.New("next step isn't roll movie")
+	}
+
+	movies, err := g.app.FindRecordsByFilter(
+		TableWheelItems,
+		"type = {:type}",
+		"",
+		0,
+		0,
+		dbx.Params{"type": "movie"},
+	)
+	if err != nil {
+		return "", err
+	}
+
+	if len(movies) == 0 {
+		return "", errors.New("movies not found")
+	}
+
+	movie := movies[rand.Intn(len(movies)-1)]
+
+	record := core.NewRecord(user.lastAction.Collection())
+	record.Set("user", userId)
+	record.Set("cell", user.lastAction.GetString("cell"))
+	record.Set("type", ActionTypeRollMovie)
+	record.Set("value", movie.Id)
+	err = g.app.Save(record)
+	if err != nil {
+		return "", err
+	}
+
+	return movie.Id, nil
 }

@@ -15,7 +15,7 @@ func New(g *adventuria.Game) *Handlers {
 }
 
 func (h *Handlers) RollHandler(e *core.RequestEvent) error {
-	n, currentCell, err := h.Game.Roll(e.Auth.Id)
+	n, diceRolls, currentCell, err := h.Game.Roll(e.Auth.Id)
 	if err != nil {
 		e.JSON(http.StatusInternalServerError, err.Error())
 		return err
@@ -24,7 +24,8 @@ func (h *Handlers) RollHandler(e *core.RequestEvent) error {
 	currentCellFields := currentCell.FieldsData()
 
 	e.JSON(http.StatusOK, map[string]interface{}{
-		"roll": n,
+		"roll":      n,
+		"diceRolls": diceRolls,
 		"cell": map[string]interface{}{
 			"name":        currentCellFields["name"].(string),
 			"description": currentCellFields["description"].(string),
@@ -142,26 +143,50 @@ func (h *Handlers) GameResultHandler(e *core.RequestEvent) error {
 		return err
 	}
 
-	actionFields := action.FieldsData()
-
 	e.JSON(http.StatusOK, map[string]interface{}{
-		"game":     actionFields["game"].(string),
+		"game":     action.GetString("value"),
 		"isInJail": isInJail,
 	})
 
 	return nil
 }
 
-/*func (h *Handlers) RollRandomCellHandler(e *core.RequestEvent) error {
-	cellId, err := h.Game.RollRandomCell(e)
+func (h *Handlers) RollCellHandler(e *core.RequestEvent) error {
+	cellId, err := h.Game.RollCell(e.Auth.Id)
 	if err != nil {
 		e.JSON(http.StatusInternalServerError, err.Error())
 		return err
 	}
 
 	e.JSON(http.StatusOK, map[string]interface{}{
-		"cellId": cellId,
+		"itemId": cellId,
 	})
 
 	return nil
-}*/
+}
+
+func (h *Handlers) RollMovieHandler(e *core.RequestEvent) error {
+	movieId, err := h.Game.RollMovie(e.Auth.Id)
+	if err != nil {
+		e.JSON(http.StatusInternalServerError, err.Error())
+		return err
+	}
+
+	e.JSON(http.StatusOK, map[string]interface{}{
+		"itemId": movieId,
+	})
+
+	return nil
+}
+
+func (h *Handlers) GetRollEffectsHandler(e *core.RequestEvent) error {
+	effects, err := h.Game.GetRollEffects(e.Auth.Id)
+	if err != nil {
+		e.JSON(http.StatusInternalServerError, err.Error())
+		return err
+	}
+
+	e.JSON(http.StatusOK, effects)
+
+	return nil
+}

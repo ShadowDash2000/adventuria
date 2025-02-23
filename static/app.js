@@ -8,6 +8,7 @@ class App {
         if (auth) this.auth = JSON.parse(auth);
         this.isAuthorized = !!auth;
         this.usersCells = new Map();
+        this.nextStepType = '';
 
         this.modal = new GraphModal({
             isOpen: (modal) => {
@@ -125,6 +126,7 @@ class App {
         if (!res.ok) return;
 
         const json = await res.json();
+        this.nextStepType = json.nextStepType;
 
         const actionsButtons = document.querySelector('.actions-buttons');
         const buttons = actionsButtons.querySelectorAll('button');
@@ -142,8 +144,14 @@ class App {
                 button = actionsButtons.querySelector('button.game-picker');
                 break;
             case 'roll':
-            default:
                 button = actionsButtons.querySelector('button.game-roll');
+                break;
+            case 'rollJailCell':
+            case 'rollBigWin':
+            case 'rollMovie':
+            case 'rollPreset':
+                button = actionsButtons.querySelector('button.wheel');
+                break;
         }
 
         button.classList.remove('hidden');
