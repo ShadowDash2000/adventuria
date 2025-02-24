@@ -29,9 +29,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const json = await res.json();
         
         let dices = [];
-        for (const dice of json.dices) {
-            dices.push(dice.type);
-        }
+        if (json.dices) {
+            for (const dice of json.dices) {
+                dices.push(dice.type);
+            }
+        } else  dices = ['d6', 'd6'];
 
         dice.initDices(dices, scene);
 

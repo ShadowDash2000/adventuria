@@ -7,7 +7,7 @@ import (
 type InventoryItem struct {
 	app     core.App
 	invItem *core.Record
-	item    Usable
+	item    *Item
 }
 
 func NewInventoryItem(record *core.Record, app core.App) (*InventoryItem, error) {
@@ -24,7 +24,7 @@ func NewInventoryItem(record *core.Record, app core.App) (*InventoryItem, error)
 		}
 	}
 
-	ii.item, err = NewItem(ii.invItem.ExpandedOne("item"))
+	ii.item, err = NewItem(ii.invItem.ExpandedOne("item"), app)
 	if err != nil {
 		return nil, err
 	}
@@ -32,12 +32,16 @@ func NewInventoryItem(record *core.Record, app core.App) (*InventoryItem, error)
 	return ii, nil
 }
 
-func (ii *InventoryItem) GetEffects(event string) any {
+func (ii *InventoryItem) GetEffects(event string) []*Effect {
 	if !ii.invItem.GetBool("isActive") {
 		return nil
 	}
 
-	return ii.item.GetEffects(event)
+	if ii.item.GetEvent() != event {
+		return nil
+	}
+
+	return ii.item.GetEffects()
 }
 
 func (ii *InventoryItem) IsUsingSlot() bool {

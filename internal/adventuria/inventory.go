@@ -2,10 +2,10 @@ package adventuria
 
 import (
 	"errors"
+	"github.com/mitchellh/mapstructure"
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
 	"maps"
-	"reflect"
 	"slices"
 	"sort"
 )
@@ -120,27 +120,22 @@ func (i *Inventory) AddItem(itemId string) error {
 	return nil
 }
 
-func (i *Inventory) GetEffects(event string) (any, []string) {
-	var effects any
-
-	switch event {
-	case ItemUseTypeOnDrop:
-		effects = &OnDropEffects{}
-	case ItemUseTypeOnRoll:
-		effects = &OnRollEffects{}
-	default:
-		return nil, nil
-	}
-
+func (i *Inventory) GetEffects(event string) (*Effects, []string, error) {
 	keys := slices.Collect(maps.Keys(i.items))
 	slices.Sort(keys)
 	sort.Slice(keys, func(k, j int) bool {
 		return i.items[keys[k]].item.GetOrder() < i.items[keys[j]].item.GetOrder()
 	})
 
+	var effects *Effects
+	var effectsMap map[string]interface{}
+
+	err := mapstructure.Decode(&Effects{}, &effectsMap)
+	if err != nil {
+		return nil, nil, err
+	}
+
 	var itemsIds []string
-	effectsValue := reflect.ValueOf(effects).Elem()
-	fields := reflect.VisibleFields(effectsValue.Type())
 	for _, itemId := range keys {
 		item := i.items[itemId]
 		itemEffects := item.GetEffects(event)
@@ -148,36 +143,33 @@ func (i *Inventory) GetEffects(event string) (any, []string) {
 			continue
 		}
 
-		itemValue := reflect.ValueOf(itemEffects).Elem()
-		for _, field := range fields {
-			fieldValue := itemValue.FieldByIndex(field.Index)
-			if fieldValue.IsZero() {
-				continue
-			}
-
-			switch field.Type.Kind() {
-			case reflect.Int:
-				v1 := effectsValue.FieldByIndex(field.Index).Int()
-				v2 := fieldValue.Int()
-				effectsValue.FieldByIndex(field.Index).SetInt(v1 + v2)
-			case reflect.Bool:
-				effectsValue.FieldByIndex(field.Index).Set(fieldValue)
-			case reflect.Slice:
-				if effectsValue.FieldByIndex(field.Index).IsZero() {
-					effectsValue.FieldByIndex(field.Index).Set(fieldValue)
-				}
-			default:
+		for _, effect := range itemEffects {
+			switch effect.Kind() {
+			case Int:
+				effectsMap[effect.Type()] = effectsMap[effect.Type()].(int) + effect.GetInt()
+			case Bool:
+				effectsMap[effect.Type()] = true
+			case Slice:
+				effectsMap[effect.Type()] = effect.GetSlice()
 			}
 		}
 
 		itemsIds = append(itemsIds, item.invItem.Id)
 	}
 
-	return effects, itemsIds
+	err = mapstructure.Decode(effectsMap, &effects)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return effects, itemsIds, nil
 }
 
-func (i *Inventory) ApplyEffects(event string) (any, error) {
-	effects, itemsIds := i.GetEffects(event)
+func (i *Inventory) ApplyEffects(event string) (*Effects, error) {
+	effects, itemsIds, err := i.GetEffects(event)
+	if err != nil {
+		return nil, err
+	}
 
 	if len(itemsIds) > 0 {
 		err := i.app.RunInTransaction(func(txApp core.App) error {
@@ -195,37 +187,4 @@ func (i *Inventory) ApplyEffects(event string) (any, error) {
 	}
 
 	return effects, nil
-}
-
-func (i *Inventory) GetOnRollEffects() OnRollEffects {
-	effects, _ := i.GetEffects(ItemUseTypeOnRoll)
-	if effects == nil {
-		return OnRollEffects{}
-	}
-
-	return *(effects.(*OnRollEffects))
-}
-
-func (i *Inventory) ApplyOnDropEffects() (OnDropEffects, error) {
-	effects, err := i.ApplyEffects(ItemUseTypeOnDrop)
-	if err != nil {
-		return OnDropEffects{}, err
-	}
-	if effects == nil {
-		return OnDropEffects{}, nil
-	}
-
-	return *(effects.(*OnDropEffects)), nil
-}
-
-func (i *Inventory) ApplyOnRollEffects() (OnRollEffects, error) {
-	effects, err := i.ApplyEffects(ItemUseTypeOnRoll)
-	if err != nil {
-		return OnRollEffects{}, err
-	}
-	if effects == nil {
-		return OnRollEffects{}, nil
-	}
-
-	return *(effects.(*OnRollEffects)), nil
 }

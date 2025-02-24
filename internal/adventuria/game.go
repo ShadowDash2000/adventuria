@@ -221,7 +221,7 @@ func (g *Game) Roll(userId string) (int, []int, *core.Record, error) {
 		return 0, nil, nil, errors.New("next step isn't roll")
 	}
 
-	effects, err := user.Inventory.ApplyOnRollEffects()
+	effects, err := user.Inventory.ApplyEffects(ItemUseTypeOnRoll)
 	if err != nil {
 		return 0, nil, nil, err
 	}
@@ -271,7 +271,7 @@ func (g *Game) Drop(comment string, userId string) error {
 		return err
 	}
 
-	effects, err := user.Inventory.ApplyOnDropEffects()
+	effects, err := user.Inventory.ApplyEffects(ItemUseTypeOnDrop)
 	if err != nil {
 		return err
 	}
@@ -398,25 +398,15 @@ func (g *Game) GetCellsByType(t string) []*core.Record {
 	return gameCells
 }
 
-func (g *Game) GetRollEffects(userId string) (OnRollEffects, error) {
+func (g *Game) GetItemsEffects(userId, event string) (*Effects, error) {
 	user, err := g.GetUser(userId)
 	if err != nil {
-		return OnRollEffects{}, err
+		return nil, err
 	}
 
-	nextStepType, err := user.GetNextStepType()
+	effects, _, err := user.Inventory.GetEffects(event)
 	if err != nil {
-		return OnRollEffects{}, err
-	}
-
-	if nextStepType != UserNextStepRoll {
-		return OnRollEffects{}, errors.New("next step isn't roll")
-	}
-
-	effects := user.Inventory.GetOnRollEffects()
-
-	if effects.Dices == nil {
-		effects.Dices = []Dice{DiceTypeD6, DiceTypeD6}
+		return nil, err
 	}
 
 	return effects, nil

@@ -1,78 +1,52 @@
 package adventuria
 
 import (
-	"errors"
 	"github.com/pocketbase/pocketbase/core"
-	"strings"
 )
 
-type Usable interface {
-	GetEffects(string) any
-	GetOrder() int
-	SetItem(*core.Record)
-	IsUsingSlot() bool
-	IsActiveByDefault() bool
-	CanDrop() bool
-	GetItemRecord() *core.Record
-}
-
 const (
-	ItemTypeDiceMultiplier = "diceMultiplier"
-	ItemTypeDiceIncrement  = "diceIncrement"
-	ItemTypeSafeDrop       = "safeDrop"
-	ItemTypeChangeDices    = "changeDices"
-
-	// ItemUseTypeInstant
-	// В теории тип instant должен срабатывать при любом action.
-	// После применения предмета нужно сохранять эффект от его использования
-	// в таблицу actionsEffects.
 	ItemUseTypeInstant  = "instant"
 	ItemUseTypeOnDrop   = "useOnDrop"
 	ItemUseTypeOnReroll = "useOnReroll"
 	ItemUseTypeOnRoll   = "useOnRoll"
 )
 
-var items = map[string]Usable{
-	ItemTypeDiceMultiplier: &ItemDiceMultiplier{},
-	ItemTypeDiceIncrement:  &ItemDiceIncrement{},
-	ItemTypeSafeDrop:       &ItemSafeDrop{},
-}
-
-type OnRollEffects struct {
-	DiceMultiplier int    `json:"diceMultiplier"`
-	DiceIncrement  int    `json:"diceIncrement"`
-	Dices          []Dice `json:"dices"`
-}
-
-type OnDropEffects struct {
-	IsSafeDrop bool `json:"isSafeDrop"`
+type Effects struct {
+	PointsIncrement int    `json:"pointsIncrement" mapstructure:"pointsIncrement"`
+	JailEscape      bool   `json:"jailEscape" mapstructure:"jailEscape"`
+	DiceMultiplier  int    `json:"diceMultiplier" mapstructure:"diceMultiplier"`
+	DiceIncrement   int    `json:"diceIncrement" mapstructure:"diceIncrement"`
+	Dices           []Dice `json:"dices" mapstructure:"dices"`
+	IsSafeDrop      bool   `json:"isSafeDrop" mapstructure:"isSafeDrop"`
 }
 
 type Item struct {
-	item *core.Record
+	item    *core.Record
+	effects []*Effect
 }
 
-func NewItem(record *core.Record) (Usable, error) {
-	item, ok := items[record.GetString("type")]
-	if !ok {
-		return nil, errors.New("item type not found")
+func NewItem(record *core.Record, app core.App) (*Item, error) {
+	errs := app.ExpandRecord(record, []string{"effects"}, nil)
+	if errs != nil {
+		for _, err := range errs {
+			return nil, err
+		}
 	}
 
-	item.SetItem(record)
+	var effects []*Effect
+	for _, effectRecord := range record.ExpandedAll("effects") {
+		effect, err := NewEffect(effectRecord)
+		if err != nil {
+			return nil, err
+		}
 
-	return item, nil
-}
+		effects = append(effects, effect)
+	}
 
-func (i *Item) parseString() []string {
-	return strings.Split(i.item.GetString("value"), ", ")
-}
-
-func (i *Item) GetOrder() int {
-	return i.item.GetInt("order")
-}
-
-func (i *Item) SetItem(item *core.Record) {
-	i.item = item
+	return &Item{
+		item:    record,
+		effects: effects,
+	}, nil
 }
 
 func (i *Item) IsUsingSlot() bool {
@@ -87,71 +61,14 @@ func (i *Item) CanDrop() bool {
 	return i.item.GetBool("canDrop")
 }
 
-func (i *Item) GetItemRecord() *core.Record {
-	return i.item
+func (i *Item) GetOrder() int {
+	return i.item.GetInt("order")
 }
 
-type ItemDiceMultiplier struct {
-	Item
+func (i *Item) GetEffects() []*Effect {
+	return i.effects
 }
 
-func (i *ItemDiceMultiplier) GetEffects(event string) any {
-	switch event {
-	case ItemUseTypeOnRoll:
-		return &OnRollEffects{
-			DiceMultiplier: i.item.GetInt("value"),
-		}
-	}
-
-	return nil
-}
-
-type ItemDiceIncrement struct {
-	Item
-}
-
-func (i *ItemDiceIncrement) GetEffects(event string) any {
-	switch event {
-	case ItemUseTypeOnRoll:
-		return &OnRollEffects{
-			DiceIncrement: i.item.GetInt("value"),
-		}
-	}
-
-	return nil
-}
-
-type ItemSafeDrop struct {
-	Item
-}
-
-func (i *ItemSafeDrop) GetEffects(event string) any {
-	switch event {
-	case ItemUseTypeOnDrop:
-		return OnDropEffects{IsSafeDrop: true}
-	}
-
-	return nil
-}
-
-type ItemChangeDices struct {
-	Item
-}
-
-func (i *ItemChangeDices) GetEffects(event string) any {
-	dicesTypes := i.parseString()
-
-	dices := make([]Dice, len(dicesTypes))
-	for _, diceType := range dicesTypes {
-		if dice, ok := Dices[diceType]; ok {
-			dices = append(dices, dice)
-		}
-	}
-
-	switch event {
-	case ItemUseTypeOnRoll:
-		return &OnRollEffects{Dices: dices}
-	}
-
-	return nil
+func (i *Item) GetEvent() string {
+	return i.item.GetString("event")
 }

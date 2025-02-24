@@ -14,9 +14,9 @@ var Dices = map[string]Dice{
 }
 
 var (
-	DiceTypeD4 Dice = Dice{"d4", 4}
-	DiceTypeD6 Dice = Dice{"d6", 6}
-	DiceTypeD8 Dice = Dice{"d8", 8}
+	DiceTypeD4 = Dice{"d4", 4}
+	DiceTypeD6 = Dice{"d6", 6}
+	DiceTypeD8 = Dice{"d8", 8}
 )
 
 func (d *Dice) Roll() int {
