@@ -8,7 +8,24 @@ class App {
         if (auth) this.auth = JSON.parse(auth);
         this.isAuthorized = !!auth;
         this.usersCells = new Map();
+        this.usersList = new Map();
         this.nextStepType = '';
+
+        this.pb.collection('users').subscribe('*', (e) => {
+            document.dispatchEvent(new CustomEvent("record.users."+e.action, {
+                detail: {
+                    'record': e.record,
+                },
+            }));
+        });
+
+        this.pb.collection('actions').subscribe('*', (e) => {
+            document.dispatchEvent(new CustomEvent("record.actions."+e.action, {
+                detail: {
+                    'record': e.record,
+                },
+            }));
+        });
 
         this.modal = new GraphModal({
             isOpen: (modal) => {
@@ -45,21 +62,33 @@ class App {
             this.specialCellTemplate = document.getElementById('special-cell-template');
             this.usersTableItemTemplate = document.getElementById('users-table-item');
 
-            await this.updateCells();
-            await this.updateUsers();
+            await this.fetchCells();
+            await this.fetchUsers();
+            this.updateCells();
+            this.updateUsers();
             await this.updateInnerField();
+        });
 
-            setTimeout(() => {
-                this.updateUsers();
-            }, 2000)
+        document.addEventListener('record.users.update', (e) => {
+            this.usersList.set(e.detail.record.id, e.detail.record)
+            this.updateUsersFields();
+            this.updateUsersTable();
+        });
+
+        document.addEventListener('record.actions.create', async (e) => {
+            if (e.detail.record.user !== this.auth.record.id) return;
+            await this.showActionButtons();
         });
     }
 
-    async updateCells() {
+
+    async fetchCells() {
         this.cellsList = await app.pb.collection('cells').getFullList({
             sort: '-sort',
         });
+    }
 
+    updateCells() {
         for (const key in this.cellsList) {
             let cell = this.cellsList[key];
 
@@ -86,11 +115,17 @@ class App {
         }
     }
 
-    async updateUsers() {
-        this.usersList = await app.pb.collection('users').getFullList({
+    async fetchUsers() {
+        const usersList = await app.pb.collection('users').getFullList({
             sort: '-points',
         });
 
+        for (const user of usersList) {
+            this.usersList.set(user.id, user);
+        }
+    }
+
+    updateUsers() {
         this.updateUsersFields();
         this.updateUsersTable();
     }
@@ -101,7 +136,7 @@ class App {
         });
 
         this.usersCells.clear();
-        for (const user of this.usersList) {
+        this.usersList.forEach((user) => {
             const currentCellNum = user.cellsPassed % this.cellsList.length;
             const currentCell = this.cellsList[this.cellsList.length - currentCellNum - 1].cellElement;
 
@@ -113,14 +148,14 @@ class App {
             usersNode.appendChild(userElement);
 
             this.usersCells.set(user.name, userElement);
-        }
+        });
     }
 
     updateUsersTable() {
         const usersTable = document.querySelector('table.users tbody');
         usersTable.innerHTML = '';
 
-        for (const user of this.usersList) {
+        this.usersList.forEach((user) => {
             const userItemNode = this.usersTableItemTemplate.content.cloneNode(true);
 
             userItemNode.querySelector('.users__avatar img').src = "/api/files/" + user.collectionId + "/" + user.id + "/" + user.avatar;
@@ -128,7 +163,7 @@ class App {
             userItemNode.querySelector('.users__points').innerHTML = user.points;
 
             usersTable.appendChild(userItemNode.firstElementChild);
-        }
+        });
     }
 
     async showActionButtons() {

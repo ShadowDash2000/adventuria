@@ -25,6 +25,4 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         game.value = '';
     });
-
-    await app.showActionButtons();
 });
