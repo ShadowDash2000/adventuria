@@ -1,4 +1,12 @@
 const rolls = {
+    'd4': [
+        {x: 0, y: 0, value: 1},
+        {x: 90, y: 0, value: 2},
+        {x: 0, y: -90, value: 3},
+        {x: 0, y: 90, value: 4},
+        {x: -90, y: 0, value: 5},
+        {x: 180, y: 0, value: 6},
+    ],
     'd6': [
         {x: 0, y: 0, value: 1},
         {x: 90, y: 0, value: 2},
@@ -12,6 +20,7 @@ const rolls = {
 export default class Dice {
     constructor() {
         this.dicesTemplates = {
+            'd4': document.getElementById('d4-template'),
             'd6': document.getElementById('d6-template'),
         }
         this.dices = [];

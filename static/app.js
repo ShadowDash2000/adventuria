@@ -41,7 +41,9 @@ class App {
                 },
             };
             this.cellTemplate = document.getElementById('cell-template');
+            this.cellTemplateRight = document.getElementById('cell-template-right');
             this.specialCellTemplate = document.getElementById('special-cell-template');
+            this.usersTableItemTemplate = document.getElementById('users-table-item');
 
             await this.updateCells();
             await this.updateUsers();
@@ -62,12 +64,19 @@ class App {
             let cell = this.cellsList[key];
 
             let cellContainer, cellNode;
-            if (cell.position === 'special') {
-                cellContainer = this.positions[cell.position][cell.code];
-                cellNode = this.specialCellTemplate.content.cloneNode(true);
-            } else {
-                cellContainer = this.positions[cell.position];
-                cellNode = this.cellTemplate.content.cloneNode(true);
+            switch (cell.position) {
+                case 'special':
+                    cellContainer = this.positions[cell.position][cell.code];
+                    cellNode = this.specialCellTemplate.content.cloneNode(true);
+                    break;
+                case 'right':
+                case 'bottom':
+                    cellContainer = this.positions[cell.position];
+                    cellNode = this.cellTemplateRight.content.cloneNode(true);
+                    break;
+                default:
+                    cellContainer = this.positions[cell.position];
+                    cellNode = this.cellTemplate.content.cloneNode(true);
             }
 
             cellNode.querySelector('img').src = "/api/files/" + cell.collectionId + "/" + cell.id + "/" + cell.icon;
@@ -108,8 +117,17 @@ class App {
     }
 
     updateUsersTable() {
-        for (const user of this.usersList) {
+        const usersTable = document.querySelector('table.users tbody');
+        usersTable.innerHTML = '';
 
+        for (const user of this.usersList) {
+            const userItemNode = this.usersTableItemTemplate.content.cloneNode(true);
+
+            userItemNode.querySelector('.users__avatar img').src = "/api/files/" + user.collectionId + "/" + user.id + "/" + user.avatar;
+            userItemNode.querySelector('.users__name').innerHTML = user.name;
+            userItemNode.querySelector('.users__points').innerHTML = user.points;
+
+            usersTable.appendChild(userItemNode.firstElementChild);
         }
     }
 
