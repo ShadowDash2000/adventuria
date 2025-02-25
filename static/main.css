@@ -1,5 +1,6 @@
 * {
     box-sizing: border-box;
+    font-family: "Dela Gothic One", serif;
 }
 
 body {
@@ -9,10 +10,6 @@ body {
 
 h1, h2, h3, h4, h5, h6 {
     margin: 0;
-}
-
-.light-blue {
-    background: cornflowerblue;
 }
 
 .board {
@@ -242,6 +239,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .property {
     .color-bar {
+        background: #4287f5;
         border-bottom: 0.2vw solid black;
     }
 }
@@ -520,6 +518,37 @@ table.users {
         width: 5vw;
         height: 5vw;
     }
+}
+
+.profile {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.8vw;
+
+    .volume {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+
+        label {
+            font-size: 1.1vw;
+        }
+
+        input {
+            width: 7vw;
+        }
+    }
+}
+
+.text-shadow {
+    color: white;
+    text-shadow:
+            0.3vw 0.3vw 0 #000,
+            -0.1vw -0.1vw 0 #000,
+            0.1vw 0.1vw 0 #000,
+            -0.1vw -0.1vw 0 #000,
+            0.1vw 0.1vw 0 #000;
 }
 
 .button {

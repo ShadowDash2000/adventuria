@@ -68,7 +68,13 @@ export default class GraphModal {
 
     }
 
-    open(selector) {
+    open(selector, options) {
+        const defaultOptions = {
+            speed: this.speed,
+            animation: this.animation,
+        }
+        const modalOptions = Object.assign(defaultOptions, options);
+
         this.previousActiveElement = document.activeElement;
 
         if (this.isOpen) {
@@ -85,7 +91,7 @@ export default class GraphModal {
 
         this.modalContainer.scrollTo(0, 0)
 
-        this.modal.style.setProperty('--transition-time', `${this.speed / 1000}s`);
+        this.modal.style.setProperty('--transition-time', `${modalOptions.speed / 1000}s`);
         this.modal.classList.add('is-open');
 
         document.body.style.scrollBehavior = 'auto';
@@ -94,7 +100,7 @@ export default class GraphModal {
         this.disableScroll();
 
         this.modalContainer.classList.add('graph-modal-open');
-        this.modalContainer.classList.add(this.animation);
+        this.modalContainer.classList.add(modalOptions.animation);
 
         setTimeout(() => {
             this.options.isOpen(this);

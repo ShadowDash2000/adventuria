@@ -32,6 +32,16 @@
 <button class="btn-reset modal-btn modal-1" data-graph-path="submit" data-graph-animation="fadeInUp"
         data-graph-speed="100">SUBMIT
 </button>
+<button class="btn-reset modal-btn modal-1" data-graph-animation="fadeInUp" data-inventory="3c70mo3b262l1q0"
+        data-graph-speed="100">INVENTORY
+</button>
+<div class="profile hidden">
+    <div class="volume">
+        <label for="volume-slider" class="text-shadow">Громкость</label>
+        <input type="range" id="volume-slider">
+    </div>
+    <img src="img/undefined.jpg" width="60" height="60">
+</div>
 <div class="table">
     <div class="board">
         <div class="center">
@@ -41,6 +51,7 @@
                     <th></th>
                     <th>Имя</th>
                     <th>Очки</th>
+                    <th>Пройдено клеток</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -101,7 +112,6 @@
         </div>
     </div>
     <div class="graph-modal__container" role="dialog" aria-modal="true" data-graph-target="submit">
-        <button class="btn-reset graph-modal__close js-modal-close" aria-label="Закрыть модальное окно"></button>
         <div class="graph-modal__content submit">
             <h2>ВЫ УВЕРЕНЫ?</h2>
             <div class="text">{{TEXT}}</div>
@@ -151,13 +161,31 @@
             </button>
         </div>
     </div>
+    <div id="inventory-modal" class="graph-modal__container dice" role="dialog" aria-modal="true" data-graph-target="inventory">
+        <button class="btn-reset graph-modal__close js-modal-close" aria-label="Закрыть модальное окно"></button>
+        <div class="graph-modal__content inventory">
+            <div class="container">
+                <h2>ИНВЕНТАРЬ {{NAME}}</h2>
+                <div class="inventory__items">
+                    <div class="inventory__item"></div>
+                    <div class="inventory__item"></div>
+                    <div class="inventory__item"></div>
+                </div>
+                <div class="inventory__side-effects">
+                    <div class="inventory__side-effect"></div>
+                    <div class="inventory__side-effect"></div>
+                    <div class="inventory__side-effect"></div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 <template id="cell-template">
     <div class="space property">
         <div class="container">
             <img src="/img/undefined.jpg">
             <div class="name">{{NAME}}</div>
-            <div class="color-bar light-blue"></div>
+            <div class="color-bar"></div>
             <div class="users"></div>
         </div>
     </div>
@@ -165,7 +193,7 @@
 <template id="cell-template-right">
     <div class="space property">
         <div class="container">
-            <div class="color-bar light-blue"></div>
+            <div class="color-bar"></div>
             <img src="/img/undefined.jpg">
             <div class="name">{{NAME}}</div>
             <div class="users"></div>
@@ -265,6 +293,7 @@
         </td>
         <td class="users__name">{{NAME}}</td>
         <td class="users__points">{{POINTS}}</td>
+        <td class="users__cells-passed">{{CELLS_PASSED}}</td>
         <td class="users__inventory">
             <button>Инвентарь</button>
         </td>
