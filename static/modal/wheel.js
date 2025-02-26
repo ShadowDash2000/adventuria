@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 break;
             case 'rollBigWin':
                 const games = await app.pb.collection('wheel_items').getFullList({
-                    filter: 'type = "bigWin"',
+                    filter: 'type = "legendaryGame"',
                 });
 
                 for (const game of games) {
@@ -110,5 +110,25 @@ async function startSpin() {
     const json = await res.json();
     let itemId = json.itemId;
 
-    if (itemId) wheel.startSpin(itemId, 6);
+    const audioItemsKeys = Array.from(app.audio[app.nextStepType].keys());
+    const randomKey = audioItemsKeys[Math.floor(Math.random() * audioItemsKeys.length)];
+    const rollInfo = app.audio[app.nextStepType].get(randomKey);
+
+    if (itemId) wheel.startSpin(itemId, rollInfo.duration);
+
+    const wheelContainer = document.querySelector('.graph-modal__content.wheel-modal');
+    const wheelTitle = wheelContainer.querySelector('h2');
+
+    const audio = new Audio("/api/files/" + rollInfo.collectionId + "/" + rollInfo.id + "/" + rollInfo.audio,);
+    audio.volume = app.volume / 100;
+    audio.play();
+
+    const interval = setInterval(() => {
+        wheelTitle.innerText = wheel.getCurrentWinner().text;
+    }, 100);
+
+    setTimeout(() => {
+        audio.pause();
+        clearTimeout(interval);
+    }, (rollInfo.duration + 1) * 1000);
 }

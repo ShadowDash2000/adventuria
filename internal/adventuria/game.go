@@ -387,14 +387,11 @@ func (g *Game) GoToJail(userId string) error {
 
 func (g *Game) GetCellsByType(t string) []*core.Record {
 	var gameCells []*core.Record
-	g.cells.Range(func(k, v interface{}) bool {
-		cell := v.(*core.Record)
+	for _, cell := range g.cells.GetAll() {
 		if cell.GetString("type") == t {
 			gameCells = append(gameCells, cell)
 		}
-		return true
-	})
-
+	}
 	return gameCells
 }
 
@@ -537,4 +534,50 @@ func (g *Game) RollItem(userId string) (string, error) {
 	}
 
 	return item.Id, nil
+}
+
+func (g *Game) RollBigWin(userId string) (string, error) {
+	user, err := g.GetUser(userId)
+	if err != nil {
+		return "", err
+	}
+
+	nextStepType, err := user.GetNextStepType()
+	if err != nil {
+		return "", err
+	}
+
+	if nextStepType != UserNextStepRollBigWin {
+		return "", errors.New("next step isn't roll movie")
+	}
+
+	games, err := g.app.FindRecordsByFilter(
+		TableWheelItems,
+		"type = {:type}",
+		"",
+		0,
+		0,
+		dbx.Params{"type": "legendaryGame"},
+	)
+	if err != nil {
+		return "", err
+	}
+
+	if len(games) == 0 {
+		return "", errors.New("legendary games not found")
+	}
+
+	game := games[rand.Intn(len(games)-1)]
+
+	record := core.NewRecord(user.lastAction.Collection())
+	record.Set("user", userId)
+	record.Set("cell", user.lastAction.GetString("cell"))
+	record.Set("type", ActionTypeRollBigWin)
+	record.Set("value", game.Id)
+	err = g.app.Save(record)
+	if err != nil {
+		return "", err
+	}
+
+	return game.Id, nil
 }

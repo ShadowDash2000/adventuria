@@ -58,8 +58,18 @@ func (e *Effect) GetInt() int {
 	return e.effect.GetInt("value")
 }
 
-func (e *Effect) GetSlice() []string {
-	return e.parseString(e.effect.GetString("value"))
+func (e *Effect) GetSlice() []any {
+	var res []any
+	sl := e.parseString(e.effect.GetString("value"))
+
+	switch e.Type() {
+	case EffectTypeChangeDices:
+		for _, v := range sl {
+			res = append(res, Dices[v])
+		}
+	}
+
+	return res
 }
 
 func (e *Effect) parseString(s string) []string {

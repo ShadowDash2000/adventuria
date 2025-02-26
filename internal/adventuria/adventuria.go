@@ -17,6 +17,7 @@ const (
 	ActionTypeRollPreset = "rollPreset"
 	ActionTypeRollMovie  = "rollMovie"
 	ActionTypeRollItem   = "rollItem"
+	ActionTypeRollBigWin = "rollBigWin"
 
 	CellTypeGame   = "game"
 	CellTypeStart  = "start"

@@ -9,6 +9,7 @@ class App {
         this.isAuthorized = !!auth;
         this.usersCells = new Map();
         this.usersList = new Map();
+        this.audio = new Map();
         this.inventories = {};
         this.nextStepType = '';
         this.volume = localStorage.getItem('volume') ? localStorage.getItem('volume') : 30;
@@ -31,6 +32,14 @@ class App {
 
         this.pb.collection('inventory').subscribe('*', (e) => {
             document.dispatchEvent(new CustomEvent("record.inventory."+e.action, {
+                detail: {
+                    'record': e.record,
+                },
+            }));
+        });
+
+        this.pb.collection('audio').subscribe('*', (e) => {
+            document.dispatchEvent(new CustomEvent("record.audio."+e.action, {
                 detail: {
                     'record': e.record,
                 },
@@ -98,6 +107,7 @@ class App {
             await this.fetchCells();
             await this.fetchUsers();
             await this.fetchInventories();
+            await this.fetchAudio();
 
             this.updateCells();
             this.updateUsers();
@@ -121,6 +131,13 @@ class App {
         });
         document.addEventListener('record.inventory.update', async (e) => {
             this.addInventoryItem(e.detail.record);
+        });
+
+        document.addEventListener('record.audio.create', async (e) => {
+            this.addAudioItem(e.detail.record);
+        });
+        document.addEventListener('record.audio.update', async (e) => {
+            this.addAudioItem(e.detail.record);
         });
     }
 
@@ -175,11 +192,11 @@ class App {
         }
     }
 
-    addInventoryItem(inventoryItem) {
-        if (!this.inventories[inventoryItem.user]) {
-            this.inventories[inventoryItem.user] = new Map();
+    addInventoryItem(item) {
+        if (!this.inventories[item.user]) {
+            this.inventories[item.user] = new Map();
         }
-        this.inventories[inventoryItem.user].set(inventoryItem.id, inventoryItem);
+        this.inventories[item.user].set(item.id, item);
     }
 
     openInventory(e) {
@@ -251,6 +268,21 @@ class App {
 
             usersTable.appendChild(userItemNode.firstElementChild);
         });
+    }
+
+    async fetchAudio() {
+        const audioList = await app.pb.collection('audio').getFullList();
+
+        for (const audio of audioList) {
+            this.addAudioItem(audio);
+        }
+    }
+
+    addAudioItem(item) {
+        if (!this.audio[item.event]) {
+            this.audio[item.event] = new Map();
+        }
+        this.audio[item.event].set(item.id, item);
     }
 
     async showActionButtons() {

@@ -1,6 +1,22 @@
 .wheel-modal {
     display: flex;
     justify-content: center;
+
+    h2.title {
+        position: absolute;
+        z-index: 1;
+        font-size: 3vw;
+    }
+
+    .rotate {
+        animation: spinner 20s linear infinite !important;
+    }
+}
+
+@keyframes spinner {
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .wheel-container {
@@ -16,12 +32,16 @@
     & > * { position: absolute; }
 
     button {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
         aspect-ratio: 1 / 1;
         background: hsla(0, 0%, 100%, .8);
         border: 0;
         border-radius: 50%;
         cursor: pointer;
-        font-size: 5cqi;
+        font-size: 1vw;
         place-self: center;
         width: 20cqi;
     }

@@ -1,12 +1,9 @@
 export default class Wheel {
     constructor() {
-        this.spinning = true;
-        this.autoSpinInterval = null;
         this.items = null;
     }
 
     createWheel(items) {
-        this.angle = 0;
         this.wheel = document.getElementById('wheel');
         this.wheel.innerHTML = '';
         this.items = items;
@@ -14,9 +11,11 @@ export default class Wheel {
         items.forEach((item, index) => {
             let li = document.createElement("li");
 
-            li.style.rotate = `${360 / items.length * (index + 1) - 1}deg`;
+            li.style.rotate = `${360 / items.length * index}deg`;
             li.style.background = `hsl(${360 / items.length * (index + 1)}deg, 100%, 75%)`;
             li.style.aspectRatio = `1 / ${(2 * Math.tan(180 * (Math.PI / 180) / items.length))}`;
+
+            li.dataset.id = item.id;
 
             if (item.src) {
                 li.style.background = `url(${item.src}) no-repeat`;
@@ -26,35 +25,51 @@ export default class Wheel {
             li.innerHTML = item.text;
             this.wheel.appendChild(li);
         });
-
-        if (this.autoSpinInterval) clearInterval(this.autoSpinInterval);
-
-        this.autoSpin();
     }
 
     clearWheel() {
-        if (this.autoSpinInterval) clearInterval(this.autoSpinInterval);
         if (this.wheel) this.wheel.innerHTML = '';
-    }
-
-    autoSpin() {
-        this.autoSpinInterval = setInterval(() => {
-            if (this.spinning) {
-                this.angle += 1;
-                this.wheel.style.transform = `rotate(${this.angle}deg)`;
-            }
-        }, 50);
     }
 
     startSpin(winnerId, duration) {
         if (!this.items) return;
 
-        this.spinning = false;
-        let segmentAngle = 360 / this.items.length;
-        let winnerIndex = this.items.findIndex(item => item.id === winnerId);
-        let finalAngle = 360 * 10 - (winnerIndex * segmentAngle);
+        const winnerIndex = this.items.findIndex(item => item.id === winnerId);
+        const segmentAngle = 360 / this.items.length;
+        const finalAngle = 360 * 10 - (segmentAngle * winnerIndex) + 90;
 
-        this.wheel.style.transition = `transform ${duration}s ease-in-out`;
-        this.wheel.style.transform = `rotate(${finalAngle}deg)`;
+        this.wheel.classList.remove('rotate');
+        setTimeout(() => {
+            this.wheel.style.transition = `transform ${duration}s ease-in-out`;
+            this.wheel.style.transform = `rotate(${finalAngle}deg)`;
+        }, 100);
+    }
+
+    getCurrentAngle() {
+        const style = window.getComputedStyle(this.wheel);
+        const transform = style.getPropertyValue('transform');
+
+        if (transform === 'none') {
+            return 0;
+        }
+
+        const values = transform.match(/matrix\(([^)]+)\)/);
+        if (!values) {
+            return 0;
+        }
+
+        const [a, b] = values[1].split(",").map(parseFloat);
+        return Math.round(Math.atan2(b, a) * (180 / Math.PI));
+
+    }
+
+    getCurrentWinner() {
+        const currentAngle = this.getCurrentAngle() - 90;
+        let segmentAngle = 360 / this.items.length;
+        let normalizedAngle = ((currentAngle % 360) + 360) % 360;
+        normalizedAngle = (360 - normalizedAngle) % 360;
+        let winnerIndex = Math.round(normalizedAngle / segmentAngle);
+
+        return this.items[winnerIndex % this.items.length];
     }
 }

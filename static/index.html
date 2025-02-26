@@ -135,8 +135,9 @@
     <div class="graph-modal__container" role="dialog" aria-modal="true" data-graph-target="wheel">
         <button class="btn-reset graph-modal__close js-modal-close" aria-label="Закрыть модальное окно"></button>
         <div class="graph-modal__content wheel-modal">
+            <h2 class="title text-shadow"></h2>
             <div class="wheel-container">
-                <ul class="wheel" id="wheel"></ul>
+                <ul class="wheel rotate" id="wheel"></ul>
                 <button class="start-btn">START</button>
             </div>
         </div>
@@ -167,14 +168,41 @@
             <div class="container">
                 <h2>ИНВЕНТАРЬ {{NAME}}</h2>
                 <div class="inventory__items">
-                    <div class="inventory__item"></div>
-                    <div class="inventory__item"></div>
-                    <div class="inventory__item"></div>
+                    <div class="inventory__item">
+                        <img src="img/undefined.jpg" width="200px" height="200px">
+                        <span>{{ITEM NAME}}</span>
+                        <div class="inventory__item-actions">
+                            <button class="button red disabled">ВЫКИНУТЬ</button>
+                            <button class="button green">ИСПОЛЬЗОВАТЬ</button>
+                        </div>
+                    </div>
+                    <div class="inventory__item">
+                        <img src="img/undefined.jpg" width="200px" height="200px">
+                        <span>{{ITEM NAME}}</span>
+                        <div class="inventory__item-actions">
+                            <button class="button red">ВЫКИНУТЬ</button>
+                            <button class="button green">ИСПОЛЬЗОВАТЬ</button>
+                        </div>
+                    </div>
+                    <div class="inventory__item">
+                        <img src="img/undefined.jpg" width="200px" height="200px">
+                        <span>{{ITEM NAME}}</span>
+                        <div class="inventory__item-actions">
+                            <button class="button red">ВЫКИНУТЬ</button>
+                            <button class="button green">ИСПОЛЬЗОВАТЬ</button>
+                        </div>
+                    </div>
                 </div>
                 <div class="inventory__side-effects">
-                    <div class="inventory__side-effect"></div>
-                    <div class="inventory__side-effect"></div>
-                    <div class="inventory__side-effect"></div>
+                    <div class="inventory__side-effect">
+                        <img src="img/undefined.jpg" width="50px" height="50px">
+                    </div>
+                    <div class="inventory__side-effect">
+                        <img src="img/undefined.jpg" width="50px" height="50px">
+                    </div>
+                    <div class="inventory__side-effect">
+                        <img src="img/undefined.jpg" width="50px" height="50px">
+                    </div>
                 </div>
             </div>
         </div>
@@ -208,37 +236,43 @@
     </div>
 </template>
 <template id="d4-template">
-    <div class="tetrahedron">
-        <div class="face one">
-            <div class="dot-container">
-                <div class="dot"></div>
+    <div class="d4-container">
+        <div class="polygon3d rotate">
+            <div class="triangle front">
+                <div class="blue"></div>
+                <div class="dot-container">
+                    <div class="dot"></div>
+                </div>
             </div>
-        </div>
-        <div class="face two">
-            <div class="dot-container">
-                <div class="dot"></div>
-                <div class="dot"></div>
+            <div class="triangle back-left">
+                <div class="green"></div>
+                <div class="dot-container">
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
             </div>
-        </div>
-        <div class="face three">
-            <div class="dot-container">
-                <div class="dot"></div>
-                <div class="dot"></div>
-                <div class="dot"></div>
+            <div class="triangle back-right">
+                <div class="yellow"></div>
+                <div class="dot-container">
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
             </div>
-        </div>
-        <div class="face four">
-            <div class="dot-container">
-                <div class="dot"></div>
-                <div class="dot"></div>
-                <div class="dot"></div>
-                <div class="dot"></div>
+            <div class="triangle bottom">
+                <div class="red"></div>
+                <div class="dot-container">
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
             </div>
         </div>
     </div>
 </template>
 <template id="d6-template">
-    <div class="cube">
+    <div class="cube rotate">
         <div class="face front one">
             <div class="dot-container">
                 <div class="dot"></div>

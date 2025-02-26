@@ -8,6 +8,7 @@ import (
 type MemoryCache[K comparable, V any] struct {
 	data         sync.Map
 	ttl          time.Duration
+	count        int
 	preventClean bool
 }
 
@@ -34,6 +35,7 @@ func (c *MemoryCache[K, V]) Set(key K, value V) {
 		value:     value,
 		expiresAt: time.Now().Add(c.ttl),
 	})
+	c.count++
 }
 
 func (c *MemoryCache[K, V]) Get(key K) (V, bool) {
@@ -55,23 +57,25 @@ func (c *MemoryCache[K, V]) Get(key K) (V, bool) {
 
 func (c *MemoryCache[K, V]) Delete(key K) {
 	c.data.Delete(key)
+	c.count--
 }
 
-func (c *MemoryCache[K, V]) Range(f func(k, v interface{}) bool) {
-	c.data.Range(f)
+func (c *MemoryCache[K, V]) GetAll() map[K]V {
+	res := make(map[K]V, c.Count())
+	c.data.Range(func(key, value any) bool {
+		res[key.(K)] = value.(cacheItem[V]).value
+		return true
+	})
+	return res
 }
 
 func (c *MemoryCache[K, V]) Count() int {
-	i := 0
-	c.data.Range(func(k, v interface{}) bool {
-		i++
-		return true
-	})
-	return i
+	return c.count
 }
 
 func (c *MemoryCache[K, V]) Clear() {
 	c.data.Clear()
+	c.count = 0
 }
 
 func (c *MemoryCache[K, V]) startGC(interval time.Duration) {

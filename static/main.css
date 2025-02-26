@@ -478,14 +478,6 @@ h1, h2, h3, h4, h5, h6 {
             }
         }
 
-        .button {
-            font-family: "Dela Gothic One", serif;
-            color: white;
-            border: none;
-            padding: 10px 50px;
-            background-color: #20c723;
-        }
-
         .choose-game {
             background-color: #20c7bf;
         }
@@ -551,8 +543,76 @@ table.users {
             0.1vw 0.1vw 0 #000;
 }
 
+.inventory {
+    .inventory__items {
+        display: flex;
+        gap: 3vw;
+        padding-top: 2vw;
+
+        .inventory__item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+
+            span {
+                font-size: 1.3vw;
+            }
+
+            .inventory__item-actions {
+                display: flex;
+                flex-direction: column;
+                gap: 0.5vw;
+
+                button {
+                    font-size: 0.6vw;
+                }
+            }
+        }
+    }
+
+    .inventory__side-effects {
+        display: flex;
+        justify-content: center;
+        gap: 4vw;
+        width: 100%;
+        padding-top: 1vw;
+        margin-top: 1vw;
+        border-top: solid black 0.2vw;
+    }
+}
+
+.graph-modal .graph-modal__container {
+    background: #303e54;
+    width: 53vw;
+
+    h2 {
+        color: white;
+        font-size: 1.4vw;
+    }
+}
+
 .button {
     cursor: pointer;
+    color: white;
+    border: none;
+    padding: 0.6vw 2vw;
+}
+
+.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.blue {
+    background-color: #20c7bf;
+}
+
+.red {
+    background-color: #c72020;
+}
+
+.green {
+    background-color: #20c723;
 }
 
 .hidden {

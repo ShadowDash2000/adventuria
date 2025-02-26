@@ -1,11 +1,9 @@
 const rolls = {
     'd4': [
         {x: 0, y: 0, value: 1},
-        {x: 90, y: 0, value: 2},
-        {x: 0, y: -90, value: 3},
-        {x: 0, y: 90, value: 4},
-        {x: -90, y: 0, value: 5},
-        {x: 180, y: 0, value: 6},
+        {x: 0, y: 120, value: 2},
+        {x: 0, y: 240, value: 3},
+        {x: 90, y: 180, value: 4},
     ],
     'd6': [
         {x: 0, y: 0, value: 1},
@@ -54,8 +52,11 @@ export default class Dice {
             let randomX = Math.floor(Math.random() * 4 + 4) * 360;
             let randomY = Math.floor(Math.random() * 4 + 4) * 360;
 
-            dice.element.style.transition = `transform ${duration}s ease-in-out`;
-            dice.element.style.transform = `rotateX(${randomX + roll.x}deg) rotateY(${randomY + roll.y}deg)`;
+            let rotate = dice.element.querySelector('.rotate');
+            if (!rotate) rotate = dice.element;
+            
+            rotate.style.transition = `transform ${duration}s ease-in-out`;
+            rotate.style.transform = `rotateX(${randomX + roll.x}deg) rotateY(${randomY + roll.y}deg)`;
         }
     }
 }

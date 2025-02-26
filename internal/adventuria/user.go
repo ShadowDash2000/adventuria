@@ -54,7 +54,19 @@ func (u *User) bindHooks() {
 		}
 		return e.Next()
 	})
-
+	u.app.OnRecordAfterUpdateSuccess(TableActions).BindFunc(func(e *core.RecordEvent) error {
+		if e.Record.Id == u.lastAction.Id {
+			u.lastAction = e.Record
+		}
+		return e.Next()
+	})
+	u.app.OnRecordAfterDeleteSuccess(TableActions).BindFunc(func(e *core.RecordEvent) error {
+		userId := e.Record.GetString("user")
+		if userId == u.userId {
+			u.fetchUserAction()
+		}
+		return e.Next()
+	})
 	u.app.OnRecordAfterUpdateSuccess(TableUsers).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == u.userId {
 			u.user = e.Record
@@ -193,7 +205,8 @@ func (u *User) GetNextStepType() (string, error) {
 			nextStepType = UserNextStepRollBigWin
 		case ActionTypeDrop:
 			nextStepType = UserNextStepRollOnBigWinDrop
-		case ActionTypeGame:
+		case ActionTypeGame,
+			ActionTypeRollBigWin:
 			nextStepType = UserNextStepChooseResult
 		case ActionTypeDone:
 			nextStepType = UserNextStepRoll

@@ -16,7 +16,7 @@ type Effects struct {
 	JailEscape      bool   `json:"jailEscape" mapstructure:"jailEscape"`
 	DiceMultiplier  int    `json:"diceMultiplier" mapstructure:"diceMultiplier"`
 	DiceIncrement   int    `json:"diceIncrement" mapstructure:"diceIncrement"`
-	Dices           []Dice `json:"dices" mapstructure:"dices"`
+	Dices           []Dice `json:"dices" mapstructure:"changeDices"`
 	IsSafeDrop      bool   `json:"isSafeDrop" mapstructure:"isSafeDrop"`
 }
 
