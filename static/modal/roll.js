@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!res.ok) return;
 
         const json = await res.json();
-        
+
         let dices = [];
         if (json.dices) {
             for (const dice of json.dices) {
@@ -59,9 +59,22 @@ async function roll() {
 
     const json = await res.json();
 
-    const duration = 4;
+    const audioItemsKeys = Array.from(app.audio[app.nextStepType].keys());
+    const randomKey = audioItemsKeys[Math.floor(Math.random() * audioItemsKeys.length)];
+    const rollInfo = app.audio[app.nextStepType].get(randomKey);
 
-    dice.rollDice(json.diceRolls, duration);
+    let duration = rollInfo.duration;
+    const durations = [];
+    for (let i = 0; i < json.diceRolls.length; i++) {
+        duration -= 2;
+        durations.unshift(duration);
+    }
+
+    dice.rollDice(json.diceRolls, durations);
+
+    const audio = new Audio(app.getFile('audio', rollInfo));
+    audio.volume = app.volume / 100;
+    audio.play();
 
     setTimeout(async () => {
         rollResult.querySelector('.roll-result__number').innerHTML = json.roll;
@@ -78,5 +91,9 @@ async function roll() {
 
         await app.updateInnerField();
 
-    }, duration * 1000);
+    }, rollInfo.duration * 1000);
+
+    setTimeout(() => {
+        audio.pause();
+    }, (rollInfo.duration + 1) * 1000);
 }

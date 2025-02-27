@@ -11,40 +11,28 @@ class App {
         this.usersList = new Map();
         this.audio = new Map();
         this.inventories = {};
+        this.items = new Map();
+        this.wheelItems = new Map();
         this.nextStepType = '';
         this.volume = localStorage.getItem('volume') ? localStorage.getItem('volume') : 30;
 
-        this.pb.collection('users').subscribe('*', (e) => {
-            document.dispatchEvent(new CustomEvent("record.users."+e.action, {
-                detail: {
-                    'record': e.record,
-                },
-            }));
-        });
-
-        this.pb.collection('actions').subscribe('*', (e) => {
-            document.dispatchEvent(new CustomEvent("record.actions."+e.action, {
-                detail: {
-                    'record': e.record,
-                },
-            }));
-        });
-
-        this.pb.collection('inventory').subscribe('*', (e) => {
-            document.dispatchEvent(new CustomEvent("record.inventory."+e.action, {
-                detail: {
-                    'record': e.record,
-                },
-            }));
-        });
-
-        this.pb.collection('audio').subscribe('*', (e) => {
-            document.dispatchEvent(new CustomEvent("record.audio."+e.action, {
-                detail: {
-                    'record': e.record,
-                },
-            }));
-        });
+        const collections = [
+            'users',
+            'actions',
+            'inventory',
+            'audio',
+            'items',
+            'wheel_items',
+        ];
+        for (const collection of collections) {
+            this.pb.collection(collection).subscribe('*', (e) => {
+                document.dispatchEvent(new CustomEvent(`record.${collection}.${e.action}`, {
+                    detail: {
+                        'record': e.record,
+                    },
+                }));
+            });
+        }
 
         this.modal = new GraphModal({
             isOpen: (modal) => {
@@ -88,7 +76,6 @@ class App {
             this.cellTemplateRight = document.getElementById('cell-template-right');
             this.specialCellTemplate = document.getElementById('special-cell-template');
             this.usersTableItemTemplate = document.getElementById('users-table-item');
-            this.inventoryModal = document.getElementById('inventory-modal');
 
             const volumeSlider = document.getElementById('volume-slider');
             volumeSlider.value = this.volume;
@@ -106,7 +93,9 @@ class App {
 
             await this.fetchCells();
             await this.fetchUsers();
+            await this.fetchItems();
             await this.fetchInventories();
+            await this.fetchWheelItems();
             await this.fetchAudio();
 
             this.updateCells();
@@ -123,7 +112,15 @@ class App {
 
         document.addEventListener('record.actions.create', async (e) => {
             if (e.detail.record.user !== this.auth.record.id) return;
-            await this.showActionButtons();
+            setTimeout(async () => {
+                await this.showActionButtons();
+            }, 1000);
+        });
+        document.addEventListener('record.actions.delete', async (e) => {
+            if (e.detail.record.user !== this.auth.record.id) return;
+            setTimeout(async () => {
+                await this.showActionButtons();
+            }, 1000);
         });
 
         document.addEventListener('record.inventory.create', async (e) => {
@@ -139,6 +136,23 @@ class App {
         document.addEventListener('record.audio.update', async (e) => {
             this.addAudioItem(e.detail.record);
         });
+
+        document.addEventListener('record.items.create', async (e) => {
+            this.items.set(e.detail.record.id, e.detail.record);
+        });
+        document.addEventListener('record.items.update', async (e) => {
+            this.items.set(e.detail.record.id, e.detail.record);
+        });
+
+        document.addEventListener('record.wheel_items.create', async (e) => {
+            this.addWheelItem(e.detail.record);
+        });
+        document.addEventListener('record.wheel_items.update', async (e) => {
+            this.addWheelItem(e.detail.record);
+        });
+        document.addEventListener('record.wheel_items.delete', async (e) => {
+            this.wheelItems[e.detail.record.type].delete(e.detail.record.id);
+        });
     }
 
     setVolume(v) {
@@ -147,7 +161,7 @@ class App {
     }
 
     async fetchCells() {
-        this.cellsList = await app.pb.collection('cells').getFullList({
+        this.cellsList = await this.pb.collection('cells').getFullList({
             sort: '-sort',
         });
     }
@@ -185,7 +199,7 @@ class App {
     }
 
     async fetchInventories() {
-        const inventories = await app.pb.collection('inventory').getFullList({});
+        const inventories = await this.pb.collection('inventory').getFullList({});
 
         for (const inventoryItem of inventories) {
             this.addInventoryItem(inventoryItem);
@@ -199,20 +213,8 @@ class App {
         this.inventories[item.user].set(item.id, item);
     }
 
-    openInventory(e) {
-        const userId = e.target.dataset.inventory;
-        const user = this.usersList.get(userId);
-
-        this.inventoryModal.querySelector('h2').innerHTML = `ИНВЕНТАРЬ ${user.name}`;
-
-        this.modal.open('inventory', {
-            speed: 100,
-            animation: 'fadeInUp',
-        });
-    }
-
     async fetchUsers() {
-        const usersList = await app.pb.collection('users').getFullList({
+        const usersList = await this.pb.collection('users').getFullList({
             sort: '-points',
         });
 
@@ -232,19 +234,33 @@ class App {
         });
 
         this.usersCells.clear();
-        this.usersList.forEach((user) => {
+        this.usersList.forEach((user, userId) => {
             const currentCellNum = user.cellsPassed % this.cellsList.length;
-            const currentCell = this.cellsList[this.cellsList.length - currentCellNum - 1].cellElement;
+            const currentCell = this.cellsList[this.cellsList.length - currentCellNum - 1];
+            const currentCellElement = currentCell.cellElement;
+
+            user.currentCell = currentCell.id;
 
             const userElement = document.createElement("img");
             userElement.src = "/api/files/" + user.collectionId + "/" + user.id + "/" + user.avatar;
             userElement.setAttribute('style', "border: 2px solid" + user.color);
 
-            const usersNode = currentCell.querySelector('.users');
+            const usersNode = currentCellElement.querySelector('.users');
             usersNode.appendChild(userElement);
 
             this.usersCells.set(user.name, userElement);
         });
+    }
+
+    getUserCurrentCell(userId) {
+        const cellId = this.usersList.get(userId).currentCell;
+        return this.getCellById(cellId);
+    }
+
+    getCellById(cellId) {
+        for (const cell of this.cellsList) {
+            if (cell.id === cellId) return cell;
+        }
     }
 
     updateUsersTable() {
@@ -262,8 +278,12 @@ class App {
             const inventoryButton = userItemNode.querySelector('.users__inventory button');
             inventoryButton.dataset.inventory = user.id;
 
-            inventoryButton.addEventListener('click', (e) => {
-                this.openInventory(e);
+            inventoryButton.addEventListener('click', () => {
+                document.dispatchEvent(new CustomEvent('inventory.open', {
+                    detail: {
+                        userId: user.id,
+                    },
+                }));
             });
 
             usersTable.appendChild(userItemNode.firstElementChild);
@@ -271,9 +291,7 @@ class App {
     }
 
     async fetchAudio() {
-        const audioList = await app.pb.collection('audio').getFullList();
-
-        for (const audio of audioList) {
+        for (const audio of await this.pb.collection('audio').getFullList()) {
             this.addAudioItem(audio);
         }
     }
@@ -283,6 +301,29 @@ class App {
             this.audio[item.event] = new Map();
         }
         this.audio[item.event].set(item.id, item);
+    }
+
+    async fetchItems() {
+        for (const item of await this.pb.collection('items').getFullList()) {
+            this.items.set(item.id, item);
+        }
+    }
+
+    getFile(key, item) {
+        return "/api/files/" + item.collectionId + "/" + item.id + "/" + item[key];
+    }
+
+    async fetchWheelItems() {
+        for (const item of await this.pb.collection('wheel_items').getFullList()) {
+            this.addWheelItem(item);
+        }
+    }
+
+    addWheelItem(item) {
+        if (!this.wheelItems[item.type]) {
+            this.wheelItems[item.type] = new Map();
+        }
+        this.wheelItems[item.type].set(item.id, item);
     }
 
     async showActionButtons() {
@@ -323,6 +364,7 @@ class App {
             case 'rollMovie':
             case 'rollPreset':
             case 'rollItem':
+            case 'rollDeveloper':
                 button = actionsButtons.querySelector('button.wheel');
                 break;
         }

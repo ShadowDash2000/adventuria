@@ -31,11 +31,14 @@ func NewMemoryCache[K comparable, V any](ttl time.Duration, preventClean bool) *
 }
 
 func (c *MemoryCache[K, V]) Set(key K, value V) {
+	if _, found := c.data.Load(key); !found {
+		c.count++
+	}
+
 	c.data.Store(key, cacheItem[V]{
 		value:     value,
 		expiresAt: time.Now().Add(c.ttl),
 	})
-	c.count++
 }
 
 func (c *MemoryCache[K, V]) Get(key K) (V, bool) {

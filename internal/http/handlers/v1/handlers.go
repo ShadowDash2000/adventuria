@@ -207,6 +207,20 @@ func (h *Handlers) RollBigWinHandler(e *core.RequestEvent) error {
 	return nil
 }
 
+func (h *Handlers) RollDeveloperHandler(e *core.RequestEvent) error {
+	gameId, err := h.Game.RollDeveloper(e.Auth.Id)
+	if err != nil {
+		e.JSON(http.StatusInternalServerError, err.Error())
+		return err
+	}
+
+	e.JSON(http.StatusOK, map[string]interface{}{
+		"itemId": gameId,
+	})
+
+	return nil
+}
+
 func (h *Handlers) GetRollEffectsHandler(e *core.RequestEvent) error {
 	effects, err := h.Game.GetItemsEffects(e.Auth.Id, adventuria.ItemUseTypeOnRoll)
 	if err != nil {

@@ -13,59 +13,60 @@ document.addEventListener('DOMContentLoaded', () => {
         if (modalName !== 'wheel') return;
 
         let wheelItems = [];
+        const currentCell = app.getUserCurrentCell(app.auth.record.id);
         switch (app.nextStepType) {
             case 'rollJailCell':
-                const cells = await app.pb.collection('cells').getFullList({
-                    sort: '-sort',
-                    filter: 'type = "game"',
-                });
-
-                for (const cell of cells) {
-                    wheelItems.push({
-                        id: cell.id,
-                        src: "/api/files/" + cell.collectionId + "/" + cell.id + "/" + cell.icon,
-                        text: cell.name
-                    });
+                for (const cell of app.cellsList) {
+                    if (cell.type === 'game') {
+                        wheelItems.push({
+                            id: cell.id,
+                            src: app.getFile('icon', cell),
+                            text: cell.name
+                        });
+                    }
                 }
                 break;
             case 'rollBigWin':
-                const games = await app.pb.collection('wheel_items').getFullList({
-                    filter: 'type = "legendaryGame"',
-                });
-
-                for (const game of games) {
+                app.wheelItems['legendaryGame'].forEach((game) => {
                     wheelItems.push({
                         id: game.id,
-                        src: "/api/files/" + game.collectionId + "/" + game.id + "/" + game.icon,
+                        src: app.getFile('icon', game),
                         text: game.name
                     });
-                }
+                });
                 break;
             case 'rollMovie':
-                const movies = await app.pb.collection('wheel_items').getFullList({
-                    filter: 'type = "movie"',
+                app.wheelItems['movie'].forEach((movie) => {
+                    if (movie.preset === currentCell.preset) {
+                        wheelItems.push({
+                            id: movie.id,
+                            src: app.getFile('icon', movie),
+                            text: movie.name
+                        });
+                    }
                 });
-
-                for (const movie of movies) {
-                    wheelItems.push({
-                        id: movie.id,
-                        src: "/api/files/" + movie.collectionId + "/" + movie.id + "/" + movie.icon,
-                        text: movie.name
-                    });
-                }
                 break;
             case 'rollItem':
-                const items = await app.pb.collection('items').getFullList({
-                    filter: 'isRollable = true',
+                app.items.forEach((item) => {
+                    if (item.isRollable) {
+                        wheelItems.push({
+                            id: item.id,
+                            src: app.getFile('icon', item),
+                            text: item.name
+                        });
+                    }
+                })
+                break;
+            case 'rollDeveloper':
+                app.wheelItems['developer'].forEach((game) => {
+                    if (game.preset === currentCell.preset) {
+                        wheelItems.push({
+                            id: game.id,
+                            src: app.getFile('icon', game),
+                            text: game.name
+                        });
+                    }
                 });
-
-                for (const item of items) {
-                    wheelItems.push({
-                        id: item.id,
-                        src: "/api/files/" + item.collectionId + "/" + item.id + "/" + item.icon,
-                        text: item.name
-                    });
-                }
                 break;
         }
 
@@ -96,6 +97,9 @@ async function startSpin() {
         case 'rollItem':
             url = '/api/roll-item';
             break;
+        case 'rollDeveloper':
+            url = '/api/roll-developer';
+            break;
     }
 
     const res = await fetch(url, {
@@ -119,7 +123,7 @@ async function startSpin() {
     const wheelContainer = document.querySelector('.graph-modal__content.wheel-modal');
     const wheelTitle = wheelContainer.querySelector('h2');
 
-    const audio = new Audio("/api/files/" + rollInfo.collectionId + "/" + rollInfo.id + "/" + rollInfo.audio,);
+    const audio = new Audio("/api/files/" + rollInfo.collectionId + "/" + rollInfo.id + "/" + rollInfo.audio);
     audio.volume = app.volume / 100;
     audio.play();
 

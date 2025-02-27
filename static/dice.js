@@ -41,9 +41,10 @@ export default class Dice {
         });
     }
 
-    rollDice(values = null, duration = 4) {
+    rollDice(values = null, durations = []) {
         for (const key in this.dices) {
             const dice = this.dices[key];
+            const duration = durations[key] ? durations[key] : 4;
 
             const roll = values[key] ?
                 rolls[dice.type].find(r => r.value === values[key]) :

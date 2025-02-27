@@ -167,47 +167,27 @@
         <div class="graph-modal__content inventory">
             <div class="container">
                 <h2>ИНВЕНТАРЬ {{NAME}}</h2>
-                <div class="inventory__items">
-                    <div class="inventory__item">
-                        <img src="img/undefined.jpg" width="200px" height="200px">
-                        <span>{{ITEM NAME}}</span>
-                        <div class="inventory__item-actions">
-                            <button class="button red disabled">ВЫКИНУТЬ</button>
-                            <button class="button green">ИСПОЛЬЗОВАТЬ</button>
-                        </div>
-                    </div>
-                    <div class="inventory__item">
-                        <img src="img/undefined.jpg" width="200px" height="200px">
-                        <span>{{ITEM NAME}}</span>
-                        <div class="inventory__item-actions">
-                            <button class="button red">ВЫКИНУТЬ</button>
-                            <button class="button green">ИСПОЛЬЗОВАТЬ</button>
-                        </div>
-                    </div>
-                    <div class="inventory__item">
-                        <img src="img/undefined.jpg" width="200px" height="200px">
-                        <span>{{ITEM NAME}}</span>
-                        <div class="inventory__item-actions">
-                            <button class="button red">ВЫКИНУТЬ</button>
-                            <button class="button green">ИСПОЛЬЗОВАТЬ</button>
-                        </div>
-                    </div>
-                </div>
-                <div class="inventory__side-effects">
-                    <div class="inventory__side-effect">
-                        <img src="img/undefined.jpg" width="50px" height="50px">
-                    </div>
-                    <div class="inventory__side-effect">
-                        <img src="img/undefined.jpg" width="50px" height="50px">
-                    </div>
-                    <div class="inventory__side-effect">
-                        <img src="img/undefined.jpg" width="50px" height="50px">
-                    </div>
-                </div>
+                <div class="inventory__items"></div>
+                <div class="inventory__side-effects"></div>
             </div>
         </div>
     </div>
 </div>
+<template id="inventory-item">
+    <div class="inventory__item">
+        <img src="img/undefined.jpg" width="200px" height="200px">
+        <span>{{ITEM NAME}}</span>
+        <div class="inventory__item-actions hidden">
+            <button class="button drop red">ВЫКИНУТЬ</button>
+            <button class="button use green">ИСПОЛЬЗОВАТЬ</button>
+        </div>
+    </div>
+</template>
+<template id="inventory-side-effect">
+    <div class="inventory__side-effect">
+        <img src="img/undefined.jpg" width="50px" height="50px">
+    </div>
+</template>
 <template id="cell-template">
     <div class="space property">
         <div class="container">
@@ -334,10 +314,37 @@
     </tr>
 </template>
 </body>
+<script>
+    /*document.addEventListener('DOMContentLoaded', () => {
+        const v = '1.0.0';
+        const scripts = [
+            '/modal/auth.js',
+            '/modal/game-picker.js',
+            '/modal/game-result.js',
+            '/modal/roll.js',
+            '/modal/wheel.js',
+            '/modal/submit.js',
+            '/modal/inventory.js',
+        ];
+
+        for (const src of scripts) {
+            const script = document.createElement('script');
+            script.src = src;
+            script.type = 'module';
+
+            script.addEventListener('load', () => {
+
+            }, {once: true});
+
+            document.head.append(script);
+        }
+    });*/
+</script>
 <script defer type="module" src="/modal/auth.js"></script>
 <script defer type="module" src="/modal/game-picker.js"></script>
 <script defer type="module" src="/modal/game-result.js"></script>
 <script defer type="module" src="/modal/roll.js"></script>
 <script defer type="module" src="/modal/wheel.js"></script>
 <script defer type="module" src="/modal/submit.js"></script>
+<script defer type="module" src="/modal/inventory.js"></script>
 </html>

@@ -67,7 +67,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const json = await res.json();
 
         const gameTitle = gameResultModal.querySelector('.game-title');
-        gameTitle.innerHTML = json.game;
+        const cell = app.getUserCurrentCell(app.auth.record.id);
+
+        switch (cell.type) {
+            case 'big-win':
+                gameTitle.innerHTML = app.wheelItems['legendaryGame'].get(json.game).name;
+                break;
+            default:
+                gameTitle.innerHTML = json.game;
+        }
 
         if (json.isInJail) {
             gameResultModal.querySelector('.button.drop').classList.add('hidden');

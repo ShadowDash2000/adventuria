@@ -1,6 +1,7 @@
 package adventuria
 
 import (
+	"adventuria/pkg/cache"
 	"errors"
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
@@ -12,9 +13,10 @@ type User struct {
 	user       *core.Record
 	lastAction *core.Record
 	Inventory  *Inventory
+	cells      *cache.MemoryCache[int, *core.Record]
 }
 
-func NewUser(userId string, app core.App) (*User, error) {
+func NewUser(userId string, cells *cache.MemoryCache[int, *core.Record], app core.App) (*User, error) {
 	if userId == "" {
 		return nil, errors.New("you're not authorized")
 	}
@@ -22,6 +24,7 @@ func NewUser(userId string, app core.App) (*User, error) {
 	u := &User{
 		app:    app,
 		userId: userId,
+		cells:  cells,
 	}
 
 	var err error
@@ -115,18 +118,15 @@ func (u *User) IsInJail() bool {
 }
 
 func (u *User) GetCurrentCell() (*core.Record, error) {
-	if u.lastAction == nil {
-		return nil, errors.New("no lastAction found")
+	cellsPassed := u.GetCellsPassed()
+	currentCellNum := cellsPassed % u.cells.Count()
+
+	currentCell, ok := u.cells.Get(currentCellNum)
+	if !ok {
+		return nil, errors.New("cell not found")
 	}
 
-	errs := u.app.ExpandRecord(u.lastAction, []string{"cell"}, nil)
-	if len(errs) > 0 {
-		for _, err := range errs {
-			return nil, err
-		}
-	}
-
-	return u.lastAction.ExpandedOne("cell"), nil
+	return currentCell, nil
 }
 
 func (u *User) GetPoints() int {
@@ -165,7 +165,10 @@ func (u *User) GetNextStepType() (string, error) {
 	}
 
 	cellType := cell.GetString("type")
-	lastActionType := u.lastAction.GetString("type")
+	lastActionType := ""
+	if u.lastAction.GetString("cell") == cell.Id {
+		lastActionType = u.lastAction.GetString("type")
+	}
 
 	switch cellType {
 	case CellTypeGame:
@@ -178,6 +181,8 @@ func (u *User) GetNextStepType() (string, error) {
 			nextStepType = UserNextStepChooseResult
 		case ActionTypeDone:
 			nextStepType = UserNextStepRoll
+		default:
+			nextStepType = UserNextStepChooseGame
 		}
 	case CellTypeStart:
 		nextStepType = UserNextStepRoll
@@ -193,6 +198,8 @@ func (u *User) GetNextStepType() (string, error) {
 			case ActionTypeGame:
 				nextStepType = UserNextStepChooseResult
 			case ActionTypeDone:
+				nextStepType = UserNextStepRoll
+			default:
 				nextStepType = UserNextStepRoll
 			}
 		} else {
@@ -210,6 +217,8 @@ func (u *User) GetNextStepType() (string, error) {
 			nextStepType = UserNextStepChooseResult
 		case ActionTypeDone:
 			nextStepType = UserNextStepRoll
+		default:
+			nextStepType = UserNextStepRollBigWin
 		}
 	case CellTypePreset:
 		switch lastActionType {
@@ -223,6 +232,8 @@ func (u *User) GetNextStepType() (string, error) {
 			nextStepType = UserNextStepChooseResult
 		case ActionTypeDone:
 			nextStepType = UserNextStepRoll
+		default:
+			nextStepType = UserNextStepRollPreset
 		}
 	case CellTypeMovie:
 		switch lastActionType {
@@ -230,6 +241,10 @@ func (u *User) GetNextStepType() (string, error) {
 			nextStepType = UserNextStepRollMovie
 		case ActionTypeRollMovie:
 			nextStepType = UserNextStepMovieResult
+		case ActionTypeDone:
+			nextStepType = UserNextStepRoll
+		default:
+			nextStepType = UserNextStepRollMovie
 		}
 	case CellTypeItem:
 		switch lastActionType {
@@ -237,6 +252,21 @@ func (u *User) GetNextStepType() (string, error) {
 			nextStepType = UserNextStepRollItem
 		case ActionTypeRollItem:
 			nextStepType = UserNextStepRoll
+		default:
+			nextStepType = UserNextStepRollItem
+		}
+	case CellTypeDeveloper:
+		switch lastActionType {
+		case ActionTypeRoll,
+			ActionTypeReroll,
+			ActionTypeDrop:
+			nextStepType = UserNextStepRollDeveloper
+		case ActionTypeRollDeveloper:
+			nextStepType = UserNextStepChooseResult
+		case ActionTypeDone:
+			nextStepType = UserNextStepRoll
+		default:
+			nextStepType = UserNextStepRollDeveloper
 		}
 	}
 

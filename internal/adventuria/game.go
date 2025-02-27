@@ -66,7 +66,7 @@ func (g *Game) GetUser(userId string) (*User, error) {
 		return user, nil
 	}
 
-	user, err := NewUser(userId, g.app)
+	user, err := NewUser(userId, g.cells, g.app)
 	if err != nil {
 		return nil, err
 	}
@@ -455,13 +455,21 @@ func (g *Game) RollMovie(userId string) (string, error) {
 		return "", errors.New("next step isn't roll movie")
 	}
 
+	cell, err := user.GetCurrentCell()
+	if err != nil {
+		return "", err
+	}
+
 	movies, err := g.app.FindRecordsByFilter(
 		TableWheelItems,
-		"type = {:type}",
+		"type = {:type} && preset = {:preset}",
 		"",
 		0,
 		0,
-		dbx.Params{"type": "movie"},
+		dbx.Params{
+			"type":   "movie",
+			"preset": cell.GetString("preset"),
+		},
 	)
 	if err != nil {
 		return "", err
@@ -573,6 +581,60 @@ func (g *Game) RollBigWin(userId string) (string, error) {
 	record.Set("user", userId)
 	record.Set("cell", user.lastAction.GetString("cell"))
 	record.Set("type", ActionTypeRollBigWin)
+	record.Set("value", game.Id)
+	err = g.app.Save(record)
+	if err != nil {
+		return "", err
+	}
+
+	return game.Id, nil
+}
+
+func (g *Game) RollDeveloper(userId string) (string, error) {
+	user, err := g.GetUser(userId)
+	if err != nil {
+		return "", err
+	}
+
+	nextStepType, err := user.GetNextStepType()
+	if err != nil {
+		return "", err
+	}
+
+	if nextStepType != UserNextStepRollDeveloper {
+		return "", errors.New("next step isn't roll developer")
+	}
+
+	cell, err := user.GetCurrentCell()
+	if err != nil {
+		return "", err
+	}
+
+	games, err := g.app.FindRecordsByFilter(
+		TableWheelItems,
+		"type = {:type} && preset = {:preset}",
+		"",
+		0,
+		0,
+		dbx.Params{
+			"type":   "developer",
+			"preset": cell.GetString("preset"),
+		},
+	)
+	if err != nil {
+		return "", err
+	}
+
+	if len(games) == 0 {
+		return "", errors.New("games not found")
+	}
+
+	game := games[rand.Intn(len(games)-1)]
+
+	record := core.NewRecord(user.lastAction.Collection())
+	record.Set("user", userId)
+	record.Set("cell", user.lastAction.GetString("cell"))
+	record.Set("type", ActionTypeRollDeveloper)
 	record.Set("value", game.Id)
 	err = g.app.Save(record)
 	if err != nil {
