@@ -1,5 +1,6 @@
 import GraphModal from "/graph-modal/graph-modal.js";
 import PocketBase from "/pocketbase/pocketbase.es.js";
+import Submit from "./modal/submit.js";
 
 class App {
     constructor() {
@@ -14,6 +15,7 @@ class App {
         this.items = new Map();
         this.wheelItems = new Map();
         this.nextStepType = '';
+        this.submit = new Submit();
         this.volume = localStorage.getItem('volume') ? localStorage.getItem('volume') : 30;
 
         const collections = [
@@ -373,6 +375,9 @@ class App {
             case 'rollItem':
             case 'rollDeveloper':
                 button = actionsButtons.querySelector('button.wheel');
+                break;
+            case 'movieResult':
+                button = actionsButtons.querySelector('button.movie-result');
                 break;
         }
 

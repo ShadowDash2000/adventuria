@@ -1,41 +1,30 @@
 import {app} from "../app.js";
 
 export default class Submit {
-    constructor(options) {
-        const defaultOptions = {
-            onAccept: () => {},
-            onDecline: () => {},
-            text: '',
-            backModal: '',
-        }
-        this.options = Object.assign(defaultOptions, options);
-
-        const submitModal = document.querySelector('.graph-modal__content.submit');
-        const submitDeclineButton = submitModal.querySelector('.button.decline');
-        const submitAcceptButton = submitModal.querySelector('.button.accept');
-
-        submitModal.querySelector('.text').innerText = options.text;
+    constructor() {
+        this.submitModal = document.querySelector('.graph-modal__content.submit');
+        this.submitDeclineButton = this.submitModal.querySelector('.button.decline');
+        this.submitAcceptButton = this.submitModal.querySelector('.button.accept');
 
         const eventHandler = (e) => {
             this.submitActions(e);
         }
 
-        submitDeclineButton.addEventListener('click', eventHandler);
-        submitAcceptButton.addEventListener('click', eventHandler);
-
-        document.addEventListener('modal.close', (e) => {
-            if (e.detail.modalName !== 'submit') return;
-
-            if (this.options.backModal) {
-                app.modal.open(this.options.backModal);
-            }
-
-            submitDeclineButton.removeEventListener('click', eventHandler);
-            submitAcceptButton.removeEventListener('click', eventHandler);
-        });
+        this.submitDeclineButton.addEventListener('click', eventHandler);
+        this.submitAcceptButton.addEventListener('click', eventHandler);
     }
 
-    open() {
+    open(options) {
+        this.options = {
+            onAccept: () => {},
+            onDecline: () => {},
+            text: '',
+            backModal: '',
+            ...options
+        }
+
+        this.submitModal.querySelector('.text').innerText = options.text;
+
         app.modal.close();
         app.modal.open('submit', {
             speed: 100,

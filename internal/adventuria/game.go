@@ -10,22 +10,29 @@ import (
 
 type Game struct {
 	app        core.App
+	log        *Log
 	users      *cache.MemoryCache[string, *User]
 	cells      *cache.MemoryCache[int, *core.Record]
 	cellByCode *cache.MemoryCache[string, *core.Record]
 }
 
-func NewGame(app core.App) *Game {
+func NewGame(app core.App) (*Game, error) {
 	return &Game{
 		app:        app,
+		log:        NewLog(app),
 		users:      cache.NewMemoryCache[string, *User](0, true),
 		cells:      cache.NewMemoryCache[int, *core.Record](0, true),
 		cellByCode: cache.NewMemoryCache[string, *core.Record](0, true),
-	}
+	}, nil
 }
 
 func (g *Game) Init() error {
 	err := g.fetchCells()
+	if err != nil {
+		return err
+	}
+
+	err = g.log.Init()
 	if err != nil {
 		return err
 	}
@@ -66,7 +73,7 @@ func (g *Game) GetUser(userId string) (*User, error) {
 		return user, nil
 	}
 
-	user, err := NewUser(userId, g.cells, g.app)
+	user, err := NewUser(userId, g.cells, g.log, g.app)
 	if err != nil {
 		return nil, err
 	}
@@ -431,7 +438,7 @@ func (g *Game) RollCell(userId string) (string, error) {
 	record.Set("user", userId)
 	record.Set("cell", user.lastAction.GetString("cell"))
 	record.Set("type", ActionTypeRollCell)
-	record.Set("value", cell.Id)
+	record.Set("value", cell.GetString("name"))
 	err = g.app.Save(record)
 	if err != nil {
 		return "", err
@@ -485,7 +492,7 @@ func (g *Game) RollMovie(userId string) (string, error) {
 	record.Set("user", userId)
 	record.Set("cell", user.lastAction.GetString("cell"))
 	record.Set("type", ActionTypeRollMovie)
-	record.Set("value", movie.Id)
+	record.Set("value", movie.GetString("name"))
 	err = g.app.Save(record)
 	if err != nil {
 		return "", err
@@ -581,7 +588,7 @@ func (g *Game) RollBigWin(userId string) (string, error) {
 	record.Set("user", userId)
 	record.Set("cell", user.lastAction.GetString("cell"))
 	record.Set("type", ActionTypeRollBigWin)
-	record.Set("value", game.Id)
+	record.Set("value", game.GetString("name"))
 	err = g.app.Save(record)
 	if err != nil {
 		return "", err
@@ -635,7 +642,7 @@ func (g *Game) RollDeveloper(userId string) (string, error) {
 	record.Set("user", userId)
 	record.Set("cell", user.lastAction.GetString("cell"))
 	record.Set("type", ActionTypeRollDeveloper)
-	record.Set("value", game.Id)
+	record.Set("value", game.GetString("name"))
 	err = g.app.Save(record)
 	if err != nil {
 		return "", err
@@ -665,6 +672,48 @@ func (g *Game) DropItem(userId, itemId string) error {
 	}
 
 	err = user.Inventory.DropItem(itemId)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (g *Game) MovieDone(comment string, userId string) error {
+	user, err := g.GetUser(userId)
+	if err != nil {
+		return err
+	}
+
+	nextStepType, err := user.GetNextStepType()
+	if err != nil {
+		return err
+	}
+
+	if nextStepType != UserNextStepMovieResult {
+		return errors.New("next step isn't choose movie result")
+	}
+
+	cell, err := user.GetCurrentCell()
+	if err != nil {
+		return err
+	}
+
+	record := core.NewRecord(user.lastAction.Collection())
+	record.Set("user", userId)
+	record.Set("cell", user.lastAction.GetString("cell"))
+	record.Set("type", ActionTypeMovieResult)
+	record.Set("comment", comment)
+	record.Set("value", user.lastAction.GetString("value"))
+	err = g.app.Save(record)
+	if err != nil {
+		return err
+	}
+
+	user.Set("dropsInARow", 0)
+	user.Set("isInJail", false)
+	user.Set("points", user.GetPoints()+cell.GetInt("points"))
+	err = user.Save()
 	if err != nil {
 		return err
 	}

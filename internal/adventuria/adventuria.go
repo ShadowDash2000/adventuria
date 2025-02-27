@@ -7,6 +7,7 @@ const (
 	TableItems      = "items"
 	TableInventory  = "inventory"
 	TableWheelItems = "wheel_items"
+	TableLogs       = "logs"
 
 	ActionTypeRoll          = "roll"
 	ActionTypeReroll        = "reroll"
@@ -19,6 +20,7 @@ const (
 	ActionTypeRollItem      = "rollItem"
 	ActionTypeRollBigWin    = "rollBigWin"
 	ActionTypeRollDeveloper = "rollDeveloper"
+	ActionTypeMovieResult   = "movieResult"
 
 	CellTypeGame      = "game"
 	CellTypeStart     = "start"
@@ -40,4 +42,7 @@ const (
 	UserNextStepMovieResult      = "movieResult"
 	UserNextStepRollItem         = "rollItem"
 	UserNextStepRollDeveloper    = "rollDeveloper"
+
+	LogTypeItemUse  = "itemUse"
+	LogTypeItemDrop = "itemDrop"
 )

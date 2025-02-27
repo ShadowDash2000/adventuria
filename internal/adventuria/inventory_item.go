@@ -7,14 +7,16 @@ import (
 
 type InventoryItem struct {
 	app     core.App
+	log     *Log
 	invItem *core.Record
 	item    *Item
 }
 
-func NewInventoryItem(record *core.Record, app core.App) (*InventoryItem, error) {
+func NewInventoryItem(record *core.Record, log *Log, app core.App) (*InventoryItem, error) {
 	var err error
 	ii := &InventoryItem{
 		app:     app,
+		log:     log,
 		invItem: record,
 	}
 
@@ -66,4 +68,8 @@ func (ii *InventoryItem) Use() error {
 
 func (ii *InventoryItem) CanDrop() bool {
 	return ii.item.CanDrop()
+}
+
+func (ii *InventoryItem) GetName() string {
+	return ii.item.GetName()
 }

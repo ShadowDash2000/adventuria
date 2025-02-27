@@ -12,14 +12,16 @@ import (
 
 type Inventory struct {
 	app      core.App
+	log      *Log
 	userId   string
 	items    map[string]*InventoryItem
 	maxSlots int
 }
 
-func NewInventory(userId string, maxSlots int, app core.App) (*Inventory, error) {
+func NewInventory(userId string, maxSlots int, log *Log, app core.App) (*Inventory, error) {
 	i := &Inventory{
 		app:      app,
+		log:      log,
 		userId:   userId,
 		maxSlots: maxSlots,
 	}
@@ -37,7 +39,7 @@ func NewInventory(userId string, maxSlots int, app core.App) (*Inventory, error)
 func (i *Inventory) bindHooks() {
 	i.app.OnRecordAfterCreateSuccess(TableInventory).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.GetString("user") == i.userId {
-			i.items[e.Record.Id], _ = NewInventoryItem(e.Record, i.app)
+			i.items[e.Record.Id], _ = NewInventoryItem(e.Record, i.log, i.app)
 		}
 		return e.Next()
 	})
@@ -70,7 +72,7 @@ func (i *Inventory) fetchInventory() error {
 
 	i.items = make(map[string]*InventoryItem)
 	for _, item := range inventory {
-		i.items[item.Id], err = NewInventoryItem(item, i.app)
+		i.items[item.Id], err = NewInventoryItem(item, i.log, i.app)
 		if err != nil {
 			return err
 		}
@@ -195,6 +197,8 @@ func (i *Inventory) UseItem(itemId string) error {
 		return errors.New("item not found")
 	}
 
+	i.log.Add(i.userId, LogTypeItemUse, item.GetName())
+
 	return item.Use()
 }
 
@@ -212,6 +216,8 @@ func (i *Inventory) DropItem(itemId string) error {
 	if err != nil {
 		return err
 	}
+
+	i.log.Add(i.userId, LogTypeItemDrop, item.GetName())
 
 	return nil
 }

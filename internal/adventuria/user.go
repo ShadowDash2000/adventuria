@@ -9,6 +9,7 @@ import (
 
 type User struct {
 	app        core.App
+	log        *Log
 	userId     string
 	user       *core.Record
 	lastAction *core.Record
@@ -16,13 +17,14 @@ type User struct {
 	cells      *cache.MemoryCache[int, *core.Record]
 }
 
-func NewUser(userId string, cells *cache.MemoryCache[int, *core.Record], app core.App) (*User, error) {
+func NewUser(userId string, cells *cache.MemoryCache[int, *core.Record], log *Log, app core.App) (*User, error) {
 	if userId == "" {
 		return nil, errors.New("you're not authorized")
 	}
 
 	u := &User{
 		app:    app,
+		log:    log,
 		userId: userId,
 		cells:  cells,
 	}
@@ -39,7 +41,7 @@ func NewUser(userId string, cells *cache.MemoryCache[int, *core.Record], app cor
 		return nil, err
 	}
 
-	u.Inventory, err = NewInventory(userId, u.user.GetInt("maxInventorySlots"), app)
+	u.Inventory, err = NewInventory(userId, u.user.GetInt("maxInventorySlots"), log, app)
 	if err != nil {
 		return nil, err
 	}
@@ -211,7 +213,7 @@ func (u *User) GetNextStepType() (string, error) {
 			ActionTypeReroll:
 			nextStepType = UserNextStepRollBigWin
 		case ActionTypeDrop:
-			nextStepType = UserNextStepRollOnBigWinDrop
+			nextStepType = UserNextStepRoll
 		case ActionTypeGame,
 			ActionTypeRollBigWin:
 			nextStepType = UserNextStepChooseResult
@@ -242,6 +244,7 @@ func (u *User) GetNextStepType() (string, error) {
 		case ActionTypeRollMovie:
 			nextStepType = UserNextStepMovieResult
 		case ActionTypeDone:
+		case ActionTypeMovieResult:
 			nextStepType = UserNextStepRoll
 		default:
 			nextStepType = UserNextStepRollMovie

@@ -136,7 +136,26 @@ func (h *Handlers) DoneHandler(e *core.RequestEvent) error {
 	return nil
 }
 
-func (h *Handlers) GameResultHandler(e *core.RequestEvent) error {
+func (h *Handlers) MovieDoneHandler(e *core.RequestEvent) error {
+	data := struct {
+		Comment string `json:"comment"`
+	}{}
+	if err := e.BindBody(&data); err != nil {
+		e.JSON(http.StatusBadRequest, err.Error())
+		return nil
+	}
+
+	err := h.Game.MovieDone(data.Comment, e.Auth.Id)
+	if err != nil {
+		e.JSON(http.StatusInternalServerError, err.Error())
+		return err
+	}
+
+	e.JSON(http.StatusOK, struct{}{})
+	return nil
+}
+
+func (h *Handlers) GetLastActionHandler(e *core.RequestEvent) error {
 	isInJail, action, err := h.Game.GetLastAction(e.Auth.Id)
 	if err != nil {
 		e.JSON(http.StatusInternalServerError, err.Error())
@@ -144,7 +163,7 @@ func (h *Handlers) GameResultHandler(e *core.RequestEvent) error {
 	}
 
 	e.JSON(http.StatusOK, map[string]interface{}{
-		"game":     action.GetString("value"),
+		"title":    action.GetString("value"),
 		"isInJail": isInJail,
 	})
 

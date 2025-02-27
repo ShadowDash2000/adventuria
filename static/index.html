@@ -67,6 +67,8 @@
                         data-graph-speed="100">ВЫБРАТЬ ИГРУ</button>
                 <button class="button wheel hidden" data-graph-path="wheel" data-graph-animation="fadeInUp"
                         data-graph-speed="100">КОЛЁСИКО</button>
+                <button class="button movie-result hidden" data-graph-path="movie-result" data-graph-animation="fadeInUp"
+                        data-graph-speed="100">ЗАВЕРШИТЬ ПРОСМОТР</button>
             </div>
         </div>
 
@@ -111,6 +113,17 @@
             </div>
         </div>
     </div>
+    <div class="graph-modal__container" role="dialog" aria-modal="true" data-graph-target="movie-result">
+        <button class="btn-reset graph-modal__close js-modal-close" aria-label="Закрыть модальное окно"></button>
+        <div class="graph-modal__content game-result movie-result">
+            <h2>РЕЗУЛЬТАТ КИНЦА</h2>
+            <div class="game-title">{{GAME NAME}}</div>
+            <textarea placeholder="Комментарий к CINEMA..."></textarea>
+            <div class="container">
+                <button class="button done" data-action="done">ПОСМОТРЕЛ</button>
+            </div>
+        </div>
+    </div>
     <div class="graph-modal__container" role="dialog" aria-modal="true" data-graph-target="submit">
         <div class="graph-modal__content submit">
             <h2>ВЫ УВЕРЕНЫ?</h2>
@@ -143,6 +156,7 @@
         </div>
     </div>
     <div class="graph-modal__container dice" role="dialog" aria-modal="true" data-graph-target="dice">
+        <button class="btn-reset graph-modal__close js-modal-close" aria-label="Закрыть модальное окно"></button>
         <div class="container">
             <div class="scene"></div>
             <div class="roll-result hidden">
@@ -157,9 +171,6 @@
                 </div>
             </div>
             <button id="roll" class="button">Бросить кубик</button>
-            <button class="button choose-game hidden" data-graph-path="game-picker" data-graph-animation="fadeInUp"
-                    data-graph-speed="100">Выбрать игру
-            </button>
         </div>
     </div>
     <div id="inventory-modal" class="graph-modal__container dice" role="dialog" aria-modal="true" data-graph-target="inventory">
@@ -347,4 +358,5 @@
 <script defer type="module" src="/modal/wheel.js"></script>
 <script defer type="module" src="/modal/submit.js"></script>
 <script defer type="module" src="/modal/inventory.js"></script>
+<script defer type="module" src="/modal/movie-result.js"></script>
 </html>

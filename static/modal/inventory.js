@@ -49,18 +49,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!item.canDrop) {
                     itemNode.querySelector('button.drop').classList.add('disabled');
                 } else {
-                    const submit = new Submit({
-                        text: `Вы уверены, что хотите выбросить предмет ${item.name}?`,
-                        onAccept: async () => {
-                            await dropItem(inventoryItem.id);
-                            openInventory(userId);
-                        },
-                        onDecline: () => {
-                            openInventory(userId);
-                        },
+                    itemNode.querySelector('button.drop').addEventListener('click', () => {
+                        app.submit.open({
+                            text: `Вы уверены, что хотите выбросить предмет ${item.name}?`,
+                            onAccept: async () => {
+                                await dropItem(inventoryItem.id);
+                                openInventory(userId);
+                            },
+                            onDecline: () => {
+                                openInventory(userId);
+                            },
+                        });
                     });
-
-                    itemNode.querySelector('button.drop').addEventListener('click', submit.open);
                 }
 
                 if (inventoryItem.isActive) {

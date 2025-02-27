@@ -87,3 +87,7 @@ func (i *Item) GetEffects() []*Effect {
 func (i *Item) GetEvent() string {
 	return i.item.GetString("event")
 }
+
+func (i *Item) GetName() string {
+	return i.item.GetString("name")
+}

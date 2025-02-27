@@ -17,6 +17,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (modalName !== 'dice') return;
 
+        scene.innerHTML = '';
+        rollResult.classList.add('hidden');
+        cell.classList.add('hidden');
+        rollButton.classList.remove('hidden');
+
         const res = await fetch('/api/get-roll-effects', {
             method: "GET",
             headers: {

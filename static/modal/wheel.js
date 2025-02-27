@@ -72,6 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (wheelItems) {
             wheel.createWheel(wheelItems);
+            wheel.rotate();
             startButton.addEventListener('click', startSpin);
         }
     });

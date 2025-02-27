@@ -28,8 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 text = 'Вы уверены, что хотите завершить прохождение?';
         }
 
-        const submit = new Submit({
-            backModal: 'game-result',
+        app.submit.open({
             text: text,
             onAccept: () => {
                 fetch('/api/' + action, {
@@ -43,11 +42,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     }),
                 });
                 gameResultComment.value = '';
-                app.modal.close();
+            },
+            onDecline: () => {
+                app.modal.open('game-result');
             },
         });
-
-        submit.open();
     }
 
     document.addEventListener('modal.open', async (e) => {
@@ -55,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (modalName !== 'game-result') return;
 
-        const res = await fetch('/api/game-result', {
+        const res = await fetch('/api/get-last-action', {
             method: "GET",
             headers: {
                 "Authorization": app.auth.token,
@@ -67,15 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const json = await res.json();
 
         const gameTitle = gameResultModal.querySelector('.game-title');
-        const cell = app.getUserCurrentCell(app.auth.record.id);
-
-        switch (cell.type) {
-            case 'big-win':
-                gameTitle.innerHTML = app.wheelItems['legendaryGame'].get(json.game).name;
-                break;
-            default:
-                gameTitle.innerHTML = json.game;
-        }
+        gameTitle.innerText = json.title;
 
         if (json.isInJail) {
             gameResultModal.querySelector('.button.drop').classList.add('hidden');

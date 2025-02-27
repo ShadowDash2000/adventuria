@@ -15,7 +15,10 @@ func main() {
 
 	app := pocketbase.New()
 
-	game := adventuria.NewGame(app.App)
+	game, err := adventuria.NewGame(app.App)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	app.OnBootstrap().BindFunc(func(e *core.BootstrapEvent) error {
 		if err := e.Next(); err != nil {
@@ -36,12 +39,13 @@ func main() {
 		g.POST("/choose-game", handlers.ChooseGameHandler)
 
 		g.GET("/get-next-step-type", handlers.GetNextStepTypeHandler)
-		g.GET("/game-result", handlers.GameResultHandler)
+		g.GET("/get-last-action", handlers.GetLastActionHandler)
 		g.GET("/get-roll-effects", handlers.GetRollEffectsHandler)
 
 		g.POST("/reroll", handlers.RerollHandler)
 		g.POST("/drop", handlers.DropHandler)
 		g.POST("/done", handlers.DoneHandler)
+		g.POST("/movie-done", handlers.MovieDoneHandler)
 
 		g.POST("/roll-cell", handlers.RollCellHandler)
 		g.POST("/roll-movie", handlers.RollMovieHandler)

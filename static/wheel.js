@@ -28,7 +28,10 @@ export default class Wheel {
     }
 
     clearWheel() {
-        if (this.wheel) this.wheel.innerHTML = '';
+        if (this.wheel) {
+            this.wheel.innerHTML = '';
+            this.wheel.setAttribute('style', '');
+        }
     }
 
     startSpin(winnerId, duration) {
@@ -43,6 +46,10 @@ export default class Wheel {
             this.wheel.style.transition = `transform ${duration}s ease-in-out`;
             this.wheel.style.transform = `rotate(${finalAngle}deg)`;
         }, 100);
+    }
+
+    rotate() {
+        this.wheel.classList.add('rotate');
     }
 
     getCurrentAngle() {
