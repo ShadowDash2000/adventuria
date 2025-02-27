@@ -21,6 +21,7 @@ type Effects struct {
 }
 
 type Item struct {
+	app     core.App
 	item    *core.Record
 	effects []*Effect
 }
@@ -43,10 +44,24 @@ func NewItem(record *core.Record, app core.App) (*Item, error) {
 		effects = append(effects, effect)
 	}
 
-	return &Item{
+	item := &Item{
+		app:     app,
 		item:    record,
 		effects: effects,
-	}, nil
+	}
+
+	item.bindHooks()
+
+	return item, nil
+}
+
+func (i *Item) bindHooks() {
+	i.app.OnRecordAfterUpdateSuccess(TableItems).BindFunc(func(e *core.RecordEvent) error {
+		if e.Record.Id == i.item.Id {
+			i.item = e.Record
+		}
+		return e.Next()
+	})
 }
 
 func (i *Item) IsUsingSlot() bool {

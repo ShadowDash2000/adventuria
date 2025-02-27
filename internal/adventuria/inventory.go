@@ -188,3 +188,30 @@ func (i *Inventory) ApplyEffects(event string) (*Effects, error) {
 
 	return effects, nil
 }
+
+func (i *Inventory) UseItem(itemId string) error {
+	item, ok := i.items[itemId]
+	if !ok {
+		return errors.New("item not found")
+	}
+
+	return item.Use()
+}
+
+func (i *Inventory) DropItem(itemId string) error {
+	item, ok := i.items[itemId]
+	if !ok {
+		return errors.New("item not found")
+	}
+
+	if !item.CanDrop() {
+		return errors.New("item isn't droppable")
+	}
+
+	err := i.app.Delete(item.invItem)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

@@ -643,3 +643,31 @@ func (g *Game) RollDeveloper(userId string) (string, error) {
 
 	return game.Id, nil
 }
+
+func (g *Game) UseItem(userId, itemId string) error {
+	user, err := g.GetUser(userId)
+	if err != nil {
+		return err
+	}
+
+	err = user.Inventory.UseItem(itemId)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (g *Game) DropItem(userId, itemId string) error {
+	user, err := g.GetUser(userId)
+	if err != nil {
+		return err
+	}
+
+	err = user.Inventory.DropItem(itemId)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

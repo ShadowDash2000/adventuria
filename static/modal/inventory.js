@@ -1,4 +1,5 @@
 import {app} from "../app.js";
+import Submit from "./submit.js";
 
 document.addEventListener('DOMContentLoaded', () => {
     const inventoryModal = document.getElementById('inventory-modal');
@@ -28,18 +29,18 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        inventoryModal.querySelector('h2').innerHTML = `ИНВЕНТАРЬ ${user.name}`;
+
         app.inventories[userId].forEach((inventoryItem) => {
             const itemId = inventoryItem.item;
             const item = app.items.get(itemId);
-
-            inventoryModal.querySelector('h2').innerHTML = `ИНВЕНТАРЬ ${user.name}`;
 
             if (item.isUsingSlot) {
                 const itemNode = inventoryItemTemplate.content.cloneNode(true);
 
                 itemNode.querySelector('img').src = app.getFile('icon', item);
                 itemNode.querySelector('span').innerText = item.name;
-                itemNode.firstElementChild.dataset.id = item.id;
+                itemNode.firstElementChild.dataset.id = inventoryItem.id;
 
                 if (userId === app.auth.record.id) {
                     itemNode.querySelector('.inventory__item-actions').classList.remove('hidden');
@@ -47,6 +48,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (!item.canDrop) {
                     itemNode.querySelector('button.drop').classList.add('disabled');
+                } else {
+                    const submit = new Submit({
+                        text: `Вы уверены, что хотите выбросить предмет ${item.name}?`,
+                        onAccept: async () => {
+                            await dropItem(inventoryItem.id);
+                            openInventory(userId);
+                        },
+                        onDecline: () => {
+                            openInventory(userId);
+                        },
+                    });
+
+                    itemNode.querySelector('button.drop').addEventListener('click', submit.open);
+                }
+
+                if (inventoryItem.isActive) {
+                    itemNode.querySelector('button.use').classList.add('disabled');
+                } else {
+                    itemNode.querySelector('button.use').addEventListener('click', useItem);
                 }
 
                 inventoryItems.appendChild(itemNode);
@@ -62,6 +82,38 @@ document.addEventListener('DOMContentLoaded', () => {
         app.modal.open('inventory', {
             speed: 100,
             animation: 'fadeInUp',
+        });
+    }
+
+    async function useItem(e) {
+        const itemId = e.target.closest('.inventory__item').dataset.id;
+
+        const res = await fetch('/api/use-item', {
+            method: "POST",
+            headers: {
+                "Authorization": app.auth.token,
+                "Content-type": 'application/json',
+            },
+            body: JSON.stringify({
+                "itemId": itemId,
+            }),
+        });
+
+        if (!res.ok) return;
+
+        e.target.classList.add('disabled');
+    }
+
+    async function dropItem(itemId) {
+        await fetch('/api/drop-item', {
+            method: "POST",
+            headers: {
+                "Authorization": app.auth.token,
+                "Content-type": 'application/json',
+            },
+            body: JSON.stringify({
+                "itemId": itemId,
+            }),
         });
     }
 });

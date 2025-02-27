@@ -129,6 +129,9 @@ class App {
         document.addEventListener('record.inventory.update', async (e) => {
             this.addInventoryItem(e.detail.record);
         });
+        document.addEventListener('record.inventory.delete', async (e) => {
+            this.deleteInventoryItem(e.detail.record);
+        });
 
         document.addEventListener('record.audio.create', async (e) => {
             this.addAudioItem(e.detail.record);
@@ -211,6 +214,10 @@ class App {
             this.inventories[item.user] = new Map();
         }
         this.inventories[item.user].set(item.id, item);
+    }
+
+    deleteInventoryItem(item) {
+        this.inventories[item.user].delete(item.id);
     }
 
     async fetchUsers() {

@@ -49,6 +49,9 @@ func main() {
 		g.POST("/roll-big-win", handlers.RollBigWinHandler)
 		g.POST("/roll-developer", handlers.RollDeveloperHandler)
 
+		g.POST("/use-item", handlers.UseItemHandler)
+		g.POST("/drop-item", handlers.DropItemHandler)
+
 		return se.Next()
 	})
 

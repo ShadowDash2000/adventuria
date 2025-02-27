@@ -485,9 +485,10 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 table.users {
-    background: url("img/wood.png");
+    background: #ad8c74d1;
     border-collapse: collapse;
     margin: 45px 0 0 45px;
+    border: solid #5e4334 0.2vw;
 
     font-family: "Dela Gothic One", serif;
     font-size: 1vw;
@@ -499,7 +500,7 @@ table.users {
             0.1vw 0.1vw 0 #000;
 
     th, td {
-        border: solid #c7a592 0.2vw;
+        border: solid #5e4334 0.2vw;
     }
 
     td:not(:first-child) {
@@ -594,6 +595,7 @@ table.users {
 .button {
     cursor: pointer;
     color: white;
+    background: #783d73;
     border: none;
     padding: 0.6vw 2vw;
 }

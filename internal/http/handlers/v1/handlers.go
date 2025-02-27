@@ -232,3 +232,47 @@ func (h *Handlers) GetRollEffectsHandler(e *core.RequestEvent) error {
 
 	return nil
 }
+
+func (h *Handlers) UseItemHandler(e *core.RequestEvent) error {
+	data := struct {
+		ItemId string `json:"itemId"`
+	}{}
+
+	err := e.BindBody(&data)
+	if err != nil {
+		e.JSON(http.StatusBadRequest, err.Error())
+		return nil
+	}
+
+	err = h.Game.UseItem(e.Auth.Id, data.ItemId)
+	if err != nil {
+		e.JSON(http.StatusInternalServerError, err.Error())
+		return err
+	}
+
+	e.JSON(http.StatusOK, "")
+
+	return nil
+}
+
+func (h *Handlers) DropItemHandler(e *core.RequestEvent) error {
+	data := struct {
+		ItemId string `json:"itemId"`
+	}{}
+
+	err := e.BindBody(&data)
+	if err != nil {
+		e.JSON(http.StatusBadRequest, err.Error())
+		return nil
+	}
+
+	err = h.Game.DropItem(e.Auth.Id, data.ItemId)
+	if err != nil {
+		e.JSON(http.StatusInternalServerError, err.Error())
+		return err
+	}
+
+	e.JSON(http.StatusOK, "")
+
+	return nil
+}

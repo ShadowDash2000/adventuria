@@ -3,8 +3,8 @@ import {app} from "../app.js";
 export default class Submit {
     constructor(options) {
         const defaultOptions = {
-            onAccept: () => {
-            },
+            onAccept: () => {},
+            onDecline: () => {},
             text: '',
             backModal: '',
         }
@@ -54,8 +54,10 @@ export default class Submit {
                 if (this.options.backModal) {
                     app.modal.open(this.options.backModal);
                 }
+                this.options.onDecline();
                 break;
             case 'accept':
+                app.modal.close();
                 this.options.onAccept();
                 break;
         }

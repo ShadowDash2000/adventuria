@@ -1,6 +1,7 @@
 package adventuria
 
 import (
+	"errors"
 	"github.com/pocketbase/pocketbase/core"
 )
 
@@ -46,4 +47,23 @@ func (ii *InventoryItem) GetEffects(event string) []*Effect {
 
 func (ii *InventoryItem) IsUsingSlot() bool {
 	return ii.item.IsUsingSlot()
+}
+
+func (ii *InventoryItem) Use() error {
+	isActive := ii.invItem.GetBool("isActive")
+	if isActive {
+		return errors.New("item is already active")
+	}
+
+	ii.invItem.Set("isActive", true)
+	err := ii.app.Save(ii.invItem)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (ii *InventoryItem) CanDrop() bool {
+	return ii.item.CanDrop()
 }
