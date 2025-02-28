@@ -17,6 +17,8 @@ class App {
         this.nextStepType = '';
         this.submit = new Submit();
         this.volume = localStorage.getItem('volume') ? localStorage.getItem('volume') : 30;
+        this.audioPlayer = new Audio();
+        this.audioPlayer.volume = this.volume / 100;
 
         const collections = [
             'users',
@@ -162,7 +164,20 @@ class App {
 
     setVolume(v) {
         this.volume = v;
+        this.audioPlayer.volume = v / 100;
         localStorage.setItem('volume', v);
+    }
+
+    setAudioSrc(src) {
+        this.audioPlayer.src = src;
+    }
+
+    getRandomAudio(type) {
+        if (!this.audio[type]) return;
+
+        const audioItemsKeys = Array.from(this.audio[type].keys());
+        const randomKey = audioItemsKeys[Math.floor(Math.random() * audioItemsKeys.length)];
+        return this.audio[type].get(randomKey);
     }
 
     async fetchCells() {
@@ -235,6 +250,18 @@ class App {
     updateUsers() {
         this.updateUsersFields();
         this.updateUsersTable();
+    }
+
+    getUserId() {
+        if (this.auth) {
+            return this.auth.record.id;
+        }
+    }
+
+    getUserAuthToken() {
+        if (this.auth) {
+            return this.auth.token;
+        }
     }
 
     updateUsersFields() {

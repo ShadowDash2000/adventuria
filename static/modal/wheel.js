@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (modalName !== 'wheel') return;
 
         let wheelItems = [];
-        const currentCell = app.getUserCurrentCell(app.auth.record.id);
+        const currentCell = app.getUserCurrentCell(app.getUserId());
         switch (app.nextStepType) {
             case 'rollJailCell':
                 for (const cell of app.cellsList) {
@@ -106,34 +106,33 @@ async function startSpin() {
     const res = await fetch(url, {
         method: "POST",
         headers: {
-            "Authorization": app.auth.token,
+            "Authorization": app.getUserAuthToken(),
         },
     });
 
     if (!res.ok) return;
 
+    app.modal.lockClose();
+
     const json = await res.json();
-    let itemId = json.itemId;
 
-    const audioItemsKeys = Array.from(app.audio[app.nextStepType].keys());
-    const randomKey = audioItemsKeys[Math.floor(Math.random() * audioItemsKeys.length)];
-    const rollInfo = app.audio[app.nextStepType].get(randomKey);
+    const rollInfo = app.getRandomAudio(app.nextStepType);
 
-    if (itemId) wheel.startSpin(itemId, rollInfo.duration);
+    wheel.startSpin(json.itemId, rollInfo.duration);
 
     const wheelContainer = document.querySelector('.graph-modal__content.wheel-modal');
     const wheelTitle = wheelContainer.querySelector('h2');
 
-    const audio = new Audio("/api/files/" + rollInfo.collectionId + "/" + rollInfo.id + "/" + rollInfo.audio);
-    audio.volume = app.volume / 100;
-    audio.play();
+    app.setAudioSrc(app.getFile('audio', rollInfo));
+    app.audioPlayer.play();
 
     const interval = setInterval(() => {
         wheelTitle.innerText = wheel.getCurrentWinner().text;
     }, 100);
 
     setTimeout(() => {
-        audio.pause();
+        app.modal.unlockClose();
+        app.audioPlayer.pause();
         clearTimeout(interval);
     }, (rollInfo.duration + 1) * 1000);
 }

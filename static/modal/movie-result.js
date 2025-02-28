@@ -11,13 +11,14 @@ document.addEventListener('DOMContentLoaded', () => {
     function gameResultActions(e) {
         e.preventDefault();
 
-        const submit = new Submit({
+
+        app.submit.open({
             text: 'Вы уверены, что хотите завершить просмотр?',
             onAccept: () => {
                 fetch('/api/movie-done', {
                     method: "POST",
                     headers: {
-                        "Authorization": app.auth.token,
+                        "Authorization": app.getUserAuthToken(),
                         "Content-Type": "application/json",
                     },
                     body: JSON.stringify({
@@ -32,8 +33,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             },
         });
-
-        submit.open();
     }
 
     document.addEventListener('modal.open', async (e) => {
@@ -44,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const res = await fetch('/api/get-last-action', {
             method: "GET",
             headers: {
-                "Authorization": app.auth.token,
+                "Authorization": app.getUserAuthToken(),
             },
         });
 

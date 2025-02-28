@@ -13,6 +13,7 @@ export default class GraphModal {
         this.modalContainer = false;
         this.isOpen = false;
         this.previousActiveElement = false;
+        this.isCloseLocked = false;
         this._focusElements = [
             'a[href]',
             'input',
@@ -111,6 +112,8 @@ export default class GraphModal {
     }
 
     close() {
+        if (this.isCloseLocked) return;
+
         if (this.modalContainer) {
             this.modalContainer.classList.remove('animate-open');
             this.modalContainer.classList.remove(this.animation);
@@ -189,5 +192,13 @@ export default class GraphModal {
             el.style.paddingRight = '0px';
         });
         document.body.style.paddingRight = '0px';
+    }
+
+    lockClose() {
+        this.isCloseLocked = true
+    }
+
+    unlockClose() {
+        this.isCloseLocked = false;
     }
 }

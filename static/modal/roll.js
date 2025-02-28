@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const res = await fetch('/api/get-roll-effects', {
             method: "GET",
             headers: {
-                "Authorization": app.auth.token,
+                "Authorization": app.getUserAuthToken(),
             },
         });
 
@@ -54,15 +54,16 @@ async function roll() {
     const res = await fetch('/api/roll', {
         method: "POST",
         headers: {
-            "Authorization": app.auth.token,
+            "Authorization": app.getUserAuthToken(),
         },
     });
 
-    if (!res.ok) {
-        return;
-    }
+    if (!res.ok) return;
 
     const json = await res.json();
+
+    app.modal.lockClose();
+    rollButton.classList.add('hidden');
 
     const audioItemsKeys = Array.from(app.audio[app.nextStepType].keys());
     const randomKey = audioItemsKeys[Math.floor(Math.random() * audioItemsKeys.length)];
@@ -77,11 +78,12 @@ async function roll() {
 
     dice.rollDice(json.diceRolls, durations);
 
-    const audio = new Audio(app.getFile('audio', rollInfo));
-    audio.volume = app.volume / 100;
-    audio.play();
+    app.setAudioSrc(app.getFile('audio', rollInfo));
+    app.audioPlayer.play();
 
     setTimeout(async () => {
+        app.modal.unlockClose();
+
         rollResult.querySelector('.roll-result__number').innerHTML = json.roll;
 
         cell.querySelector('img').src = json.cell.icon;
@@ -91,14 +93,11 @@ async function roll() {
         rollResult.classList.remove('hidden');
         cell.classList.remove('hidden');
 
-        rollButton.classList.add('hidden');
-        rollModal.querySelector('.choose-game').classList.remove('hidden');
-
         await app.updateInnerField();
 
     }, rollInfo.duration * 1000);
 
     setTimeout(() => {
-        audio.pause();
+        app.audioPlayer.pause();
     }, (rollInfo.duration + 1) * 1000);
 }

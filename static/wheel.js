@@ -39,7 +39,7 @@ export default class Wheel {
 
         const winnerIndex = this.items.findIndex(item => item.id === winnerId);
         const segmentAngle = 360 / this.items.length;
-        const finalAngle = 360 * 10 - (segmentAngle * winnerIndex) + 90;
+        const finalAngle = 360 * duration - (segmentAngle * winnerIndex) + 90;
 
         this.wheel.classList.remove('rotate');
         setTimeout(() => {

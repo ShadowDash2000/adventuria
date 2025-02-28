@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 itemNode.querySelector('span').innerText = item.name;
                 itemNode.firstElementChild.dataset.id = inventoryItem.id;
 
-                if (userId === app.auth.record.id) {
+                if (userId === app.getUserId()) {
                     itemNode.querySelector('.inventory__item-actions').classList.remove('hidden');
                 }
 
@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const res = await fetch('/api/use-item', {
             method: "POST",
             headers: {
-                "Authorization": app.auth.token,
+                "Authorization": app.getUserAuthToken(),
                 "Content-type": 'application/json',
             },
             body: JSON.stringify({
@@ -108,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
         await fetch('/api/drop-item', {
             method: "POST",
             headers: {
-                "Authorization": app.auth.token,
+                "Authorization": app.getUserAuthToken(),
                 "Content-type": 'application/json',
             },
             body: JSON.stringify({

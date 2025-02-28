@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 fetch('/api/' + action, {
                     method: "POST",
                     headers: {
-                        "Authorization": app.auth.token,
+                        "Authorization": app.getUserAuthToken(),
                         "Content-Type": "application/json",
                     },
                     body: JSON.stringify({
@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const res = await fetch('/api/get-last-action', {
             method: "GET",
             headers: {
-                "Authorization": app.auth.token,
+                "Authorization": app.getUserAuthToken(),
             },
         });
 
@@ -68,8 +68,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const gameTitle = gameResultModal.querySelector('.game-title');
         gameTitle.innerText = json.title;
 
+        const dropButton = gameResultModal.querySelector('.button.drop');
         if (json.isInJail) {
-            gameResultModal.querySelector('.button.drop').classList.add('hidden');
+            dropButton.classList.add('hidden');
+        } else {
+            dropButton.classList.remove('hidden');
         }
     });
 });

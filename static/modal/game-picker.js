@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         await fetch('/api/choose-game', {
             method: "POST",
             headers: {
-                "Authorization": app.auth.token,
+                "Authorization": app.getUserAuthToken(),
                 "Content-Type": "application/json",
             },
             body: JSON.stringify({
