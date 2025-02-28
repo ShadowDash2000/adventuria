@@ -8,6 +8,7 @@ const (
 	TableInventory  = "inventory"
 	TableWheelItems = "wheel_items"
 	TableLogs       = "logs"
+	TableTimers     = "timers"
 
 	ActionTypeRoll          = "roll"
 	ActionTypeReroll        = "reroll"

@@ -2,6 +2,7 @@ package adventuria
 
 import (
 	"adventuria/pkg/cache"
+	"adventuria/pkg/collections"
 	"errors"
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
@@ -15,11 +16,18 @@ type User struct {
 	lastAction *core.Record
 	Inventory  *Inventory
 	cells      *cache.MemoryCache[int, *core.Record]
+	Timer      *Timer
 }
 
-func NewUser(userId string, cells *cache.MemoryCache[int, *core.Record], log *Log, app core.App) (*User, error) {
+func NewUser(userId string, cells *cache.MemoryCache[int, *core.Record], log *Log, cols *collections.Collections, app core.App) (*User, error) {
 	if userId == "" {
 		return nil, errors.New("you're not authorized")
+	}
+
+	var err error
+	timer, err := NewTimer(userId, app)
+	if err != nil {
+		return nil, err
 	}
 
 	u := &User{
@@ -27,9 +35,8 @@ func NewUser(userId string, cells *cache.MemoryCache[int, *core.Record], log *Lo
 		log:    log,
 		userId: userId,
 		cells:  cells,
+		Timer:  timer,
 	}
-
-	var err error
 
 	err = u.fetchUser()
 	if err != nil {
@@ -41,7 +48,7 @@ func NewUser(userId string, cells *cache.MemoryCache[int, *core.Record], log *Lo
 		return nil, err
 	}
 
-	u.Inventory, err = NewInventory(userId, u.user.GetInt("maxInventorySlots"), log, app)
+	u.Inventory, err = NewInventory(userId, u.user.GetInt("maxInventorySlots"), log, cols, app)
 	if err != nil {
 		return nil, err
 	}

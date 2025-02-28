@@ -4,10 +4,8 @@ import Submit from "./modal/submit.js";
 
 class App {
     constructor() {
-        this.pb = new PocketBase('');
-        let auth = localStorage.getItem('pocketbase_auth');
-        if (auth) this.auth = JSON.parse(auth);
-        this.isAuthorized = !!auth;
+        this.pb = new PocketBase('/');
+        this.isAuthorized = !!this.pb.authStore.token;
         this.usersCells = new Map();
         this.usersList = new Map();
         this.audio = new Map();
@@ -87,9 +85,8 @@ class App {
                 this.setVolume(volumeSlider.value);
             });
 
-            if (this.auth.token) {
-                const user = this.auth.record;
-                const avatar = "/api/files/" + user.collectionId + "/" + user.id + "/" + user.avatar;
+            if (this.getUserAuthToken()) {
+                const avatar = this.getFile('avatar', this.pb.authStore.record);
                 const profile = document.querySelector('.profile');
                 profile.classList.remove('hidden');
                 profile.querySelector('img').src = avatar;
@@ -253,14 +250,14 @@ class App {
     }
 
     getUserId() {
-        if (this.auth) {
-            return this.auth.record.id;
+        if (this.pb.authStore) {
+            return this.pb.authStore.record.id;
         }
     }
 
     getUserAuthToken() {
-        if (this.auth) {
-            return this.auth.token;
+        if (this.pb.authStore) {
+            return this.pb.authStore.token;
         }
     }
 
@@ -368,7 +365,7 @@ class App {
         const res = await fetch('/api/get-next-step-type', {
             method: "GET",
             headers: {
-                "Authorization": this.auth.token,
+                "Authorization": this.getUserAuthToken(),
             },
         });
 

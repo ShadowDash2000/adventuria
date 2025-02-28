@@ -1,6 +1,7 @@
 package adventuria
 
 import (
+	"adventuria/pkg/collections"
 	"errors"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pocketbase/dbx"
@@ -12,15 +13,17 @@ import (
 
 type Inventory struct {
 	app      core.App
+	cols     *collections.Collections
 	log      *Log
 	userId   string
 	items    map[string]*InventoryItem
 	maxSlots int
 }
 
-func NewInventory(userId string, maxSlots int, log *Log, app core.App) (*Inventory, error) {
+func NewInventory(userId string, maxSlots int, log *Log, cols *collections.Collections, app core.App) (*Inventory, error) {
 	i := &Inventory{
 		app:      app,
+		cols:     cols,
 		log:      log,
 		userId:   userId,
 		maxSlots: maxSlots,
@@ -100,7 +103,7 @@ func (i *Inventory) AddItem(itemId string) error {
 		return errors.New("no available slots")
 	}
 
-	inventoryCollection, err := i.app.FindCollectionByNameOrId(TableInventory)
+	inventoryCollection, err := i.cols.Get(TableInventory)
 	if err != nil {
 		return err
 	}

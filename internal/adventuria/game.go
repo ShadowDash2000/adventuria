@@ -2,24 +2,30 @@ package adventuria
 
 import (
 	"adventuria/pkg/cache"
+	"adventuria/pkg/collections"
 	"errors"
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
 	"math/rand"
+	"time"
 )
 
 type Game struct {
 	app        core.App
 	log        *Log
+	cols       *collections.Collections
 	users      *cache.MemoryCache[string, *User]
 	cells      *cache.MemoryCache[int, *core.Record]
 	cellByCode *cache.MemoryCache[string, *core.Record]
 }
 
 func NewGame(app core.App) (*Game, error) {
+	cols := collections.NewCollections(app)
+
 	return &Game{
 		app:        app,
-		log:        NewLog(app),
+		log:        NewLog(cols, app),
+		cols:       cols,
 		users:      cache.NewMemoryCache[string, *User](0, true),
 		cells:      cache.NewMemoryCache[int, *core.Record](0, true),
 		cellByCode: cache.NewMemoryCache[string, *core.Record](0, true),
@@ -28,11 +34,6 @@ func NewGame(app core.App) (*Game, error) {
 
 func (g *Game) Init() error {
 	err := g.fetchCells()
-	if err != nil {
-		return err
-	}
-
-	err = g.log.Init()
 	if err != nil {
 		return err
 	}
@@ -73,7 +74,7 @@ func (g *Game) GetUser(userId string) (*User, error) {
 		return user, nil
 	}
 
-	user, err := NewUser(userId, g.cells, g.log, g.app)
+	user, err := NewUser(userId, g.cells, g.log, g.cols, g.app)
 	if err != nil {
 		return nil, err
 	}
@@ -156,7 +157,7 @@ func (g *Game) Move(n int, userId string) (*core.Record, *core.Record, error) {
 		return nil, nil, err
 	}
 
-	actionsCollection, err := g.app.FindCollectionByNameOrId(TableActions)
+	actionsCollection, err := g.cols.Get(TableActions)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -719,4 +720,31 @@ func (g *Game) MovieDone(comment string, userId string) error {
 	}
 
 	return nil
+}
+
+func (g *Game) StartTimer(userId string) error {
+	user, err := g.GetUser(userId)
+	if err != nil {
+		return err
+	}
+
+	return user.Timer.Start()
+}
+
+func (g *Game) StopTimer(userId string) error {
+	user, err := g.GetUser(userId)
+	if err != nil {
+		return err
+	}
+
+	return user.Timer.Stop()
+}
+
+func (g *Game) GetTimeLeft(userId string) (time.Duration, bool, error) {
+	user, err := g.GetUser(userId)
+	if err != nil {
+		return 0, false, err
+	}
+
+	return user.Timer.GetTimeLeft(), user.Timer.IsActive(), nil
 }

@@ -56,6 +56,10 @@ func main() {
 		g.POST("/use-item", handlers.UseItemHandler)
 		g.POST("/drop-item", handlers.DropItemHandler)
 
+		g.POST("/timer/start", handlers.StartTimerHandler)
+		g.POST("/timer/stop", handlers.StopTimerHandler)
+		g.GET("/timer/left", handlers.GetTimeLeftHandler)
+
 		return se.Next()
 	})
 

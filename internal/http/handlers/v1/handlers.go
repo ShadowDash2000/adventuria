@@ -295,3 +295,42 @@ func (h *Handlers) DropItemHandler(e *core.RequestEvent) error {
 
 	return nil
 }
+
+func (h *Handlers) StartTimerHandler(e *core.RequestEvent) error {
+	err := h.Game.StartTimer(e.Auth.Id)
+	if err != nil {
+		e.JSON(http.StatusInternalServerError, err.Error())
+		return err
+	}
+
+	e.JSON(http.StatusOK, "")
+
+	return nil
+}
+
+func (h *Handlers) StopTimerHandler(e *core.RequestEvent) error {
+	err := h.Game.StopTimer(e.Auth.Id)
+	if err != nil {
+		e.JSON(http.StatusInternalServerError, err.Error())
+		return err
+	}
+
+	e.JSON(http.StatusOK, "")
+
+	return nil
+}
+
+func (h *Handlers) GetTimeLeftHandler(e *core.RequestEvent) error {
+	time, isActive, err := h.Game.GetTimeLeft(e.Auth.Id)
+	if err != nil {
+		e.JSON(http.StatusInternalServerError, err.Error())
+		return err
+	}
+
+	e.JSON(http.StatusOK, map[string]interface{}{
+		"time":     time,
+		"isActive": isActive,
+	})
+
+	return nil
+}
