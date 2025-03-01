@@ -14,12 +14,13 @@ type Game struct {
 	app        core.App
 	log        *Log
 	cols       *collections.Collections
+	settings   *Settings
 	users      *cache.MemoryCache[string, *User]
 	cells      *cache.MemoryCache[int, *core.Record]
 	cellByCode *cache.MemoryCache[string, *core.Record]
 }
 
-func NewGame(app core.App) (*Game, error) {
+func NewGame(app core.App) *Game {
 	cols := collections.NewCollections(app)
 
 	return &Game{
@@ -29,11 +30,17 @@ func NewGame(app core.App) (*Game, error) {
 		users:      cache.NewMemoryCache[string, *User](0, true),
 		cells:      cache.NewMemoryCache[int, *core.Record](0, true),
 		cellByCode: cache.NewMemoryCache[string, *core.Record](0, true),
-	}, nil
+	}
 }
 
 func (g *Game) Init() error {
-	err := g.fetchCells()
+	var err error
+	g.settings, err = NewSettings(g.cols, g.app)
+	if err != nil {
+		return err
+	}
+
+	err = g.fetchCells()
 	if err != nil {
 		return err
 	}
@@ -74,7 +81,7 @@ func (g *Game) GetUser(userId string) (*User, error) {
 		return user, nil
 	}
 
-	user, err := NewUser(userId, g.cells, g.log, g.cols, g.app)
+	user, err := NewUser(userId, g.cells, g.settings, g.log, g.cols, g.app)
 	if err != nil {
 		return nil, err
 	}
@@ -661,6 +668,26 @@ func (g *Game) UseItem(userId, itemId string) error {
 	err = user.Inventory.UseItem(itemId)
 	if err != nil {
 		return err
+	}
+
+	effects, err := user.Inventory.ApplyEffects(ItemUseTypeInstant)
+	if err != nil {
+		return err
+	}
+
+	if effects.TimerIncrement != 0 {
+		err = user.Timer.AddSecondsTimeLimit(effects.TimerIncrement)
+		if err != nil {
+			return err
+		}
+	}
+
+	if effects.JailEscape {
+		user.Set("isInJail", false)
+		err = user.Save()
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

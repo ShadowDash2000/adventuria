@@ -15,17 +15,23 @@ const (
 )
 
 const (
-	EffectTypeDiceMultiplier = "diceMultiplier"
-	EffectTypeDiceIncrement  = "diceIncrement"
-	EffectTypeSafeDrop       = "safeDrop"
-	EffectTypeChangeDices    = "changeDices"
+	EffectTypePointsIncrement = "pointsIncrement"
+	EffectTypeJailEscape      = "jailEscape"
+	EffectTypeDiceMultiplier  = "diceMultiplier"
+	EffectTypeDiceIncrement   = "diceIncrement"
+	EffectTypeChangeDices     = "changeDices"
+	EffectTypeSafeDrop        = "safeDrop"
+	EffectTypeTimerIncrement  = "timerIncrement"
 )
 
 var EffectsList = map[string]EffectKind{
-	EffectTypeDiceMultiplier: Int,
-	EffectTypeDiceIncrement:  Int,
-	EffectTypeSafeDrop:       Bool,
-	EffectTypeChangeDices:    Slice,
+	EffectTypePointsIncrement: Int,
+	EffectTypeJailEscape:      Bool,
+	EffectTypeDiceMultiplier:  Int,
+	EffectTypeDiceIncrement:   Int,
+	EffectTypeChangeDices:     Slice,
+	EffectTypeSafeDrop:        Bool,
+	EffectTypeTimerIncrement:  Int,
 }
 
 type Effect struct {

@@ -18,6 +18,7 @@ type Effects struct {
 	DiceIncrement   int    `json:"diceIncrement" mapstructure:"diceIncrement"`
 	Dices           []Dice `json:"dices" mapstructure:"changeDices"`
 	IsSafeDrop      bool   `json:"isSafeDrop" mapstructure:"isSafeDrop"`
+	TimerIncrement  int    `json:"timerIncrement" mapstructure:"timerIncrement"`
 }
 
 type Item struct {

@@ -2,122 +2,35 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&display=swap" rel="stylesheet">
     <title>Таймер</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-        }
-
         #timer {
-            font-size: 2em;
+            font-family: "Dela Gothic One", serif;
+            text-align: center;
+            color: white;
+            text-shadow:
+                    0.4vw 0.4vw 0 #000,
+                    -0.2vw -0.2vw 0 #000,
+                    0.2vw 0.2vw 0 #000,
+                    -0.2vw -0.2vw 0 #000,
+                    0.2vw 0.2vw 0 #000;
+            font-size: 12vw;
             margin: 20px;
-        }
-
-        button {
-            margin: 5px;
         }
     </style>
 </head>
 <body>
 <div id="timer">00:00:00</div>
-<button onclick="startTimer()">Старт</button>
-<button onclick="stopTimer()">Пауза</button>
 <script type="module">
-    import PocketBase, {BaseAuthStore} from "/pocketbase/pocketbase.es.js";
-
+    import Timer from './timer.js';
     const params = new URLSearchParams(window.location.search);
     const t = params.get("t");
+    const timerBlock = document.getElementById('timer');
 
-    const store = new BaseAuthStore();
-    store.save(t);
-    const pb = new PocketBase('/', store);
-
-    pb.collection('timers').subscribe('*', (e) => {
-        document.dispatchEvent(new CustomEvent(`record.timers.${e.action}`, {
-            detail: {
-                'record': e.record,
-            },
-        }));
-    });
-
-    let interval;
-    let remainingTime = 0;
-    let isNegative = false;
-
-
-    document.addEventListener('record.timers.update', (e) => {
-        if (e.detail.record.user === 'IMPLEMENT') {
-            fetchTimeLeft();
-        }
-    });
-
-    async function fetchTimeLeft() {
-        const res = await fetch('/api/timer/left', {
-            method: "GET",
-            headers: {
-                "Authorization": pb.authStore.token,
-            },
-        });
-
-        const data = await res.json();
-
-        isNegative = data.time < 0;
-        remainingTime = Math.abs(data.time);
-
-        updateDisplay();
-
-        if (data.isActive) startInterval();
-    }
-
-    function updateDisplay() {
-        let hours = String(Math.floor(remainingTime / 3600)).padStart(2, '0');
-        let minutes = String(Math.floor((remainingTime % 3600) / 60)).padStart(2, '0');
-        let seconds = String(remainingTime % 60).padStart(2, '0');
-        document.getElementById('timer').textContent = (isNegative ? '-' : '') + `${hours}:${minutes}:${seconds}`;
-    }
-
-    async function startTimer() {
-        const res = await fetch('/api/timer/start', {
-            method: "POST",
-            headers: {
-                "Authorization": pb.authStore.token,
-            },
-        });
-
-        if (!res.ok) return;
-
-        startInterval();
-    }
-
-    function startInterval() {
-        if (!interval) {
-            interval = setInterval(() => {
-                if (isNegative) {
-                    remainingTime++;
-                } else {
-                    remainingTime--;
-                }
-                updateDisplay();
-            }, 1000);
-        }
-    }
-
-    async function stopTimer() {
-        const res = await fetch('/api/timer/stop', {
-            method: "POST",
-            headers: {
-                "Authorization": pb.authStore.token,
-            },
-        });
-
-        if (!res.ok) return;
-
-        clearInterval(interval);
-        interval = null;
-    }
-
-    fetchTimeLeft();
+    new Timer(t, timerBlock);
 </script>
 </body>
 </html>

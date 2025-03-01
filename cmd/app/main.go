@@ -15,10 +15,7 @@ func main() {
 
 	app := pocketbase.New()
 
-	game, err := adventuria.NewGame(app.App)
-	if err != nil {
-		log.Fatal(err)
-	}
+	game := adventuria.NewGame(app.App)
 
 	app.OnBootstrap().BindFunc(func(e *core.BootstrapEvent) error {
 		if err := e.Next(); err != nil {

@@ -1,6 +1,8 @@
 package adventuria
 
 import (
+	"adventuria/pkg/collections"
+	"database/sql"
 	"errors"
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
@@ -10,47 +12,45 @@ import (
 
 type Timer struct {
 	core.BaseRecordProxy
-	app    core.App
-	userId string
+	app core.App
 }
 
-func NewTimer(userId string, app core.App) (*Timer, error) {
-	t := &Timer{
-		app:    app,
-		userId: userId,
-	}
-
-	records, err := app.FindRecordsByFilter(
+func NewTimer(userId string, settings *Settings, cols *collections.Collections, app core.App) (*Timer, error) {
+	record, err := app.FindFirstRecordByFilter(
 		TableTimers,
 		"user.id = {:userId}",
-		"",
-		1,
-		0,
 		dbx.Params{"userId": userId},
 	)
-	if err != nil {
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return nil, err
 	}
 
-	if len(records) != 0 {
-		t.SetProxyRecord(records[0])
+	timer := &Timer{}
+	if record != nil {
+		timer.app = app
+		timer.SetProxyRecord(record)
+	} else {
+		timer, err = CreateTimer(userId, settings.TimerTimeLimit(), cols, app)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	t.bindHooks()
+	timer.bindHooks()
 
-	return t, nil
+	return timer, nil
 }
 
 func (t *Timer) bindHooks() {
-	t.app.OnRecordAfterCreateSuccess(TableTimers).BindFunc(func(e *core.RecordEvent) error {
-		if e.Record.GetString("user") == t.userId {
+	t.app.OnRecordAfterUpdateSuccess(TableTimers).BindFunc(func(e *core.RecordEvent) error {
+		if e.Record.GetString("user") == t.UserId() {
 			t.SetProxyRecord(e.Record)
 		}
 		return e.Next()
 	})
-	t.app.OnRecordAfterUpdateSuccess(TableTimers).BindFunc(func(e *core.RecordEvent) error {
-		if e.Record.GetString("user") == t.userId {
-			t.SetProxyRecord(e.Record)
+	t.app.OnRecordAfterDeleteSuccess(TableTimers).BindFunc(func(e *core.RecordEvent) error {
+		if e.Record.Id == t.Id {
+			t.SetProxyRecord(nil)
 		}
 		return e.Next()
 	})
@@ -95,6 +95,10 @@ func (t *Timer) IsTimeExceeded() bool {
 	return t.TimePassed() >= t.TimeLimit()
 }
 
+func (t *Timer) UserId() string {
+	return t.GetString("user")
+}
+
 func (t *Timer) IsActive() bool {
 	return t.GetBool("isActive")
 }
@@ -115,6 +119,10 @@ func (t *Timer) TimeLimit() time.Duration {
 	return time.Duration(t.GetInt("timeLimit")) * time.Second
 }
 
+func (t *Timer) SetTimeLimit(tp time.Duration) {
+	t.Set("timeLimit", int(tp/time.Second))
+}
+
 func (t *Timer) StartTime() types.DateTime {
 	return t.GetDateTime("startTime")
 }
@@ -123,6 +131,48 @@ func (t *Timer) SetStartTime(time types.DateTime) {
 	t.Set("startTime", time)
 }
 
-func ClearAllTimers() error {
+func (t *Timer) AddSecondsTimeLimit(secs int) error {
+	t.SetTimeLimit(t.TimeLimit() + (time.Duration(secs) * time.Second))
+	return t.app.Save(t)
+}
+
+func CreateTimer(userId string, timeLimit int, cols *collections.Collections, app core.App) (*Timer, error) {
+	collection, err := cols.Get(TableTimers)
+	if err != nil {
+		return nil, err
+	}
+
+	timer := &Timer{}
+	timer.app = app
+	timer.SetProxyRecord(core.NewRecord(collection))
+	timer.Set("user", userId)
+	timer.Set("timeLimit", timeLimit)
+	timer.Set("timePassed", 0)
+	timer.Set("isActive", false)
+	err = app.Save(timer)
+	if err != nil {
+		return nil, err
+	}
+
+	return timer, nil
+}
+
+func ResetAllTimers(timeLimit int, app core.App) error {
+	records, err := app.FindAllRecords(TableTimers)
+	if err != nil {
+		return err
+	}
+
+	for _, record := range records {
+		record.Set("timeLimit", timeLimit)
+		record.Set("timePassed", 0)
+		record.Set("isActive", false)
+		record.Set("startTime", nil)
+		err = app.Save(record)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }

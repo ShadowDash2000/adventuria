@@ -1,6 +1,7 @@
 import GraphModal from "/graph-modal/graph-modal.js";
 import PocketBase from "/pocketbase/pocketbase.es.js";
 import Submit from "./modal/submit.js";
+import Timer from './timer.js';
 
 class App {
     constructor() {
@@ -85,11 +86,29 @@ class App {
                 this.setVolume(volumeSlider.value);
             });
 
+            document.addEventListener('modal.open', () => {
+                volumeSlider.parentElement.classList.add('fixed');
+            });
+            document.addEventListener('modal.close', () => {
+                volumeSlider.parentElement.classList.remove('fixed');
+            });
+
             if (this.getUserAuthToken()) {
                 const avatar = this.getFile('avatar', this.pb.authStore.record);
                 const profile = document.querySelector('.profile');
                 profile.classList.remove('hidden');
                 profile.querySelector('img').src = avatar;
+
+                const timerBlock = document.getElementById('timer');
+                const timer = new Timer(this.getUserAuthToken(), timerBlock);
+                const timerStopButton = document.querySelector('.timer button.red');
+                const timerStartButton = document.querySelector('.timer button.green');
+                timerStopButton.addEventListener('click', () => {
+                    timer.stopTimer();
+                });
+                timerStartButton.addEventListener('click', () => {
+                    timer.startTimer();
+                });
             }
 
             await this.fetchCells();
@@ -112,13 +131,13 @@ class App {
         });
 
         document.addEventListener('record.actions.create', async (e) => {
-            if (e.detail.record.user !== this.auth.record.id) return;
+            if (e.detail.record.user !== this.pb.authStore.record.id) return;
             setTimeout(async () => {
                 await this.showActionButtons();
             }, 1000);
         });
         document.addEventListener('record.actions.delete', async (e) => {
-            if (e.detail.record.user !== this.auth.record.id) return;
+            if (e.detail.record.user !== this.pb.authStore.record.id) return;
             setTimeout(async () => {
                 await this.showActionButtons();
             }, 1000);

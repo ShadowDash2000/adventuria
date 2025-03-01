@@ -16,16 +16,23 @@ type User struct {
 	lastAction *core.Record
 	Inventory  *Inventory
 	cells      *cache.MemoryCache[int, *core.Record]
+	settings   *Settings
 	Timer      *Timer
 }
 
-func NewUser(userId string, cells *cache.MemoryCache[int, *core.Record], log *Log, cols *collections.Collections, app core.App) (*User, error) {
+func NewUser(
+	userId string,
+	cells *cache.MemoryCache[int, *core.Record],
+	settings *Settings,
+	log *Log, cols *collections.Collections,
+	app core.App,
+) (*User, error) {
 	if userId == "" {
 		return nil, errors.New("you're not authorized")
 	}
 
 	var err error
-	timer, err := NewTimer(userId, app)
+	timer, err := NewTimer(userId, settings, cols, app)
 	if err != nil {
 		return nil, err
 	}

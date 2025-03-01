@@ -9,6 +9,7 @@ const (
 	TableWheelItems = "wheel_items"
 	TableLogs       = "logs"
 	TableTimers     = "timers"
+	TableSettings   = "settings"
 
 	ActionTypeRoll          = "roll"
 	ActionTypeReroll        = "reroll"
