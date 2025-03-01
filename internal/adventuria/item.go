@@ -4,13 +4,6 @@ import (
 	"github.com/pocketbase/pocketbase/core"
 )
 
-const (
-	ItemUseTypeInstant  = "instant"
-	ItemUseTypeOnDrop   = "useOnDrop"
-	ItemUseTypeOnReroll = "useOnReroll"
-	ItemUseTypeOnRoll   = "useOnRoll"
-)
-
 type Effects struct {
 	PointsIncrement int    `json:"pointsIncrement" mapstructure:"pointsIncrement"`
 	JailEscape      bool   `json:"jailEscape" mapstructure:"jailEscape"`
@@ -19,6 +12,8 @@ type Effects struct {
 	Dices           []Dice `json:"dices" mapstructure:"changeDices"`
 	IsSafeDrop      bool   `json:"isSafeDrop" mapstructure:"isSafeDrop"`
 	TimerIncrement  int    `json:"timerIncrement" mapstructure:"timerIncrement"`
+	RollReverse     bool   `json:"rollReverse" mapstructure:"rollReverse"`
+	DropInventory   bool   `json:"dropInventory" mapstructure:"dropInventory"`
 }
 
 type Item struct {
@@ -77,18 +72,31 @@ func (i *Item) CanDrop() bool {
 	return i.item.GetBool("canDrop")
 }
 
-func (i *Item) GetOrder() int {
+func (i *Item) Order() int {
 	return i.item.GetInt("order")
 }
 
-func (i *Item) GetEffects() []*Effect {
-	return i.effects
+func (i *Item) EffectsCount() int {
+	return len(i.effects)
 }
 
-func (i *Item) GetEvent() string {
-	return i.item.GetString("event")
+func (i *Item) GetEffectsByEvent(event string) []*Effect {
+	effectsList, ok := EffectsList[event]
+	if !ok {
+		return nil
+	}
+
+	var effects []*Effect
+	for _, e := range i.effects {
+		if _, ok = effectsList[e.Type()]; !ok {
+			continue
+		}
+		effects = append(effects, e)
+	}
+
+	return effects
 }
 
-func (i *Item) GetName() string {
+func (i *Item) Name() string {
 	return i.item.GetString("name")
 }

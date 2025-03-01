@@ -90,6 +90,14 @@ func (s *Settings) TimerTimeLimit() int {
 	return s.GetInt("timerTimeLimit")
 }
 
+func (s *Settings) BlockAllActions() bool {
+	return s.GetBool("blockAllActions")
+}
+
+func (s *Settings) Rules() {
+
+}
+
 func (s *Settings) RegisterSettingsCron() {
 	s.app.Cron().MustAdd("settings", "* * * * *", func() {
 		week := s.getCurrentWeekNum()

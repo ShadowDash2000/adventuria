@@ -6,28 +6,29 @@ import (
 )
 
 type InventoryItem struct {
-	app     core.App
-	log     *Log
-	invItem *core.Record
-	item    *Item
+	core.BaseRecordProxy
+	app  core.App
+	log  *Log
+	item *Item
 }
 
 func NewInventoryItem(record *core.Record, log *Log, app core.App) (*InventoryItem, error) {
 	var err error
 	ii := &InventoryItem{
-		app:     app,
-		log:     log,
-		invItem: record,
+		app: app,
+		log: log,
 	}
 
-	errs := app.ExpandRecord(ii.invItem, []string{"item"}, nil)
+	ii.SetProxyRecord(record)
+
+	errs := app.ExpandRecord(ii.Record, []string{"item"}, nil)
 	if errs != nil {
 		for _, err = range errs {
 			return nil, err
 		}
 	}
 
-	ii.item, err = NewItem(ii.invItem.ExpandedOne("item"), app)
+	ii.item, err = NewItem(ii.ExpandedOne("item"), app)
 	if err != nil {
 		return nil, err
 	}
@@ -35,30 +36,61 @@ func NewInventoryItem(record *core.Record, log *Log, app core.App) (*InventoryIt
 	return ii, nil
 }
 
-func (ii *InventoryItem) GetEffects(event string) []*Effect {
-	if !ii.invItem.GetBool("isActive") {
+func (ii *InventoryItem) GetEffectsByEvent(event string) []*Effect {
+	if !ii.IsActive() {
 		return nil
 	}
 
-	if ii.item.GetEvent() != event {
-		return nil
+	appliedEffects := ii.AppliedEffectsMap()
+	var effects []*Effect
+	for _, effect := range ii.item.GetEffectsByEvent(event) {
+		if _, ok := appliedEffects[effect.Id()]; !ok {
+			effects = append(effects, effect)
+		}
 	}
 
-	return ii.item.GetEffects()
+	return effects
+}
+
+func (ii *InventoryItem) IsActive() bool {
+	return ii.GetBool("isActive")
+}
+
+func (ii *InventoryItem) SetIsActive(isActive bool) {
+	ii.Set("isActive", isActive)
 }
 
 func (ii *InventoryItem) IsUsingSlot() bool {
 	return ii.item.IsUsingSlot()
 }
 
+func (ii *InventoryItem) AppliedEffects() []string {
+	return ii.GetStringSlice("appliedEffects")
+}
+
+func (ii *InventoryItem) AppliedEffectsMap() map[string]struct{} {
+	var appliedEffects = make(map[string]struct{})
+	for _, effect := range ii.GetStringSlice("appliedEffects") {
+		appliedEffects[effect] = struct{}{}
+	}
+	return appliedEffects
+}
+
+func (ii *InventoryItem) SetAppliedEffects(appliedEffects []string) {
+	ii.Set("appliedEffects", appliedEffects)
+}
+
+func (ii *InventoryItem) EffectsCount() int {
+	return ii.item.EffectsCount()
+}
+
 func (ii *InventoryItem) Use() error {
-	isActive := ii.invItem.GetBool("isActive")
-	if isActive {
+	if ii.IsActive() {
 		return errors.New("item is already active")
 	}
 
-	ii.invItem.Set("isActive", true)
-	err := ii.app.Save(ii.invItem)
+	ii.SetIsActive(true)
+	err := ii.app.Save(ii)
 	if err != nil {
 		return err
 	}
@@ -71,5 +103,5 @@ func (ii *InventoryItem) CanDrop() bool {
 }
 
 func (ii *InventoryItem) GetName() string {
-	return ii.item.GetName()
+	return ii.item.Name()
 }

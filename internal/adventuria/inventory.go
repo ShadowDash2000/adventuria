@@ -16,7 +16,7 @@ type Inventory struct {
 	cols     *collections.Collections
 	log      *Log
 	userId   string
-	items    map[string]*InventoryItem
+	invItems map[string]*InventoryItem
 	maxSlots int
 }
 
@@ -42,19 +42,19 @@ func NewInventory(userId string, maxSlots int, log *Log, cols *collections.Colle
 func (i *Inventory) bindHooks() {
 	i.app.OnRecordAfterCreateSuccess(TableInventory).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.GetString("user") == i.userId {
-			i.items[e.Record.Id], _ = NewInventoryItem(e.Record, i.log, i.app)
+			i.invItems[e.Record.Id], _ = NewInventoryItem(e.Record, i.log, i.app)
 		}
 		return e.Next()
 	})
 	i.app.OnRecordAfterUpdateSuccess(TableInventory).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.GetString("user") == i.userId {
-			i.items[e.Record.Id].invItem = e.Record
+			i.invItems[e.Record.Id].SetProxyRecord(e.Record)
 		}
 		return e.Next()
 	})
 	i.app.OnRecordAfterDeleteSuccess(TableInventory).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.GetString("user") == i.userId {
-			delete(i.items, e.Record.Id)
+			delete(i.invItems, e.Record.Id)
 		}
 		return e.Next()
 	})
@@ -73,9 +73,9 @@ func (i *Inventory) fetchInventory() error {
 		return err
 	}
 
-	i.items = make(map[string]*InventoryItem)
+	i.invItems = make(map[string]*InventoryItem)
 	for _, item := range inventory {
-		i.items[item.Id], err = NewInventoryItem(item, i.log, i.app)
+		i.invItems[item.Id], err = NewInventoryItem(item, i.log, i.app)
 		if err != nil {
 			return err
 		}
@@ -90,7 +90,7 @@ func (i *Inventory) SetMaxSlots(maxSlots int) {
 
 func (i *Inventory) GetAvailableSlots() int {
 	usedSlots := 0
-	for _, item := range i.items {
+	for _, item := range i.invItems {
 		if item.IsUsingSlot() {
 			usedSlots++
 		}
@@ -125,11 +125,11 @@ func (i *Inventory) AddItem(itemId string) error {
 	return nil
 }
 
-func (i *Inventory) GetEffects(event string) (*Effects, []string, error) {
-	keys := slices.Collect(maps.Keys(i.items))
+func (i *Inventory) GetEffects(event string) (*Effects, map[string][]string, error) {
+	keys := slices.Collect(maps.Keys(i.invItems))
 	slices.Sort(keys)
 	sort.Slice(keys, func(k, j int) bool {
-		return i.items[keys[k]].item.GetOrder() < i.items[keys[j]].item.GetOrder()
+		return i.invItems[keys[k]].item.Order() < i.invItems[keys[j]].item.Order()
 	})
 
 	var effects *Effects
@@ -140,14 +140,15 @@ func (i *Inventory) GetEffects(event string) (*Effects, []string, error) {
 		return nil, nil, err
 	}
 
-	var itemsIds []string
-	for _, itemId := range keys {
-		item := i.items[itemId]
-		itemEffects := item.GetEffects(event)
+	invItemsEffectsIds := make(map[string][]string)
+	for _, invItemId := range keys {
+		invItem := i.invItems[invItemId]
+		itemEffects := invItem.GetEffectsByEvent(event)
 		if itemEffects == nil {
 			continue
 		}
 
+		var effectsIds []string
 		for _, effect := range itemEffects {
 			switch effect.Kind() {
 			case Int:
@@ -157,9 +158,11 @@ func (i *Inventory) GetEffects(event string) (*Effects, []string, error) {
 			case Slice:
 				effectsMap[effect.Type()] = effect.GetSlice()
 			}
+
+			effectsIds = append(effectsIds, effect.Id())
 		}
 
-		itemsIds = append(itemsIds, item.invItem.Id)
+		invItemsEffectsIds[invItemId] = effectsIds
 	}
 
 	err = mapstructure.Decode(effectsMap, &effects)
@@ -167,27 +170,32 @@ func (i *Inventory) GetEffects(event string) (*Effects, []string, error) {
 		return nil, nil, err
 	}
 
-	return effects, itemsIds, nil
+	return effects, invItemsEffectsIds, nil
 }
 
 func (i *Inventory) ApplyEffects(event string) (*Effects, error) {
-	effects, itemsIds, err := i.GetEffects(event)
+	effects, invItemsEffectsIds, err := i.GetEffects(event)
 	if err != nil {
 		return nil, err
 	}
 
-	if len(itemsIds) > 0 {
-		err := i.app.RunInTransaction(func(txApp core.App) error {
-			for _, itemId := range itemsIds {
-				err := txApp.Delete(i.items[itemId].invItem)
-				if err != nil {
-					return err
-				}
+	for invItemId, effectsIds := range invItemsEffectsIds {
+		invItem := i.invItems[invItemId]
+
+		appliedEffects := invItem.AppliedEffects()
+		invItem.SetAppliedEffects(append(appliedEffects, effectsIds...))
+		appliedEffectsCount := len(invItem.AppliedEffects())
+
+		if appliedEffectsCount < invItem.EffectsCount() {
+			err = i.app.Save(invItem)
+			if err != nil {
+				return nil, err
 			}
-			return nil
-		})
-		if err != nil {
-			return nil, err
+		} else {
+			err = i.app.Delete(invItem)
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 
@@ -195,7 +203,7 @@ func (i *Inventory) ApplyEffects(event string) (*Effects, error) {
 }
 
 func (i *Inventory) UseItem(itemId string) error {
-	item, ok := i.items[itemId]
+	item, ok := i.invItems[itemId]
 	if !ok {
 		return errors.New("item not found")
 	}
@@ -205,22 +213,32 @@ func (i *Inventory) UseItem(itemId string) error {
 	return item.Use()
 }
 
-func (i *Inventory) DropItem(itemId string) error {
-	item, ok := i.items[itemId]
+func (i *Inventory) DropItem(invItemId string) error {
+	invItem, ok := i.invItems[invItemId]
 	if !ok {
-		return errors.New("item not found")
+		return errors.New("inventory item not found")
 	}
 
-	if !item.CanDrop() {
-		return errors.New("item isn't droppable")
+	if !invItem.CanDrop() {
+		return errors.New("inventory item isn't droppable")
 	}
 
-	err := i.app.Delete(item.invItem)
+	err := i.app.Delete(invItem)
 	if err != nil {
 		return err
 	}
 
-	i.log.Add(i.userId, LogTypeItemDrop, item.GetName())
+	i.log.Add(i.userId, LogTypeItemDrop, invItem.GetName())
 
+	return nil
+}
+
+func (i *Inventory) DropInventory() error {
+	for invItemId, _ := range i.invItems {
+		err := i.DropItem(invItemId)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }

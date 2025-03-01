@@ -241,7 +241,7 @@ func (h *Handlers) RollDeveloperHandler(e *core.RequestEvent) error {
 }
 
 func (h *Handlers) GetRollEffectsHandler(e *core.RequestEvent) error {
-	effects, err := h.Game.GetItemsEffects(e.Auth.Id, adventuria.ItemUseTypeOnRoll)
+	effects, err := h.Game.GetItemsEffects(e.Auth.Id, adventuria.ItemUseOnRoll)
 	if err != nil {
 		e.JSON(http.StatusInternalServerError, err.Error())
 		return err

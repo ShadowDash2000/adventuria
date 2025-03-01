@@ -236,7 +236,7 @@ func (g *Game) Roll(userId string) (int, []int, *core.Record, error) {
 		return 0, nil, nil, errors.New("next step isn't roll")
 	}
 
-	effects, err := user.Inventory.ApplyEffects(ItemUseTypeOnRoll)
+	effects, err := user.Inventory.ApplyEffects(ItemUseOnRoll)
 	if err != nil {
 		return 0, nil, nil, err
 	}
@@ -260,6 +260,10 @@ func (g *Game) Roll(userId string) (int, []int, *core.Record, error) {
 		n *= effects.DiceMultiplier
 	}
 	n += effects.DiceIncrement
+
+	if effects.RollReverse {
+		n *= -1
+	}
 
 	_, currentCell, err := g.Move(n, userId)
 
@@ -286,7 +290,7 @@ func (g *Game) Drop(comment string, userId string) error {
 		return err
 	}
 
-	effects, err := user.Inventory.ApplyEffects(ItemUseTypeOnDrop)
+	effects, err := user.Inventory.ApplyEffects(ItemUseOnDrop)
 	if err != nil {
 		return err
 	}
@@ -536,24 +540,38 @@ func (g *Game) RollItem(userId string) (string, error) {
 	}
 
 	if len(items) == 0 {
-		return "", errors.New("items not found")
+		return "", errors.New("invItems not found")
 	}
 
 	item := items[rand.Intn(len(items)-1)]
 
-	record := core.NewRecord(user.lastAction.Collection())
-	record.Set("user", userId)
-	record.Set("cell", user.lastAction.GetString("cell"))
-	record.Set("type", ActionTypeRollItem)
-	record.Set("value", item.Id)
-	err = g.app.Save(record)
+	if len(item.GetStringSlice("effects")) > 0 {
+		record := core.NewRecord(user.lastAction.Collection())
+		record.Set("user", userId)
+		record.Set("cell", user.lastAction.GetString("cell"))
+		record.Set("type", ActionTypeRollItem)
+		record.Set("value", item.Id)
+		err = g.app.Save(record)
+		if err != nil {
+			return "", err
+		}
+
+		err = user.Inventory.AddItem(item.Id)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	effects, err := user.Inventory.ApplyEffects(ItemUseOnRollItem)
 	if err != nil {
 		return "", err
 	}
 
-	err = user.Inventory.AddItem(item.Id)
-	if err != nil {
-		return "", err
+	if effects.DropInventory {
+		err = user.Inventory.DropInventory()
+		if err != nil {
+			return "", err
+		}
 	}
 
 	return item.Id, nil
@@ -670,7 +688,7 @@ func (g *Game) UseItem(userId, itemId string) error {
 		return err
 	}
 
-	effects, err := user.Inventory.ApplyEffects(ItemUseTypeInstant)
+	effects, err := user.Inventory.ApplyEffects(ItemUseInstant)
 	if err != nil {
 		return err
 	}
