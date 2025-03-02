@@ -550,7 +550,7 @@ func (g *Game) RollItem(userId string) (string, error) {
 		record.Set("user", userId)
 		record.Set("cell", user.lastAction.GetString("cell"))
 		record.Set("type", ActionTypeRollItem)
-		record.Set("value", item.Id)
+		record.Set("value", item.GetString("name"))
 		err = g.app.Save(record)
 		if err != nil {
 			return "", err

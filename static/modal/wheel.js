@@ -21,7 +21,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         wheelItems.push({
                             id: cell.id,
                             src: app.getFile('icon', cell),
-                            text: cell.name
+                            text: cell.name,
+                            type: 'cell',
                         });
                     }
                 }
@@ -52,7 +53,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         wheelItems.push({
                             id: item.id,
                             src: app.getFile('icon', item),
-                            text: item.name
+                            text: item.name,
+                            type: 'item',
                         });
                     }
                 })

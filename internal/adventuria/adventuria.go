@@ -4,7 +4,7 @@ const (
 	TableUsers      = "users"
 	TableActions    = "actions"
 	TableCells      = "cells"
-	TableItems      = "invItems"
+	TableItems      = "items"
 	TableInventory  = "inventory"
 	TableWheelItems = "wheel_items"
 	TableLogs       = "logs"

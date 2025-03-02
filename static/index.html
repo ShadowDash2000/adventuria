@@ -96,13 +96,14 @@
         <div class="row horizontal-row bottom-row"></div>
     </div>
 </div>
+<span id="tooltip" class="tooltip">{{TOOLTIP TEXT}}</span>
 <div class="graph-modal">
     <div class="graph-modal__container" role="dialog" aria-modal="true" data-graph-target="auth">
         <button class="btn-reset graph-modal__close js-modal-close" aria-label="Закрыть модальное окно"></button>
         <div class="graph-modal__content">
             <form id="auth" class="graph-modal__auth">
-                <input name="login" type="text">
-                <input name="password" type="password">
+                <input name="login" type="text" placeholder="Логин">
+                <input name="password" type="password" placeholder="Пароль">
                 <button type="submit">Войти</button>
             </form>
         </div>
@@ -366,4 +367,5 @@
 <script defer type="module" src="/modal/submit.js"></script>
 <script defer type="module" src="/modal/inventory.js"></script>
 <script defer type="module" src="/modal/movie-result.js"></script>
+<script defer type="module" src="/tooltip.js"></script>
 </html>

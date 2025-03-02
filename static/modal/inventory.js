@@ -38,7 +38,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (item.isUsingSlot) {
                 const itemNode = inventoryItemTemplate.content.cloneNode(true);
 
-                itemNode.querySelector('img').src = app.getFile('icon', item);
+                const img = itemNode.querySelector('img');
+                img.src = app.getFile('icon', item);
+                img.dataset.id = itemId;
+                img.dataset.type = 'item';
+
                 itemNode.querySelector('span').innerText = item.name;
                 itemNode.firstElementChild.dataset.id = inventoryItem.id;
 

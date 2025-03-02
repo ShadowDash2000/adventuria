@@ -228,7 +228,10 @@ class App {
             }
 
             cellNode.querySelector('img').src = "/api/files/" + cell.collectionId + "/" + cell.id + "/" + cell.icon;
-            cellNode.querySelector('.name').innerHTML = cell.name;
+            const name = cellNode.querySelector('.name');
+            name.innerHTML = cell.name;
+            name.dataset.id = cell.id;
+            name.dataset.type = 'cell';
 
             this.cellsList[key]['cellElement'] = cellContainer.appendChild(cellNode.firstElementChild);
         }

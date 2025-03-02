@@ -9,13 +9,14 @@ export default class Wheel {
         this.items = items;
 
         items.forEach((item, index) => {
-            let li = document.createElement("li");
+            const li = document.createElement('li');
 
             li.style.rotate = `${360 / items.length * index}deg`;
             li.style.background = `hsl(${360 / items.length * (index + 1)}deg, 100%, 75%)`;
             li.style.aspectRatio = `1 / ${(2 * Math.tan(180 * (Math.PI / 180) / items.length))}`;
 
             li.dataset.id = item.id;
+            li.dataset.type = item.type;
 
             if (item.src) {
                 li.style.background = `url(${item.src}) no-repeat`;
