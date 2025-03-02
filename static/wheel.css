@@ -29,6 +29,8 @@
     width: 80%;
     contain: layout paint;
 
+    filter: drop-shadow(0 0 0.75vw crimson);
+
     & > * { position: absolute; }
 
     button {

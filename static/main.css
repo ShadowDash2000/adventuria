@@ -133,6 +133,7 @@ h1, h2, h3, h4, h5, h6 {
 
         img {
             width: 80%;
+            height: 100%;
         }
     }
 }
@@ -145,6 +146,7 @@ h1, h2, h3, h4, h5, h6 {
         .color-bar {
             width: 100%;
             height: 20%;
+            border-top: 0.2vw solid black;
         }
 
         img {
@@ -171,6 +173,7 @@ h1, h2, h3, h4, h5, h6 {
 
         img {
             width: 80%;
+            height: 100%;
         }
     }
 }
@@ -211,7 +214,7 @@ h1, h2, h3, h4, h5, h6 {
         justify-content: center;
 
         font-family: "Dela Gothic One", serif;
-        font-size: 1.6vw;
+        font-size: 1vw;
         color: white;
         text-shadow:
                 0.3vw 0.3vw 0 #000,
@@ -554,6 +557,10 @@ table.users {
             0.1vw 0.1vw 0 #000,
             -0.1vw -0.1vw 0 #000,
             0.1vw 0.1vw 0 #000;
+}
+
+.text-soft-shadow {
+    filter: drop-shadow(0 0 0.3vw black);
 }
 
 .inventory {

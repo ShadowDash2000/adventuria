@@ -1175,9 +1175,7 @@ func init() {
 					}
 				],
 				"id": "pbc_2659677491",
-				"indexes": [
-					"CREATE UNIQUE INDEX ` + "`" + `idx_yuMrTyDOYP` + "`" + ` ON ` + "`" + `cells` + "`" + ` (` + "`" + `sort` + "`" + `)"
-				],
+				"indexes": [],
 				"listRule": "",
 				"name": "cells",
 				"system": false,
