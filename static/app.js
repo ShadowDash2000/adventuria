@@ -96,8 +96,12 @@ class App {
             if (this.getUserAuthToken()) {
                 const avatar = this.getFile('avatar', this.pb.authStore.record);
                 const profile = document.querySelector('.profile');
+                const profileImg = profile.querySelector('img');
+                const user = this.getUserRecord();
+
                 profile.classList.remove('hidden');
-                profile.querySelector('img').src = avatar;
+                profileImg.src = avatar;
+                profileImg.style.borderColor = user.color;
 
                 const timerBlock = document.getElementById('timer');
                 const timer = new Timer(this.getUserAuthToken(), timerBlock);
@@ -136,13 +140,13 @@ class App {
         });
 
         document.addEventListener('record.actions.create', async (e) => {
-            if (e.detail.record.user !== this.pb.authStore.record.id) return;
+            if (e.detail.record.user !== this.getUserId()) return;
             setTimeout(async () => {
                 await this.showActionButtons();
             }, 1000);
         });
         document.addEventListener('record.actions.delete', async (e) => {
-            if (e.detail.record.user !== this.pb.authStore.record.id) return;
+            if (e.detail.record.user !== this.getUserId()) return;
             setTimeout(async () => {
                 await this.showActionButtons();
             }, 1000);
@@ -288,6 +292,12 @@ class App {
         }
     }
 
+    getUserRecord() {
+        if (this.pb.authStore) {
+            return this.pb.authStore.record;
+        }
+    }
+
     updateUsersFields() {
         this.usersCells.forEach((userCell) => {
             userCell.remove();
@@ -303,7 +313,7 @@ class App {
 
             const userElement = document.createElement("img");
             userElement.src = "/api/files/" + user.collectionId + "/" + user.id + "/" + user.avatar;
-            userElement.setAttribute('style', "border: 2px solid" + user.color);
+            userElement.setAttribute('style', `border-color: ${user.color}`);
 
             const usersNode = currentCellElement.querySelector('.users');
             usersNode.appendChild(userElement);
@@ -330,7 +340,10 @@ class App {
         this.usersList.forEach((user) => {
             const userItemNode = this.usersTableItemTemplate.content.cloneNode(true);
 
-            userItemNode.querySelector('.users__avatar img').src = "/api/files/" + user.collectionId + "/" + user.id + "/" + user.avatar;
+            const avatar = userItemNode.querySelector('.users__avatar img');
+            avatar.src = this.getFile('avatar', user);
+            avatar.style.borderColor = user.color;
+            
             userItemNode.querySelector('.users__name').innerHTML = user.name;
             userItemNode.querySelector('.users__points').innerHTML = user.points;
             userItemNode.querySelector('.users__cells-passed').innerHTML = user.cellsPassed;

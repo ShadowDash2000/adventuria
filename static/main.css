@@ -87,6 +87,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .horizontal-row {
     grid-template-columns: repeat(9, 8.5vw);
+    grid-template-rows: 7.5vw;
 }
 
 .vertical-row {
@@ -107,6 +108,7 @@ h1, h2, h3, h4, h5, h6 {
         .color-bar {
             width: 100%;
             height: 20%;
+            border-bottom: 0.2vw solid black;
         }
 
         img {
@@ -179,7 +181,6 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .space {
-    background: white;
     text-align: center;
 
     .container {
@@ -202,6 +203,7 @@ h1, h2, h3, h4, h5, h6 {
                 width: 3vw;
                 height: 3vw;
                 border-radius: 100%;
+                border: 0.2vw solid;
             }
         }
     }
@@ -249,7 +251,6 @@ h1, h2, h3, h4, h5, h6 {
 .property {
     .color-bar {
         background: #4287f5;
-        border-bottom: 0.2vw solid black;
     }
 }
 
@@ -519,6 +520,9 @@ table.users {
     .users__avatar img {
         width: 5vw;
         height: 5vw;
+
+        border: 0.2vw solid;
+        border-radius: 100%;
     }
 }
 
@@ -526,7 +530,13 @@ table.users {
     display: flex;
     justify-content: flex-end;
     align-items: center;
+    margin-right: 1.8vw;
     gap: 0.8vw;
+
+    img {
+        border-radius: 100%;
+        border: 0.2vw solid;
+    }
 
     .volume {
         display: flex;
