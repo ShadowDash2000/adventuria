@@ -10,39 +10,21 @@ import (
 
 type Settings struct {
 	core.BaseRecordProxy
-	app core.App
+	app  core.App
+	cols *collections.Collections
 }
 
-func NewSettings(cols *collections.Collections, app core.App) (*Settings, error) {
-	s := &Settings{app: app}
-
-	record, err := s.app.FindFirstRecordByFilter(
-		TableSettings,
-		"",
-	)
-	if err != nil && !errors.Is(err, sql.ErrNoRows) {
-		return nil, err
+func NewSettings(cols *collections.Collections, app core.App) *Settings {
+	s := &Settings{
+		app:  app,
+		cols: cols,
 	}
 
-	if record != nil {
-		s.SetProxyRecord(record)
-	} else {
-		record, err = DefaultSettings(cols)
-		if err != nil {
-			return nil, err
-		}
-
-		s.SetProxyRecord(record)
-		err = app.Save(s)
-		if err != nil {
-			return nil, err
-		}
-	}
-
+	s.init()
 	s.bindHooks()
 	s.RegisterSettingsCron()
 
-	return s, nil
+	return s
 }
 
 func DefaultSettings(cols *collections.Collections) (*core.Record, error) {
@@ -67,6 +49,33 @@ func (s *Settings) bindHooks() {
 		s.SetProxyRecord(e.Record)
 		return e.Next()
 	})
+}
+
+func (s *Settings) init() error {
+	record, err := s.app.FindFirstRecordByFilter(
+		TableSettings,
+		"",
+	)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return err
+	}
+
+	if record != nil {
+		s.SetProxyRecord(record)
+	} else {
+		record, err = DefaultSettings(s.cols)
+		if err != nil {
+			return err
+		}
+
+		s.SetProxyRecord(record)
+		err = s.app.Save(s)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (s *Settings) EventDateStart() types.DateTime {

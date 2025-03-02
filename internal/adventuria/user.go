@@ -1,7 +1,6 @@
 package adventuria
 
 import (
-	"adventuria/pkg/cache"
 	"adventuria/pkg/collections"
 	"errors"
 	"github.com/pocketbase/dbx"
@@ -15,14 +14,14 @@ type User struct {
 	user       *core.Record
 	lastAction *core.Record
 	Inventory  *Inventory
-	cells      *cache.MemoryCache[int, *core.Record]
+	cells      *Cells
 	settings   *Settings
 	Timer      *Timer
 }
 
 func NewUser(
 	userId string,
-	cells *cache.MemoryCache[int, *core.Record],
+	cells *Cells,
 	settings *Settings,
 	log *Log, cols *collections.Collections,
 	app core.App,
@@ -137,7 +136,7 @@ func (u *User) GetCurrentCell() (*core.Record, error) {
 	cellsPassed := u.GetCellsPassed()
 	currentCellNum := cellsPassed % u.cells.Count()
 
-	currentCell, ok := u.cells.Get(currentCellNum)
+	currentCell, ok := u.cells.GetBySort(currentCellNum)
 	if !ok {
 		return nil, errors.New("cell not found")
 	}

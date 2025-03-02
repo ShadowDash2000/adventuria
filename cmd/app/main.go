@@ -8,25 +8,20 @@ import (
 	"github.com/pocketbase/pocketbase/core"
 	"log"
 	"os"
+
+	_ "adventuria/migrations"
 )
 
 func main() {
-	//cfg := config.MustLoad()
-
 	app := pocketbase.New()
 
 	game := adventuria.NewGame(app.App)
 
-	app.OnBootstrap().BindFunc(func(e *core.BootstrapEvent) error {
-		if err := e.Next(); err != nil {
-			return err
-		}
-		return game.Init()
-	})
-
 	handlers := handlers.New(game)
 
 	app.OnServe().BindFunc(func(se *core.ServeEvent) error {
+		game.Init()
+
 		se.Router.GET("/{path...}", apis.Static(os.DirFS("./static"), false))
 
 		g := se.Router.Group("/api")

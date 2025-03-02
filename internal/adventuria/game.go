@@ -11,68 +11,28 @@ import (
 )
 
 type Game struct {
-	app        core.App
-	log        *Log
-	cols       *collections.Collections
-	settings   *Settings
-	users      *cache.MemoryCache[string, *User]
-	cells      *cache.MemoryCache[int, *core.Record]
-	cellByCode *cache.MemoryCache[string, *core.Record]
+	app      core.App
+	log      *Log
+	cols     *collections.Collections
+	settings *Settings
+	cells    *Cells
+	users    *cache.MemoryCache[string, *User]
 }
 
 func NewGame(app core.App) *Game {
 	cols := collections.NewCollections(app)
 
 	return &Game{
-		app:        app,
-		log:        NewLog(cols, app),
-		cols:       cols,
-		users:      cache.NewMemoryCache[string, *User](0, true),
-		cells:      cache.NewMemoryCache[int, *core.Record](0, true),
-		cellByCode: cache.NewMemoryCache[string, *core.Record](0, true),
+		app:   app,
+		log:   NewLog(cols, app),
+		cols:  cols,
+		users: cache.NewMemoryCache[string, *User](0, true),
 	}
 }
 
-func (g *Game) Init() error {
-	var err error
-	g.settings, err = NewSettings(g.cols, g.app)
-	if err != nil {
-		return err
-	}
-
-	err = g.fetchCells()
-	if err != nil {
-		return err
-	}
-
-	g.bindHooks()
-
-	return nil
-}
-
-func (g *Game) bindHooks() {
-	// CELLS
-	g.app.OnRecordAfterCreateSuccess(TableCells).BindFunc(func(e *core.RecordEvent) error {
-		g.cells.Set(e.Record.GetInt("sort"), e.Record)
-		if cellCode := e.Record.GetString("code"); cellCode != "" {
-			g.cellByCode.Set(cellCode, e.Record)
-		}
-		return e.Next()
-	})
-	g.app.OnRecordAfterUpdateSuccess(TableCells).BindFunc(func(e *core.RecordEvent) error {
-		g.cells.Set(e.Record.GetInt("sort"), e.Record)
-		if cellCode := e.Record.GetString("code"); cellCode != "" {
-			g.cellByCode.Set(cellCode, e.Record)
-		}
-		return e.Next()
-	})
-	g.app.OnRecordAfterDeleteSuccess(TableCells).BindFunc(func(e *core.RecordEvent) error {
-		g.cells.Delete(e.Record.GetInt("sort"))
-		if cellCode := e.Record.GetString("code"); cellCode != "" {
-			g.cellByCode.Delete(cellCode)
-		}
-		return e.Next()
-	})
+func (g *Game) Init() {
+	g.settings = NewSettings(g.cols, g.app)
+	g.cells = NewCells(g.app)
 }
 
 func (g *Game) GetUser(userId string) (*User, error) {
@@ -88,32 +48,6 @@ func (g *Game) GetUser(userId string) (*User, error) {
 
 	g.users.Set(userId, user)
 	return user, nil
-}
-
-func (g *Game) fetchCells() error {
-	g.cells.Clear()
-	g.cellByCode.Clear()
-
-	cells, err := g.app.FindRecordsByFilter(
-		TableCells,
-		"",
-		"sort",
-		0,
-		0,
-	)
-	if err != nil {
-		return err
-	}
-
-	for _, cell := range cells {
-		g.cells.Set(cell.GetInt("sort"), cell)
-		code := cell.GetString("code")
-		if code != "" {
-			g.cellByCode.Set(code, cell)
-		}
-	}
-
-	return nil
 }
 
 func (g *Game) ChooseGame(game string, userId string) error {
@@ -171,7 +105,7 @@ func (g *Game) Move(n int, userId string) (*core.Record, *core.Record, error) {
 
 	cellsPassed := user.GetCellsPassed()
 	currentCellNum := (cellsPassed + n) % g.cells.Count()
-	currentCell, _ := g.cells.Get(currentCellNum)
+	currentCell, _ := g.cells.GetBySort(currentCellNum)
 
 	record := core.NewRecord(actionsCollection)
 	record.Set("user", userId)
@@ -382,7 +316,7 @@ func (g *Game) GoToJail(userId string) error {
 		return err
 	}
 
-	jailCell, ok := g.cellByCode.Get("jail")
+	jailCell, ok := g.cells.GetByCode("jail")
 	if !ok {
 		return errors.New("jail cell not found")
 	}
