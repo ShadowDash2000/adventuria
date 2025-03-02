@@ -640,9 +640,28 @@ table.users {
     grid-column: 4 / 7;
     grid-row: 1;
     font-size: 2vw;
+    position: relative;
 
     button {
         font-size: 1vw;
+    }
+
+    .timer__copy {
+        display: flex;
+        justify-content: flex-end;
+        position: absolute;
+        width: 100%;
+
+        .timer__copy-icon {
+            display: flex;
+            cursor: pointer;
+            fill: white;
+            background: black;
+            border-radius: 0.5vw;
+            padding: 0.5vw;
+            width: 2vw;
+            height: 2vw;
+        }
     }
 }
 

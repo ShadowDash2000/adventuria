@@ -109,6 +109,11 @@ class App {
                 timerStartButton.addEventListener('click', () => {
                     timer.startTimer();
                 });
+
+                const timerCopyBlock = document.getElementById('timer-copy');
+                timerCopyBlock.addEventListener('click', () => {
+                    navigator.clipboard.writeText(`${window.location.origin}/timer.html?t=${this.getUserAuthToken()}`);
+                });
             }
 
             await this.fetchCells();
