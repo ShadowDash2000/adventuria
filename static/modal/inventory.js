@@ -1,5 +1,5 @@
 import {app} from "../app.js";
-import Submit from "./submit.js";
+import Helper from "../helper.js";
 
 document.addEventListener('DOMContentLoaded', () => {
     const inventoryModal = document.getElementById('inventory-modal');
@@ -17,8 +17,9 @@ document.addEventListener('DOMContentLoaded', () => {
         inventoryItems.innerHTML = '';
         inventorySideEffects.innerHTML = '';
 
-        const user = app.usersList.get(userId);
-        if (!app.inventories[userId]) {
+        const user = app.users.getById(userId);
+        const inventory = app.inventories.getByUserId(userId);
+        if (!inventory) {
             inventoryModal.querySelector('h2').innerHTML = `В ИНВЕНТАРЕ ${user.name} ПУСТО`;
 
             app.modal.open('inventory', {
@@ -31,15 +32,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         inventoryModal.querySelector('h2').innerHTML = `ИНВЕНТАРЬ ${user.name}`;
 
-        app.inventories[userId].forEach((inventoryItem) => {
+        inventory.forEach((inventoryItem) => {
             const itemId = inventoryItem.item;
-            const item = app.items.get(itemId);
+            const item = app.items.getById(itemId);
 
             if (item.isUsingSlot) {
                 const itemNode = inventoryItemTemplate.content.cloneNode(true);
 
                 const img = itemNode.querySelector('img');
-                img.src = app.getFile('icon', item);
+                img.src = Helper.getFile('icon', item);
                 img.dataset.id = itemId;
                 img.dataset.type = 'item';
 
@@ -77,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 const itemNode = inventorySideEffectTemplate.content.cloneNode(true);
 
-                itemNode.querySelector('img').src = app.getFile('icon', item);
+                itemNode.querySelector('img').src = Helper.getFile('icon', item);
 
                 inventoryItems.appendChild(itemNode);
             }

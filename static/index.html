@@ -35,7 +35,7 @@
 <button class="btn-reset modal-btn modal-1" data-graph-animation="fadeInUp" data-inventory="3c70mo3b262l1q0"
         data-graph-speed="100">INVENTORY
 </button>
-<div class="profile hidden">
+<div class="profile hidden" data-authorized="">
     <div class="volume">
         <label for="volume-slider" class="text-shadow">Громкость</label>
         <input type="range" id="volume-slider">
@@ -45,7 +45,7 @@
 <div class="table">
     <div class="board">
         <div class="center">
-            <table class="users">
+            <table class="users hidden">
                 <thead>
                 <tr>
                     <th></th>
@@ -57,7 +57,7 @@
                 <tbody>
                 </tbody>
             </table>
-            <div class="timer">
+            <div class="timer hidden" data-authorized="">
                 <div id="timer">00:00:00</div>
                 <div class="timer__buttons">
                     <button class="button red">СТОП</button>

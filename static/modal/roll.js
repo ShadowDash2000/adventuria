@@ -1,5 +1,6 @@
 import {app} from "../app.js";
 import Dice from "../dice.js";
+import Helper from "../helper.js";
 
 const dice = new Dice();
 
@@ -65,9 +66,7 @@ async function roll() {
     app.modal.lockClose();
     rollButton.classList.add('hidden');
 
-    const audioItemsKeys = Array.from(app.audio[app.nextStepType].keys());
-    const randomKey = audioItemsKeys[Math.floor(Math.random() * audioItemsKeys.length)];
-    const rollInfo = app.audio[app.nextStepType].get(randomKey);
+    const rollInfo = app.audios.getRandomAudio(app.nextStepType);
 
     let duration = rollInfo.duration;
     const durations = [];
@@ -78,7 +77,7 @@ async function roll() {
 
     dice.rollDice(json.diceRolls, durations);
 
-    app.setAudioSrc(app.getFile('audio', rollInfo));
+    app.setAudioSrc(Helper.getFile('audio', rollInfo));
     app.audioPlayer.play();
 
     setTimeout(async () => {

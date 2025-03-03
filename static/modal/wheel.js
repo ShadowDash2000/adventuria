@@ -1,5 +1,6 @@
 import {app} from "../app.js";
 import Wheel from "../wheel.js";
+import Helper from "../helper.js";
 
 const wheel = new Wheel();
 
@@ -13,14 +14,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (modalName !== 'wheel') return;
 
         let wheelItems = [];
-        const currentCell = app.getUserCurrentCell(app.getUserId());
+        const currentCell = app.users.getUserCurrentCell(app.getUserId());
         switch (app.nextStepType) {
             case 'rollJailCell':
-                for (const cell of app.cellsList) {
+                for (const cell of app.cells.getAll()) {
                     if (cell.type === 'game') {
                         wheelItems.push({
                             id: cell.id,
-                            src: app.getFile('icon', cell),
+                            src: Helper.getFile('icon', cell),
                             text: cell.name,
                             type: 'cell',
                         });
@@ -28,31 +29,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 break;
             case 'rollBigWin':
-                app.wheelItems['legendaryGame'].forEach((game) => {
+                app.wheelItems.getByType('legendaryGame').forEach((game) => {
                     wheelItems.push({
                         id: game.id,
-                        src: app.getFile('icon', game),
+                        src: Helper.getFile('icon', game),
                         text: game.name
                     });
                 });
                 break;
             case 'rollMovie':
-                app.wheelItems['movie'].forEach((movie) => {
+                app.wheelItems.getByType('movie').forEach((movie) => {
                     if (movie.preset === currentCell.preset) {
                         wheelItems.push({
                             id: movie.id,
-                            src: app.getFile('icon', movie),
+                            src: Helper.getFile('icon', movie),
                             text: movie.name
                         });
                     }
                 });
                 break;
             case 'rollItem':
-                app.items.forEach((item) => {
+                app.items.getAll().forEach((item) => {
                     if (item.isRollable) {
                         wheelItems.push({
                             id: item.id,
-                            src: app.getFile('icon', item),
+                            src: Helper.getFile('icon', item),
                             text: item.name,
                             type: 'item',
                         });
@@ -60,11 +61,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 })
                 break;
             case 'rollDeveloper':
-                app.wheelItems['developer'].forEach((game) => {
+                app.wheelItems.getByType('developer').forEach((game) => {
                     if (game.preset === currentCell.preset) {
                         wheelItems.push({
                             id: game.id,
-                            src: app.getFile('icon', game),
+                            src: Helper.getFile('icon', game),
                             text: game.name
                         });
                     }
@@ -118,14 +119,14 @@ async function startSpin() {
 
     const json = await res.json();
 
-    const rollInfo = app.getRandomAudio(app.nextStepType);
+    const rollInfo = app.audios.getRandomAudio(app.nextStepType);
 
     wheel.startSpin(json.itemId, rollInfo.duration);
 
     const wheelContainer = document.querySelector('.graph-modal__content.wheel-modal');
     const wheelTitle = wheelContainer.querySelector('h2');
 
-    app.setAudioSrc(app.getFile('audio', rollInfo));
+    app.setAudioSrc(Helper.getFile('audio', rollInfo));
     app.audioPlayer.play();
 
     const interval = setInterval(() => {
