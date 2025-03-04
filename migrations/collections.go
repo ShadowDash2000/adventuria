@@ -1066,7 +1066,7 @@ func init() {
 						"minSelect": 0,
 						"name": "audioPresets",
 						"presentable": false,
-						"required": false,
+						"required": true,
 						"system": false,
 						"type": "relation"
 					},
