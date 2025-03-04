@@ -204,25 +204,22 @@ class App {
         let button;
 
         switch (json.nextStepType) {
+            case 'roll':
+                button = actionsButtons.querySelector('button.game-roll');
+                break;
             case 'chooseResult':
                 button = actionsButtons.querySelector('button.game-result');
+                break;
+            case 'chooseMovieResult':
+                button = actionsButtons.querySelector('button.movie-result');
                 break;
             case 'chooseGame':
                 button = actionsButtons.querySelector('button.game-picker');
                 break;
-            case 'roll':
-                button = actionsButtons.querySelector('button.game-roll');
-                break;
-            case 'rollJailCell':
-            case 'rollBigWin':
-            case 'rollMovie':
-            case 'rollPreset':
+            case 'rollCell':
+            case 'rollWheelPreset':
             case 'rollItem':
-            case 'rollDeveloper':
                 button = actionsButtons.querySelector('button.wheel');
-                break;
-            case 'movieResult':
-                button = actionsButtons.querySelector('button.movie-result');
                 break;
         }
 

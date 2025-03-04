@@ -12,7 +12,7 @@ export default class WheelItems {
             this.addItem(e.detail.record);
         });
         document.addEventListener('record.wheel_items.delete', async (e) => {
-            this.wheelItems[e.detail.record.type].delete(e.detail.record.id);
+            this.wheelItems[e.detail.record.preset].delete(e.detail.record.id);
         });
     }
 
@@ -24,12 +24,16 @@ export default class WheelItems {
     }
 
     addItem(item) {
-        const wheelItemsType = this.wheelItems.get(item.type) || new Map();
-        wheelItemsType.set(item.id, item);
-        this.wheelItems.set(item.type, wheelItemsType);
+        item.presets?.forEach(preset => {
+            const presetItems = this.wheelItems.get(preset) || new Map();
+
+            presetItems.set(item.id, item);
+
+            this.wheelItems.set(preset, presetItems);
+        });
     }
 
-    getByType(type) {
-        return this.wheelItems.get(type);
+    getByPreset(preset) {
+        return this.wheelItems.get(preset);
     }
 }

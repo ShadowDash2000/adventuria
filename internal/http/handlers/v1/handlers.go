@@ -136,25 +136,6 @@ func (h *Handlers) DoneHandler(e *core.RequestEvent) error {
 	return nil
 }
 
-func (h *Handlers) MovieDoneHandler(e *core.RequestEvent) error {
-	data := struct {
-		Comment string `json:"comment"`
-	}{}
-	if err := e.BindBody(&data); err != nil {
-		e.JSON(http.StatusBadRequest, err.Error())
-		return nil
-	}
-
-	err := h.Game.MovieDone(data.Comment, e.Auth.Id)
-	if err != nil {
-		e.JSON(http.StatusInternalServerError, err.Error())
-		return err
-	}
-
-	e.JSON(http.StatusOK, struct{}{})
-	return nil
-}
-
 func (h *Handlers) GetLastActionHandler(e *core.RequestEvent) error {
 	isInJail, action, err := h.Game.GetLastAction(e.Auth.Id)
 	if err != nil {
@@ -184,15 +165,15 @@ func (h *Handlers) RollCellHandler(e *core.RequestEvent) error {
 	return nil
 }
 
-func (h *Handlers) RollMovieHandler(e *core.RequestEvent) error {
-	movieId, err := h.Game.RollMovie(e.Auth.Id)
+func (h *Handlers) RollWheelPresetHandler(e *core.RequestEvent) error {
+	itemId, err := h.Game.RollWheelPreset(e.Auth.Id)
 	if err != nil {
 		e.JSON(http.StatusInternalServerError, err.Error())
 		return err
 	}
 
 	e.JSON(http.StatusOK, map[string]interface{}{
-		"itemId": movieId,
+		"itemId": itemId,
 	})
 
 	return nil
@@ -207,34 +188,6 @@ func (h *Handlers) RollItemHandler(e *core.RequestEvent) error {
 
 	e.JSON(http.StatusOK, map[string]interface{}{
 		"itemId": itemId,
-	})
-
-	return nil
-}
-
-func (h *Handlers) RollBigWinHandler(e *core.RequestEvent) error {
-	gameId, err := h.Game.RollBigWin(e.Auth.Id)
-	if err != nil {
-		e.JSON(http.StatusInternalServerError, err.Error())
-		return err
-	}
-
-	e.JSON(http.StatusOK, map[string]interface{}{
-		"itemId": gameId,
-	})
-
-	return nil
-}
-
-func (h *Handlers) RollDeveloperHandler(e *core.RequestEvent) error {
-	gameId, err := h.Game.RollDeveloper(e.Auth.Id)
-	if err != nil {
-		e.JSON(http.StatusInternalServerError, err.Error())
-		return err
-	}
-
-	e.JSON(http.StatusOK, map[string]interface{}{
-		"itemId": gameId,
 	})
 
 	return nil

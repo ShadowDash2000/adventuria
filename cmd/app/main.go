@@ -37,13 +37,10 @@ func main() {
 		g.POST("/reroll", handlers.RerollHandler)
 		g.POST("/drop", handlers.DropHandler)
 		g.POST("/done", handlers.DoneHandler)
-		g.POST("/movie-done", handlers.MovieDoneHandler)
 
 		g.POST("/roll-cell", handlers.RollCellHandler)
-		g.POST("/roll-movie", handlers.RollMovieHandler)
+		g.POST("/roll-wheel-preset", handlers.RollWheelPresetHandler)
 		g.POST("/roll-item", handlers.RollItemHandler)
-		g.POST("/roll-big-win", handlers.RollBigWinHandler)
-		g.POST("/roll-developer", handlers.RollDeveloperHandler)
 
 		g.POST("/use-item", handlers.UseItemHandler)
 		g.POST("/drop-item", handlers.DropItemHandler)

@@ -65,14 +65,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const json = await res.json();
 
+        const currentCell = app.users.getUserCurrentCell(app.getUserId());
+
         const gameTitle = gameResultModal.querySelector('.game-title');
         gameTitle.innerText = json.title;
 
         const dropButton = gameResultModal.querySelector('.button.drop');
-        if (json.isInJail) {
+        if (currentCell.cantDrop || json.isInJail) {
             dropButton.classList.add('hidden');
         } else {
             dropButton.classList.remove('hidden');
+        }
+
+        const rerollButton = gameResultModal.querySelector('.button.reroll');
+        if (currentCell.cantReroll) {
+            rerollButton.classList.add('hidden');
+        } else {
+            rerollButton.classList.remove('hidden');
         }
     });
 });

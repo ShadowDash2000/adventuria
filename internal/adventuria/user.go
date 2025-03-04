@@ -166,7 +166,7 @@ func (u *User) GetNextStepType() (string, error) {
 
 	// Если еще не было сделано никаких lastAction, то делаем roll
 	if u.lastAction == nil {
-		return UserNextStepRoll, nil
+		return ActionTypeRoll, nil
 	}
 
 	cell, ok := u.GetCurrentCell()
@@ -175,109 +175,89 @@ func (u *User) GetNextStepType() (string, error) {
 	}
 
 	cellType := cell.GetString("type")
+	cantChooseAfterDrop := cell.GetBool("cantChooseAfterDrop")
 	lastActionType := ""
 	if u.lastAction.GetString("cell") == cell.Id {
 		lastActionType = u.lastAction.GetString("type")
 	}
 
+	if cantChooseAfterDrop && lastActionType == ActionTypeDrop {
+		return ActionTypeDrop, nil
+	}
+
+	// TODO: in future, maybe, this part needs to be in DB table
 	switch cellType {
 	case CellTypeGame:
 		switch lastActionType {
 		case ActionTypeRoll,
 			ActionTypeReroll,
 			ActionTypeDrop:
-			nextStepType = UserNextStepChooseGame
-		case ActionTypeGame:
-			nextStepType = UserNextStepChooseResult
-		case ActionTypeDone:
-			nextStepType = UserNextStepRoll
+			nextStepType = ActionTypeChooseGame
+		case ActionTypeChooseGame:
+			nextStepType = ActionTypeChooseResult
+		case ActionTypeChooseResult:
+			nextStepType = ActionTypeRoll
 		default:
-			nextStepType = UserNextStepChooseGame
+			nextStepType = ActionTypeChooseGame
 		}
 	case CellTypeStart:
-		nextStepType = UserNextStepRoll
+		nextStepType = ActionTypeRoll
 	case CellTypeJail:
 		if u.IsInJail() {
 			switch lastActionType {
-			case ActionTypeRoll:
-				nextStepType = UserNextStepRollJailCell
-			case ActionTypeReroll,
-				ActionTypeDrop,
-				ActionTypeRollCell:
-				nextStepType = UserNextStepChooseGame
-			case ActionTypeGame:
-				nextStepType = UserNextStepChooseResult
-			case ActionTypeDone:
-				nextStepType = UserNextStepRoll
+			case ActionTypeRoll,
+				ActionTypeReroll,
+				ActionTypeDrop:
+				nextStepType = ActionTypeRollCell
+			case ActionTypeRollCell:
+				nextStepType = ActionTypeChooseGame
+			case ActionTypeChooseGame:
+				nextStepType = ActionTypeChooseResult
+			case ActionTypeChooseResult:
+				nextStepType = ActionTypeRoll
 			default:
-				nextStepType = UserNextStepRoll
+				nextStepType = ActionTypeRollCell
 			}
 		} else {
-			nextStepType = UserNextStepRoll
-		}
-	case CellTypeBigWin:
-		switch lastActionType {
-		case ActionTypeRoll,
-			ActionTypeReroll:
-			nextStepType = UserNextStepRollBigWin
-		case ActionTypeDrop:
-			nextStepType = UserNextStepRoll
-		case ActionTypeGame,
-			ActionTypeRollBigWin:
-			nextStepType = UserNextStepChooseResult
-		case ActionTypeDone:
-			nextStepType = UserNextStepRoll
-		default:
-			nextStepType = UserNextStepRollBigWin
+			nextStepType = ActionTypeRoll
 		}
 	case CellTypePreset:
 		switch lastActionType {
 		case ActionTypeRoll:
-			nextStepType = UserNextStepRollPreset
+			nextStepType = ActionTypeRollWheelPreset
 		case ActionTypeReroll,
-			ActionTypeDrop,
-			ActionTypeRollPreset:
-			nextStepType = UserNextStepChooseGame
-		case ActionTypeGame:
-			nextStepType = UserNextStepChooseResult
-		case ActionTypeDone:
-			nextStepType = UserNextStepRoll
+			ActionTypeDrop:
+			nextStepType = ActionTypeRollWheelPreset
+		case ActionTypeRollWheelPreset:
+			nextStepType = ActionTypeChooseGame
+		case ActionTypeChooseGame:
+			nextStepType = ActionTypeChooseResult
+		case ActionTypeChooseResult:
+			nextStepType = ActionTypeRoll
 		default:
-			nextStepType = UserNextStepRollPreset
-		}
-	case CellTypeMovie:
-		switch lastActionType {
-		case ActionTypeRoll:
-			nextStepType = UserNextStepRollMovie
-		case ActionTypeRollMovie:
-			nextStepType = UserNextStepMovieResult
-		case ActionTypeDone:
-		case ActionTypeMovieResult:
-			nextStepType = UserNextStepRoll
-		default:
-			nextStepType = UserNextStepRollMovie
+			nextStepType = ActionTypeRollWheelPreset
 		}
 	case CellTypeItem:
 		switch lastActionType {
 		case ActionTypeRoll:
-			nextStepType = UserNextStepRollItem
+			nextStepType = ActionTypeRollItem
 		case ActionTypeRollItem:
-			nextStepType = UserNextStepRoll
+			nextStepType = ActionTypeRoll
 		default:
-			nextStepType = UserNextStepRollItem
+			nextStepType = ActionTypeRollItem
 		}
-	case CellTypeDeveloper:
+	case CellTypeWheelPreset:
 		switch lastActionType {
 		case ActionTypeRoll,
 			ActionTypeReroll,
 			ActionTypeDrop:
-			nextStepType = UserNextStepRollDeveloper
-		case ActionTypeRollDeveloper:
-			nextStepType = UserNextStepChooseResult
-		case ActionTypeDone:
-			nextStepType = UserNextStepRoll
+			nextStepType = ActionTypeRollWheelPreset
+		case ActionTypeRollWheelPreset:
+			nextStepType = ActionTypeChooseResult
+		case ActionTypeChooseResult:
+			nextStepType = ActionTypeRoll
 		default:
-			nextStepType = UserNextStepRollDeveloper
+			nextStepType = ActionTypeRollWheelPreset
 		}
 	}
 

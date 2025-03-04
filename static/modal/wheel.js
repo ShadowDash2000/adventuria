@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let wheelItems = [];
         const currentCell = app.users.getUserCurrentCell(app.getUserId());
+        const cellPresetId = currentCell.preset;
         switch (app.nextStepType) {
             case 'rollJailCell':
                 for (const cell of app.cells.getAll()) {
@@ -28,24 +29,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
                 break;
-            case 'rollBigWin':
-                app.wheelItems.getByType('legendaryGame').forEach((game) => {
+            case 'rollWheelPreset':
+                app.wheelItems.getByPreset(cellPresetId).forEach((item) => {
                     wheelItems.push({
-                        id: game.id,
-                        src: Helper.getFile('icon', game),
-                        text: game.name
+                        id: item.id,
+                        src: Helper.getFile('icon', item),
+                        text: item.name
                     });
-                });
-                break;
-            case 'rollMovie':
-                app.wheelItems.getByType('movie').forEach((movie) => {
-                    if (movie.preset === currentCell.preset) {
-                        wheelItems.push({
-                            id: movie.id,
-                            src: Helper.getFile('icon', movie),
-                            text: movie.name
-                        });
-                    }
                 });
                 break;
             case 'rollItem':
@@ -59,17 +49,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         });
                     }
                 })
-                break;
-            case 'rollDeveloper':
-                app.wheelItems.getByType('developer').forEach((game) => {
-                    if (game.preset === currentCell.preset) {
-                        wheelItems.push({
-                            id: game.id,
-                            src: Helper.getFile('icon', game),
-                            text: game.name
-                        });
-                    }
-                });
                 break;
         }
 
@@ -89,20 +68,14 @@ document.addEventListener('DOMContentLoaded', () => {
 async function startSpin() {
     let url = '';
     switch (app.nextStepType) {
-        case 'rollJailCell':
+        case 'rollCell':
             url = '/api/roll-cell';
             break;
-        case 'rollBigWin':
-            url = '/api/roll-big-win';
-            break;
-        case 'rollMovie':
-            url = '/api/roll-movie';
+        case 'rollWheelPreset':
+            url = '/api/roll-wheel-preset';
             break;
         case 'rollItem':
             url = '/api/roll-item';
-            break;
-        case 'rollDeveloper':
-            url = '/api/roll-developer';
             break;
     }
 
@@ -119,7 +92,12 @@ async function startSpin() {
 
     const json = await res.json();
 
-    const rollInfo = app.audios.getRandomAudio(app.nextStepType);
+    const currentCell = app.users.getUserCurrentCell(app.getUserId());
+    let rollInfo = app.audios.getRandomAudioFromCellByEvent(currentCell, app.nextStepType);
+
+    if (!rollInfo) {
+        rollInfo = {duration: 20};
+    }
 
     wheel.startSpin(json.itemId, rollInfo.duration);
 

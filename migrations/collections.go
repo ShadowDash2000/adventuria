@@ -719,7 +719,7 @@ func init() {
 						"protected": false,
 						"required": true,
 						"system": false,
-						"thumbs": [],
+						"thumbs": null,
 						"type": "file"
 					},
 					{
@@ -959,15 +959,11 @@ func init() {
 							"roll",
 							"reroll",
 							"drop",
-							"done",
-							"game",
+							"chooseResult",
+							"chooseGame",
 							"rollCell",
-							"rollPreset",
-							"rollMovie",
-							"rollBigWin",
 							"rollItem",
-							"rollDeveloper",
-							"movieResult"
+							"rollWheelPreset"
 						]
 					}
 				],
@@ -1043,27 +1039,36 @@ func init() {
 							"game",
 							"start",
 							"jail",
-							"big-win",
 							"preset",
 							"item",
-							"movie",
-							"developer"
+							"wheelPreset"
 						]
 					},
 					{
+						"cascadeDelete": false,
+						"collectionId": "pbc_1255212119",
 						"hidden": false,
-						"id": "select744481842",
+						"id": "relation744481842",
 						"maxSelect": 1,
+						"minSelect": 0,
 						"name": "preset",
 						"presentable": false,
 						"required": false,
 						"system": false,
-						"type": "select",
-						"values": [
-							"literallyMe",
-							"blya",
-							"rockstar"
-						]
+						"type": "relation"
+					},
+					{
+						"cascadeDelete": false,
+						"collectionId": "pbc_91682242",
+						"hidden": false,
+						"id": "relation3883146966",
+						"maxSelect": 999,
+						"minSelect": 0,
+						"name": "audioPresets",
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "relation"
 					},
 					{
 						"hidden": false,
@@ -1131,6 +1136,42 @@ func init() {
 						"required": false,
 						"system": false,
 						"type": "text"
+					},
+					{
+						"hidden": false,
+						"id": "bool3645399621",
+						"name": "cantDrop",
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "bool"
+					},
+					{
+						"hidden": false,
+						"id": "bool1348581440",
+						"name": "cantReroll",
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "bool"
+					},
+					{
+						"hidden": false,
+						"id": "bool2308337284",
+						"name": "cantChooseAfterDrop",
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "bool"
+					},
+					{
+						"hidden": false,
+						"id": "bool337669937",
+						"name": "isSafeDrop",
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "bool"
 					}
 				],
 				"id": "pbc_2659677491",
@@ -1405,7 +1446,7 @@ func init() {
 						"type": "text"
 					},
 					{
-						"hidden": false,
+						"hidden": true,
 						"id": "autodate2990389176",
 						"name": "created",
 						"onCreate": true,
@@ -1415,7 +1456,7 @@ func init() {
 						"type": "autodate"
 					},
 					{
-						"hidden": false,
+						"hidden": true,
 						"id": "autodate3332085495",
 						"name": "updated",
 						"onCreate": true,
@@ -1453,34 +1494,17 @@ func init() {
 						"type": "file"
 					},
 					{
+						"cascadeDelete": false,
+						"collectionId": "pbc_1255212119",
 						"hidden": false,
-						"id": "select1542800728",
-						"maxSelect": 1,
-						"name": "type",
+						"id": "relation744481842",
+						"maxSelect": 999,
+						"minSelect": 0,
+						"name": "presets",
 						"presentable": false,
 						"required": true,
 						"system": false,
-						"type": "select",
-						"values": [
-							"movie",
-							"legendaryGame",
-							"developer"
-						]
-					},
-					{
-						"hidden": false,
-						"id": "select744481842",
-						"maxSelect": 1,
-						"name": "preset",
-						"presentable": false,
-						"required": false,
-						"system": false,
-						"type": "select",
-						"values": [
-							"literallyMe",
-							"blya",
-							"rockstar"
-						]
+						"type": "relation"
 					}
 				],
 				"id": "pbc_2521987515",
@@ -1730,6 +1754,20 @@ func init() {
 						"type": "autodate"
 					},
 					{
+						"autogeneratePattern": "",
+						"hidden": false,
+						"id": "text1579384326",
+						"max": 0,
+						"min": 0,
+						"name": "name",
+						"pattern": "",
+						"presentable": false,
+						"primaryKey": false,
+						"required": true,
+						"system": false,
+						"type": "text"
+					},
+					{
 						"hidden": false,
 						"id": "file410859157",
 						"maxSelect": 1,
@@ -1754,24 +1792,6 @@ func init() {
 						"required": true,
 						"system": false,
 						"type": "number"
-					},
-					{
-						"hidden": false,
-						"id": "select1001261735",
-						"maxSelect": 1,
-						"name": "event",
-						"presentable": false,
-						"required": true,
-						"system": false,
-						"type": "select",
-						"values": [
-							"rollJailCell",
-							"rollBigWin",
-							"rollMovie",
-							"rollItem",
-							"roll",
-							"rollDeveloper"
-						]
 					}
 				],
 				"id": "pbc_3543894142",
@@ -1974,6 +1994,159 @@ func init() {
 				],
 				"listRule": "@request.auth.id = user.id",
 				"name": "timers",
+				"system": false,
+				"type": "base",
+				"updateRule": null,
+				"viewRule": null
+			},
+			{
+				"createRule": null,
+				"deleteRule": null,
+				"fields": [
+					{
+						"autogeneratePattern": "[a-z0-9]{15}",
+						"hidden": false,
+						"id": "text3208210256",
+						"max": 15,
+						"min": 15,
+						"name": "id",
+						"pattern": "^[a-z0-9]+$",
+						"presentable": false,
+						"primaryKey": true,
+						"required": true,
+						"system": true,
+						"type": "text"
+					},
+					{
+						"hidden": true,
+						"id": "autodate2990389176",
+						"name": "created",
+						"onCreate": true,
+						"onUpdate": false,
+						"presentable": false,
+						"system": false,
+						"type": "autodate"
+					},
+					{
+						"hidden": true,
+						"id": "autodate3332085495",
+						"name": "updated",
+						"onCreate": true,
+						"onUpdate": true,
+						"presentable": false,
+						"system": false,
+						"type": "autodate"
+					},
+					{
+						"autogeneratePattern": "",
+						"hidden": false,
+						"id": "text1579384326",
+						"max": 0,
+						"min": 0,
+						"name": "name",
+						"pattern": "",
+						"presentable": false,
+						"primaryKey": false,
+						"required": true,
+						"system": false,
+						"type": "text"
+					}
+				],
+				"id": "pbc_1255212119",
+				"indexes": [],
+				"listRule": "",
+				"name": "wheel_items_presets",
+				"system": false,
+				"type": "base",
+				"updateRule": null,
+				"viewRule": null
+			},
+			{
+				"createRule": null,
+				"deleteRule": null,
+				"fields": [
+					{
+						"autogeneratePattern": "[a-z0-9]{15}",
+						"hidden": false,
+						"id": "text3208210256",
+						"max": 15,
+						"min": 15,
+						"name": "id",
+						"pattern": "^[a-z0-9]+$",
+						"presentable": false,
+						"primaryKey": true,
+						"required": true,
+						"system": true,
+						"type": "text"
+					},
+					{
+						"hidden": true,
+						"id": "autodate2990389176",
+						"name": "created",
+						"onCreate": true,
+						"onUpdate": false,
+						"presentable": false,
+						"system": false,
+						"type": "autodate"
+					},
+					{
+						"hidden": true,
+						"id": "autodate3332085495",
+						"name": "updated",
+						"onCreate": true,
+						"onUpdate": true,
+						"presentable": false,
+						"system": false,
+						"type": "autodate"
+					},
+					{
+						"autogeneratePattern": "",
+						"hidden": false,
+						"id": "text1579384326",
+						"max": 0,
+						"min": 0,
+						"name": "name",
+						"pattern": "",
+						"presentable": false,
+						"primaryKey": false,
+						"required": true,
+						"system": false,
+						"type": "text"
+					},
+					{
+						"cascadeDelete": false,
+						"collectionId": "pbc_3543894142",
+						"hidden": false,
+						"id": "relation2608059894",
+						"maxSelect": 999,
+						"minSelect": 0,
+						"name": "audios",
+						"presentable": false,
+						"required": true,
+						"system": false,
+						"type": "relation"
+					},
+					{
+						"hidden": false,
+						"id": "select1001261735",
+						"maxSelect": 1,
+						"name": "event",
+						"presentable": false,
+						"required": true,
+						"system": false,
+						"type": "select",
+						"values": [
+							"roll",
+							"rollCell",
+							"rollItem",
+							"rollWheelPreset"
+						]
+					}
+				],
+				"id": "pbc_91682242",
+				"indexes": [],
+				"listRule": "",
+				"name": "audio_presets",
 				"system": false,
 				"type": "base",
 				"updateRule": null,

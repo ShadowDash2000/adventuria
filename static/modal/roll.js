@@ -66,7 +66,12 @@ async function roll() {
     app.modal.lockClose();
     rollButton.classList.add('hidden');
 
-    const rollInfo = app.audios.getRandomAudio(app.nextStepType);
+    const currentCell = app.users.getUserCurrentCell(app.getUserId());
+    let rollInfo = app.audios.getRandomAudioFromCellByEvent(currentCell, 'roll');
+
+    if (!rollInfo) {
+        rollInfo = {duration: 20};
+    }
 
     let duration = rollInfo.duration;
     const durations = [];
