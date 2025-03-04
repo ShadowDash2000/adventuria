@@ -195,35 +195,15 @@ class App {
         const json = await res.json();
         this.nextStepType = json.nextStepType;
 
-        const actionsButtons = document.querySelector('.actions-buttons');
-        const buttons = actionsButtons.querySelectorAll('button');
-        for (const button of buttons) {
-            button.classList.add('hidden');
-        }
+        const action = Helper.actions[this.nextStepType];
+        if (!action) return;
 
-        let button;
+        const actionButton = document.querySelector('.actions-buttons button');
 
-        switch (json.nextStepType) {
-            case 'roll':
-                button = actionsButtons.querySelector('button.game-roll');
-                break;
-            case 'chooseResult':
-                button = actionsButtons.querySelector('button.game-result');
-                break;
-            case 'chooseMovieResult':
-                button = actionsButtons.querySelector('button.movie-result');
-                break;
-            case 'chooseGame':
-                button = actionsButtons.querySelector('button.game-picker');
-                break;
-            case 'rollCell':
-            case 'rollWheelPreset':
-            case 'rollItem':
-                button = actionsButtons.querySelector('button.wheel');
-                break;
-        }
+        actionButton.dataset.graphPath = action.modal;
+        actionButton.innerText = action.name;
 
-        button.classList.remove('hidden');
+        actionButton.classList.remove('hidden');
     }
 
     async updateInnerField() {

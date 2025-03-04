@@ -19,13 +19,13 @@ document.addEventListener('DOMContentLoaded', () => {
         let text = '';
         switch (action) {
             case 'reroll':
-                text = 'Вы уверены, что хотите рерольнуть игру?';
+                text = 'Вы уверены, что хотите рерольнуть?';
                 break;
             case 'drop':
-                text = 'Вы уверены, что хотите дропнуть игру?';
+                text = 'Вы уверены, что хотите дропнуть?';
                 break;
             case 'done':
-                text = 'Вы уверены, что хотите завершить прохождение?';
+                text = 'Вы уверены, что хотите завершить прохождение / просмотр фильма?';
         }
 
         app.submit.open({

@@ -83,16 +83,8 @@
             </div>
             <h1 class="title">ПРИКЛЮЧПОПИЯ</h1>
             <div class="actions-buttons">
-                <button class="button game-roll hidden" data-graph-path="dice" data-graph-animation="fadeInUp"
-                        data-graph-speed="100">РОЛЛ</button>
-                <button class="button game-result hidden" data-graph-path="game-result" data-graph-animation="fadeInUp"
-                        data-graph-speed="100">ЗАВЕРШИТЬ ПРОХОЖДЕНИЕ</button>
-                <button class="button game-picker hidden" data-graph-path="game-picker" data-graph-animation="fadeInUp"
-                        data-graph-speed="100">ВЫБРАТЬ ИГРУ</button>
-                <button class="button wheel hidden" data-graph-path="wheel" data-graph-animation="fadeInUp"
-                        data-graph-speed="100">КОЛЁСИКО</button>
-                <button class="button movie-result hidden" data-graph-path="movie-result" data-graph-animation="fadeInUp"
-                        data-graph-speed="100">ЗАВЕРШИТЬ ПРОСМОТР</button>
+                <button class="button hidden" data-graph-path="{{MODAL_CODE}}" data-graph-animation="fadeInUp"
+                        data-graph-speed="100">{{ACTION_NAME}}</button>
             </div>
         </div>
 
@@ -132,24 +124,13 @@
     <div class="graph-modal__container" role="dialog" aria-modal="true" data-graph-target="game-result">
         <button class="btn-reset graph-modal__close js-modal-close" aria-label="Закрыть модальное окно"></button>
         <div class="graph-modal__content game-result">
-            <h2>РЕЗУЛЬТАТ ИГРЫ</h2>
+            <h2>РЕЗУЛЬТАТ</h2>
             <div class="game-title">{{GAME NAME}}</div>
-            <textarea placeholder="Комментарий к пройденой игре, к дропу или реролу..."></textarea>
+            <textarea placeholder="Комментарий к пройденой игре, фильму, дропу или реролу..."></textarea>
             <div class="container">
                 <button class="button reroll" data-action="reroll">РЕРОЛ</button>
                 <button class="button drop" data-action="drop">ДРОП</button>
-                <button class="button done" data-action="done">ПРОШЁЛ</button>
-            </div>
-        </div>
-    </div>
-    <div class="graph-modal__container" role="dialog" aria-modal="true" data-graph-target="movie-result">
-        <button class="btn-reset graph-modal__close js-modal-close" aria-label="Закрыть модальное окно"></button>
-        <div class="graph-modal__content game-result movie-result">
-            <h2>РЕЗУЛЬТАТ КИНЦА</h2>
-            <div class="game-title">{{GAME NAME}}</div>
-            <textarea placeholder="Комментарий к CINEMA..."></textarea>
-            <div class="container">
-                <button class="button done" data-action="done">ПОСМОТРЕЛ</button>
+                <button class="button done" data-action="done">ЗАКОНЧИЛ</button>
             </div>
         </div>
     </div>
@@ -398,7 +379,7 @@
 </script>
 <script defer type="module" src="/modal/auth.js"></script>
 <script defer type="module" src="/modal/game-picker.js"></script>
-<script defer type="module" src="/modal/game-result.js"></script>
+<script defer type="module" src="/modal/result.js"></script>
 <script defer type="module" src="/modal/roll.js"></script>
 <script defer type="module" src="/modal/wheel.js"></script>
 <script defer type="module" src="/modal/submit.js"></script>

@@ -15,6 +15,7 @@ export default class Actions {
 
     async fetch(page) {
         this.actions = await this.pb.collection(this.collectionName).getList(page, 10, {
+            filter: '\'["roll", "reroll", "drop", "chooseResult", "rollCell", "rollWheelPreset"]\' ~ type',
             sort: '-created',
         });
     }
@@ -37,11 +38,20 @@ export default class Actions {
 
         const user = this.users.getById(action.user);
         userAvatar.src = Helper.getFile('avatar', user);
+        userAvatar.style.borderColor = user.color;
         userName.innerText = user.name;
 
         const cell = this.cells.getById(action.cell);
-        cellIcon.src = Helper.getFile('icon', cell);
-        cellName.innerText = cell.name;
+        cellIcon.src = Helper.getFile('icon', cell, {'thumb': '250x0'});
+        cellName.innerText = `НА КЛЕТКЕ ${cell.name}`;
+
+        let text = action.value;
+        const textTemplate = Helper.actions[action.type]?.template;
+        if (textTemplate) {
+            text = textTemplate.replace('{{VALUE}}', action.value);
+        }
+
+        actionText.innerText = text;
 
         return actionNode.firstElementChild;
     }
