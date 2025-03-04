@@ -86,7 +86,7 @@ export default class Cells {
                 colorBar.style.background = cell.color;
             }
 
-            cellNode.querySelector('img').src = Helper.getFile('icon', cell);
+            cellNode.querySelector('img').src = Helper.getFile('icon', cell, {'thumb': '250x0'});
             const name = cellNode.querySelector('.name');
             name.innerHTML = cell.name;
             name.dataset.id = cell.id;

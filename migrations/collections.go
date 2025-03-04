@@ -719,7 +719,7 @@ func init() {
 						"protected": false,
 						"required": true,
 						"system": false,
-						"thumbs": null,
+						"thumbs": [],
 						"type": "file"
 					},
 					{
@@ -1076,7 +1076,9 @@ func init() {
 						"protected": false,
 						"required": false,
 						"system": false,
-						"thumbs": [],
+						"thumbs": [
+							"250x0"
+						],
 						"type": "file"
 					},
 					{
