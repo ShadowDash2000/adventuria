@@ -59,14 +59,24 @@ func (c *MemoryCache[K, V]) Get(key K) (V, bool) {
 }
 
 func (c *MemoryCache[K, V]) Delete(key K) {
-	c.data.Delete(key)
-	c.count--
+	if _, found := c.data.LoadAndDelete(key); found {
+		c.count--
+	}
 }
 
 func (c *MemoryCache[K, V]) GetAll() map[K]V {
 	res := make(map[K]V, c.Count())
 	c.data.Range(func(key, value any) bool {
 		res[key.(K)] = value.(cacheItem[V]).value
+		return true
+	})
+	return res
+}
+
+func (c *MemoryCache[K, V]) Keys() []K {
+	res := make([]K, 0, c.Count())
+	c.data.Range(func(key, _ any) bool {
+		res = append(res, key.(K))
 		return true
 	})
 	return res

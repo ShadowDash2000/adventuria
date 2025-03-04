@@ -919,18 +919,6 @@ func init() {
 						"type": "relation"
 					},
 					{
-						"hidden": false,
-						"id": "number783626958",
-						"max": null,
-						"min": null,
-						"name": "roll",
-						"onlyInt": true,
-						"presentable": false,
-						"required": false,
-						"system": false,
-						"type": "number"
-					},
-					{
 						"autogeneratePattern": "",
 						"hidden": false,
 						"id": "text590033292",
@@ -1044,23 +1032,6 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "select1177347317",
-						"maxSelect": 1,
-						"name": "position",
-						"presentable": false,
-						"required": true,
-						"system": false,
-						"type": "select",
-						"values": [
-							"top",
-							"right",
-							"bottom",
-							"left",
-							"special"
-						]
-					},
-					{
-						"hidden": false,
 						"id": "select2363381545",
 						"maxSelect": 1,
 						"name": "type",
@@ -1119,20 +1090,6 @@ func init() {
 						"presentable": false,
 						"primaryKey": false,
 						"required": true,
-						"system": false,
-						"type": "text"
-					},
-					{
-						"autogeneratePattern": "",
-						"hidden": false,
-						"id": "text1997877400",
-						"max": 0,
-						"min": 0,
-						"name": "code",
-						"pattern": "^[a-zA-Z0-9_-]+$",
-						"presentable": false,
-						"primaryKey": false,
-						"required": false,
 						"system": false,
 						"type": "text"
 					},

@@ -3,18 +3,22 @@ package adventuria
 import (
 	"adventuria/pkg/cache"
 	"github.com/pocketbase/pocketbase/core"
+	"sort"
+	"sync"
 )
 
 type Cells struct {
 	app         core.App
-	cellsBySort *cache.MemoryCache[int, *core.Record]
+	cells       *cache.MemoryCache[string, *core.Record]
 	cellsByCode *cache.MemoryCache[string, *core.Record]
+	cellsOrder  []string
+	mx          sync.Mutex
 }
 
 func NewCells(app core.App) *Cells {
 	cells := &Cells{
 		app:         app,
-		cellsBySort: cache.NewMemoryCache[int, *core.Record](0, true),
+		cells:       cache.NewMemoryCache[string, *core.Record](0, true),
 		cellsByCode: cache.NewMemoryCache[string, *core.Record](0, true),
 	}
 
@@ -26,30 +30,24 @@ func NewCells(app core.App) *Cells {
 
 func (c *Cells) bindHooks() {
 	c.app.OnRecordAfterCreateSuccess(TableCells).BindFunc(func(e *core.RecordEvent) error {
-		c.cellsBySort.Set(e.Record.GetInt("sort"), e.Record)
-		if cellCode := e.Record.GetString("code"); cellCode != "" {
-			c.cellsByCode.Set(cellCode, e.Record)
-		}
+		c.add(e.Record)
+		c.sort()
 		return e.Next()
 	})
 	c.app.OnRecordAfterUpdateSuccess(TableCells).BindFunc(func(e *core.RecordEvent) error {
-		c.cellsBySort.Set(e.Record.GetInt("sort"), e.Record)
-		if cellCode := e.Record.GetString("code"); cellCode != "" {
-			c.cellsByCode.Set(cellCode, e.Record)
-		}
+		c.add(e.Record)
+		c.sort()
 		return e.Next()
 	})
 	c.app.OnRecordAfterDeleteSuccess(TableCells).BindFunc(func(e *core.RecordEvent) error {
-		c.cellsBySort.Delete(e.Record.GetInt("sort"))
-		if cellCode := e.Record.GetString("code"); cellCode != "" {
-			c.cellsByCode.Delete(cellCode)
-		}
+		c.delete(e.Record)
+		c.sort()
 		return e.Next()
 	})
 }
 
 func (c *Cells) fetch() error {
-	c.cellsBySort.Clear()
+	c.cells.Clear()
 	c.cellsByCode.Clear()
 
 	cells, err := c.app.FindRecordsByFilter(
@@ -64,33 +62,62 @@ func (c *Cells) fetch() error {
 	}
 
 	for _, cell := range cells {
-		c.cellsBySort.Set(cell.GetInt("sort"), cell)
-
-		code := cell.GetString("code")
-		if code != "" {
-			c.cellsByCode.Set(code, cell)
-		}
+		c.add(cell)
 	}
+	c.sort()
 
 	return nil
 }
 
-func (c *Cells) GetBySort(sort int) (*core.Record, bool) {
-	return c.cellsBySort.Get(sort)
+func (c *Cells) add(record *core.Record) {
+	c.cells.Set(record.Id, record)
+	if code := record.GetString("code"); code != "" {
+		c.cellsByCode.Set(code, record)
+	}
+}
+
+func (c *Cells) delete(record *core.Record) {
+	c.cells.Delete(record.Id)
+	if code := record.GetString("code"); code != "" {
+		c.cellsByCode.Delete(code)
+	}
+}
+
+func (c *Cells) sort() {
+	c.mx.Lock()
+	defer c.mx.Unlock()
+
+	c.cellsOrder = c.cells.Keys()
+	sort.Slice(c.cellsOrder, func(i, j int) bool {
+		cell1, _ := c.cells.Get(c.cellsOrder[i])
+		cell2, _ := c.cells.Get(c.cellsOrder[j])
+		return cell1.GetInt("sort") < cell2.GetInt("sort")
+	})
+}
+
+// GetByOrder
+// Note: cells order starts from 0
+func (c *Cells) GetByOrder(order int) (*core.Record, bool) {
+	if cellId := c.cellsOrder[order]; cellId != "" {
+		return c.cells.Get(cellId)
+	}
+	return nil, false
 }
 
 func (c *Cells) GetByCode(code string) (*core.Record, bool) {
 	return c.cellsByCode.Get(code)
 }
 
-func (c *Cells) GetAll() map[int]*core.Record {
-	return c.cellsBySort.GetAll()
-}
-
-func (c *Cells) CellsByCode() *cache.MemoryCache[string, *core.Record] {
-	return c.cellsByCode
+func (c *Cells) GetByType(t string) []*core.Record {
+	var res []*core.Record
+	for _, record := range c.cells.GetAll() {
+		if record.GetString("type") == t {
+			res = append(res, record)
+		}
+	}
+	return res
 }
 
 func (c *Cells) Count() int {
-	return c.cellsBySort.Count()
+	return c.cells.Count()
 }

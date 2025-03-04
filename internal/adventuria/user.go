@@ -132,16 +132,11 @@ func (u *User) IsInJail() bool {
 	return u.user.GetBool("isInJail")
 }
 
-func (u *User) GetCurrentCell() (*core.Record, error) {
+func (u *User) GetCurrentCell() (*core.Record, bool) {
 	cellsPassed := u.GetCellsPassed()
 	currentCellNum := cellsPassed % u.cells.Count()
 
-	currentCell, ok := u.cells.GetBySort(currentCellNum)
-	if !ok {
-		return nil, errors.New("cell not found")
-	}
-
-	return currentCell, nil
+	return u.cells.GetByOrder(currentCellNum)
 }
 
 func (u *User) GetPoints() int {
@@ -174,9 +169,9 @@ func (u *User) GetNextStepType() (string, error) {
 		return UserNextStepRoll, nil
 	}
 
-	cell, err := u.GetCurrentCell()
-	if err != nil {
-		return nextStepType, err
+	cell, ok := u.GetCurrentCell()
+	if !ok {
+		return nextStepType, errors.New("current cell not found")
 	}
 
 	cellType := cell.GetString("type")
