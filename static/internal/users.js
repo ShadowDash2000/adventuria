@@ -33,7 +33,7 @@ export default class Users {
         });
 
         this.users.forEach((user) => {
-            const currentCell = this.cells.getCellByPassed(user.cellsPassed);
+            const currentCell = this.cells.getByPassed(user.cellsPassed);
             const currentCellElement = currentCell.cellElement;
 
             user.currentCellId = currentCell.id;
@@ -83,7 +83,7 @@ export default class Users {
 
     getUserCurrentCell(userId) {
         const user = this.users.get(userId);
-        return user?.currentCellId ? this.cells.getCellById(user.currentCellId) : null;
+        return user?.currentCellId ? this.cells.getById(user.currentCellId) : null;
     }
 
     getById(userId) {

@@ -9,6 +9,7 @@ import Items from "./internal/items.js";
 import Inventories from "./internal/inventories.js";
 import WheelItems from "./internal/wheel-items.js";
 import Audios from "./internal/audios.js";
+import Actions from "./internal/actions.js";
 
 class App {
     constructor() {
@@ -113,6 +114,7 @@ class App {
             this.inventories = new Inventories(this.pb);
             this.wheelItems = new WheelItems(this.pb);
             this.audios = new Audios(this.pb);
+            this.actions = new Actions(this.pb, this.cells, this.users);
 
             await this.cells.fetch();
             this.cells.refresh();
@@ -125,6 +127,9 @@ class App {
             await this.inventories.fetch();
             await this.wheelItems.fetch();
             await this.audios.fetch();
+
+            await this.actions.fetch(1);
+            this.actions.refresh();
 
             await this.updateInnerField();
         });

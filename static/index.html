@@ -14,6 +14,16 @@
     <link href="/wheel.css" rel="stylesheet">
 </head>
 <body>
+<div class="gradient-bg">
+    <div class="gradients-container">
+        <div class="g1"></div>
+        <div class="g2"></div>
+        <div class="g3"></div>
+        <div class="g4"></div>
+        <div class="g5"></div>
+        <div class="interactive"></div>
+    </div>
+</div>
 <button class="btn-reset modal-btn modal-1" data-graph-path="auth" data-graph-animation="fadeInUp"
         data-graph-speed="100">ВХОД
 </button>
@@ -86,23 +96,27 @@
             </div>
         </div>
 
-        <div id="start" class="space corner go"></div>
+        <div id="cell-bottom-left" class="space corner go"></div>
 
         <div class="row vertical-row left-row"></div>
 
-        <div id="jail" class="space corner jail"></div>
+        <div id="cell-top-left" class="space corner jail"></div>
 
         <div class="row horizontal-row top-row"></div>
 
-        <div id="big-win" class="space corner free-parking"></div>
+        <div id="cell-top-right" class="space corner free-parking"></div>
 
         <div class="row vertical-row right-row"></div>
 
-        <div id="preset" class="space corner go-to-jail"></div>
+        <div id="cell-bottom-right" class="space corner go-to-jail"></div>
 
         <div class="row horizontal-row bottom-row"></div>
     </div>
 </div>
+<section class="actions">
+    <h2 class="text-shadow text-soft-shadow">СОБЫТИЯ</h2>
+    <div class="container"></div>
+</section>
 <span id="tooltip" class="tooltip">{{TOOLTIP TEXT}}</span>
 <div class="graph-modal">
     <div class="graph-modal__container" role="dialog" aria-modal="true" data-graph-target="auth">
@@ -338,6 +352,22 @@
             <button>Инвентарь</button>
         </td>
     </tr>
+</template>
+<template id="action-template">
+    <div class="actions__action">
+        <div class="action__user">
+            <img src="img/undefined.jpg" width="150" height="150">
+            <span class="text-shadow text-soft-shadow">{{USER_NAME}}</span>
+        </div>
+        <div class="action__cell">
+            <img src="img/undefined.jpg" width="150" height="150">
+            <span class="text-shadow text-soft-shadow">{{CELL_NAME}}</span>
+        </div>
+        <div class="action__type">
+            <img src="img/undefined.jpg" width="150" height="150">
+            <span class="text-shadow text-soft-shadow">{{ACTION}}</span>
+        </div>
+    </div>
 </template>
 </body>
 <script>
