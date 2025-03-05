@@ -43,6 +43,8 @@ export default class Actions {
 
         const cell = this.cells.getById(action.cell);
         cellIcon.src = Helper.getFile('icon', cell, {'thumb': '250x0'});
+        cellIcon.dataset.id = cell.id;
+        cellIcon.dataset.type = 'cell';
         cellName.innerText = `НА КЛЕТКЕ ${cell.name}`;
 
         let text = action.value;

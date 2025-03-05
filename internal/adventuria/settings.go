@@ -37,6 +37,8 @@ func DefaultSettings(cols *collections.Collections) (*core.Record, error) {
 	record.Set("eventDateStart", types.NowDateTime())
 	record.Set("currentWeek", 0)
 	record.Set("timerTimeLimit", 14400)
+	record.Set("pointsForDrop", -2)
+	record.Set("dropsToJail", 2)
 	return record, nil
 }
 
@@ -101,6 +103,14 @@ func (s *Settings) TimerTimeLimit() int {
 
 func (s *Settings) BlockAllActions() bool {
 	return s.GetBool("blockAllActions")
+}
+
+func (s *Settings) PointsForDrop() int {
+	return s.GetInt("pointsForDrop")
+}
+
+func (s *Settings) DropsToJail() int {
+	return s.GetInt("dropsToJail")
 }
 
 func (s *Settings) Rules() {

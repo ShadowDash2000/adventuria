@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const currentCell = app.users.getUserCurrentCell(app.getUserId());
         const cellPresetId = currentCell.preset;
         switch (app.nextStepType) {
-            case 'rollJailCell':
+            case 'rollCell':
                 for (const cell of app.cells.getAll()) {
                     if (cell.type === 'game') {
                         wheelItems.push({

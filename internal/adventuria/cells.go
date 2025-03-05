@@ -8,11 +8,12 @@ import (
 )
 
 type Cells struct {
-	app         core.App
-	cells       *cache.MemoryCache[string, *core.Record]
-	cellsByCode *cache.MemoryCache[string, *core.Record]
-	cellsOrder  []string
-	mx          sync.Mutex
+	app           core.App
+	cells         *cache.MemoryCache[string, *core.Record]
+	cellsByCode   *cache.MemoryCache[string, *core.Record]
+	cellsOrder    []string
+	cellsIdsOrder map[string]int
+	mx            sync.Mutex
 }
 
 func NewCells(app core.App) *Cells {
@@ -93,6 +94,11 @@ func (c *Cells) sort() {
 		cell2, _ := c.cells.Get(c.cellsOrder[j])
 		return cell1.GetInt("sort") < cell2.GetInt("sort")
 	})
+
+	c.cellsIdsOrder = make(map[string]int, len(c.cellsOrder))
+	for key, cellId := range c.cellsOrder {
+		c.cellsIdsOrder[cellId] = key
+	}
 }
 
 // GetByOrder
@@ -104,11 +110,29 @@ func (c *Cells) GetByOrder(order int) (*core.Record, bool) {
 	return nil, false
 }
 
+// GetOrderById
+// Note: cells order starts from 0
+func (c *Cells) GetOrderById(cellId string) (int, bool) {
+	if order, ok := c.cellsIdsOrder[cellId]; ok {
+		return order, true
+	}
+	return 0, false
+}
+
+// GetOrderByType
+// Note: cells order starts from 0
+func (c *Cells) GetOrderByType(t string) (int, bool) {
+	if cell, ok := c.GetByType(t); ok {
+		return c.GetOrderById(cell.Id)
+	}
+	return 0, false
+}
+
 func (c *Cells) GetByCode(code string) (*core.Record, bool) {
 	return c.cellsByCode.Get(code)
 }
 
-func (c *Cells) GetByType(t string) []*core.Record {
+func (c *Cells) GetAllByType(t string) []*core.Record {
 	var res []*core.Record
 	for _, record := range c.cells.GetAll() {
 		if record.GetString("type") == t {
@@ -116,6 +140,15 @@ func (c *Cells) GetByType(t string) []*core.Record {
 		}
 	}
 	return res
+}
+
+func (c *Cells) GetByType(t string) (*core.Record, bool) {
+	for _, record := range c.cells.GetAll() {
+		if record.GetString("type") == t {
+			return record, true
+		}
+	}
+	return nil, false
 }
 
 func (c *Cells) Count() int {

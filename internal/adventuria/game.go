@@ -65,7 +65,7 @@ func (g *Game) ChooseGame(game string, userId string) error {
 		return errors.New("next step isn't choose game")
 	}
 
-	currentCell, _ := user.GetCurrentCell()
+	currentCell, _ := user.CurrentCell()
 
 	record := core.NewRecord(user.lastAction.Collection())
 	record.Set("user", userId)
@@ -105,7 +105,7 @@ func (g *Game) Move(n int, userId string) (*core.Record, *core.Record, error) {
 		return nil, nil, err
 	}
 
-	cellsPassed := user.GetCellsPassed()
+	cellsPassed := user.CellsPassed()
 	currentCellNum := (cellsPassed + n) % g.cells.Count()
 	currentCell, _ := g.cells.GetByOrder(currentCellNum)
 
@@ -139,11 +139,11 @@ func (g *Game) Reroll(comment string, userId string) error {
 		return err
 	}
 
-	if nextStepType != ActionTypeReroll {
+	if nextStepType != ActionTypeChooseResult {
 		return errors.New("next step isn't choose result")
 	}
 
-	currentCell, _ := user.GetCurrentCell()
+	currentCell, _ := user.CurrentCell()
 	cantReroll := currentCell.GetBool("cantReroll")
 
 	if cantReroll {
@@ -228,7 +228,7 @@ func (g *Game) Drop(comment string, userId string) error {
 		return errors.New("next step isn't choose result")
 	}
 
-	currentCell, _ := user.GetCurrentCell()
+	currentCell, _ := user.CurrentCell()
 	cantDrop := currentCell.GetBool("cantDrop")
 
 	if cantDrop {
@@ -251,9 +251,9 @@ func (g *Game) Drop(comment string, userId string) error {
 		return err
 	}
 
-	if !effects.IsSafeDrop && currentCell.GetBool("isSafeDrop") {
-		user.Set("points", user.GetPoints()-2)
-		user.Set("dropsInARow", user.GetDropsInARow()+1)
+	if !effects.IsSafeDrop && !currentCell.GetBool("isSafeDrop") {
+		user.Set("points", user.Points()+g.settings.PointsForDrop())
+		user.Set("dropsInARow", user.DropsInARow()+1)
 
 		err = user.Save()
 		if err != nil {
@@ -285,7 +285,7 @@ func (g *Game) Done(comment string, userId string) error {
 		return errors.New("next step isn't choose result")
 	}
 
-	currentCell, _ := user.GetCurrentCell()
+	currentCell, _ := user.CurrentCell()
 
 	record := core.NewRecord(user.lastAction.Collection())
 	record.Set("user", userId)
@@ -300,7 +300,7 @@ func (g *Game) Done(comment string, userId string) error {
 
 	user.Set("dropsInARow", 0)
 	user.Set("isInJail", false)
-	user.Set("points", user.GetPoints()+currentCell.GetInt("points"))
+	user.Set("points", user.Points()+currentCell.GetInt("points"))
 	err = user.Save()
 	if err != nil {
 		return err
@@ -324,13 +324,12 @@ func (g *Game) GoToJail(userId string) error {
 		return err
 	}
 
-	jailCell, ok := g.cells.GetByCode("jail")
+	jailCellPos, ok := g.cells.GetOrderByType(CellTypeJail)
 	if !ok {
 		return errors.New("jail cell not found")
 	}
 
-	currentCellNum := user.GetCellsPassed() % g.cells.Count()
-	jailCellPos := jailCell.GetInt("sort")
+	currentCellNum := user.CellsPassed() % g.cells.Count()
 
 	_, _, err = g.Move(jailCellPos-currentCellNum, userId)
 	if err != nil {
@@ -375,7 +374,7 @@ func (g *Game) RollCell(userId string) (string, error) {
 		return "", errors.New("next step isn't roll cell")
 	}
 
-	gameCells := g.cells.GetByType(CellTypeGame)
+	gameCells := g.cells.GetAllByType(CellTypeGame)
 	cell := gameCells[rand.Intn(len(gameCells)-1)]
 
 	record := core.NewRecord(user.lastAction.Collection())
@@ -423,7 +422,7 @@ func (g *Game) RollItem(userId string) (string, error) {
 
 	item := items[rand.Intn(len(items)-1)]
 
-	currentCell, _ := user.GetCurrentCell()
+	currentCell, _ := user.CurrentCell()
 
 	record := core.NewRecord(user.lastAction.Collection())
 	record.Set("user", userId)
@@ -475,7 +474,7 @@ func (g *Game) RollWheelPreset(userId string) (string, error) {
 		return "", errors.New("next step isn't roll wheel preset")
 	}
 
-	currentCell, _ := user.GetCurrentCell()
+	currentCell, _ := user.CurrentCell()
 
 	wheelItems, err := g.app.FindRecordsByFilter(
 		TableWheelItems,

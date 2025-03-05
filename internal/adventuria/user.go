@@ -37,11 +37,12 @@ func NewUser(
 	}
 
 	u := &User{
-		app:    app,
-		log:    log,
-		userId: userId,
-		cells:  cells,
-		Timer:  timer,
+		app:      app,
+		log:      log,
+		userId:   userId,
+		cells:    cells,
+		settings: settings,
+		Timer:    timer,
 	}
 
 	err = u.fetchUser()
@@ -125,29 +126,29 @@ func (u *User) fetchUserAction() error {
 }
 
 func (u *User) IsSafeDrop() bool {
-	return u.GetDropsInARow() < 2
+	return u.DropsInARow() < u.settings.DropsToJail()
 }
 
 func (u *User) IsInJail() bool {
 	return u.user.GetBool("isInJail")
 }
 
-func (u *User) GetCurrentCell() (*core.Record, bool) {
-	cellsPassed := u.GetCellsPassed()
+func (u *User) CurrentCell() (*core.Record, bool) {
+	cellsPassed := u.CellsPassed()
 	currentCellNum := cellsPassed % u.cells.Count()
 
 	return u.cells.GetByOrder(currentCellNum)
 }
 
-func (u *User) GetPoints() int {
+func (u *User) Points() int {
 	return u.user.GetInt("points")
 }
 
-func (u *User) GetDropsInARow() int {
+func (u *User) DropsInARow() int {
 	return u.user.GetInt("dropsInARow")
 }
 
-func (u *User) GetCellsPassed() int {
+func (u *User) CellsPassed() int {
 	return u.user.GetInt("cellsPassed")
 }
 
@@ -169,7 +170,7 @@ func (u *User) GetNextStepType() (string, error) {
 		return ActionTypeRoll, nil
 	}
 
-	cell, ok := u.GetCurrentCell()
+	cell, ok := u.CurrentCell()
 	if !ok {
 		return nextStepType, errors.New("current cell not found")
 	}
