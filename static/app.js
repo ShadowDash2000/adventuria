@@ -114,7 +114,6 @@ class App {
             this.inventories = new Inventories(this.pb);
             this.wheelItems = new WheelItems(this.pb);
             this.audios = new Audios(this.pb);
-            this.actions = new Actions(this.pb, this.cells, this.users);
 
             await this.cells.fetch();
             this.cells.refresh();
@@ -128,8 +127,7 @@ class App {
             await this.wheelItems.fetch();
             await this.audios.fetch();
 
-            await this.actions.fetch(1);
-            this.actions.refresh();
+            this.actions = new Actions(this.pb, this.cells, this.users);
 
             await this.updateInnerField();
         });
@@ -202,6 +200,7 @@ class App {
 
         actionButton.dataset.graphPath = action.modal;
         actionButton.innerText = action.name;
+        actionButton.style.background = action.color;
 
         actionButton.classList.remove('hidden');
     }

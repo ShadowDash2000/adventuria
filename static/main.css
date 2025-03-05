@@ -869,26 +869,42 @@ table.users {
 
     .container {
         display: flex;
+        align-items: center;
         flex-direction: column;
         gap: 2vw;
 
         filter: drop-shadow(0 0.8vw 0.3vw black);
 
         .actions__action {
-            width: 100%;
+            width: 80%;
             display: flex;
-            justify-content: space-evenly;
+            justify-content: flex-start;
             align-items: flex-start;
 
             background: #783d73;
             border-radius: 1vw;
-            padding: 3vw 0;
+            padding: 3vw 5vw;
+
+            .action__date {
+                width: 20%;
+                text-align: left;
+            }
 
             .action__user {
+                width: 20%;
+
                 img {
                     border: 0.3vw solid;
                     border-radius: 100%;
                 }
+            }
+
+            .action__type {
+                width: 20%;
+            }
+
+            .action__cell {
+                width: 40%;
             }
 
             div {
@@ -899,6 +915,7 @@ table.users {
 
                 font-size: 1.2vw;
                 color: white;
+                text-align: center;
             }
         }
     }

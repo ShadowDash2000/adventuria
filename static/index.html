@@ -108,6 +108,7 @@
 <section class="actions">
     <h2 class="text-shadow text-soft-shadow">СОБЫТИЯ</h2>
     <div class="container"></div>
+    <div class="sentinel"></div>
 </section>
 <span id="tooltip" class="tooltip">{{TOOLTIP TEXT}}</span>
 <div class="graph-modal">
@@ -339,17 +340,18 @@
 </template>
 <template id="action-template">
     <div class="actions__action">
+        <div class="action__date text-shadow text-soft-shadow">{{DATE}}</div>
         <div class="action__user">
             <img src="img/undefined.jpg" width="150" height="150">
             <span class="text-shadow text-soft-shadow">{{USER_NAME}}</span>
         </div>
-        <div class="action__cell">
-            <img src="img/undefined.jpg" width="150" height="150">
-            <span class="text-shadow text-soft-shadow">{{CELL_NAME}}</span>
-        </div>
         <div class="action__type">
             <img src="img/undefined.jpg" width="150" height="150">
             <span class="text-shadow text-soft-shadow">{{ACTION}}</span>
+        </div>
+        <div class="action__cell">
+            <img src="img/undefined.jpg" width="150" height="150">
+            <span class="text-shadow text-soft-shadow">{{CELL_NAME}}</span>
         </div>
     </div>
 </template>

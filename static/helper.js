@@ -25,29 +25,32 @@ export default class Helper {
         'reroll': {
             'name': 'РЕРОЛЛ',
             'modal': '',
-            'color': '',
+            'color': '#20c7bf',
             'template': 'РЕРОЛЬНУЛ: {{VALUE}}',
         },
         'drop': {
             'name': 'DROP',
             'modal': '',
-            'color': '',
+            'color': '#c72020',
             'template': 'ДРОПНУЛ: {{VALUE}}',
         },
         'chooseResult': {
             'name': 'ВЫБРАТЬ РЕЗУЛЬТАТ',
             'modal': 'game-result',
-            'color': '',
+            'color': '#20c723',
+            'template': 'ЗАВЕРШИЛ: {{VALUE}}',
         },
         'chooseGame': {
             'name': 'ВЫБРАТЬ ИГРУ',
             'modal': 'game-picker',
-            'color': '',
+            'color': '#20c7bf',
+            'template': 'НАЧАЛ: {{VALUE}}',
         },
         'rollCell': {
             'name': 'КОЛЁСИКО',
             'modal': 'wheel',
             'color': '',
+            'template': 'ВЫРОЛЯЛ НА КОЛЕСЕ КЛЕТКУ: {{VALUE}}',
         },
         'rollItem': {
             'name': 'КОЛЁСИКО',
@@ -61,4 +64,18 @@ export default class Helper {
             'template': 'ВЫРОЛЯЛ НА КОЛЕСЕ: {{VALUE}}',
         },
     };
+
+    static formatDateLocalized(isoString) {
+        return new Intl.DateTimeFormat("ru-RU", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+        })
+            .format(new Date(isoString))
+            .replace(',', ' ');
+    }
+
 }
