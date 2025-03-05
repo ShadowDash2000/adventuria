@@ -34,7 +34,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     wheelItems.push({
                         id: item.id,
                         src: Helper.getFile('icon', item),
-                        text: item.name
+                        text: item.name,
+                        type: 'wheelItem',
                     });
                 });
                 break;
@@ -101,19 +102,11 @@ async function startSpin() {
 
     wheel.startSpin(json.itemId, rollInfo.duration);
 
-    const wheelContainer = document.querySelector('.graph-modal__content.wheel-modal');
-    const wheelTitle = wheelContainer.querySelector('h2');
-
     app.setAudioSrc(Helper.getFile('audio', rollInfo));
     app.audioPlayer.play();
-
-    const interval = setInterval(() => {
-        wheelTitle.innerText = wheel.getCurrentWinner().text;
-    }, 100);
 
     setTimeout(() => {
         app.modal.unlockClose();
         app.audioPlayer.pause();
-        clearTimeout(interval);
     }, (rollInfo.duration + 1) * 1000);
 }

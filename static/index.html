@@ -158,9 +158,12 @@
     <div class="graph-modal__container" role="dialog" aria-modal="true" data-graph-target="wheel">
         <button class="btn-reset graph-modal__close js-modal-close" aria-label="Закрыть модальное окно"></button>
         <div class="graph-modal__content wheel-modal">
-            <h2 class="title text-shadow text-soft-shadow"></h2>
-            <div class="wheel-container">
+            <h2 id="wheel-title" class="title text-shadow text-soft-shadow"></h2>
+            <div  id="wheel-container" class="wheel-container">
                 <ul class="wheel rotate" id="wheel"></ul>
+                <div class="wheel-triangle-container">
+                    <div class="wheel-triangle"></div>
+                </div>
                 <button class="start-btn">START</button>
             </div>
         </div>

@@ -5,6 +5,7 @@ export default class Wheel {
 
     createWheel(items) {
         this.wheel = document.getElementById('wheel');
+        this.title = document.getElementById('wheel-title');
         this.wheel.innerHTML = '';
         this.items = items;
 
@@ -25,6 +26,7 @@ export default class Wheel {
 
             li.innerHTML = item.text;
             this.wheel.appendChild(li);
+            this.items[index].element = li;
         });
     }
 
@@ -33,24 +35,41 @@ export default class Wheel {
             this.wheel.innerHTML = '';
             this.wheel.setAttribute('style', '');
         }
+        if (this.interval) {
+            clearInterval(this.interval);
+        }
     }
 
     startSpin(winnerId, duration) {
         if (!this.items) return;
 
+        this.wheel.style.transition = '';
+        this.wheel.style.transform = '';
+
         const winnerIndex = this.items.findIndex(item => item.id === winnerId);
         const segmentAngle = 360 / this.items.length;
-        const finalAngle = 360 * duration - (segmentAngle * winnerIndex) + 90;
 
-        this.wheel.classList.remove('rotate');
+        const halfOfSegmentAngle = segmentAngle / 2;
+        const maxSegment = halfOfSegmentAngle - 5;
+        const randomAddAngle = Math.floor(Math.random() * (maxSegment + 1)) - maxSegment;
+
+        const finalAngle = 360 * duration - (segmentAngle * winnerIndex) + 90 + randomAddAngle;
+
+        this.stopRotate();
         setTimeout(() => {
-            this.wheel.style.transition = `transform ${duration}s ease-in-out`;
+            this.wheel.style.transition = `transform ${duration}s cubic-bezier(0.4, 0.2, 0.3, 1)`;
             this.wheel.style.transform = `rotate(${finalAngle}deg)`;
+
+            this.startTitleInterval(duration);
         }, 100);
     }
 
     rotate() {
         this.wheel.classList.add('rotate');
+    }
+
+    stopRotate() {
+        this.wheel.classList.remove('rotate');
     }
 
     getCurrentAngle() {
@@ -69,6 +88,33 @@ export default class Wheel {
         const [a, b] = values[1].split(",").map(parseFloat);
         return Math.round(Math.atan2(b, a) * (180 / Math.PI));
 
+    }
+
+    startTitleInterval(duration) {
+        this.interval = setInterval(() => {
+            const currentWinner = this.getCurrentWinner();
+
+            this.setTitle(currentWinner.text);
+            this.updateHighlight(currentWinner);
+        }, 100);
+
+        setTimeout(() => {
+            clearInterval(this.interval)
+        }, duration * 1000);
+    }
+
+    setTitle(title) {
+        this.title.innerText = title;
+    }
+
+    updateHighlight(itemToHighlight) {
+        this.items.forEach(item => {
+            if (item.id === itemToHighlight.id) {
+                item.element.classList.remove('unactive');
+            } else {
+                item.element.classList.add('unactive');
+            }
+        });
     }
 
     getCurrentWinner() {
