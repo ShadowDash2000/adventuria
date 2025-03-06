@@ -1,28 +1,27 @@
 import {app} from "../app.js";
 
-document.addEventListener('DOMContentLoaded', async () => {
-    const chooseGameButton = document.getElementById('choose-game');
-    const gamePicker = document.getElementById('game-picker');
-    const game = gamePicker.querySelector('input[name="game"]');
 
-    chooseGameButton.addEventListener('click', async (e) => {
-        e.preventDefault();
+const chooseGameButton = document.getElementById('choose-game');
+const gamePicker = document.getElementById('game-picker');
+const game = gamePicker.querySelector('input[name="game"]');
 
-        await fetch('/api/choose-game', {
-            method: "POST",
-            headers: {
-                "Authorization": app.getUserAuthToken(),
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                "game": game.value,
-            }),
-        });
+chooseGameButton.addEventListener('click', async (e) => {
+    e.preventDefault();
 
-        await app.updateInnerField();
-
-        app.modal.close();
-
-        game.value = '';
+    await fetch('/api/choose-game', {
+        method: "POST",
+        headers: {
+            "Authorization": app.getUserAuthToken(),
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            "game": game.value,
+        }),
     });
+
+    await app.updateInnerField();
+
+    app.modal.close();
+
+    game.value = '';
 });

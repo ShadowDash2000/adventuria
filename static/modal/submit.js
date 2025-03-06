@@ -1,7 +1,6 @@
-import {app} from "../app.js";
-
 export default class Submit {
-    constructor() {
+    constructor(modal) {
+        this.modal = modal;
         this.submitModal = document.querySelector('.graph-modal__content.submit');
         this.submitDeclineButton = this.submitModal.querySelector('.button.decline');
         this.submitAcceptButton = this.submitModal.querySelector('.button.accept');
@@ -25,8 +24,8 @@ export default class Submit {
 
         this.submitModal.querySelector('.text').innerText = options.text;
 
-        app.modal.close();
-        app.modal.open('submit', {
+        this.modal.close();
+        this.modal.open('submit', {
             speed: 100,
             animation: 'fadeInUp',
         });
@@ -39,14 +38,14 @@ export default class Submit {
 
         switch (action) {
             case 'decline':
-                app.modal.close();
+                this.modal.close();
                 if (this.options.backModal) {
-                    app.modal.open(this.options.backModal);
+                    this.modal.open(this.options.backModal);
                 }
                 this.options.onDecline();
                 break;
             case 'accept':
-                app.modal.close();
+                this.modal.close();
                 this.options.onAccept();
                 break;
         }

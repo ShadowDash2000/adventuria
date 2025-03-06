@@ -1,124 +1,123 @@
 import {app} from "../app.js";
 import Helper from "../helper.js";
 
-document.addEventListener('DOMContentLoaded', () => {
-    const inventoryModal = document.getElementById('inventory-modal');
-    const inventoryItems = inventoryModal.querySelector('.inventory__items');
-    const inventorySideEffects = inventoryModal.querySelector('.inventory__side-effects');
 
-    const inventoryItemTemplate = document.getElementById('inventory-item');
-    const inventorySideEffectTemplate = document.getElementById('inventory-side-effect');
+const inventoryModal = document.getElementById('inventory-modal');
+const inventoryItems = inventoryModal.querySelector('.inventory__items');
+const inventorySideEffects = inventoryModal.querySelector('.inventory__side-effects');
 
-    document.addEventListener('inventory.open', (e) => {
-        openInventory(e.detail.userId);
-    });
+const inventoryItemTemplate = document.getElementById('inventory-item');
+const inventorySideEffectTemplate = document.getElementById('inventory-side-effect');
 
-    function openInventory(userId) {
-        inventoryItems.innerHTML = '';
-        inventorySideEffects.innerHTML = '';
+document.addEventListener('inventory.open', (e) => {
+    openInventory(e.detail.userId);
+});
 
-        const user = app.users.getById(userId);
-        const inventory = app.inventories.getByUserId(userId);
-        if (!inventory) {
-            inventoryModal.querySelector('h2').innerHTML = `В ИНВЕНТАРЕ ${user.name} ПУСТО`;
+function openInventory(userId) {
+    inventoryItems.innerHTML = '';
+    inventorySideEffects.innerHTML = '';
 
-            app.modal.open('inventory', {
-                speed: 100,
-                animation: 'fadeInUp',
-            });
-
-            return;
-        }
-
-        inventoryModal.querySelector('h2').innerHTML = `ИНВЕНТАРЬ ${user.name}`;
-
-        inventory.forEach((inventoryItem) => {
-            const itemId = inventoryItem.item;
-            const item = app.items.getById(itemId);
-
-            if (item.isUsingSlot) {
-                const itemNode = inventoryItemTemplate.content.cloneNode(true);
-
-                const img = itemNode.querySelector('img');
-                img.src = Helper.getFile('icon', item);
-                img.dataset.id = itemId;
-                img.dataset.type = 'item';
-
-                itemNode.querySelector('span').innerText = item.name;
-                itemNode.firstElementChild.dataset.id = inventoryItem.id;
-
-                if (userId === app.getUserId()) {
-                    itemNode.querySelector('.inventory__item-actions').classList.remove('hidden');
-                }
-
-                if (!item.canDrop) {
-                    itemNode.querySelector('button.drop').classList.add('disabled');
-                } else {
-                    itemNode.querySelector('button.drop').addEventListener('click', () => {
-                        app.submit.open({
-                            text: `Вы уверены, что хотите выбросить предмет ${item.name}?`,
-                            onAccept: async () => {
-                                await dropItem(inventoryItem.id);
-                                openInventory(userId);
-                            },
-                            onDecline: () => {
-                                openInventory(userId);
-                            },
-                        });
-                    });
-                }
-
-                if (inventoryItem.isActive) {
-                    itemNode.querySelector('button.use').classList.add('disabled');
-                } else {
-                    itemNode.querySelector('button.use').addEventListener('click', useItem);
-                }
-
-                inventoryItems.appendChild(itemNode);
-            } else {
-                const itemNode = inventorySideEffectTemplate.content.cloneNode(true);
-
-                itemNode.querySelector('img').src = Helper.getFile('icon', item);
-
-                inventoryItems.appendChild(itemNode);
-            }
-        });
+    const user = app.users.getById(userId);
+    const inventory = app.inventories.getByUserId(userId);
+    if (!inventory) {
+        inventoryModal.querySelector('h2').innerHTML = `В ИНВЕНТАРЕ ${user.name} ПУСТО`;
 
         app.modal.open('inventory', {
             speed: 100,
             animation: 'fadeInUp',
         });
+
+        return;
     }
 
-    async function useItem(e) {
-        const itemId = e.target.closest('.inventory__item').dataset.id;
+    inventoryModal.querySelector('h2').innerHTML = `ИНВЕНТАРЬ ${user.name}`;
 
-        const res = await fetch('/api/use-item', {
-            method: "POST",
-            headers: {
-                "Authorization": app.getUserAuthToken(),
-                "Content-type": 'application/json',
-            },
-            body: JSON.stringify({
-                "itemId": itemId,
-            }),
-        });
+    inventory.forEach((inventoryItem) => {
+        const itemId = inventoryItem.item;
+        const item = app.items.getById(itemId);
 
-        if (!res.ok) return;
+        if (item.isUsingSlot) {
+            const itemNode = inventoryItemTemplate.content.cloneNode(true);
 
-        e.target.classList.add('disabled');
-    }
+            const img = itemNode.querySelector('img');
+            img.src = Helper.getFile('icon', item);
+            img.dataset.id = itemId;
+            img.dataset.type = 'item';
 
-    async function dropItem(itemId) {
-        await fetch('/api/drop-item', {
-            method: "POST",
-            headers: {
-                "Authorization": app.getUserAuthToken(),
-                "Content-type": 'application/json',
-            },
-            body: JSON.stringify({
-                "itemId": itemId,
-            }),
-        });
-    }
-});
+            itemNode.querySelector('span').innerText = item.name;
+            itemNode.firstElementChild.dataset.id = inventoryItem.id;
+
+            if (userId === app.getUserId()) {
+                itemNode.querySelector('.inventory__item-actions').classList.remove('hidden');
+            }
+
+            if (!item.canDrop) {
+                itemNode.querySelector('button.drop').classList.add('disabled');
+            } else {
+                itemNode.querySelector('button.drop').addEventListener('click', () => {
+                    app.submit.open({
+                        text: `Вы уверены, что хотите выбросить предмет ${item.name}?`,
+                        onAccept: async () => {
+                            await dropItem(inventoryItem.id);
+                            openInventory(userId);
+                        },
+                        onDecline: () => {
+                            openInventory(userId);
+                        },
+                    });
+                });
+            }
+
+            if (inventoryItem.isActive) {
+                itemNode.querySelector('button.use').classList.add('disabled');
+            } else {
+                itemNode.querySelector('button.use').addEventListener('click', useItem);
+            }
+
+            inventoryItems.appendChild(itemNode);
+        } else {
+            const itemNode = inventorySideEffectTemplate.content.cloneNode(true);
+
+            itemNode.querySelector('img').src = Helper.getFile('icon', item);
+
+            inventoryItems.appendChild(itemNode);
+        }
+    });
+
+    app.modal.open('inventory', {
+        speed: 100,
+        animation: 'fadeInUp',
+    });
+}
+
+async function useItem(e) {
+    const itemId = e.target.closest('.inventory__item').dataset.id;
+
+    const res = await fetch('/api/use-item', {
+        method: "POST",
+        headers: {
+            "Authorization": app.getUserAuthToken(),
+            "Content-type": 'application/json',
+        },
+        body: JSON.stringify({
+            "itemId": itemId,
+        }),
+    });
+
+    if (!res.ok) return;
+
+    e.target.classList.add('disabled');
+}
+
+async function dropItem(itemId) {
+    await fetch('/api/drop-item', {
+        method: "POST",
+        headers: {
+            "Authorization": app.getUserAuthToken(),
+            "Content-type": 'application/json',
+        },
+        body: JSON.stringify({
+            "itemId": itemId,
+        }),
+    });
+}

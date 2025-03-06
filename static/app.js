@@ -15,7 +15,6 @@ class App {
     constructor() {
         this.pb = new PocketBase('/');
         this.nextStepType = '';
-        this.submit = new Submit();
         this.volume = localStorage.getItem('volume') ? localStorage.getItem('volume') : 30;
         this.audioPlayer = new Audio();
         this.audioPlayer.volume = this.volume / 100;
@@ -44,6 +43,7 @@ class App {
                 }));
             },
         });
+        this.submit = new Submit(this.modal);
 
         document.addEventListener('record.actions.create', async (e) => {
             if (e.detail.record.user !== this.getUserId()) return;
