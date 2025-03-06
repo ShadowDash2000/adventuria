@@ -109,20 +109,11 @@ func (i *Inventory) AddItem(itemId string) error {
 		return err
 	}
 
-	if !item.GetBool("isUsingSlot") && i.HasEmptySlots() {
+	if item.GetBool("isUsingSlot") && !i.HasEmptySlots() {
 		return errors.New("no available slots")
 	}
 
-	inventoryCollection, err := i.cols.Get(TableInventory)
-	if err != nil {
-		return err
-	}
-
-	record := core.NewRecord(inventoryCollection)
-	record.Set("user", i.userId)
-	record.Set("item", itemId)
-	record.Set("isActive", item.GetBool("isActiveByDefault"))
-	err = i.app.Save(record)
+	err = i.CreateInventoryRecord(item)
 	if err != nil {
 		return err
 	}
@@ -134,17 +125,40 @@ func (i *Inventory) AddItem(itemId string) error {
 // Note: before an item added, checks if there is some empty slots.
 // If not, trys to drop a random item from inventory.
 func (i *Inventory) MustAddItem(itemId string) error {
-	if !i.HasEmptySlots() {
+	item, err := i.app.FindRecordById(TableItems, itemId)
+	if err != nil {
+		return err
+	}
+
+	if item.GetBool("isUsingSlot") && !i.HasEmptySlots() {
 		err := i.DropRandomItem()
 		if err != nil {
 			return err
 		}
 	}
 
-	err := i.AddItem(itemId)
+	err = i.CreateInventoryRecord(item)
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func (i *Inventory) CreateInventoryRecord(item *core.Record) error {
+	inventoryCollection, err := i.cols.Get(TableInventory)
+	if err != nil {
+		return err
+	}
+
+	record := core.NewRecord(inventoryCollection)
+	record.Set("user", i.userId)
+	record.Set("item", item.Id)
+	record.Set("isActive", item.GetBool("isActiveByDefault"))
+	err = i.app.Save(record)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -184,6 +198,7 @@ func (i *Inventory) GetEffects(event string) (*Effects, map[string][]string, err
 				}
 			}
 
+			i.log.Add(i.userId, LogTypeItemEffectApplied, effect.Name())
 			effectsIds = append(effectsIds, effect.Id())
 		}
 

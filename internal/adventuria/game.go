@@ -78,7 +78,12 @@ func (g *Game) ChooseGame(game string, userId string) error {
 		return err
 	}
 
-	_, err = user.Inventory.ApplyEffects(ItemUseOnChooseGame)
+	effects, err := user.Inventory.ApplyEffects(ItemUseOnChooseGame)
+	if err != nil {
+		return err
+	}
+
+	err = g.ApplyGenericEffects(effects, user)
 	if err != nil {
 		return err
 	}
@@ -216,6 +221,11 @@ func (g *Game) Roll(userId string) (int, []int, *core.Record, error) {
 
 	_, currentCell, err := g.Move(n, userId)
 
+	err = g.ApplyGenericEffects(effects, user)
+	if err != nil {
+		return n, diceRolls, currentCell, err
+	}
+
 	return n, diceRolls, currentCell, nil
 }
 
@@ -242,6 +252,11 @@ func (g *Game) Drop(comment string, userId string) error {
 	}
 
 	effects, err := user.Inventory.ApplyEffects(ItemUseOnDrop)
+	if err != nil {
+		return err
+	}
+
+	err = g.ApplyGenericEffects(effects, user)
 	if err != nil {
 		return err
 	}
@@ -312,7 +327,12 @@ func (g *Game) Done(comment string, userId string) error {
 		return err
 	}
 
-	_, err = user.Inventory.ApplyEffects(ItemUseOnChooseResult)
+	effects, err := user.Inventory.ApplyEffects(ItemUseOnChooseResult)
+	if err != nil {
+		return err
+	}
+
+	err = g.ApplyGenericEffects(effects, user)
 	if err != nil {
 		return err
 	}
@@ -457,11 +477,9 @@ func (g *Game) RollItem(userId string) (string, error) {
 		return "", err
 	}
 
-	if effects.DropInventory {
-		err = user.Inventory.DropInventory()
-		if err != nil {
-			return "", err
-		}
+	err = g.ApplyGenericEffects(effects, user)
+	if err != nil {
+		return "", err
 	}
 
 	return item.Id, nil
@@ -533,8 +551,17 @@ func (g *Game) UseItem(userId, itemId string) error {
 		return err
 	}
 
+	err = g.ApplyGenericEffects(effects, user)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (g *Game) ApplyGenericEffects(effects *Effects, user *User) error {
 	if effects.TimerIncrement != 0 {
-		err = user.Timer.AddSecondsTimeLimit(effects.TimerIncrement)
+		err := user.Timer.AddSecondsTimeLimit(effects.TimerIncrement)
 		if err != nil {
 			return err
 		}
@@ -542,7 +569,14 @@ func (g *Game) UseItem(userId, itemId string) error {
 
 	if effects.JailEscape {
 		user.Set("isInJail", false)
-		err = user.Save()
+		err := user.Save()
+		if err != nil {
+			return err
+		}
+	}
+
+	if effects.DropInventory {
+		err := user.Inventory.DropInventory()
 		if err != nil {
 			return err
 		}

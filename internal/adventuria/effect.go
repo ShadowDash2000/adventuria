@@ -72,6 +72,10 @@ func (e *Effect) Id() string {
 	return e.effect.Id
 }
 
+func (e *Effect) Name() string {
+	return e.effect.GetString("name")
+}
+
 func (e *Effect) Event() string {
 	return e.effect.GetString("event")
 }

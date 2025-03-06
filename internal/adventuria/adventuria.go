@@ -27,6 +27,7 @@ const (
 	CellTypeItem        = "item"
 	CellTypeWheelPreset = "wheelPreset"
 
-	LogTypeItemUse  = "itemUse"
-	LogTypeItemDrop = "itemDrop"
+	LogTypeItemUse           = "itemUse"
+	LogTypeItemDrop          = "itemDrop"
+	LogTypeItemEffectApplied = "itemEffectApplied"
 )
