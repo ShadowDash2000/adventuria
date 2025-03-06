@@ -1581,6 +1581,7 @@ func init() {
 						"system": false,
 						"type": "select",
 						"values": [
+							"nothing",
 							"pointsIncrement",
 							"jailEscape",
 							"diceMultiplier",
@@ -1588,7 +1589,8 @@ func init() {
 							"changeDices",
 							"safeDrop",
 							"timerIncrement",
-							"rollReverse"
+							"rollReverse",
+							"dropInventory"
 						]
 					},
 					{
