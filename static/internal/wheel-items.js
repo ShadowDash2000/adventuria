@@ -4,15 +4,19 @@ export default class WheelItems {
     constructor(pb) {
         this.pb = pb;
         this.wheelItems = new Map();
+        this.wheelItemsList = new Map();
 
         document.addEventListener('record.wheel_items.create', async (e) => {
             this.addItem(e.detail.record);
+            this.addToList(e.detail.record);
         });
         document.addEventListener('record.wheel_items.update', async (e) => {
             this.addItem(e.detail.record);
+            this.addToList(e.detail.record);
         });
         document.addEventListener('record.wheel_items.delete', async (e) => {
             this.wheelItems[e.detail.record.preset].delete(e.detail.record.id);
+            this.wheelItemsList.delete(e.detail.record.id);
         });
     }
 
@@ -20,6 +24,7 @@ export default class WheelItems {
     async fetch() {
         for (const item of await this.pb.collection(this.collectionName).getFullList()) {
             this.addItem(item);
+            this.addToList(item);
         }
     }
 
@@ -33,7 +38,15 @@ export default class WheelItems {
         });
     }
 
+    addToList(item) {
+        this.wheelItemsList.set(item.id, item);
+    }
+
     getByPreset(preset) {
         return this.wheelItems.get(preset);
+    }
+
+    getById(id) {
+        return this.wheelItemsList.get(id);
     }
 }

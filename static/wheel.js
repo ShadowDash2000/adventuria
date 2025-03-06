@@ -24,11 +24,16 @@ export default class Wheel {
                 div.style.background = `url(${item.src}) no-repeat`;
                 div.style.backgroundSize = 'cover';
                 div.style.backgroundPosition = 'center';
+
+                div.dataset.id = item.id;
+                div.dataset.type = item.type;
             }
             li.appendChild(div);
 
             const span = document.createElement('span');
             span.innerHTML = item.text;
+            span.dataset.id = item.id;
+            span.dataset.type = item.type;
 
             li.appendChild(span);
             this.wheel.appendChild(li);

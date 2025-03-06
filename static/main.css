@@ -686,7 +686,6 @@ table.users {
 
 .tooltip {
     display: none;
-    width: 10vw;
     background-color: black;
     color: #fff;
     text-align: center;
@@ -694,15 +693,22 @@ table.users {
     transition: transform 0.1s ease-out;
     pointer-events: none;
 
+    padding: 0.2vw 1vw;
+    gap: 0.5vw;
+
     position: absolute;
     top: 0;
     z-index: 1001;
 
     font-size: 0.9vw;
+
+    img {
+        width: 9vw;
+    }
 }
 
 .tooltip.show {
-    display: block;
+    display: flex;
 }
 
 @keyframes moveInCircle {

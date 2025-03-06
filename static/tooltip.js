@@ -1,7 +1,10 @@
 import {app} from "/app.js";
+import Helper from "./helper.js";
 
 
 const tooltip = document.getElementById('tooltip');
+const tooltipImg = tooltip.querySelector('img');
+const tooltipText = tooltip.querySelector('span');
 const body = document.body;
 let isActive = false;
 
@@ -29,20 +32,31 @@ document.addEventListener('mouseover', (e) => {
 
     isActive = true;
 
-    let description;
+    let description, src, item;
     switch (type) {
         case 'item':
             description = app.items.getById(id).description;
             break;
         case 'cell':
-            const item = app.cells.getAll().find(item => item.id === id);
+            item = app.cells.getAll().find(item => item.id === id);
             description = item.description;
+            break;
+        case 'wheelItem':
+            item = app.wheelItems.getById(id);
+            src = Helper.getFile('icon', item, {'thumb': '250x0'})
+            description = item.name;
             break;
     }
 
     if (!description) return;
 
-    tooltip.innerHTML = description;
+    tooltipText.innerHTML = description;
+    if (src) {
+        tooltipImg.src = src;
+        tooltipImg.classList.remove('hidden');
+    } else {
+        tooltipImg.classList.add('hidden');
+    }
     tooltip.classList.add('show');
 });
 

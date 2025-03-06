@@ -32,7 +32,7 @@ document.addEventListener('modal.open', async (e) => {
             app.wheelItems.getByPreset(cellPresetId).forEach((item) => {
                 wheelItems.push({
                     id: item.id,
-                    src: Helper.getFile('icon', item),
+                    src: Helper.getFile('icon', item, {'thumb': '600x0'}),
                     text: item.name,
                     type: 'wheelItem',
                 });

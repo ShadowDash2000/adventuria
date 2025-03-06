@@ -110,7 +110,10 @@
     <div class="container"></div>
     <div class="sentinel"></div>
 </section>
-<span id="tooltip" class="tooltip">{{TOOLTIP TEXT}}</span>
+<div id="tooltip" class="tooltip">
+    <img class="hidden" src="/img/undefined.jpg">
+    <span>{{TOOLTIP TEXT}}</span>
+</div>
 <div class="graph-modal">
     <div class="graph-modal__container" role="dialog" aria-modal="true" data-graph-target="auth">
         <button class="btn-reset graph-modal__close js-modal-close" aria-label="Закрыть модальное окно"></button>
