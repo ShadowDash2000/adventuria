@@ -173,13 +173,15 @@ func (i *Inventory) GetEffects(event string) (*Effects, map[string][]string, err
 
 		var effectsIds []string
 		for _, effect := range itemEffects {
-			switch effect.Kind() {
-			case Int:
-				effectsMap[effect.Type()] = effectsMap[effect.Type()].(int) + effect.GetInt()
-			case Bool:
-				effectsMap[effect.Type()] = true
-			case Slice:
-				effectsMap[effect.Type()] = effect.GetSlice()
+			if effectsMap[effect.Type()] != nil {
+				switch effect.Kind() {
+				case Int:
+					effectsMap[effect.Type()] = effectsMap[effect.Type()].(int) + effect.GetInt()
+				case Bool:
+					effectsMap[effect.Type()] = true
+				case Slice:
+					effectsMap[effect.Type()] = effect.GetSlice()
+				}
 			}
 
 			effectsIds = append(effectsIds, effect.Id())
