@@ -1913,7 +1913,8 @@ func init() {
 						"type": "select",
 						"values": [
 							"itemUse",
-							"itemDrop"
+							"itemDrop",
+							"itemEffectApplied"
 						]
 					},
 					{
