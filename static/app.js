@@ -11,7 +11,6 @@ import WheelItems from "./internal/wheel-items.js";
 import Audios from "./internal/audios.js";
 import Actions from "./internal/actions.js";
 
-console.log('WJRIOWJROIWJR')
 class App {
     constructor() {
         this.pb = new PocketBase('/');
