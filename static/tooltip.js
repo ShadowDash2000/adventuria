@@ -32,6 +32,7 @@ document.addEventListener('mouseover', (e) => {
 
     isActive = true;
 
+    // TODO This need to be changed. Instead of checking conditions here, we need to get data attrs with text and image.
     let description, src, item;
     switch (type) {
         case 'item':
