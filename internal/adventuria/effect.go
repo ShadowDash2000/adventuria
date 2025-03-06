@@ -20,6 +20,7 @@ const (
 	ItemUseOnReroll       = "useOnReroll"
 	ItemUseOnDrop         = "useOnDrop"
 	ItemUseOnChooseResult = "useOnChooseResult"
+	ItemUseOnChooseGame   = "useOnChooseGame"
 	ItemUseOnRollItem     = "useOnRollItem"
 
 	EffectTypeNothing         = "nothing"
@@ -36,6 +37,7 @@ const (
 
 var (
 	EffectsKindList = map[string]EffectKind{
+		EffectTypeNothing:         Int,
 		EffectTypePointsIncrement: Int,
 		EffectTypeJailEscape:      Bool,
 		EffectTypeDiceMultiplier:  Int,
@@ -44,37 +46,7 @@ var (
 		EffectTypeSafeDrop:        Bool,
 		EffectTypeTimerIncrement:  Int,
 		EffectTypeRollReverse:     Bool,
-	}
-
-	InstantsEffectsList = map[string]struct{}{
-		EffectTypePointsIncrement: {},
-		EffectTypeJailEscape:      {},
-		EffectTypeTimerIncrement:  {},
-	}
-	OnRollEffectsList = map[string]struct{}{
-		EffectTypeDiceMultiplier: {},
-		EffectTypeDiceIncrement:  {},
-		EffectTypeChangeDices:    {},
-		EffectTypeRollReverse:    {},
-	}
-	OnRerollEffectsList = map[string]struct{}{}
-	OnDropEffectsList   = map[string]struct{}{
-		EffectTypeSafeDrop: {},
-	}
-	OnChooseResultEffectsList = map[string]struct{}{
-		EffectTypeNothing: {},
-	}
-	OnRollItemEffectsList = map[string]struct{}{
-		EffectTypeDropInventory: {},
-	}
-
-	EffectsList = map[string]map[string]struct{}{
-		ItemUseInstant:        InstantsEffectsList,
-		ItemUseOnRoll:         OnRollEffectsList,
-		ItemUseOnReroll:       OnRerollEffectsList,
-		ItemUseOnDrop:         OnDropEffectsList,
-		ItemUseOnChooseResult: OnChooseResultEffectsList,
-		ItemUseOnRollItem:     OnRollItemEffectsList,
+		EffectTypeDropInventory:   Bool,
 	}
 )
 
@@ -98,6 +70,10 @@ func NewEffect(record *core.Record) (*Effect, error) {
 
 func (e *Effect) Id() string {
 	return e.effect.Id
+}
+
+func (e *Effect) Event() string {
+	return e.effect.GetString("event")
 }
 
 func (e *Effect) Kind() EffectKind {

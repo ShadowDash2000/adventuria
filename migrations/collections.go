@@ -1606,6 +1606,25 @@ func init() {
 						"required": false,
 						"system": false,
 						"type": "text"
+					},
+					{
+						"hidden": false,
+						"id": "select1001261735",
+						"maxSelect": 1,
+						"name": "event",
+						"presentable": false,
+						"required": true,
+						"system": false,
+						"type": "select",
+						"values": [
+							"useInstant",
+							"useOnRoll",
+							"useOnReroll",
+							"useOnDrop",
+							"useOnChooseResult",
+							"useOnChooseGame",
+							"useOnRollItem"
+						]
 					}
 				],
 				"id": "pbc_3646440256",

@@ -81,17 +81,11 @@ func (i *Item) EffectsCount() int {
 }
 
 func (i *Item) GetEffectsByEvent(event string) []*Effect {
-	effectsList, ok := EffectsList[event]
-	if !ok {
-		return nil
-	}
-
 	var effects []*Effect
 	for _, e := range i.effects {
-		if _, ok = effectsList[e.Type()]; !ok {
-			continue
+		if e.Event() == event {
+			effects = append(effects, e)
 		}
-		effects = append(effects, e)
 	}
 
 	return effects

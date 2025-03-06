@@ -78,6 +78,11 @@ func (g *Game) ChooseGame(game string, userId string) error {
 		return err
 	}
 
+	_, err = user.Inventory.ApplyEffects(ItemUseOnChooseGame)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -303,6 +308,11 @@ func (g *Game) Done(comment string, userId string) error {
 	user.Set("isInJail", false)
 	user.Set("points", user.Points()+currentCell.GetInt("points"))
 	err = user.Save()
+	if err != nil {
+		return err
+	}
+
+	_, err = user.Inventory.ApplyEffects(ItemUseOnChooseResult)
 	if err != nil {
 		return err
 	}
