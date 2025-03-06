@@ -22,9 +22,13 @@ export default class Wheel {
             if (item.src) {
                 li.style.background = `url(${item.src}) no-repeat`;
                 li.style.backgroundSize = 'cover';
+                li.style.backgroundPosition = 'center';
             }
 
-            li.innerHTML = item.text;
+            const span = document.createElement('span');
+            span.innerHTML = item.text;
+
+            li.appendChild(span);
             this.wheel.appendChild(li);
             this.items[index].element = li;
         });

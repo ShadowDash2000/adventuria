@@ -74,6 +74,11 @@
             transform-origin: center right;
             user-select: none;
             width: 50cqi;
+
+            span {
+                position: absolute;
+                top: 30%;
+            }
         }
 
         li.unactive {
