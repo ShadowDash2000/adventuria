@@ -19,11 +19,13 @@ export default class Wheel {
             li.dataset.id = item.id;
             li.dataset.type = item.type;
 
+            const div = document.createElement('div');
             if (item.src) {
-                li.style.background = `url(${item.src}) no-repeat`;
-                li.style.backgroundSize = 'cover';
-                li.style.backgroundPosition = 'center';
+                div.style.background = `url(${item.src}) no-repeat`;
+                div.style.backgroundSize = 'cover';
+                div.style.backgroundPosition = 'center';
             }
+            li.appendChild(div);
 
             const span = document.createElement('span');
             span.innerHTML = item.text;

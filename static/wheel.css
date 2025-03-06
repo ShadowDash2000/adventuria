@@ -70,10 +70,16 @@
             display: grid;
             font-size: 5cqi;
             grid-area: 1 / -1;
-            padding-left: 1ch;
             transform-origin: center right;
             user-select: none;
             width: 50cqi;
+
+            div {
+                transform: rotate(-90deg);
+                position: absolute;
+                width: 100%;
+                height: 120%;
+            }
 
             span {
                 position: absolute;
