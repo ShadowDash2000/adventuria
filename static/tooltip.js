@@ -11,7 +11,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const bodyY = body.dataset.position ? parseInt(body.dataset.position) : 0;
             const y = e.pageY + bodyY;
-            tooltip.style.transform = `translate(${e.clientX}px, ${y}px)`;
+            let x = e.clientX;
+
+            if (x > window.innerWidth / 2) {
+                x -= tooltip.offsetWidth;
+            }
+
+            tooltip.style.transform = `translate(${x}px, ${y}px)`;
         });
     });
 
