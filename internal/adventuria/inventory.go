@@ -99,16 +99,16 @@ func (i *Inventory) GetAvailableSlots() int {
 }
 
 func (i *Inventory) AddItem(itemId string) error {
-	if i.GetAvailableSlots() <= 0 {
-		return errors.New("no available slots")
-	}
-
-	inventoryCollection, err := i.cols.Get(TableInventory)
+	item, err := i.app.FindRecordById(TableItems, itemId)
 	if err != nil {
 		return err
 	}
 
-	item, err := i.app.FindRecordById(TableItems, itemId)
+	if !item.GetBool("isUsingSlot") && i.GetAvailableSlots() <= 0 {
+		return errors.New("no available slots")
+	}
+
+	inventoryCollection, err := i.cols.Get(TableInventory)
 	if err != nil {
 		return err
 	}
