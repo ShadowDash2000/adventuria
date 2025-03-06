@@ -2,6 +2,7 @@ package adventuria
 
 import (
 	"adventuria/pkg/collections"
+	"adventuria/pkg/helper"
 	"errors"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pocketbase/dbx"
@@ -98,13 +99,17 @@ func (i *Inventory) GetAvailableSlots() int {
 	return i.maxSlots - usedSlots
 }
 
+func (i *Inventory) HasEmptySlots() bool {
+	return i.GetAvailableSlots() > 0
+}
+
 func (i *Inventory) AddItem(itemId string) error {
 	item, err := i.app.FindRecordById(TableItems, itemId)
 	if err != nil {
 		return err
 	}
 
-	if !item.GetBool("isUsingSlot") && i.GetAvailableSlots() <= 0 {
+	if !item.GetBool("isUsingSlot") && i.HasEmptySlots() {
 		return errors.New("no available slots")
 	}
 
@@ -122,6 +127,24 @@ func (i *Inventory) AddItem(itemId string) error {
 		return err
 	}
 
+	return nil
+}
+
+// MustAddItem
+// Note: before an item added, checks if there is some empty slots.
+// If not, trys to drop a random item from inventory.
+func (i *Inventory) MustAddItem(itemId string) error {
+	if !i.HasEmptySlots() {
+		err := i.DropRandomItem()
+		if err != nil {
+			return err
+		}
+	}
+
+	err := i.AddItem(itemId)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -229,6 +252,28 @@ func (i *Inventory) DropItem(invItemId string) error {
 	}
 
 	i.log.Add(i.userId, LogTypeItemDrop, invItem.GetName())
+
+	return nil
+}
+
+// DropRandomItem
+// Note: removes random item that uses a slot and can be dropped
+func (i *Inventory) DropRandomItem() error {
+	var items []*InventoryItem
+	for _, item := range i.invItems {
+		if item.IsUsingSlot() && item.CanDrop() {
+			items = append(items, item)
+		}
+	}
+
+	if len(items) == 0 {
+		return nil
+	}
+
+	err := i.DropItem(helper.RandomItemFromSlice(items).Id)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

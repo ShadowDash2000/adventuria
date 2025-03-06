@@ -1,5 +1,7 @@
 export default class Helper {
     static getFile(key, item, params) {
+        if (!item[key]) return '';
+
         let uri = "/api/files/" + item.collectionId + "/" + item.id + "/" + item[key];
 
         let i = 0;

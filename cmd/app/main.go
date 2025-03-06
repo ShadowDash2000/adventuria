@@ -3,13 +3,13 @@ package main
 import (
 	"adventuria/internal/adventuria"
 	"adventuria/internal/http/handlers/v1"
+	_ "adventuria/migrations"
+	"adventuria/pkg/etag"
 	"github.com/pocketbase/pocketbase"
 	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/core"
 	"log"
 	"os"
-
-	_ "adventuria/migrations"
 )
 
 func main() {
@@ -22,7 +22,9 @@ func main() {
 	app.OnServe().BindFunc(func(se *core.ServeEvent) error {
 		game.Init()
 
-		se.Router.GET("/{path...}", apis.Static(os.DirFS("./static"), false))
+		gs := se.Router.Group("")
+		gs.BindFunc(apis.WrapStdMiddleware(etag.Etag))
+		gs.GET("/{path...}", apis.Static(os.DirFS("./static"), false))
 
 		g := se.Router.Group("/api")
 		g.Bind(apis.RequireAuth())

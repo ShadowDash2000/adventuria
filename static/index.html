@@ -356,38 +356,24 @@
     </div>
 </template>
 </body>
-<script>
-    /*document.addEventListener('DOMContentLoaded', () => {
-        const v = '1.0.0';
-        const scripts = [
-            '/modal/auth.js',
-            '/modal/game-picker.js',
-            '/modal/game-result.js',
-            '/modal/roll.js',
-            '/modal/wheel.js',
-            '/modal/submit.js',
-            '/modal/inventory.js',
-        ];
+<script defer>
+    const scripts = [
+        '/modal/auth.js',
+        '/modal/game-picker.js',
+        '/modal/result.js',
+        '/modal/roll.js',
+        '/modal/wheel.js',
+        '/modal/submit.js',
+        '/modal/inventory.js',
+        '/tooltip.js',
+    ];
 
-        for (const src of scripts) {
-            const script = document.createElement('script');
-            script.src = src;
-            script.type = 'module';
+    for (const src of scripts) {
+        const script = document.createElement('script');
+        script.src = src;
+        script.type = 'module';
 
-            script.addEventListener('load', () => {
-
-            }, {once: true});
-
-            document.head.append(script);
-        }
-    });*/
+        document.head.append(script);
+    }
 </script>
-<script defer type="module" src="/modal/auth.js"></script>
-<script defer type="module" src="/modal/game-picker.js"></script>
-<script defer type="module" src="/modal/result.js"></script>
-<script defer type="module" src="/modal/roll.js"></script>
-<script defer type="module" src="/modal/wheel.js"></script>
-<script defer type="module" src="/modal/submit.js"></script>
-<script defer type="module" src="/modal/inventory.js"></script>
-<script defer type="module" src="/tooltip.js"></script>
 </html>

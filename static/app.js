@@ -1,7 +1,7 @@
 import GraphModal from "/graph-modal/graph-modal.js";
 import PocketBase from "/pocketbase/pocketbase.es.js";
 import Submit from "./modal/submit.js";
-import Timer from './timer.js';
+import Timer from "./timer.js";
 import Helper from "./helper.js";
 import Users from "./internal/users.js";
 import Cells from "./internal/cells.js";
@@ -11,6 +11,7 @@ import WheelItems from "./internal/wheel-items.js";
 import Audios from "./internal/audios.js";
 import Actions from "./internal/actions.js";
 
+console.log('WJRIOWJROIWJR')
 class App {
     constructor() {
         this.pb = new PocketBase('/');
@@ -45,93 +46,6 @@ class App {
             },
         });
 
-        document.addEventListener('DOMContentLoaded', async () => {
-            const volumeSlider = document.getElementById('volume-slider');
-            volumeSlider.value = this.volume;
-            volumeSlider.addEventListener('change', () => {
-                this.setVolume(volumeSlider.value);
-            });
-
-            document.addEventListener('modal.open', () => {
-                volumeSlider.parentElement.classList.add('fixed');
-            });
-            document.addEventListener('modal.close', () => {
-                volumeSlider.parentElement.classList.remove('fixed');
-            });
-
-            if (this.isUerAuthorized()) {
-                const collections = [
-                    'users',
-                    'actions',
-                    'inventory',
-                    'audio',
-                    'items',
-                    'wheel_items',
-                ];
-                for (const collection of collections) {
-                    this.pb.collection(collection).subscribe('*', (e) => {
-                        document.dispatchEvent(new CustomEvent(`record.${collection}.${e.action}`, {
-                            detail: {
-                                'record': e.record,
-                            },
-                        }));
-                    });
-                }
-
-                const avatar = Helper.getFile('avatar', this.getUserRecord());
-                const profile = document.querySelector('.profile');
-                const profileImg = profile.querySelector('img');
-                const user = this.getUserRecord();
-
-                profileImg.src = avatar;
-                profileImg.style.borderColor = user.color;
-
-                const timerBlock = document.getElementById('timer');
-                const timer = new Timer(this.getUserAuthToken(), timerBlock);
-                const timerStopButton = document.querySelector('.timer button.red');
-                const timerStartButton = document.querySelector('.timer button.green');
-                timerStopButton.addEventListener('click', () => {
-                    timer.stopTimer();
-                });
-                timerStartButton.addEventListener('click', () => {
-                    timer.startTimer();
-                });
-
-                const timerCopyBlock = document.getElementById('timer-copy');
-                timerCopyBlock.addEventListener('click', () => {
-                    navigator.clipboard.writeText(`${window.location.origin}/timer.html?t=${this.getUserAuthToken()}`);
-                });
-
-                const hiddenBlocks = document.querySelectorAll('[data-authorized]');
-                for (const hiddenBlock of hiddenBlocks) {
-                    hiddenBlock.classList.remove('hidden');
-                }
-            }
-
-            this.cells = new Cells(this.pb);
-            this.users = new Users(this.pb, this.cells);
-            this.items = new Items(this.pb);
-            this.inventories = new Inventories(this.pb);
-            this.wheelItems = new WheelItems(this.pb);
-            this.audios = new Audios(this.pb);
-
-            await this.cells.fetch();
-            this.cells.refresh();
-
-            await this.users.fetch();
-            this.users.refreshCells();
-            this.users.refreshTable();
-
-            await this.items.fetch();
-            await this.inventories.fetch();
-            await this.wheelItems.fetch();
-            await this.audios.fetch();
-
-            this.actions = new Actions(this.pb, this.cells, this.users);
-
-            await this.updateInnerField();
-        });
-
         document.addEventListener('record.actions.create', async (e) => {
             if (e.detail.record.user !== this.getUserId()) return;
             setTimeout(async () => {
@@ -144,6 +58,93 @@ class App {
                 await this.showActionButtons();
             }, 1000);
         });
+    }
+
+    async init() {
+        const volumeSlider = document.getElementById('volume-slider');
+        volumeSlider.value = this.volume;
+        volumeSlider.addEventListener('change', () => {
+            this.setVolume(volumeSlider.value);
+        });
+
+        document.addEventListener('modal.open', () => {
+            volumeSlider.parentElement.classList.add('fixed');
+        });
+        document.addEventListener('modal.close', () => {
+            volumeSlider.parentElement.classList.remove('fixed');
+        });
+
+        if (this.isUerAuthorized()) {
+            const collections = [
+                'users',
+                'actions',
+                'inventory',
+                'audio',
+                'items',
+                'wheel_items',
+            ];
+            for (const collection of collections) {
+                this.pb.collection(collection).subscribe('*', (e) => {
+                    document.dispatchEvent(new CustomEvent(`record.${collection}.${e.action}`, {
+                        detail: {
+                            'record': e.record,
+                        },
+                    }));
+                });
+            }
+
+            const avatar = Helper.getFile('avatar', this.getUserRecord());
+            const profile = document.querySelector('.profile');
+            const profileImg = profile.querySelector('img');
+            const user = this.getUserRecord();
+
+            profileImg.src = avatar;
+            profileImg.style.borderColor = user.color;
+
+            const timerBlock = document.getElementById('timer');
+            const timer = new Timer(this.getUserAuthToken(), timerBlock);
+            const timerStopButton = document.querySelector('.timer button.red');
+            const timerStartButton = document.querySelector('.timer button.green');
+            timerStopButton.addEventListener('click', () => {
+                timer.stopTimer();
+            });
+            timerStartButton.addEventListener('click', () => {
+                timer.startTimer();
+            });
+
+            const timerCopyBlock = document.getElementById('timer-copy');
+            timerCopyBlock.addEventListener('click', () => {
+                navigator.clipboard.writeText(`${window.location.origin}/timer.html?t=${this.getUserAuthToken()}`);
+            });
+
+            const hiddenBlocks = document.querySelectorAll('[data-authorized]');
+            for (const hiddenBlock of hiddenBlocks) {
+                hiddenBlock.classList.remove('hidden');
+            }
+        }
+
+        this.cells = new Cells(this.pb);
+        this.users = new Users(this.pb, this.cells);
+        this.items = new Items(this.pb);
+        this.inventories = new Inventories(this.pb);
+        this.wheelItems = new WheelItems(this.pb);
+        this.audios = new Audios(this.pb);
+
+        await this.cells.fetch();
+        this.cells.refresh();
+
+        await this.users.fetch();
+        this.users.refreshCells();
+        this.users.refreshTable();
+
+        await this.items.fetch();
+        await this.inventories.fetch();
+        await this.wheelItems.fetch();
+        await this.audios.fetch();
+
+        this.actions = new Actions(this.pb, this.cells, this.users);
+
+        await this.updateInnerField();
     }
 
     setVolume(v) {
@@ -210,4 +211,6 @@ class App {
     }
 }
 
-export const app = new App();
+const a = new App();
+await a.init();
+export const app = a;

@@ -1488,7 +1488,7 @@ func init() {
 						"name": "icon",
 						"presentable": false,
 						"protected": false,
-						"required": true,
+						"required": false,
 						"system": false,
 						"thumbs": [],
 						"type": "file"
@@ -1693,6 +1693,30 @@ func init() {
 						"required": false,
 						"system": false,
 						"type": "bool"
+					},
+					{
+						"hidden": false,
+						"id": "number677997256",
+						"max": null,
+						"min": null,
+						"name": "pointsForDrop",
+						"onlyInt": true,
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "number"
+					},
+					{
+						"hidden": false,
+						"id": "number1254513166",
+						"max": null,
+						"min": 0,
+						"name": "dropsToJail",
+						"onlyInt": true,
+						"presentable": false,
+						"required": true,
+						"system": false,
+						"type": "number"
 					},
 					{
 						"convertURLs": false,

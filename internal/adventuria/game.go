@@ -3,6 +3,7 @@ package adventuria
 import (
 	"adventuria/pkg/cache"
 	"adventuria/pkg/collections"
+	"adventuria/pkg/helper"
 	"errors"
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
@@ -420,7 +421,7 @@ func (g *Game) RollItem(userId string) (string, error) {
 		return "", errors.New("invItems not found")
 	}
 
-	item := items[rand.Intn(len(items)-1)]
+	item := helper.RandomItemFromSlice(items)
 
 	currentCell, _ := user.CurrentCell()
 
@@ -436,12 +437,9 @@ func (g *Game) RollItem(userId string) (string, error) {
 
 	// 'Cause we have items that actually doesn't affect the game,
 	// we need to check if an item have some effects.
-	// If item doesn't have any effect we don't need to store it to inventory.
+	// If item doesn't have any effect, we don't need to store it to inventory.
 	if len(item.GetStringSlice("effects")) > 0 {
-		err = user.Inventory.AddItem(item.Id)
-		if err != nil {
-			return "", err
-		}
+		user.Inventory.MustAddItem(item.Id)
 	}
 
 	effects, err := user.Inventory.ApplyEffects(ItemUseOnRollItem)
