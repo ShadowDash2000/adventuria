@@ -21,19 +21,10 @@ func (h *Handlers) RollHandler(e *core.RequestEvent) error {
 		return err
 	}
 
-	currentCellFields := currentCell.FieldsData()
-
 	e.JSON(http.StatusOK, map[string]interface{}{
 		"roll":      n,
 		"diceRolls": diceRolls,
-		"cell": map[string]interface{}{
-			"name":        currentCellFields["name"].(string),
-			"description": currentCellFields["description"].(string),
-			"icon": "/api/files/" +
-				currentCell.Collection().Id +
-				"/" + currentCell.Id + "/" +
-				currentCellFields["icon"].(string),
-		},
+		"cellId":    currentCell.Id,
 	})
 	return nil
 }

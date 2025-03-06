@@ -90,9 +90,11 @@ async function roll() {
 
         rollResult.querySelector('.roll-result__number').innerHTML = json.roll;
 
-        cell.querySelector('img').src = json.cell.icon;
-        cell.querySelector('.cell-info__name').innerHTML = json.cell.name;
-        cell.querySelector('.cell-info__description').innerHTML = json.cell.description;
+        const newCell = app.cells.getById(json.cellId);
+
+        cell.querySelector('img').src = Helper.getFile('icon', newCell, {'thumb': '250x0'});
+        cell.querySelector('.cell-info__name').innerHTML = newCell.name;
+        cell.querySelector('.cell-info__description').innerHTML = newCell.description;
 
         rollResult.classList.remove('hidden');
         cell.classList.remove('hidden');
