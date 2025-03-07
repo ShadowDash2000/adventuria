@@ -1,10 +1,10 @@
 export default class GraphModal {
     constructor(options) {
-        let defaultOptions = {
+        this.options = {
             isOpen: () => {},
             isClose: () => {},
+            ...options,
         }
-        this.options = Object.assign(defaultOptions, options);
         this.modal = document.querySelector('.graph-modal');
         this.speed = 300;
         this.animation = 'fade';
@@ -50,13 +50,8 @@ export default class GraphModal {
             }.bind(this));
 
             window.addEventListener('keydown', function (e) {
-                if (e.keyCode == 27 && this.isOpen) {
+                if (e.keyCode === 27 && this.isOpen) {
                     this.close();
-                }
-
-                if (e.which == 9 && this.isOpen) {
-                    this.focusCatch(e);
-                    return;
                 }
             }.bind(this));
 
@@ -70,11 +65,11 @@ export default class GraphModal {
     }
 
     open(selector, options) {
-        const defaultOptions = {
+        const modalOptions = {
             speed: this.speed,
             animation: this.animation,
+            ...options
         }
-        const modalOptions = Object.assign(defaultOptions, options);
 
         this.previousActiveElement = document.activeElement;
 
@@ -107,8 +102,7 @@ export default class GraphModal {
             this.options.isOpen(this);
             this.modalContainer.classList.add('animate-open');
             this.isOpen = true;
-            this.focusTrap();
-        }, this.speed);
+        }, modalOptions.speed);
     }
 
     close() {
@@ -127,35 +121,11 @@ export default class GraphModal {
 
             this.options.isClose(this);
             this.isOpen = false;
-            this.focusTrap();
 
             if (this.reOpen) {
                 this.reOpen = false;
                 this.open();
             }
-        }
-    }
-
-    focusCatch(e) {
-        const nodes = this.modalContainer.querySelectorAll(this._focusElements);
-        const nodesArray = Array.prototype.slice.call(nodes);
-        const focusedItemIndex = nodesArray.indexOf(document.activeElement)
-        if (e.shiftKey && focusedItemIndex === 0) {
-            nodesArray[nodesArray.length - 1].focus();
-            e.preventDefault();
-        }
-        if (!e.shiftKey && focusedItemIndex === nodesArray.length - 1) {
-            nodesArray[0].focus();
-            e.preventDefault();
-        }
-    }
-
-    focusTrap() {
-        const nodes = this.modalContainer.querySelectorAll(this._focusElements);
-        if (this.isOpen) {
-            if (nodes.length) nodes[0].focus();
-        } else {
-            this.previousActiveElement.focus();
         }
     }
 

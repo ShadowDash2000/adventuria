@@ -1,7 +1,6 @@
 import {app} from "/app.js";
 import Helper from "./helper.js";
 
-
 const tooltip = document.getElementById('tooltip');
 const tooltipImg = tooltip.querySelector('img');
 const tooltipText = tooltip.querySelector('span');
@@ -9,9 +8,9 @@ const body = document.body;
 let isActive = false;
 
 document.addEventListener('mousemove', (e) => {
-    requestAnimationFrame(() => {
-        if (!isActive) return;
+    if (!isActive) return;
 
+    requestAnimationFrame(() => {
         const bodyY = body.dataset.position ? parseInt(body.dataset.position) : 0;
         const y = e.pageY + bodyY;
         let x = e.clientX;
@@ -62,6 +61,7 @@ document.addEventListener('mouseover', (e) => {
 });
 
 document.addEventListener('mouseout', () => {
+    if (!isActive) return;
     isActive = false;
     tooltip.classList.remove('show');
 });
