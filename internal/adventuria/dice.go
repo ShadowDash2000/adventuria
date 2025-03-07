@@ -20,5 +20,5 @@ var (
 )
 
 func (d *Dice) Roll() int {
-	return rand.IntN(d.MaxNumber-1) + 1
+	return rand.IntN(d.MaxNumber) + 1
 }

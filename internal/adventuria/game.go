@@ -7,7 +7,6 @@ import (
 	"errors"
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
-	"math/rand"
 	"time"
 )
 
@@ -406,7 +405,7 @@ func (g *Game) RollCell(userId string) (string, error) {
 	}
 
 	gameCells := g.cells.GetAllByType(CellTypeGame)
-	cell := gameCells[rand.Intn(len(gameCells)-1)]
+	cell := helper.RandomItemFromSlice(gameCells)
 
 	record := core.NewRecord(user.lastAction.Collection())
 	record.Set("user", userId)
@@ -520,7 +519,7 @@ func (g *Game) RollWheelPreset(userId string) (string, error) {
 		return "", errors.New("wheel items for preset not found")
 	}
 
-	item := wheelItems[rand.Intn(len(wheelItems)-1)]
+	item := helper.RandomItemFromSlice(wheelItems)
 
 	record := core.NewRecord(user.lastAction.Collection())
 	record.Set("user", userId)
