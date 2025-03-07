@@ -1,6 +1,7 @@
 export default class Wheel {
     constructor() {
         this.items = null;
+        this.spinning = false;
     }
 
     createWheel(items) {
@@ -54,6 +55,7 @@ export default class Wheel {
     startSpin(winnerId, duration) {
         if (!this.items) return;
 
+        this.spinning = true;
         this.wheel.style.transition = '';
         this.wheel.style.transform = '';
 
@@ -73,6 +75,8 @@ export default class Wheel {
 
             this.startTitleInterval(duration);
         }, 100);
+
+        setTimeout(() => {this.spinning = false;}, duration);
     }
 
     rotate() {
@@ -81,6 +85,10 @@ export default class Wheel {
 
     stopRotate() {
         this.wheel.classList.remove('rotate');
+    }
+
+    isSpinning() {
+        return this.spinning;
     }
 
     getCurrentAngle() {

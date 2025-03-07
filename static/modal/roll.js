@@ -22,6 +22,17 @@ document.addEventListener('modal.open', async (e) => {
     cell.classList.add('hidden');
     rollButton.classList.remove('hidden');
 
+    setTimeout(async () => {
+        dice.initDices(await fetchDices(), scene);
+        rollButton.addEventListener('click', roll);
+    }, 0);
+});
+
+document.addEventListener('modal.close', () => {
+    rollButton.removeEventListener('click', roll);
+});
+
+async function fetchDices() {
     const res = await fetch('/api/get-roll-effects', {
         method: "GET",
         headers: {
@@ -40,14 +51,8 @@ document.addEventListener('modal.open', async (e) => {
         }
     } else dices = ['d6', 'd6'];
 
-    dice.initDices(dices, scene);
-
-    rollButton.addEventListener('click', roll);
-});
-
-document.addEventListener('modal.close', () => {
-    rollButton.removeEventListener('click', roll);
-});
+    return dices;
+}
 
 async function roll() {
     const res = await fetch('/api/roll', {
@@ -85,23 +90,24 @@ async function roll() {
 
     setTimeout(async () => {
         app.modal.unlockClose();
-
-        rollResult.querySelector('.roll-result__number').innerHTML = json.roll;
-
-        const newCell = app.cells.getById(json.cellId);
-
-        cell.querySelector('img').src = Helper.getFile('icon', newCell, {'thumb': '250x0'});
-        cell.querySelector('.cell-info__name').innerHTML = newCell.name;
-        cell.querySelector('.cell-info__description').innerHTML = newCell.description;
-
-        rollResult.classList.remove('hidden');
-        cell.classList.remove('hidden');
-
+        showRollResult();
         await app.updateInnerField();
-
     }, rollInfo.duration * 1000);
 
     setTimeout(() => {
         app.audioPlayer.pause();
     }, (rollInfo.duration + 1) * 1000);
+}
+
+function showRollResult(result) {
+    rollResult.querySelector('.roll-result__number').innerHTML = result.roll;
+
+    const newCell = app.cells.getById(result.cellId);
+
+    cell.querySelector('img').src = Helper.getFile('icon', newCell, {'thumb': '250x0'});
+    cell.querySelector('.cell-info__name').innerHTML = newCell.name;
+    cell.querySelector('.cell-info__description').innerHTML = newCell.description;
+
+    rollResult.classList.remove('hidden');
+    cell.classList.remove('hidden');
 }

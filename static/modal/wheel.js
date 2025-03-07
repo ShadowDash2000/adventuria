@@ -12,9 +12,27 @@ document.addEventListener('modal.open', async (e) => {
 
     if (modalName !== 'wheel') return;
 
+    const wheelItems = getWheelItems();
+
+    if (wheelItems) {
+        setTimeout(() => {
+            wheel.createWheel(wheelItems);
+            wheel.rotate();
+            startButton.addEventListener('click', startSpin);
+        }, 0);
+    }
+});
+
+document.addEventListener('modal.close', () => {
+    startButton.removeEventListener('click', startSpin);
+    wheel.clearWheel();
+});
+
+function getWheelItems() {
     let wheelItems = [];
     const currentCell = app.users.getUserCurrentCell(app.getUserId());
     const cellPresetId = currentCell.preset;
+
     switch (app.nextStepType) {
         case 'rollCell':
             for (const cell of app.cells.getAll()) {
@@ -52,19 +70,12 @@ document.addEventListener('modal.open', async (e) => {
             break;
     }
 
-    if (wheelItems) {
-        wheel.createWheel(wheelItems);
-        wheel.rotate();
-        startButton.addEventListener('click', startSpin);
-    }
-});
-
-document.addEventListener('modal.close', () => {
-    startButton.removeEventListener('click', startSpin);
-    wheel.clearWheel();
-});
+    return wheelItems;
+}
 
 async function startSpin() {
+    if (wheel.isSpinning()) return;
+
     let url = '';
     switch (app.nextStepType) {
         case 'rollCell':
