@@ -29,7 +29,7 @@ const (
 	EffectTypeDiceMultiplier  = "diceMultiplier"
 	EffectTypeDiceIncrement   = "diceIncrement"
 	EffectTypeChangeDices     = "changeDices"
-	EffectTypeSafeDrop        = "safeDrop"
+	EffectTypeSafeDrop        = "isSafeDrop"
 	EffectTypeTimerIncrement  = "timerIncrement"
 	EffectTypeRollReverse     = "rollReverse"
 	EffectTypeDropInventory   = "dropInventory"

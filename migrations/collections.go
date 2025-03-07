@@ -1587,7 +1587,7 @@ func init() {
 							"diceMultiplier",
 							"diceIncrement",
 							"changeDices",
-							"safeDrop",
+							"isSafeDrop",
 							"timerIncrement",
 							"rollReverse",
 							"dropInventory"
