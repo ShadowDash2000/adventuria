@@ -792,6 +792,17 @@ func init() {
 						"required": true,
 						"system": false,
 						"type": "number"
+					},
+					{
+						"convertURLs": false,
+						"hidden": false,
+						"id": "editor1843675174",
+						"maxSize": 0,
+						"name": "description",
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "editor"
 					}
 				],
 				"fileToken": {
@@ -1756,7 +1767,7 @@ func init() {
 				],
 				"id": "pbc_2769025244",
 				"indexes": [],
-				"listRule": null,
+				"listRule": "",
 				"name": "settings",
 				"system": false,
 				"type": "base",
