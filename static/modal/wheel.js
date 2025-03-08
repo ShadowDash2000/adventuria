@@ -18,7 +18,7 @@ document.addEventListener('modal.open', async (e) => {
         setTimeout(() => {
             wheel.createWheel(wheelItems);
             wheel.rotate();
-            startButton.addEventListener('click', startSpin);
+            startButton.addEventListener('click', requestWheelSpinResult);
         }, 0);
     }
 });
@@ -41,6 +41,7 @@ function getWheelItems() {
                         id: cell.id,
                         src: Helper.getFile('icon', cell),
                         text: cell.name,
+                        description: cell.description,
                         type: 'cell',
                     });
                 }
@@ -52,6 +53,7 @@ function getWheelItems() {
                     id: item.id,
                     src: Helper.getFile('icon', item, {'thumb': '600x0'}),
                     text: item.name,
+                    description: item.name,
                     type: 'wheelItem',
                 });
             });
@@ -63,6 +65,7 @@ function getWheelItems() {
                         id: item.id,
                         src: Helper.getFile('icon', item),
                         text: item.name,
+                        description: item.description,
                         type: 'item',
                     });
                 }
@@ -73,34 +76,21 @@ function getWheelItems() {
     return wheelItems;
 }
 
-async function startSpin() {
+function requestWheelSpinResult() {
+    app.requestsWorker.postMessage({
+        method: 'fetchWheelSpinResult',
+        payload: app.nextStepType,
+    });
+}
+
+document.addEventListener('worker.fetchWheelSpinResult', async (e) => {
+    await startSpin(e.detail.result);
+});
+
+async function startSpin(itemId) {
     if (wheel.isSpinning()) return;
 
-    let url = '';
-    switch (app.nextStepType) {
-        case 'rollCell':
-            url = '/api/roll-cell';
-            break;
-        case 'rollWheelPreset':
-            url = '/api/roll-wheel-preset';
-            break;
-        case 'rollItem':
-            url = '/api/roll-item';
-            break;
-    }
-
-    const res = await fetch(url, {
-        method: "POST",
-        headers: {
-            "Authorization": app.getUserAuthToken(),
-        },
-    });
-
-    if (!res.ok) return;
-
     app.modal.lockClose();
-
-    const json = await res.json();
 
     const currentCell = app.users.getUserCurrentCell(app.getUserId());
     let rollInfo = app.audios.getRandomAudioFromCellByEvent(currentCell, app.nextStepType);
@@ -109,7 +99,7 @@ async function startSpin() {
         rollInfo = {duration: 20};
     }
 
-    wheel.startSpin(json.itemId, rollInfo.duration);
+    wheel.startSpin(itemId, rollInfo.duration);
 
     app.setAudioSrc(Helper.getFile('audio', rollInfo));
     app.audioPlayer.play();

@@ -71,6 +71,7 @@ export default class Actions {
         const user = this.users.getById(action.user);
         userAvatar.src = Helper.getFile('avatar', user);
         userAvatar.style.borderColor = user.color;
+        userAvatar.loading = 'lazy';
         userName.innerText = user.name;
 
         const cellIcon = actionNode.querySelector('.action__cell img');
@@ -78,7 +79,8 @@ export default class Actions {
         const cell = this.cells.getById(action.cell);
         cellIcon.src = Helper.getFile('icon', cell, {'thumb': '250x0'});
         cellIcon.dataset.id = cell.id;
-        cellIcon.dataset.type = 'cell';
+        cellIcon.dataset.description = cell.description;
+        cellIcon.loading = 'lazy';
         cellName.innerText = `НА КЛЕТКЕ: ${cell.name}`;
 
         const actionText = actionNode.querySelector('.action__type span');

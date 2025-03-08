@@ -1,7 +1,6 @@
 import {app} from "../app.js";
 import Helper from "../helper.js";
 
-
 const inventoryModal = document.getElementById('inventory-modal');
 const inventoryItems = inventoryModal.querySelector('.inventory__items');
 const inventorySideEffects = inventoryModal.querySelector('.inventory__side-effects');
@@ -32,12 +31,12 @@ function openInventory(userId) {
 
     inventoryModal.querySelector('h2').innerHTML = `ИНВЕНТАРЬ ${user.name}`;
 
-    setTimeout(() => {putInventoryToModal(userId, inventory)}, 0);
-
     app.modal.open('inventory', {
         speed: 100,
         animation: 'fadeInUp',
     });
+
+    setTimeout(() => {putInventoryToModal(userId, inventory)}, 0);
 }
 
 function putInventoryToModal(userId, inventory) {
@@ -51,7 +50,7 @@ function putInventoryToModal(userId, inventory) {
             const img = itemNode.querySelector('img');
             img.src = Helper.getFile('icon', item);
             img.dataset.id = itemId;
-            img.dataset.type = 'item';
+            img.dataset.description = item.description;
 
             itemNode.querySelector('span').innerText = item.name;
             itemNode.dataset.inventoryItemId = inventoryItem.id;
@@ -79,31 +78,34 @@ function putInventoryToModal(userId, inventory) {
         } else {
             const itemNode = inventorySideEffectTemplate.content.cloneNode(true);
 
-            itemNode.querySelector('img').src = Helper.getFile('icon', item);
+            const img = itemNode.querySelector('img');
+            img.src = Helper.getFile('icon', item);
+            img.dataset.id = itemId;
+            img.dataset.description = item.description;
 
             inventorySideEffects.appendChild(itemNode);
         }
     });
 }
 
-async function useItem(e) {
+function useItem(e) {
     const inventoryItemId = e.target.closest('.inventory__item').dataset.inventoryItemId;
-
-    const res = await fetch('/api/use-item', {
-        method: "POST",
-        headers: {
-            "Authorization": app.getUserAuthToken(),
-            "Content-type": 'application/json',
-        },
-        body: JSON.stringify({
-            "itemId": inventoryItemId,
-        }),
-    });
-
-    if (!res.ok) return;
-
+    requestUseItem(inventoryItemId);
     e.target.classList.add('disabled');
 }
+
+function requestUseItem(inventoryItemId) {
+    app.requestsWorker.postMessage({
+        method: 'useItem',
+        payload: inventoryItemId,
+    });
+}
+
+document.addEventListener('worker.useItem', async (e) => {
+    if (e.detail.result === null) {
+        e.target.classList.remove('disabled');
+    }
+});
 
 function submitBeforeItemDrop(userId, e) {
     const inventoryItem = e.target.closest('.inventory__item');
@@ -123,15 +125,19 @@ function submitBeforeItemDrop(userId, e) {
     });
 }
 
-async function dropItem(itemId) {
-    await fetch('/api/drop-item', {
-        method: "POST",
-        headers: {
-            "Authorization": app.getUserAuthToken(),
-            "Content-type": 'application/json',
-        },
-        body: JSON.stringify({
-            "itemId": itemId,
-        }),
+function dropItem(itemId) {
+    requestDropItem(itemId);
+}
+
+function requestDropItem(inventoryItemId) {
+    app.requestsWorker.postMessage({
+        method: 'dropItem',
+        payload: inventoryItemId,
     });
 }
+
+document.addEventListener('worker.dropItem', async (e) => {
+    if (e.detail.result !== null) {
+        inventoryItems.querySelector(`[data-inventory-item-id="${e.detail.result}"]`).remove();
+    }
+});

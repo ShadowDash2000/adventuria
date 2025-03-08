@@ -24,31 +24,12 @@ document.addEventListener('mousemove', (e) => {
 });
 
 document.addEventListener('mouseover', (e) => {
-    const id = e.target.dataset.id;
-    const type = e.target.dataset.type;
-
-    if (!id || !type) return;
-
-    isActive = true;
-
-    // TODO This need to be changed. Instead of checking conditions here, we need to get data attrs with text and image.
-    let description, src, item;
-    switch (type) {
-        case 'item':
-            description = app.items.getById(id).description;
-            break;
-        case 'cell':
-            item = app.cells.getAll().find(item => item.id === id);
-            description = item.description;
-            break;
-        case 'wheelItem':
-            item = app.wheelItems.getById(id);
-            src = Helper.getFile('icon', item, {'thumb': '250x0'})
-            description = item.name;
-            break;
-    }
+    const src = e.target.dataset.src;
+    const description = e.target.dataset.description;
 
     if (!description) return;
+
+    isActive = true;
 
     tooltipText.innerHTML = description;
     if (src) {

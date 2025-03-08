@@ -19,7 +19,7 @@ chooseGameButton.addEventListener('click', async (e) => {
         }),
     });
 
-    await app.updateInnerField();
+    app.updateInnerField();
 
     app.modal.close();
 

@@ -91,7 +91,7 @@ async function roll() {
     setTimeout(async () => {
         app.modal.unlockClose();
         showRollResult();
-        await app.updateInnerField();
+        app.updateInnerField();
     }, rollInfo.duration * 1000);
 
     setTimeout(() => {

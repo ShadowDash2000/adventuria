@@ -19,6 +19,20 @@ class App {
         this.audioPlayer = new Audio();
         this.audioPlayer.volume = this.volume / 100;
 
+        this.requestsWorker = new Worker('./internal/requests_worker.js');
+        this.requestsWorker.postMessage({
+            method: 'setToken',
+            payload: this.getUserAuthToken(),
+        });
+
+        this.requestsWorker.onmessage = function (e) {
+            document.dispatchEvent(new CustomEvent(`worker.${e.data.method}`, {
+                detail: {
+                    result: e.data.result,
+                }
+            }));
+        }
+
         this.modal = new GraphModal({
             isOpen: (modal) => {
                 const activeModal = modal.modalContainer;
@@ -48,14 +62,18 @@ class App {
         document.addEventListener('record.actions.create', async (e) => {
             if (e.detail.record.user !== this.getUserId()) return;
             setTimeout(async () => {
-                await this.showActionButtons();
+                await this.updateInnerField();
             }, 1000);
         });
         document.addEventListener('record.actions.delete', async (e) => {
             if (e.detail.record.user !== this.getUserId()) return;
             setTimeout(async () => {
-                await this.showActionButtons();
+                await this.updateInnerField();
             }, 1000);
+        });
+
+        document.addEventListener('worker.getNextStepType', async (e) => {
+            this.showActionButton(e.detail.result);
         });
     }
 
@@ -143,7 +161,7 @@ class App {
 
         this.actions = new Actions(this.pb, this.cells, this.users);
 
-        await this.updateInnerField();
+        this.updateInnerField();
     }
 
     setVolume(v) {
@@ -178,20 +196,16 @@ class App {
         }
     }
 
-    async showActionButtons() {
+    requestNextStepType() {
+        this.requestsWorker.postMessage({
+            method: 'getNextStepType',
+        });
+    }
+
+    showActionButton(nextStepType) {
         if (!this.isUerAuthorized()) return;
 
-        const res = await fetch('/api/get-next-step-type', {
-            method: "GET",
-            headers: {
-                "Authorization": this.getUserAuthToken(),
-            },
-        });
-
-        if (!res.ok) return;
-
-        const json = await res.json();
-        this.nextStepType = json.nextStepType;
+        this.nextStepType = nextStepType;
 
         const action = Helper.actions[this.nextStepType];
         if (!action) return;
@@ -205,8 +219,8 @@ class App {
         actionButton.classList.remove('hidden');
     }
 
-    async updateInnerField() {
-        await this.showActionButtons();
+    updateInnerField() {
+        this.requestNextStepType();
     }
 }
 

@@ -17,24 +17,28 @@ export default class Wheel {
             li.style.background = `hsl(${360 / items.length * (index + 1)}deg, 100%, 75%)`;
             li.style.aspectRatio = `1 / ${(2 * Math.tan(180 * (Math.PI / 180) / items.length))}`;
 
-            li.dataset.id = item.id;
-            li.dataset.type = item.type;
-
             const div = document.createElement('div');
             if (item.src) {
                 div.style.background = `url(${item.src}) no-repeat`;
                 div.style.backgroundSize = 'cover';
                 div.style.backgroundPosition = 'center';
-
-                div.dataset.id = item.id;
-                div.dataset.type = item.type;
             }
             li.appendChild(div);
 
             const span = document.createElement('span');
             span.innerHTML = item.text;
+
+            li.dataset.id = item.id;
+            li.dataset.description = item.description;
+            li.dataset.src = item.src;
+
+            div.dataset.id = item.id;
+            div.dataset.description = item.description;
+            div.dataset.src = item.src;
+
             span.dataset.id = item.id;
-            span.dataset.type = item.type;
+            span.dataset.description = item.description;
+            span.dataset.src = item.src;
 
             li.appendChild(span);
             this.wheel.appendChild(li);

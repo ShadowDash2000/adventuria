@@ -16,6 +16,6 @@ authForm.addEventListener('submit', async (e) => {
         app.modal.close();
         app.isAuthorized = true;
         app.auth = authResult;
-        await app.updateInnerField();
+        app.updateInnerField();
     }
 });
