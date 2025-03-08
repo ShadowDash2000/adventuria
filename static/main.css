@@ -885,6 +885,7 @@ table.users {
         .actions__action {
             width: 80%;
             display: flex;
+            flex-wrap: wrap;
             justify-content: flex-start;
             align-items: flex-start;
 
@@ -912,6 +913,10 @@ table.users {
 
             .action__cell {
                 width: 40%;
+            }
+
+            .action__comment {
+                width: 100%;
             }
 
             div {

@@ -89,8 +89,13 @@ export default class Actions {
         if (textTemplate) {
             text = textTemplate.replace('{{VALUE}}', action.value);
         }
-
         actionText.innerText = text;
+
+        if (action.comment) {
+            const actionComment = actionNode.querySelector('.action__comment p');
+            actionComment.innerText = action.comment;
+            actionComment.classList.remove('hidden');
+        }
 
         return actionNode;
     }

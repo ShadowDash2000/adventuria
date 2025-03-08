@@ -91,6 +91,7 @@ async function startSpin(itemId) {
     if (wheel.isSpinning()) return;
 
     app.modal.lockClose();
+    startButton.removeEventListener('click', startSpin);
 
     const currentCell = app.users.getUserCurrentCell(app.getUserId());
     let rollInfo = app.audios.getRandomAudioFromCellByEvent(currentCell, app.nextStepType);
