@@ -14,7 +14,7 @@ type Game struct {
 	app      core.App
 	log      *Log
 	cols     *collections.Collections
-	settings *Settings
+	Settings *Settings
 	cells    *Cells
 	users    *cache.MemoryCache[string, *User]
 }
@@ -31,7 +31,7 @@ func NewGame(app core.App) *Game {
 }
 
 func (g *Game) Init() {
-	g.settings = NewSettings(g.cols, g.app)
+	g.Settings = NewSettings(g.cols, g.app)
 	g.cells = NewCells(g.app)
 }
 
@@ -41,7 +41,7 @@ func (g *Game) GetUser(userId string) (*User, error) {
 		return user, nil
 	}
 
-	user, err := NewUser(userId, g.cells, g.settings, g.log, g.cols, g.app)
+	user, err := NewUser(userId, g.cells, g.Settings, g.log, g.cols, g.app)
 	if err != nil {
 		return nil, err
 	}
@@ -272,7 +272,7 @@ func (g *Game) Drop(comment string, userId string) error {
 	}
 
 	if !effects.IsSafeDrop && !currentCell.GetBool("isSafeDrop") {
-		user.Set("points", user.Points()+g.settings.PointsForDrop())
+		user.Set("points", user.Points()+g.Settings.PointsForDrop())
 		user.Set("dropsInARow", user.DropsInARow()+1)
 
 		err = user.Save()

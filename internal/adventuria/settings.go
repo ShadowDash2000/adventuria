@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/pocketbase/pocketbase/core"
+	"github.com/pocketbase/pocketbase/tools/hook"
 	"github.com/pocketbase/pocketbase/tools/types"
 )
 
@@ -115,6 +116,23 @@ func (s *Settings) DropsToJail() int {
 
 func (s *Settings) Rules() {
 
+}
+
+func (s *Settings) CheckActionsBlock() *hook.Handler[*core.RequestEvent] {
+	return &hook.Handler[*core.RequestEvent]{
+		Id:   "settingsCheckActionsBlock",
+		Func: s.checkActionsBlock(),
+	}
+}
+
+func (s *Settings) checkActionsBlock() func(*core.RequestEvent) error {
+	return func(e *core.RequestEvent) error {
+		if s.BlockAllActions() {
+			return e.ForbiddenError("All actions are temporarily blocked", nil)
+		}
+
+		return e.Next()
+	}
 }
 
 func (s *Settings) RegisterSettingsCron() {
