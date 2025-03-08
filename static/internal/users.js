@@ -62,6 +62,14 @@ export default class Users {
             avatar.src = Helper.getFile('avatar', user);
             avatar.style.borderColor = user.color;
 
+            avatar.addEventListener('click', () => {
+                document.dispatchEvent(new CustomEvent('profile.open', {
+                    detail: {
+                        userId: user.id,
+                    }
+                }));
+            });
+
             userItemNode.querySelector('.users__name').innerHTML = user.name;
             userItemNode.querySelector('.users__points').innerHTML = user.points;
             userItemNode.querySelector('.users__cells-passed').innerHTML = user.cellsPassed;

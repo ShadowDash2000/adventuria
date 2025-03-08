@@ -13,9 +13,6 @@ authForm.addEventListener('submit', async (e) => {
     );
 
     if (authResult.token) {
-        app.modal.close();
-        app.isAuthorized = true;
-        app.auth = authResult;
-        app.updateInnerField();
+        window.location.reload();
     }
 });

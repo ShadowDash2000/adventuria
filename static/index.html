@@ -23,33 +23,20 @@
         <div class="g5"></div>
     </div>
 </div>
-<button class="btn-reset modal-btn modal-1" data-graph-path="auth" data-graph-animation="fadeInUp"
-        data-graph-speed="100">ВХОД
-</button>
-<button class="btn-reset modal-btn modal-1" data-graph-path="dice" data-graph-animation="fadeInUp"
-        data-graph-speed="100">DICE
-</button>
-<button class="btn-reset modal-btn modal-1" data-graph-path="game-result" data-graph-animation="fadeInUp"
-        data-graph-speed="100">GAME RESULT
-</button>
-<button class="btn-reset modal-btn modal-1" data-graph-path="game-picker" data-graph-animation="fadeInUp"
-        data-graph-speed="100">GAME PICKER
-</button>
-<button class="btn-reset modal-btn modal-1" data-graph-path="wheel" data-graph-animation="fadeInUp"
-        data-graph-speed="100">WHEEL
-</button>
-<button class="btn-reset modal-btn modal-1" data-graph-path="submit" data-graph-animation="fadeInUp"
-        data-graph-speed="100">SUBMIT
-</button>
-<button class="btn-reset modal-btn modal-1" data-graph-animation="fadeInUp" data-inventory="3c70mo3b262l1q0"
-        data-graph-speed="100">INVENTORY
-</button>
-<div class="profile hidden" data-authorized="">
-    <div class="volume">
-        <label for="volume-slider" class="text-shadow">Громкость</label>
-        <input type="range" id="volume-slider">
+<div class="header">
+    <div class="buttons">
+        <button class="button blue" data-graph-path="auth" data-graph-animation="fadeInUp"
+                data-graph-speed="100">ВХОД
+        </button>
+        <button id="show-rules" class="button green">ПРАВИЛА</button>
     </div>
-    <img src="img/undefined.jpg" width="60" height="60">
+    <div class="profile hidden" data-authorized="">
+        <div class="volume">
+            <label for="volume-slider" class="text-shadow">Громкость</label>
+            <input type="range" id="volume-slider">
+        </div>
+        <img src="img/undefined.jpg" width="60" height="60">
+    </div>
 </div>
 <div class="table">
     <div class="board">
@@ -196,6 +183,27 @@
                 <h2>ИНВЕНТАРЬ {{NAME}}</h2>
                 <div class="inventory__items"></div>
                 <div class="inventory__side-effects"></div>
+            </div>
+        </div>
+    </div>
+    <div id="profile-modal" class="graph-modal__container dice" role="dialog" aria-modal="true" data-graph-target="profile">
+        <button class="btn-reset graph-modal__close js-modal-close" aria-label="Закрыть модальное окно"></button>
+        <div class="graph-modal__content inventory">
+            <div class="container">
+                <h2>ПРОФИЛЬ {{NAME}}</h2>
+                <div class="profile profile-modal">
+                    <img src="img/undefined.jpg">
+                    <p class="profile-modal__description text-shadow text-soft-shadow">{{DESCRIPTION}}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="rules-modal" class="graph-modal__container dice" role="dialog" aria-modal="true" data-graph-target="rules">
+        <button class="btn-reset graph-modal__close js-modal-close" aria-label="Закрыть модальное окно"></button>
+        <div class="graph-modal__content inventory">
+            <div class="container">
+                <h2>ПРАВИЛА</h2>
+                <div class="rules-modal"></div>
             </div>
         </div>
     </div>
@@ -370,6 +378,7 @@
         '/modal/wheel.js',
         '/modal/submit.js',
         '/modal/inventory.js',
+        '/modal/profile.js',
         '/tooltip.js',
     ];
 
