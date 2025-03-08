@@ -947,8 +947,13 @@ table.users {
         height: 10vw;
     }
 
-    .profile-modal__description {
+    .current-cell {
+        display: flex;
 
+        .profile__current-cell {
+            display: flex;
+            flex-direction: column;
+        }
     }
 }
 
