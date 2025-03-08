@@ -14,7 +14,7 @@
     <link href="/wheel.css" rel="stylesheet">
 </head>
 <body>
-<div class="gradient-bg">
+<div class="gradient-bg hidden">
     <div class="gradients-container">
         <div class="g1"></div>
         <div class="g2"></div>
@@ -31,6 +31,10 @@
         <button id="show-rules" class="button green">ПРАВИЛА</button>
     </div>
     <div class="profile hidden" data-authorized="">
+        <div class="profile__slow-pc">
+            <label for="slow-pc-checkbox" class="text-shadow">У меня говно ПК</label>
+            <input id="slow-pc-checkbox" type="checkbox">
+        </div>
         <div class="volume">
             <label for="volume-slider" class="text-shadow">Громкость</label>
             <input type="range" id="volume-slider">

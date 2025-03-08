@@ -543,6 +543,12 @@ table.users {
         border: 0.2vw solid;
     }
 
+    .profile__slow-pc {
+        display: flex;
+        flex-direction: column;
+        font-size: 1.1vw;
+    }
+
     .volume {
         display: flex;
         flex-direction: column;

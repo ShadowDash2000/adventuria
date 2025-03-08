@@ -17,6 +17,7 @@ class App {
         this.pb = new PocketBase('/');
         this.nextStepType = '';
         this.volume = localStorage.getItem('volume') ? localStorage.getItem('volume') : 30;
+        this.isSlowPc = localStorage.getItem('slow_pc') === 'true';
         this.audioPlayer = new Audio();
         this.audioPlayer.volume = this.volume / 100;
 
@@ -90,6 +91,21 @@ class App {
         });
         document.addEventListener('modal.close', () => {
             volumeSlider.parentElement.classList.remove('fixed');
+        });
+
+        const gradientBg = document.querySelector('.gradient-bg');
+        if (!this.isSlowPc) gradientBg.classList.remove('hidden');
+
+        const slowPcCheckbox = document.getElementById('slow-pc-checkbox');
+        slowPcCheckbox.checked = this.isSlowPc;
+        slowPcCheckbox.addEventListener('change', () => {
+            this.setIsSlowPc(slowPcCheckbox.checked);
+
+            if (this.isSlowPc) {
+                gradientBg.classList.add('hidden');
+            } else {
+                gradientBg.classList.remove('hidden');
+            }
         });
 
         if (this.isUerAuthorized()) {
@@ -172,6 +188,11 @@ class App {
         this.volume = v;
         this.audioPlayer.volume = v / 100;
         localStorage.setItem('volume', v);
+    }
+
+    setIsSlowPc(b) {
+        this.isSlowPc = b;
+        localStorage.setItem('slow_pc', b);
     }
 
     setAudioSrc(src) {
