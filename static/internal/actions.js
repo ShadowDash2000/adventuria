@@ -32,11 +32,6 @@ export default class Actions {
         });
 
         observer.observe(this.actionsSentinel);
-
-        document.addEventListener('record.actions.create', (e) => {
-            const actionNode = this.createActionNode(e.detail.record);
-            this.prependActionNode(actionNode);
-        });
     }
 
     async fetch() {
