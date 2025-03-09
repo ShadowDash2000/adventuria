@@ -73,6 +73,8 @@ export default class Users {
             userItemNode.querySelector('.users__name').innerHTML = user.name;
             userItemNode.querySelector('.users__points').innerHTML = user.points;
             userItemNode.querySelector('.users__cells-passed').innerHTML = user.cellsPassed;
+            userItemNode.querySelector('.users__drops').innerHTML = user.stats?.drops || 0;
+            userItemNode.querySelector('.users__rerolls').innerHTML = user.stats?.rerolls || 0;
 
             const inventoryButton = userItemNode.querySelector('.users__inventory button');
             inventoryButton.dataset.inventory = user.id;

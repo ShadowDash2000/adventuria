@@ -45,18 +45,11 @@
 <div class="table">
     <div class="board">
         <div class="center">
-            <table class="users hidden">
-                <thead>
-                <tr>
-                    <th></th>
-                    <th>Имя</th>
-                    <th>Очки</th>
-                    <th>Пройдено клеток</th>
-                </tr>
-                </thead>
-                <tbody>
-                </tbody>
-            </table>
+            <h1 class="title">ПРИКЛЮЧПОПИЯ</h1>
+            <div class="actions-buttons">
+                <button class="button hidden" data-graph-path="{{MODAL_CODE}}" data-graph-animation="fadeInUp"
+                        data-graph-speed="100">{{ACTION_NAME}}</button>
+            </div>
             <div class="timer hidden" data-authorized="">
                 <div id="timer">00:00:00</div>
                 <div class="timer__buttons">
@@ -71,11 +64,20 @@
                     </div>
                 </div>
             </div>
-            <h1 class="title">ПРИКЛЮЧПОПИЯ</h1>
-            <div class="actions-buttons">
-                <button class="button hidden" data-graph-path="{{MODAL_CODE}}" data-graph-animation="fadeInUp"
-                        data-graph-speed="100">{{ACTION_NAME}}</button>
-            </div>
+            <table class="users hidden">
+                <thead>
+                <tr>
+                    <th></th>
+                    <th>Имя</th>
+                    <th>Очки</th>
+                    <th>Пройдено клеток</th>
+                    <th>Дропов</th>
+                    <th>Рероллов</th>
+                </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
         </div>
 
         <div id="cell-bottom-left" class="space corner go"></div>
@@ -360,6 +362,8 @@
         <td class="users__name">{{NAME}}</td>
         <td class="users__points">{{POINTS}}</td>
         <td class="users__cells-passed">{{CELLS_PASSED}}</td>
+        <td class="users__drops">{{DROPS}}</td>
+        <td class="users__rerolls">{{REROLLS}}</td>
         <td class="users__inventory">
             <button>Инвентарь</button>
         </td>

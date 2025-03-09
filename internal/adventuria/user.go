@@ -2,6 +2,7 @@ package adventuria
 
 import (
 	"adventuria/pkg/collections"
+	"encoding/json"
 	"errors"
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
@@ -17,6 +18,18 @@ type User struct {
 	cells      *Cells
 	settings   *Settings
 	Timer      *Timer
+	Stats      Stats
+}
+
+type Stats struct {
+	Drops       int `json:"drops"`
+	Rerolls     int `json:"rerolls"`
+	Finished    int `json:"finished"`
+	WasInJail   int `json:"wasInJail"`
+	ItemsUsed   int `json:"itemsUsed"`
+	DiceRolls   int `json:"diceRolls"`
+	MaxDiceRoll int `json:"maxDiceRoll"`
+	WheelRolled int `json:"wheelRolled"`
 }
 
 func NewUser(
@@ -90,6 +103,7 @@ func (u *User) bindHooks() {
 		if e.Record.Id == u.userId {
 			u.user = e.Record
 			u.Inventory.SetMaxSlots(e.Record.GetInt("maxInventorySlots"))
+			u.user.UnmarshalJSONField("stats", &u.Stats)
 		}
 		return e.Next()
 	})
@@ -101,6 +115,8 @@ func (u *User) fetchUser() error {
 	if err != nil {
 		return err
 	}
+
+	u.user.UnmarshalJSONField("stats", &u.Stats)
 
 	return nil
 }
@@ -157,6 +173,9 @@ func (u *User) Set(key string, value any) {
 }
 
 func (u *User) Save() error {
+	statsJson, _ := json.Marshal(u.Stats)
+	u.user.Set("stats", string(statsJson))
+
 	return u.app.Save(u.user)
 }
 

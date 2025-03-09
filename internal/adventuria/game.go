@@ -171,6 +171,9 @@ func (g *Game) Reroll(comment string, userId string) error {
 		return err
 	}
 
+	user.Stats.Rerolls++
+	user.Save()
+
 	return nil
 }
 
@@ -224,6 +227,12 @@ func (g *Game) Roll(userId string) (int, []int, *core.Record, error) {
 	if err != nil {
 		return n, diceRolls, currentCell, err
 	}
+
+	user.Stats.DiceRolls++
+	if n > user.Stats.MaxDiceRoll {
+		user.Stats.MaxDiceRoll = n
+	}
+	user.Save()
 
 	return n, diceRolls, currentCell, nil
 }
@@ -287,6 +296,9 @@ func (g *Game) Drop(comment string, userId string) error {
 		}
 	}
 
+	user.Stats.Drops++
+	user.Save()
+
 	return nil
 }
 
@@ -318,6 +330,7 @@ func (g *Game) Done(comment string, userId string) error {
 		return err
 	}
 
+	user.Stats.Finished++
 	user.Set("dropsInARow", 0)
 	user.Set("isInJail", false)
 	user.Set("points", user.Points()+currentCell.GetInt("points"))
@@ -367,6 +380,7 @@ func (g *Game) GoToJail(userId string) error {
 	}
 
 	user.Set("isInJail", true)
+	user.Stats.WasInJail++
 	err = user.Save()
 	if err != nil {
 		return err
@@ -416,6 +430,9 @@ func (g *Game) RollCell(userId string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
+	user.Stats.WheelRolled++
+	user.Save()
 
 	return cell.Id, nil
 }
@@ -481,6 +498,9 @@ func (g *Game) RollItem(userId string) (string, error) {
 		return "", err
 	}
 
+	user.Stats.WheelRolled++
+	user.Save()
+
 	return item.Id, nil
 }
 
@@ -531,6 +551,9 @@ func (g *Game) RollWheelPreset(userId string) (string, error) {
 		return "", err
 	}
 
+	user.Stats.WheelRolled++
+	user.Save()
+
 	return item.Id, nil
 }
 
@@ -554,6 +577,9 @@ func (g *Game) UseItem(userId, itemId string) error {
 	if err != nil {
 		return err
 	}
+
+	user.Stats.ItemsUsed++
+	user.Save()
 
 	return nil
 }

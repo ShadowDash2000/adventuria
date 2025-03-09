@@ -16,12 +16,15 @@ let isLoading = false;
 let page = 1;
 let totalPages = 1;
 const limit = 10;
+let observer;
 
 document.addEventListener('profile.open', (e) => {
     actionContainer.innerHTML = '';
-    putUserInfoToProfile(e.detail.userId);
+    const userId = e.detail.userId;
 
-    const observer = new IntersectionObserver(async (entries, observer) => {
+    putUserInfoToProfile(userId);
+
+    observer = new IntersectionObserver(async (entries, observer) => {
         const entry = entries[0];
 
         if (entry.isIntersecting && !isLoading) {
@@ -31,7 +34,7 @@ document.addEventListener('profile.open', (e) => {
             }
 
             isLoading = true;
-            const actions = await fetchUserActions(e.detail.userId, page, limit);
+            const actions = await fetchUserActions(userId, page, limit);
             totalPages = actions.totalPages;
             page++;
             isLoading = false;
@@ -55,9 +58,11 @@ document.addEventListener('modal.close', (e) => {
     if (e.detail.modalName !== 'profile') return;
     page = 1;
     totalPages = 1;
+    observer.unobserve(actionsSentinel);
 });
 
 async function fetchUserActions(userId, page, limit) {
+    console.log(userId)
     return await app.pb.collection('actions').getList(page, limit, {
         filter: `user.id = "${userId}" && '["roll", "reroll", "drop", "chooseResult", "chooseGame", "rollCell", "rollWheelPreset"]' ~ type`,
         sort: '-created',

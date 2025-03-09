@@ -803,6 +803,16 @@ func init() {
 						"required": false,
 						"system": false,
 						"type": "editor"
+					},
+					{
+						"hidden": false,
+						"id": "json1464297386",
+						"maxSize": 0,
+						"name": "stats",
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "json"
 					}
 				],
 				"fileToken": {
