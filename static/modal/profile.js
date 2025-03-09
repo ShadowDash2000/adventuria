@@ -10,6 +10,14 @@ const profileCellImg = profileModal.querySelector('.current-cell img');
 const profileCellName = profileModal.querySelector('.current-cell .profile-modal__name');
 const profileCellDescription = profileModal.querySelector('.current-cell .profile-modal__description');
 
+const drops = profileModal.querySelector('.profile-modal__stats .profile-modal__drops');
+const rerolls = profileModal.querySelector('.profile-modal__stats .profile-modal__rerolls');
+const finished = profileModal.querySelector('.profile-modal__stats .profile-modal__finished');
+const wasInJail = profileModal.querySelector('.profile-modal__stats .profile-modal__was-in-jail');
+const itemsUsed = profileModal.querySelector('.profile-modal__stats .profile-modal__items-used');
+const diceRolls = profileModal.querySelector('.profile-modal__stats .profile-modal__dice-rolls');
+const maxDiceRoll = profileModal.querySelector('.profile-modal__stats .profile-modal__max-dice-roll');
+
 const actionContainer = profileModal.querySelector('.actions .container');
 const actionsSentinel = profileModal.querySelector('.actions .sentinel');
 let isLoading = false;
@@ -81,4 +89,12 @@ function putUserInfoToProfile(userId) {
     profileCellImg.src = Helper.getFile('icon', currentCell, {'thumb': '250x0'});
     profileCellName.innerText = currentCell.name;
     profileCellDescription.innerHTML = currentCell.description;
+
+    drops.innerText = 'Дропнуто: ' + (user.stats?.drops || 0);
+    rerolls.innerText = 'Рерольнуто: ' + (user.stats?.rerolls || 0);
+    finished.innerText = 'Пройдено: ' + (user.stats?.finished || 0);
+    wasInJail.innerText = 'Был в тюрьме: ' + (user.stats?.wasInJail || 0);
+    itemsUsed.innerText = 'Использовано предметов: ' + (user.stats?.itemsUsed || 0);
+    diceRolls.innerText = 'Сколько раз бросал кубики: ' + (user.stats?.diceRolls || 0);
+    maxDiceRoll.innerText = 'Максимальный ролл кубиков: ' + (user.stats?.maxDiceRoll || 0);
 }
