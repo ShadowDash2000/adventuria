@@ -38,6 +38,7 @@ func DefaultSettings(cols *collections.Collections) (*core.Record, error) {
 	record.Set("eventDateStart", types.NowDateTime())
 	record.Set("currentWeek", 0)
 	record.Set("timerTimeLimit", 14400)
+	record.Set("limitExceedPenalty", 2)
 	record.Set("pointsForDrop", -2)
 	record.Set("dropsToJail", 2)
 	return record, nil
@@ -102,6 +103,10 @@ func (s *Settings) TimerTimeLimit() int {
 	return s.GetInt("timerTimeLimit")
 }
 
+func (s *Settings) LimitExceedPenalty() int {
+	return s.GetInt("limitExceedPenalty")
+}
+
 func (s *Settings) BlockAllActions() bool {
 	return s.GetBool("blockAllActions")
 }
@@ -148,7 +153,7 @@ func (s *Settings) RegisterSettingsCron() {
 			s.app.Logger().Error("save settings failed", "err", err)
 		}
 
-		err = ResetAllTimers(s.TimerTimeLimit(), s.app)
+		err = ResetAllTimers(s.TimerTimeLimit(), s.LimitExceedPenalty(), s.app)
 		if err != nil {
 			s.app.Logger().Error("failed to clear timers", "err", err)
 		}

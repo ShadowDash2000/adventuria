@@ -1732,6 +1732,18 @@ func init() {
 					},
 					{
 						"hidden": false,
+						"id": "number3129271783",
+						"max": null,
+						"min": 0,
+						"name": "limitExceedPenalty",
+						"onlyInt": true,
+						"presentable": false,
+						"required": true,
+						"system": false,
+						"type": "number"
+					},
+					{
+						"hidden": false,
 						"id": "bool2232153513",
 						"name": "blockAllActions",
 						"presentable": false,

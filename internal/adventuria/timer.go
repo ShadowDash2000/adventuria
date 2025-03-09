@@ -157,13 +157,18 @@ func CreateTimer(userId string, timeLimit int, cols *collections.Collections, ap
 	return timer, nil
 }
 
-func ResetAllTimers(timeLimit int, app core.App) error {
+func ResetAllTimers(timeLimit int, limitExceedPenalty int, app core.App) error {
 	records, err := app.FindAllRecords(TableTimers)
 	if err != nil {
 		return err
 	}
 
 	for _, record := range records {
+		timePassed := record.GetInt("timePassed")
+		if timePassed > timeLimit {
+			timeLimit -= (timePassed - timeLimit) * limitExceedPenalty
+		}
+
 		record.Set("timeLimit", timeLimit)
 		record.Set("timePassed", 0)
 		record.Set("isActive", false)
