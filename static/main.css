@@ -500,7 +500,6 @@ h1, h2, h3, h4, h5, h6 {
 table.users {
     background: #ad8c74d1;
     border-collapse: collapse;
-    margin: 45px 0 0 45px;
     border: solid #5e4334 0.2vw;
 
     font-family: "Dela Gothic One", serif;
@@ -521,8 +520,8 @@ table.users {
     }
 
     .users__avatar img {
-        width: 5vw;
-        height: 5vw;
+        width: 4vw;
+        height: 4vw;
 
         border: 0.2vw solid;
         border-radius: 100%;
