@@ -317,6 +317,11 @@ func (g *Game) Done(comment string, userId string) error {
 		return errors.New("next step isn't choose result")
 	}
 
+	effects, err := user.Inventory.ApplyEffects(ItemUseOnChooseResult)
+	if err != nil {
+		return err
+	}
+
 	currentCell, _ := user.CurrentCell()
 
 	record := core.NewRecord(user.lastAction.Collection())
@@ -331,15 +336,16 @@ func (g *Game) Done(comment string, userId string) error {
 	}
 
 	user.Stats.Finished++
-	user.Set("dropsInARow", 0)
-	user.Set("isInJail", false)
-	user.Set("points", user.Points()+currentCell.GetInt("points"))
-	err = user.Save()
-	if err != nil {
-		return err
+
+	cellPoints := currentCell.GetInt("points")
+	if effects.CellPointsDivide != 0 {
+		cellPoints /= effects.CellPointsDivide
 	}
 
-	effects, err := user.Inventory.ApplyEffects(ItemUseOnChooseResult)
+	user.Set("dropsInARow", 0)
+	user.Set("isInJail", false)
+	user.Set("points", user.Points()+cellPoints)
+	err = user.Save()
 	if err != nil {
 		return err
 	}
@@ -585,6 +591,14 @@ func (g *Game) UseItem(userId, itemId string) error {
 }
 
 func (g *Game) ApplyGenericEffects(effects *Effects, user *User) error {
+	if effects.PointsIncrement != 0 {
+		user.Set("points", user.Points()+effects.PointsIncrement)
+		err := user.Save()
+		if err != nil {
+			return err
+		}
+	}
+
 	if effects.TimerIncrement != 0 {
 		err := user.Timer.AddSecondsTimeLimit(effects.TimerIncrement)
 		if err != nil {

@@ -23,30 +23,32 @@ const (
 	ItemUseOnChooseGame   = "useOnChooseGame"
 	ItemUseOnRollItem     = "useOnRollItem"
 
-	EffectTypeNothing         = "nothing"
-	EffectTypePointsIncrement = "pointsIncrement"
-	EffectTypeJailEscape      = "jailEscape"
-	EffectTypeDiceMultiplier  = "diceMultiplier"
-	EffectTypeDiceIncrement   = "diceIncrement"
-	EffectTypeChangeDices     = "changeDices"
-	EffectTypeSafeDrop        = "isSafeDrop"
-	EffectTypeTimerIncrement  = "timerIncrement"
-	EffectTypeRollReverse     = "rollReverse"
-	EffectTypeDropInventory   = "dropInventory"
+	EffectTypeNothing          = "nothing"
+	EffectTypePointsIncrement  = "pointsIncrement"
+	EffectTypeJailEscape       = "jailEscape"
+	EffectTypeDiceMultiplier   = "diceMultiplier"
+	EffectTypeDiceIncrement    = "diceIncrement"
+	EffectTypeChangeDices      = "changeDices"
+	EffectTypeSafeDrop         = "isSafeDrop"
+	EffectTypeTimerIncrement   = "timerIncrement"
+	EffectTypeRollReverse      = "rollReverse"
+	EffectTypeDropInventory    = "dropInventory"
+	EffectTypeCellPointsDivide = "cellPointsDivide"
 )
 
 var (
 	EffectsKindList = map[string]EffectKind{
-		EffectTypeNothing:         Int,
-		EffectTypePointsIncrement: Int,
-		EffectTypeJailEscape:      Bool,
-		EffectTypeDiceMultiplier:  Int,
-		EffectTypeDiceIncrement:   Int,
-		EffectTypeChangeDices:     Slice,
-		EffectTypeSafeDrop:        Bool,
-		EffectTypeTimerIncrement:  Int,
-		EffectTypeRollReverse:     Bool,
-		EffectTypeDropInventory:   Bool,
+		EffectTypeNothing:          Int,
+		EffectTypePointsIncrement:  Int,
+		EffectTypeJailEscape:       Bool,
+		EffectTypeDiceMultiplier:   Int,
+		EffectTypeDiceIncrement:    Int,
+		EffectTypeChangeDices:      Slice,
+		EffectTypeSafeDrop:         Bool,
+		EffectTypeTimerIncrement:   Int,
+		EffectTypeRollReverse:      Bool,
+		EffectTypeDropInventory:    Bool,
+		EffectTypeCellPointsDivide: Int,
 	}
 )
 

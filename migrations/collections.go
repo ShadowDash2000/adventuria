@@ -1611,7 +1611,8 @@ func init() {
 							"isSafeDrop",
 							"timerIncrement",
 							"rollReverse",
-							"dropInventory"
+							"dropInventory",
+							"cellPointsDivide"
 						]
 					},
 					{
