@@ -10,13 +10,59 @@ const profileCellImg = profileModal.querySelector('.current-cell img');
 const profileCellName = profileModal.querySelector('.current-cell .profile-modal__name');
 const profileCellDescription = profileModal.querySelector('.current-cell .profile-modal__description');
 
+const actionContainer = profileModal.querySelector('.actions .container');
+const actionsSentinel = profileModal.querySelector('.actions .sentinel');
+let isLoading = false;
+let page = 1;
+let totalPages = 1;
+const limit = 10;
+
 document.addEventListener('profile.open', (e) => {
+    actionContainer.innerHTML = '';
     putUserInfoToProfile(e.detail.userId);
+
+    const observer = new IntersectionObserver(async (entries, observer) => {
+        const entry = entries[0];
+
+        if (entry.isIntersecting && !isLoading) {
+            if (page > totalPages) {
+                observer.unobserve(actionsSentinel);
+                return;
+            }
+
+            isLoading = true;
+            const actions = await fetchUserActions(e.detail.userId, page, limit);
+            totalPages = actions.totalPages;
+            page++;
+            isLoading = false;
+
+            for (const action of actions.items) {
+                const actionNode = app.actions.createActionNode(action);
+                actionContainer.appendChild(actionNode);
+            }
+        }
+    });
+
+    observer.observe(actionsSentinel);
+
     app.modal.open('profile', {
         speed: 100,
         animation: 'fadeInUp',
     });
 });
+
+document.addEventListener('modal.close', (e) => {
+    if (e.detail.modalName !== 'profile') return;
+    page = 1;
+    totalPages = 1;
+});
+
+async function fetchUserActions(userId, page, limit) {
+    return await app.pb.collection('actions').getList(page, limit, {
+        filter: `user.id = "${userId}" && '["roll", "reroll", "drop", "chooseResult", "chooseGame", "rollCell", "rollWheelPreset"]' ~ type`,
+        sort: '-created',
+    });
+}
 
 function putUserInfoToProfile(userId) {
     const user = app.users.getById(userId);

@@ -957,6 +957,17 @@ table.users {
     }
 }
 
+#profile-modal .actions {
+    .actions__action {
+        width: 100%;
+        padding: 3vw 1vw;
+
+        div {
+            font-size: 0.8vw;
+        }
+    }
+}
+
 .header {
     display: flex;
     justify-content: space-between;
