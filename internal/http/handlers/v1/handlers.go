@@ -265,15 +265,16 @@ func (h *Handlers) StopTimerHandler(e *core.RequestEvent) error {
 }
 
 func (h *Handlers) GetTimeLeftHandler(e *core.RequestEvent) error {
-	time, isActive, err := h.Game.GetTimeLeft(e.Auth.Id)
+	time, isActive, nextTimerResetDate, err := h.Game.GetTimeLeft(e.Auth.Id)
 	if err != nil {
 		e.JSON(http.StatusInternalServerError, err.Error())
 		return err
 	}
 
 	e.JSON(http.StatusOK, map[string]interface{}{
-		"time":     time,
-		"isActive": isActive,
+		"time":               time,
+		"isActive":           isActive,
+		"nextTimerResetDate": nextTimerResetDate,
 	})
 
 	return nil

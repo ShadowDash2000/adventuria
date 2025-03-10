@@ -7,6 +7,7 @@ import (
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/tools/hook"
 	"github.com/pocketbase/pocketbase/tools/types"
+	"time"
 )
 
 type Settings struct {
@@ -94,9 +95,12 @@ func (s *Settings) SetCurrentWeek(w int) {
 	s.Set("currentWeek", w)
 }
 
-func (s *Settings) getCurrentWeekNum() int {
-	daysPassed := int(types.NowDateTime().Sub(s.EventDateStart()).Hours() / 24)
-	return (daysPassed / 7) + 1
+func (s *Settings) DaysPassedFromEventStart() int {
+	return int(types.NowDateTime().Sub(s.EventDateStart()).Hours() / 24)
+}
+
+func (s *Settings) GetCurrentWeekNum() int {
+	return (s.DaysPassedFromEventStart() / 7) + 1
 }
 
 func (s *Settings) TimerTimeLimit() int {
@@ -119,8 +123,9 @@ func (s *Settings) DropsToJail() int {
 	return s.GetInt("dropsToJail")
 }
 
-func (s *Settings) Rules() {
-
+func (s *Settings) NextTimerResetDate() types.DateTime {
+	weeks := time.Duration(s.CurrentWeek()*7*24) * time.Hour
+	return s.EventDateStart().Add(weeks)
 }
 
 func (s *Settings) CheckActionsBlock() *hook.Handler[*core.RequestEvent] {
@@ -142,7 +147,7 @@ func (s *Settings) checkActionsBlock() func(*core.RequestEvent) error {
 
 func (s *Settings) RegisterSettingsCron() {
 	s.app.Cron().MustAdd("settings", "* * * * *", func() {
-		week := s.getCurrentWeekNum()
+		week := s.GetCurrentWeekNum()
 		if s.CurrentWeek() == week {
 			return
 		}

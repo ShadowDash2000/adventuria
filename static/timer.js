@@ -1,7 +1,8 @@
 import PocketBase, {BaseAuthStore} from "/pocketbase/pocketbase.es.js";
+import Helper from "./helper.js";
 
 export default class Timer {
-    constructor(token, timer) {
+    constructor(token, timer, resetDate) {
         const store = new BaseAuthStore();
         store.save(token);
         this.pb = new PocketBase('/', store);
@@ -15,8 +16,10 @@ export default class Timer {
         });
 
         this.timer = timer;
+        this.resetDate = resetDate;
         this.interval = null;
         this.remainingTime = 0;
+        this.nextTimerResetDate = null;
         this.isNegative = false;
 
         document.addEventListener('record.timers.update', (e) => {
@@ -38,6 +41,7 @@ export default class Timer {
 
         this.isNegative = data.time < 0;
         this.remainingTime = Math.abs(data.time);
+        this.nextTimerResetDate = data.nextTimerResetDate;
 
         this.updateDisplay();
 
@@ -53,6 +57,10 @@ export default class Timer {
         let minutes = String(Math.floor((this.remainingTime % 3600) / 60)).padStart(2, '0');
         let seconds = String(this.remainingTime % 60).padStart(2, '0');
         this.timer.textContent = (this.isNegative ? '-' : '') + `${hours}:${minutes}:${seconds}`;
+
+        if (this.resetDate) {
+            this.resetDate.innerText = Helper.formatDateLocalized(this.nextTimerResetDate);
+        }
     }
 
     async startTimer() {

@@ -136,7 +136,9 @@ class App {
             profileImg.style.borderColor = user.color;
 
             const timerBlock = document.getElementById('timer');
-            const timer = new Timer(this.getUserAuthToken(), timerBlock);
+            const resetDate = document.querySelector('.timer .timer__next-reset');
+            const timer = new Timer(this.getUserAuthToken(), timerBlock, resetDate);
+            
             const timerStopButton = document.querySelector('.timer button.red');
             const timerStartButton = document.querySelector('.timer button.green');
             timerStopButton.addEventListener('click', () => {

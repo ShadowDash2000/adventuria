@@ -7,6 +7,7 @@ import (
 	"errors"
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
+	"github.com/pocketbase/pocketbase/tools/types"
 	"time"
 )
 
@@ -656,11 +657,11 @@ func (g *Game) StopTimer(userId string) error {
 	return user.Timer.Stop()
 }
 
-func (g *Game) GetTimeLeft(userId string) (time.Duration, bool, error) {
+func (g *Game) GetTimeLeft(userId string) (time.Duration, bool, types.DateTime, error) {
 	user, err := g.GetUser(userId)
 	if err != nil {
-		return 0, false, err
+		return 0, false, types.DateTime{}, err
 	}
 
-	return user.Timer.GetTimeLeft(), user.Timer.IsActive(), nil
+	return user.Timer.GetTimeLeft(), user.Timer.IsActive(), g.Settings.NextTimerResetDate(), nil
 }

@@ -671,6 +671,10 @@ table.users {
     font-size: 2vw;
     position: relative;
 
+    .timer__next-reset {
+        font-size: 0.7vw;
+    }
+
     button {
         font-size: 1vw;
     }
