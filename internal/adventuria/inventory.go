@@ -185,11 +185,11 @@ func (i *Inventory) GetEffects(event string) (*Effects, map[string][]string, err
 			if effectsMap[effect.Type()] != nil {
 				switch effect.Kind() {
 				case Int:
-					effectsMap[effect.Type()] = effectsMap[effect.Type()].(int) + effect.GetInt()
+					effectsMap[effect.Type()] = effectsMap[effect.Type()].(int) + effect.Value().(int)
 				case Bool:
 					effectsMap[effect.Type()] = true
 				case Slice:
-					effectsMap[effect.Type()] = effect.GetSlice()
+					effectsMap[effect.Type()] = effect.Value()
 				}
 			}
 

@@ -20,7 +20,7 @@ type Effects struct {
 type Item struct {
 	gc      *GameComponents
 	item    *core.Record
-	effects []*Effect
+	effects []IEffect
 }
 
 func NewItem(record *core.Record, gc *GameComponents) (*Item, error) {
@@ -31,7 +31,7 @@ func NewItem(record *core.Record, gc *GameComponents) (*Item, error) {
 		}
 	}
 
-	var effects []*Effect
+	var effects []IEffect
 	for _, effectRecord := range record.ExpandedAll("effects") {
 		effect, err := NewEffect(effectRecord)
 		if err != nil {
@@ -81,8 +81,8 @@ func (i *Item) EffectsCount() int {
 	return len(i.effects)
 }
 
-func (i *Item) GetEffectsByEvent(event string) []*Effect {
-	var effects []*Effect
+func (i *Item) GetEffectsByEvent(event string) []IEffect {
+	var effects []IEffect
 	for _, e := range i.effects {
 		if e.Event() == event {
 			effects = append(effects, e)
