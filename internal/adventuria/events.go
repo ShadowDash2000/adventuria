@@ -50,7 +50,7 @@ func OnAfterRerollStats(user *User) error {
 	return user.Save()
 }
 
-func OnBeforeDropEffects(user *User, dropEffects *DropEffects) error {
+func OnBeforeDropEffects(user *User, dropEffects *Effects) error {
 	effects, err := user.Inventory.ApplyEffects(ItemUseOnDrop)
 	if err != nil {
 		return err
@@ -76,7 +76,7 @@ func OnAfterGoToJailStats(user *User) error {
 	return user.Save()
 }
 
-func OnBeforeDoneEffects(user *User, doneEffects *DoneEffects) error {
+func OnBeforeDoneEffects(user *User, doneEffects *Effects) error {
 	effects, err := user.Inventory.ApplyEffects(ItemUseOnChooseResult)
 	if err != nil {
 		return err
@@ -97,7 +97,7 @@ func OnAfterDoneStats(user *User) error {
 	return user.Save()
 }
 
-func OnBeforeRollEffects(user *User, rollEffects *RollEffects) error {
+func OnBeforeRollEffects(user *User, rollEffects *Effects) error {
 	effects, err := user.Inventory.ApplyEffects(ItemUseOnRoll)
 	if err != nil {
 		return err

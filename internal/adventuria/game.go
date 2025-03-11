@@ -195,7 +195,7 @@ func (g *Game) Roll(userId string) (int, []int, *core.Record, error) {
 		return 0, nil, nil, errors.New("next step isn't roll")
 	}
 
-	effects := &RollEffects{}
+	effects := &Effects{}
 	g.GC.event.Go(OnBeforeRoll, user, effects)
 
 	var dices []Dice
@@ -253,7 +253,7 @@ func (g *Game) Drop(comment string, userId string) error {
 		return errors.New("can't drop on this cell")
 	}
 
-	effects := &DropEffects{}
+	effects := &Effects{}
 	g.GC.event.Go(OnBeforeDrop, user, effects)
 
 	record := core.NewRecord(user.lastAction.Collection())
@@ -303,7 +303,7 @@ func (g *Game) Done(comment string, userId string) error {
 		return errors.New("next step isn't choose result")
 	}
 
-	effects := &DoneEffects{}
+	effects := &Effects{}
 	g.GC.event.Go(OnBeforeDone, user, effects)
 
 	currentCell, _ := user.CurrentCell()
