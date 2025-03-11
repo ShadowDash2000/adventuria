@@ -1,7 +1,6 @@
 package adventuria
 
 import (
-	"adventuria/pkg/collections"
 	"encoding/json"
 	"errors"
 	"github.com/pocketbase/dbx"
@@ -9,14 +8,12 @@ import (
 )
 
 type User struct {
-	app        core.App
-	log        *Log
+	gc         *GameComponents
 	userId     string
 	user       *core.Record
 	lastAction *core.Record
 	Inventory  *Inventory
 	cells      *Cells
-	settings   *Settings
 	Timer      *Timer
 	Stats      Stats
 }
@@ -32,30 +29,22 @@ type Stats struct {
 	WheelRolled int `json:"wheelRolled"`
 }
 
-func NewUser(
-	userId string,
-	cells *Cells,
-	settings *Settings,
-	log *Log, cols *collections.Collections,
-	app core.App,
-) (*User, error) {
+func NewUser(userId string, cells *Cells, gc *GameComponents) (*User, error) {
 	if userId == "" {
 		return nil, errors.New("you're not authorized")
 	}
 
 	var err error
-	timer, err := NewTimer(userId, settings, cols, app)
+	timer, err := NewTimer(userId, gc)
 	if err != nil {
 		return nil, err
 	}
 
 	u := &User{
-		app:      app,
-		log:      log,
-		userId:   userId,
-		cells:    cells,
-		settings: settings,
-		Timer:    timer,
+		gc:     gc,
+		userId: userId,
+		cells:  cells,
+		Timer:  timer,
 	}
 
 	err = u.fetchUser()
@@ -68,7 +57,7 @@ func NewUser(
 		return nil, err
 	}
 
-	u.Inventory, err = NewInventory(userId, u.user.GetInt("maxInventorySlots"), log, cols, app)
+	u.Inventory, err = NewInventory(userId, u.user.GetInt("maxInventorySlots"), gc)
 	if err != nil {
 		return nil, err
 	}
@@ -79,27 +68,27 @@ func NewUser(
 }
 
 func (u *User) bindHooks() {
-	u.app.OnRecordAfterCreateSuccess(TableActions).BindFunc(func(e *core.RecordEvent) error {
+	u.gc.app.OnRecordAfterCreateSuccess(TableActions).BindFunc(func(e *core.RecordEvent) error {
 		userId := e.Record.GetString("user")
 		if userId == u.userId {
 			u.lastAction = e.Record
 		}
 		return e.Next()
 	})
-	u.app.OnRecordAfterUpdateSuccess(TableActions).BindFunc(func(e *core.RecordEvent) error {
+	u.gc.app.OnRecordAfterUpdateSuccess(TableActions).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == u.lastAction.Id {
 			u.lastAction = e.Record
 		}
 		return e.Next()
 	})
-	u.app.OnRecordAfterDeleteSuccess(TableActions).BindFunc(func(e *core.RecordEvent) error {
+	u.gc.app.OnRecordAfterDeleteSuccess(TableActions).BindFunc(func(e *core.RecordEvent) error {
 		userId := e.Record.GetString("user")
 		if userId == u.userId {
 			u.fetchUserAction()
 		}
 		return e.Next()
 	})
-	u.app.OnRecordAfterUpdateSuccess(TableUsers).BindFunc(func(e *core.RecordEvent) error {
+	u.gc.app.OnRecordAfterUpdateSuccess(TableUsers).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == u.userId {
 			u.user = e.Record
 			u.Inventory.SetMaxSlots(e.Record.GetInt("maxInventorySlots"))
@@ -111,7 +100,7 @@ func (u *User) bindHooks() {
 
 func (u *User) fetchUser() error {
 	var err error
-	u.user, err = u.app.FindRecordById(TableUsers, u.userId)
+	u.user, err = u.gc.app.FindRecordById(TableUsers, u.userId)
 	if err != nil {
 		return err
 	}
@@ -122,7 +111,7 @@ func (u *User) fetchUser() error {
 }
 
 func (u *User) fetchUserAction() error {
-	actions, err := u.app.FindRecordsByFilter(
+	actions, err := u.gc.app.FindRecordsByFilter(
 		TableActions,
 		"user.id = {:userId}",
 		"-created",
@@ -142,7 +131,7 @@ func (u *User) fetchUserAction() error {
 }
 
 func (u *User) IsSafeDrop() bool {
-	return u.DropsInARow() < u.settings.DropsToJail()
+	return u.DropsInARow() < u.gc.Settings.DropsToJail()
 }
 
 func (u *User) IsInJail() bool {
@@ -176,7 +165,7 @@ func (u *User) Save() error {
 	statsJson, _ := json.Marshal(u.Stats)
 	u.user.Set("stats", string(statsJson))
 
-	return u.app.Save(u.user)
+	return u.gc.app.Save(u.user)
 }
 
 // GetNextStepType

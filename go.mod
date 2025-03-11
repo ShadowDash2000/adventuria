@@ -3,6 +3,7 @@ module adventuria
 go 1.23.4
 
 require (
+	github.com/AlexanderGrom/go-event v0.0.0-20180406111247-a2f1486e096e
 	github.com/ilyakaznacheev/cleanenv v1.5.0
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/pocketbase/dbx v1.11.0

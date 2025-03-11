@@ -18,13 +18,13 @@ type Effects struct {
 }
 
 type Item struct {
-	app     core.App
+	gc      *GameComponents
 	item    *core.Record
 	effects []*Effect
 }
 
-func NewItem(record *core.Record, app core.App) (*Item, error) {
-	errs := app.ExpandRecord(record, []string{"effects"}, nil)
+func NewItem(record *core.Record, gc *GameComponents) (*Item, error) {
+	errs := gc.app.ExpandRecord(record, []string{"effects"}, nil)
 	if errs != nil {
 		for _, err := range errs {
 			return nil, err
@@ -42,7 +42,7 @@ func NewItem(record *core.Record, app core.App) (*Item, error) {
 	}
 
 	item := &Item{
-		app:     app,
+		gc:      gc,
 		item:    record,
 		effects: effects,
 	}
@@ -53,7 +53,7 @@ func NewItem(record *core.Record, app core.App) (*Item, error) {
 }
 
 func (i *Item) bindHooks() {
-	i.app.OnRecordAfterUpdateSuccess(TableItems).BindFunc(func(e *core.RecordEvent) error {
+	i.gc.app.OnRecordAfterUpdateSuccess(TableItems).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == i.item.Id {
 			i.item = e.Record
 		}

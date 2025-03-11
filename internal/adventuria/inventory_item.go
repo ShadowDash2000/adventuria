@@ -7,28 +7,26 @@ import (
 
 type InventoryItem struct {
 	core.BaseRecordProxy
-	app  core.App
-	log  *Log
+	gc   *GameComponents
 	item *Item
 }
 
-func NewInventoryItem(record *core.Record, log *Log, app core.App) (*InventoryItem, error) {
+func NewInventoryItem(record *core.Record, gc *GameComponents) (*InventoryItem, error) {
 	var err error
 	ii := &InventoryItem{
-		app: app,
-		log: log,
+		gc: gc,
 	}
 
 	ii.SetProxyRecord(record)
 
-	errs := app.ExpandRecord(ii.Record, []string{"item"}, nil)
+	errs := gc.app.ExpandRecord(ii.Record, []string{"item"}, nil)
 	if errs != nil {
 		for _, err = range errs {
 			return nil, err
 		}
 	}
 
-	ii.item, err = NewItem(ii.ExpandedOne("item"), app)
+	ii.item, err = NewItem(ii.ExpandedOne("item"), gc)
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +88,7 @@ func (ii *InventoryItem) Use() error {
 	}
 
 	ii.SetIsActive(true)
-	err := ii.app.Save(ii)
+	err := ii.gc.app.Save(ii)
 	if err != nil {
 		return err
 	}

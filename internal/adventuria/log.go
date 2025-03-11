@@ -6,19 +6,19 @@ import (
 )
 
 type Log struct {
-	app         core.App
-	collections *collections.Collections
+	app  core.App
+	cols *collections.Collections
 }
 
 func NewLog(cols *collections.Collections, app core.App) *Log {
 	return &Log{
-		app:         app,
-		collections: cols,
+		app:  app,
+		cols: cols,
 	}
 }
 
 func (l *Log) Add(userId, logType, value string) error {
-	collection, err := l.collections.Get(TableLogs)
+	collection, err := l.cols.Get(TableLogs)
 	if err != nil {
 		return err
 	}
