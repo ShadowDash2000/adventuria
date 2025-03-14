@@ -582,7 +582,7 @@ func init() {
 						"body": "<p>Hello,</p>\n<p>We noticed a login to your {APP_NAME} account from a new location.</p>\n<p>If this was you, you may disregard this email.</p>\n<p><strong>If this wasn't you, you should immediately change your {APP_NAME} account password to revoke access from all other locations.</strong></p>\n<p>\n  Thanks,<br/>\n  {APP_NAME} team\n</p>",
 						"subject": "Login from a new location"
 					},
-					"enabled": true
+					"enabled": false
 				},
 				"authRule": "",
 				"authToken": {
@@ -592,8 +592,8 @@ func init() {
 					"body": "<p>Hello,</p>\n<p>Click on the button below to confirm your new email address.</p>\n<p>\n  <a class=\"btn\" href=\"{APP_URL}/_/#/auth/confirm-email-change/{TOKEN}\" target=\"_blank\" rel=\"noopener\">Confirm new email</a>\n</p>\n<p><i>If you didn't ask to change your email address, you can ignore this email.</i></p>\n<p>\n  Thanks,<br/>\n  {APP_NAME} team\n</p>",
 					"subject": "Confirm your {APP_NAME} new email address"
 				},
-				"createRule": "",
-				"deleteRule": "id = @request.auth.id",
+				"createRule": null,
+				"deleteRule": null,
 				"emailChangeToken": {
 					"duration": 1800
 				},
@@ -865,7 +865,7 @@ func init() {
 				},
 				"system": false,
 				"type": "auth",
-				"updateRule": "id = @request.auth.id",
+				"updateRule": null,
 				"verificationTemplate": {
 					"body": "<p>Hello,</p>\n<p>Thank you for joining us at {APP_NAME}.</p>\n<p>Click on the button below to verify your email address.</p>\n<p>\n  <a class=\"btn\" href=\"{APP_URL}/_/#/auth/confirm-verification/{TOKEN}\" target=\"_blank\" rel=\"noopener\">Verify</a>\n</p>\n<p>\n  Thanks,<br/>\n  {APP_NAME} team\n</p>",
 					"subject": "Verify your {APP_NAME} email"
