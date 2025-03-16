@@ -60,6 +60,9 @@ func (t *Timer) Start() error {
 	if t.IsActive() {
 		return nil
 	}
+	if t.TimeLimit() < 0 {
+		return errors.New("time limit is less than 0")
+	}
 
 	t.SetIsActive(true)
 	t.SetStartTime(types.NowDateTime())
