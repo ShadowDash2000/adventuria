@@ -60,9 +60,6 @@ func (t *Timer) Start() error {
 	if t.IsActive() {
 		return nil
 	}
-	if t.IsTimeExceeded() {
-		return errors.New("timer exceeds limit")
-	}
 
 	t.SetIsActive(true)
 	t.SetStartTime(types.NowDateTime())

@@ -83,6 +83,7 @@ export default class Timer {
                     this.remainingTime++;
                 } else {
                     this.remainingTime--;
+                    this.isNegative = this.remainingTime <= 0;
                 }
                 this.updateDisplay();
             }, 1000);
