@@ -794,6 +794,18 @@ func init() {
 						"type": "number"
 					},
 					{
+						"hidden": false,
+						"id": "number3954002444",
+						"max": null,
+						"min": 0,
+						"name": "itemWheelsCount",
+						"onlyInt": true,
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "number"
+					},
+					{
 						"convertURLs": false,
 						"hidden": false,
 						"id": "editor1843675174",
