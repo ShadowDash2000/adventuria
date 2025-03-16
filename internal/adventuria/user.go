@@ -168,6 +168,10 @@ func (u *User) CellsPassed() int {
 	return u.user.GetInt("cellsPassed")
 }
 
+func (u *User) ItemWheelsCount() int {
+	return u.user.GetInt("itemWheelsCount")
+}
+
 func (u *User) Set(key string, value any) {
 	u.user.Set(key, value)
 }
@@ -203,6 +207,10 @@ func (u *User) GetNextStepType() (string, error) {
 
 	if cantChooseAfterDrop && lastActionType == ActionTypeDrop {
 		return ActionTypeRoll, nil
+	}
+
+	if u.ItemWheelsCount() > 0 {
+		return ActionTypeRollItem, nil
 	}
 
 	// TODO: in future, maybe, this part needs to be in DB table

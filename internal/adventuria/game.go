@@ -130,6 +130,14 @@ func (g *Game) Move(n int, userId string) (*core.Record, *core.Record, error) {
 		return nil, nil, err
 	}
 
+	// Every lap gives one item wheel
+	prevCellNum := cellsPassed % g.cells.Count()
+	lapsPassed := (prevCellNum + n) / g.cells.Count()
+	// Check if we're not moving backwards and passed new lap(-s)
+	if n > 0 && lapsPassed > 0 {
+		user.Set("itemWheelsCount", user.ItemWheelsCount()+lapsPassed)
+	}
+
 	user.Set("cellsPassed", cellsPassed+n)
 	err = user.Save()
 	if err != nil {
@@ -493,6 +501,14 @@ func (g *Game) RollItem(userId string) (string, error) {
 	// If item doesn't have any effect, we don't need to store it to inventory.
 	if len(item.GetStringSlice("effects")) > 0 {
 		user.Inventory.MustAddItem(item.Id)
+	}
+
+	if user.ItemWheelsCount() > 0 {
+		user.Set("itemWheelsCount", user.ItemWheelsCount()-1)
+		err = user.Save()
+		if err != nil {
+			return "", err
+		}
 	}
 
 	effects, err := user.Inventory.ApplyEffects(ItemUseOnRollItem)
