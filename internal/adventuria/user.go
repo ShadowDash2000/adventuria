@@ -202,7 +202,7 @@ func (u *User) GetNextStepType() (string, error) {
 	}
 
 	if cantChooseAfterDrop && lastActionType == ActionTypeDrop {
-		return ActionTypeDrop, nil
+		return ActionTypeRoll, nil
 	}
 
 	// TODO: in future, maybe, this part needs to be in DB table
