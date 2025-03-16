@@ -12,14 +12,12 @@ import (
 
 type Settings struct {
 	core.BaseRecordProxy
-	app  core.App
-	cols *collections.Collections
+	gc *GameComponents
 }
 
-func NewSettings(cols *collections.Collections, app core.App) *Settings {
+func NewSettings(gc *GameComponents) *Settings {
 	s := &Settings{
-		app:  app,
-		cols: cols,
+		gc: gc,
 	}
 
 	s.init()
@@ -46,18 +44,18 @@ func DefaultSettings(cols *collections.Collections) (*core.Record, error) {
 }
 
 func (s *Settings) bindHooks() {
-	s.app.OnRecordAfterCreateSuccess(TableSettings).BindFunc(func(e *core.RecordEvent) error {
+	s.gc.app.OnRecordAfterCreateSuccess(TableSettings).BindFunc(func(e *core.RecordEvent) error {
 		s.SetProxyRecord(e.Record)
 		return e.Next()
 	})
-	s.app.OnRecordAfterUpdateSuccess(TableSettings).BindFunc(func(e *core.RecordEvent) error {
+	s.gc.app.OnRecordAfterUpdateSuccess(TableSettings).BindFunc(func(e *core.RecordEvent) error {
 		s.SetProxyRecord(e.Record)
 		return e.Next()
 	})
 }
 
 func (s *Settings) init() error {
-	record, err := s.app.FindFirstRecordByFilter(
+	record, err := s.gc.app.FindFirstRecordByFilter(
 		TableSettings,
 		"",
 	)
@@ -68,13 +66,13 @@ func (s *Settings) init() error {
 	if record != nil {
 		s.SetProxyRecord(record)
 	} else {
-		record, err = DefaultSettings(s.cols)
+		record, err = DefaultSettings(s.gc.cols)
 		if err != nil {
 			return err
 		}
 
 		s.SetProxyRecord(record)
-		err = s.app.Save(s)
+		err = s.gc.app.Save(s)
 		if err != nil {
 			return err
 		}
@@ -146,21 +144,21 @@ func (s *Settings) checkActionsBlock() func(*core.RequestEvent) error {
 }
 
 func (s *Settings) RegisterSettingsCron() {
-	s.app.Cron().MustAdd("settings", "* * * * *", func() {
+	s.gc.app.Cron().MustAdd("settings", "* * * * *", func() {
 		week := s.GetCurrentWeekNum()
 		if s.CurrentWeek() == week {
 			return
 		}
 
 		s.SetCurrentWeek(week)
-		err := s.app.Save(s)
+		err := s.gc.app.Save(s)
 		if err != nil {
-			s.app.Logger().Error("save settings failed", "err", err)
+			s.gc.app.Logger().Error("save settings failed", "err", err)
 		}
 
-		err = ResetAllTimers(s.TimerTimeLimit(), s.LimitExceedPenalty(), s.app)
+		err = ResetAllTimers(s.TimerTimeLimit(), s.LimitExceedPenalty(), s.gc.app)
 		if err != nil {
-			s.app.Logger().Error("failed to clear timers", "err", err)
+			s.gc.app.Logger().Error("failed to clear timers", "err", err)
 		}
 	})
 }

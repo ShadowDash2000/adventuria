@@ -1,7 +1,6 @@
 package adventuria
 
 import (
-	"adventuria/pkg/collections"
 	"database/sql"
 	"errors"
 	"github.com/pocketbase/dbx"
@@ -12,11 +11,11 @@ import (
 
 type Timer struct {
 	core.BaseRecordProxy
-	app core.App
+	gc *GameComponents
 }
 
-func NewTimer(userId string, settings *Settings, cols *collections.Collections, app core.App) (*Timer, error) {
-	record, err := app.FindFirstRecordByFilter(
+func NewTimer(userId string, gc *GameComponents) (*Timer, error) {
+	record, err := gc.app.FindFirstRecordByFilter(
 		TableTimers,
 		"user.id = {:userId}",
 		dbx.Params{"userId": userId},
@@ -27,10 +26,10 @@ func NewTimer(userId string, settings *Settings, cols *collections.Collections, 
 
 	timer := &Timer{}
 	if record != nil {
-		timer.app = app
+		timer.gc = gc
 		timer.SetProxyRecord(record)
 	} else {
-		timer, err = CreateTimer(userId, settings.TimerTimeLimit(), cols, app)
+		timer, err = CreateTimer(userId, gc.Settings.TimerTimeLimit(), gc)
 		if err != nil {
 			return nil, err
 		}
@@ -42,13 +41,13 @@ func NewTimer(userId string, settings *Settings, cols *collections.Collections, 
 }
 
 func (t *Timer) bindHooks() {
-	t.app.OnRecordAfterUpdateSuccess(TableTimers).BindFunc(func(e *core.RecordEvent) error {
+	t.gc.app.OnRecordAfterUpdateSuccess(TableTimers).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.GetString("user") == t.UserId() {
 			t.SetProxyRecord(e.Record)
 		}
 		return e.Next()
 	})
-	t.app.OnRecordAfterDeleteSuccess(TableTimers).BindFunc(func(e *core.RecordEvent) error {
+	t.gc.app.OnRecordAfterDeleteSuccess(TableTimers).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == t.Id {
 			t.SetProxyRecord(nil)
 		}
@@ -67,7 +66,7 @@ func (t *Timer) Start() error {
 	t.SetIsActive(true)
 	t.SetStartTime(types.NowDateTime())
 
-	return t.app.Save(t)
+	return t.gc.app.Save(t)
 }
 
 func (t *Timer) Stop() error {
@@ -79,7 +78,7 @@ func (t *Timer) Stop() error {
 	timePassed := t.TimePassed() + time.Now().Sub(t.StartTime().Time())
 	t.SetTimePassed(timePassed)
 
-	return t.app.Save(t)
+	return t.gc.app.Save(t)
 }
 
 // GetTimeLeft returns time.Duration in seconds
@@ -133,23 +132,23 @@ func (t *Timer) SetStartTime(time types.DateTime) {
 
 func (t *Timer) AddSecondsTimeLimit(secs int) error {
 	t.SetTimeLimit(t.TimeLimit() + (time.Duration(secs) * time.Second))
-	return t.app.Save(t)
+	return t.gc.app.Save(t)
 }
 
-func CreateTimer(userId string, timeLimit int, cols *collections.Collections, app core.App) (*Timer, error) {
-	collection, err := cols.Get(TableTimers)
+func CreateTimer(userId string, timeLimit int, gc *GameComponents) (*Timer, error) {
+	collection, err := gc.cols.Get(TableTimers)
 	if err != nil {
 		return nil, err
 	}
 
 	timer := &Timer{}
-	timer.app = app
+	timer.gc = gc
 	timer.SetProxyRecord(core.NewRecord(collection))
 	timer.Set("user", userId)
 	timer.Set("timeLimit", timeLimit)
 	timer.Set("timePassed", 0)
 	timer.Set("isActive", false)
-	err = app.Save(timer)
+	err = gc.app.Save(timer)
 	if err != nil {
 		return nil, err
 	}

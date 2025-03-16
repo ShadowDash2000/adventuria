@@ -8,7 +8,7 @@ import (
 )
 
 type Cells struct {
-	app           core.App
+	gc            *GameComponents
 	cells         *cache.MemoryCache[string, *core.Record]
 	cellsByCode   *cache.MemoryCache[string, *core.Record]
 	cellsOrder    []string
@@ -16,9 +16,9 @@ type Cells struct {
 	mx            sync.Mutex
 }
 
-func NewCells(app core.App) *Cells {
+func NewCells(gc *GameComponents) *Cells {
 	cells := &Cells{
-		app:         app,
+		gc:          gc,
 		cells:       cache.NewMemoryCache[string, *core.Record](0, true),
 		cellsByCode: cache.NewMemoryCache[string, *core.Record](0, true),
 	}
@@ -30,17 +30,17 @@ func NewCells(app core.App) *Cells {
 }
 
 func (c *Cells) bindHooks() {
-	c.app.OnRecordAfterCreateSuccess(TableCells).BindFunc(func(e *core.RecordEvent) error {
+	c.gc.app.OnRecordAfterCreateSuccess(TableCells).BindFunc(func(e *core.RecordEvent) error {
 		c.add(e.Record)
 		c.sort()
 		return e.Next()
 	})
-	c.app.OnRecordAfterUpdateSuccess(TableCells).BindFunc(func(e *core.RecordEvent) error {
+	c.gc.app.OnRecordAfterUpdateSuccess(TableCells).BindFunc(func(e *core.RecordEvent) error {
 		c.add(e.Record)
 		c.sort()
 		return e.Next()
 	})
-	c.app.OnRecordAfterDeleteSuccess(TableCells).BindFunc(func(e *core.RecordEvent) error {
+	c.gc.app.OnRecordAfterDeleteSuccess(TableCells).BindFunc(func(e *core.RecordEvent) error {
 		c.delete(e.Record)
 		c.sort()
 		return e.Next()
@@ -51,7 +51,7 @@ func (c *Cells) fetch() error {
 	c.cells.Clear()
 	c.cellsByCode.Clear()
 
-	cells, err := c.app.FindRecordsByFilter(
+	cells, err := c.gc.app.FindRecordsByFilter(
 		TableCells,
 		"",
 		"sort",

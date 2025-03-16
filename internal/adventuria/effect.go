@@ -37,37 +37,60 @@ const (
 )
 
 var (
-	EffectsKindList = map[string]EffectKind{
-		EffectTypeNothing:          Int,
-		EffectTypePointsIncrement:  Int,
-		EffectTypeJailEscape:       Bool,
-		EffectTypeDiceMultiplier:   Int,
-		EffectTypeDiceIncrement:    Int,
-		EffectTypeChangeDices:      Slice,
-		EffectTypeSafeDrop:         Bool,
-		EffectTypeTimerIncrement:   Int,
-		EffectTypeRollReverse:      Bool,
-		EffectTypeDropInventory:    Bool,
-		EffectTypeCellPointsDivide: Int,
-	}
+	EffectKindInt IEffect = &EffectInt{Effect{
+		kind: Int,
+	}}
+	EffectKindBool IEffect = &EffectBool{Effect{
+		kind: Bool,
+	}}
+	EffectKindSlice IEffect = &EffectSlice{Effect{
+		kind: Slice,
+	}}
 )
+
+var EffectsKindList = map[string]IEffect{
+	EffectTypeNothing:          EffectKindInt,
+	EffectTypePointsIncrement:  EffectKindInt,
+	EffectTypeJailEscape:       EffectKindBool,
+	EffectTypeDiceMultiplier:   EffectKindInt,
+	EffectTypeDiceIncrement:    EffectKindInt,
+	EffectTypeChangeDices:      EffectKindSlice,
+	EffectTypeSafeDrop:         EffectKindBool,
+	EffectTypeTimerIncrement:   EffectKindInt,
+	EffectTypeRollReverse:      EffectKindBool,
+	EffectTypeDropInventory:    EffectKindBool,
+	EffectTypeCellPointsDivide: EffectKindInt,
+}
+
+type IEffect interface {
+	SetRecord(*core.Record)
+	Id() string
+	Name() string
+	Event() string
+	Kind() EffectKind
+	Type() string
+	Value() any
+}
 
 type Effect struct {
 	effect *core.Record
 	kind   EffectKind
 }
 
-func NewEffect(record *core.Record) (*Effect, error) {
-	effect := &Effect{
-		effect: record,
+func NewEffect(record *core.Record) (IEffect, error) {
+	effectType := record.GetString("type")
+	effect, ok := EffectsKindList[effectType]
+	if !ok {
+		return nil, fmt.Errorf("unknown effect type: %s", effectType)
 	}
 
-	var ok bool
-	if effect.kind, ok = EffectsKindList[effect.Type()]; !ok {
-		return nil, fmt.Errorf("unknown effect type: %s", effect.Type())
-	}
+	effect.SetRecord(record)
 
 	return effect, nil
+}
+
+func (e *Effect) SetRecord(record *core.Record) {
+	e.effect = record
 }
 
 func (e *Effect) Id() string {
@@ -90,15 +113,41 @@ func (e *Effect) Type() string {
 	return e.effect.GetString("type")
 }
 
-func (e *Effect) GetInt() int {
-	return e.effect.GetInt("value")
+func (e *Effect) Value() any {
+	return nil
 }
 
-func (e *Effect) GetSlice() []any {
-	var res []any
-	sl := e.parseString(e.effect.GetString("value"))
+func (e *Effect) parseString(s string) []string {
+	return strings.Split(s, ", ")
+}
 
-	switch e.Type() {
+type EffectInt struct {
+	Effect
+}
+
+func (ei *EffectInt) Value() any {
+	return ei.effect.GetInt("value")
+}
+
+type EffectBool struct {
+	Effect
+}
+
+func (eb *EffectBool) Value() any {
+	return eb.effect.GetBool("value")
+}
+
+type EffectSlice struct {
+	Effect
+}
+
+func (ef *EffectSlice) Value() any {
+	var res []any
+	sl := ef.parseString(ef.effect.GetString("value"))
+
+	// TODO: instead of switch case here, this should be different Effect struct for different effects of type slice
+	// Or maybe, we can somehow pass a slice from which we can append elements
+	switch ef.Type() {
 	case EffectTypeChangeDices:
 		for _, v := range sl {
 			res = append(res, Dices[v])
@@ -106,8 +155,4 @@ func (e *Effect) GetSlice() []any {
 	}
 
 	return res
-}
-
-func (e *Effect) parseString(s string) []string {
-	return strings.Split(s, ", ")
 }

@@ -5,6 +5,7 @@ import (
 	"adventuria/pkg/collections"
 	"adventuria/pkg/helper"
 	"errors"
+	"github.com/AlexanderGrom/go-event"
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/tools/types"
@@ -12,28 +13,38 @@ import (
 )
 
 type Game struct {
+	GC    *GameComponents
+	cells *Cells
+	users *cache.MemoryCache[string, *User]
+}
+
+type GameComponents struct {
 	app      core.App
 	log      *Log
 	cols     *collections.Collections
 	Settings *Settings
-	cells    *Cells
-	users    *cache.MemoryCache[string, *User]
+	event    event.Dispatcher
 }
 
 func NewGame(app core.App) *Game {
 	cols := collections.NewCollections(app)
-
-	return &Game{
+	gc := &GameComponents{
 		app:   app,
 		log:   NewLog(cols, app),
 		cols:  cols,
+		event: event.New(),
+	}
+
+	return &Game{
+		GC:    gc,
 		users: cache.NewMemoryCache[string, *User](0, true),
 	}
 }
 
 func (g *Game) Init() {
-	g.Settings = NewSettings(g.cols, g.app)
-	g.cells = NewCells(g.app)
+	g.GC.Settings = NewSettings(g.GC)
+	g.cells = NewCells(g.GC)
+	g.bindEvents()
 }
 
 func (g *Game) GetUser(userId string) (*User, error) {
@@ -42,7 +53,7 @@ func (g *Game) GetUser(userId string) (*User, error) {
 		return user, nil
 	}
 
-	user, err := NewUser(userId, g.cells, g.Settings, g.log, g.cols, g.app)
+	user, err := NewUser(userId, g.cells, g.GC)
 	if err != nil {
 		return nil, err
 	}
@@ -73,20 +84,12 @@ func (g *Game) ChooseGame(game string, userId string) error {
 	record.Set("cell", currentCell.Id)
 	record.Set("type", ActionTypeChooseGame)
 	record.Set("value", game)
-	err = g.app.Save(record)
+	err = g.GC.app.Save(record)
 	if err != nil {
 		return err
 	}
 
-	effects, err := user.Inventory.ApplyEffects(ItemUseOnChooseGame)
-	if err != nil {
-		return err
-	}
-
-	err = g.ApplyGenericEffects(effects, user)
-	if err != nil {
-		return err
-	}
+	g.GC.event.Go(OnAfterChooseGame, user)
 
 	return nil
 }
@@ -111,7 +114,7 @@ func (g *Game) Move(n int, userId string) (*core.Record, *core.Record, error) {
 		return nil, nil, err
 	}
 
-	actionsCollection, err := g.cols.Get(TableActions)
+	actionsCollection, err := g.GC.cols.Get(TableActions)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -125,7 +128,7 @@ func (g *Game) Move(n int, userId string) (*core.Record, *core.Record, error) {
 	record.Set("cell", currentCell.Id)
 	record.Set("value", n)
 	record.Set("type", ActionTypeRoll)
-	err = g.app.Save(record)
+	err = g.GC.app.Save(record)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -175,13 +178,12 @@ func (g *Game) Reroll(comment string, userId string) error {
 	record.Set("type", ActionTypeReroll)
 	record.Set("comment", comment)
 	record.Set("value", user.lastAction.GetString("value"))
-	err = g.app.Save(record)
+	err = g.GC.app.Save(record)
 	if err != nil {
 		return err
 	}
 
-	user.Stats.Rerolls++
-	user.Save()
+	g.GC.event.Go(OnAfterReroll, user)
 
 	return nil
 }
@@ -201,10 +203,8 @@ func (g *Game) Roll(userId string) (int, []int, *core.Record, error) {
 		return 0, nil, nil, errors.New("next step isn't roll")
 	}
 
-	effects, err := user.Inventory.ApplyEffects(ItemUseOnRoll)
-	if err != nil {
-		return 0, nil, nil, err
-	}
+	effects := &Effects{}
+	g.GC.event.Go(OnBeforeRoll, user, effects)
 
 	var dices []Dice
 	n := 0
@@ -232,16 +232,9 @@ func (g *Game) Roll(userId string) (int, []int, *core.Record, error) {
 
 	_, currentCell, err := g.Move(n, userId)
 
-	err = g.ApplyGenericEffects(effects, user)
-	if err != nil {
-		return n, diceRolls, currentCell, err
-	}
-
-	user.Stats.DiceRolls++
-	if n > user.Stats.MaxDiceRoll {
-		user.Stats.MaxDiceRoll = n
-	}
-	user.Save()
+	g.GC.event.Go(OnAfterRoll, user, &RollResult{
+		n: n,
+	})
 
 	return n, diceRolls, currentCell, nil
 }
@@ -268,15 +261,8 @@ func (g *Game) Drop(comment string, userId string) error {
 		return errors.New("can't drop on this cell")
 	}
 
-	effects, err := user.Inventory.ApplyEffects(ItemUseOnDrop)
-	if err != nil {
-		return err
-	}
-
-	err = g.ApplyGenericEffects(effects, user)
-	if err != nil {
-		return err
-	}
+	effects := &Effects{}
+	g.GC.event.Go(OnBeforeDrop, user, effects)
 
 	record := core.NewRecord(user.lastAction.Collection())
 	record.Set("user", userId)
@@ -284,13 +270,13 @@ func (g *Game) Drop(comment string, userId string) error {
 	record.Set("type", ActionTypeDrop)
 	record.Set("comment", comment)
 	record.Set("value", user.lastAction.GetString("value"))
-	err = g.app.Save(record)
+	err = g.GC.app.Save(record)
 	if err != nil {
 		return err
 	}
 
 	if !effects.IsSafeDrop && !currentCell.GetBool("isSafeDrop") {
-		user.Set("points", user.Points()+g.Settings.PointsForDrop())
+		user.Set("points", user.Points()+g.GC.Settings.PointsForDrop())
 		user.Set("dropsInARow", user.DropsInARow()+1)
 
 		err = user.Save()
@@ -305,8 +291,7 @@ func (g *Game) Drop(comment string, userId string) error {
 		}
 	}
 
-	user.Stats.Drops++
-	user.Save()
+	g.GC.event.Go(OnAfterDrop, user)
 
 	return nil
 }
@@ -326,10 +311,8 @@ func (g *Game) Done(comment string, userId string) error {
 		return errors.New("next step isn't choose result")
 	}
 
-	effects, err := user.Inventory.ApplyEffects(ItemUseOnChooseResult)
-	if err != nil {
-		return err
-	}
+	effects := &Effects{}
+	g.GC.event.Go(OnBeforeDone, user, effects)
 
 	currentCell, _ := user.CurrentCell()
 
@@ -339,12 +322,10 @@ func (g *Game) Done(comment string, userId string) error {
 	record.Set("type", nextStepType)
 	record.Set("comment", comment)
 	record.Set("value", user.lastAction.GetString("value"))
-	err = g.app.Save(record)
+	err = g.GC.app.Save(record)
 	if err != nil {
 		return err
 	}
-
-	user.Stats.Finished++
 
 	cellPoints := currentCell.GetInt("points")
 	if effects.CellPointsDivide != 0 {
@@ -359,10 +340,7 @@ func (g *Game) Done(comment string, userId string) error {
 		return err
 	}
 
-	err = g.ApplyGenericEffects(effects, user)
-	if err != nil {
-		return err
-	}
+	g.GC.event.Go(OnAfterDone, user)
 
 	return nil
 }
@@ -395,11 +373,12 @@ func (g *Game) GoToJail(userId string) error {
 	}
 
 	user.Set("isInJail", true)
-	user.Stats.WasInJail++
 	err = user.Save()
 	if err != nil {
 		return err
 	}
+
+	g.GC.event.Go(OnAfterGoToJail, user)
 
 	return nil
 }
@@ -441,13 +420,12 @@ func (g *Game) RollCell(userId string) (string, error) {
 	record.Set("cell", user.lastAction.GetString("cell"))
 	record.Set("type", ActionTypeRollCell)
 	record.Set("value", cell.GetString("name"))
-	err = g.app.Save(record)
+	err = g.GC.app.Save(record)
 	if err != nil {
 		return "", err
 	}
 
-	user.Stats.WheelRolled++
-	user.Save()
+	g.GC.event.Go(OnAfterWheelRoll, user)
 
 	return cell.Id, nil
 }
@@ -467,7 +445,7 @@ func (g *Game) RollItem(userId string) (string, error) {
 		return "", errors.New("next step isn't roll item")
 	}
 
-	items, err := g.app.FindRecordsByFilter(
+	items, err := g.GC.app.FindRecordsByFilter(
 		TableItems,
 		"isRollable = true",
 		"",
@@ -491,7 +469,7 @@ func (g *Game) RollItem(userId string) (string, error) {
 	record.Set("cell", currentCell.Id)
 	record.Set("type", ActionTypeRollItem)
 	record.Set("value", item.GetString("name"))
-	err = g.app.Save(record)
+	err = g.GC.app.Save(record)
 	if err != nil {
 		return "", err
 	}
@@ -511,18 +489,8 @@ func (g *Game) RollItem(userId string) (string, error) {
 		}
 	}
 
-	effects, err := user.Inventory.ApplyEffects(ItemUseOnRollItem)
-	if err != nil {
-		return "", err
-	}
-
-	err = g.ApplyGenericEffects(effects, user)
-	if err != nil {
-		return "", err
-	}
-
-	user.Stats.WheelRolled++
-	user.Save()
+	g.GC.event.Go(OnAfterItemRoll, user)
+	g.GC.event.Go(OnAfterWheelRoll, user)
 
 	return item.Id, nil
 }
@@ -544,7 +512,7 @@ func (g *Game) RollWheelPreset(userId string) (string, error) {
 
 	currentCell, _ := user.CurrentCell()
 
-	wheelItems, err := g.app.FindRecordsByFilter(
+	wheelItems, err := g.GC.app.FindRecordsByFilter(
 		TableWheelItems,
 		"presets.id = {:presetId}",
 		"",
@@ -569,13 +537,12 @@ func (g *Game) RollWheelPreset(userId string) (string, error) {
 	record.Set("cell", currentCell.Id)
 	record.Set("type", ActionTypeRollWheelPreset)
 	record.Set("value", item.GetString("name"))
-	err = g.app.Save(record)
+	err = g.GC.app.Save(record)
 	if err != nil {
 		return "", err
 	}
 
-	user.Stats.WheelRolled++
-	user.Save()
+	g.GC.event.Go(OnAfterWheelRoll, user)
 
 	return item.Id, nil
 }
@@ -591,52 +558,7 @@ func (g *Game) UseItem(userId, itemId string) error {
 		return err
 	}
 
-	effects, err := user.Inventory.ApplyEffects(ItemUseInstant)
-	if err != nil {
-		return err
-	}
-
-	err = g.ApplyGenericEffects(effects, user)
-	if err != nil {
-		return err
-	}
-
-	user.Stats.ItemsUsed++
-	user.Save()
-
-	return nil
-}
-
-func (g *Game) ApplyGenericEffects(effects *Effects, user *User) error {
-	if effects.PointsIncrement != 0 {
-		user.Set("points", user.Points()+effects.PointsIncrement)
-		err := user.Save()
-		if err != nil {
-			return err
-		}
-	}
-
-	if effects.TimerIncrement != 0 {
-		err := user.Timer.AddSecondsTimeLimit(effects.TimerIncrement)
-		if err != nil {
-			return err
-		}
-	}
-
-	if effects.JailEscape {
-		user.Set("isInJail", false)
-		err := user.Save()
-		if err != nil {
-			return err
-		}
-	}
-
-	if effects.DropInventory {
-		err := user.Inventory.DropInventory()
-		if err != nil {
-			return err
-		}
-	}
+	g.GC.event.Go(OnAfterItemUse, user)
 
 	return nil
 }
@@ -679,5 +601,5 @@ func (g *Game) GetTimeLeft(userId string) (time.Duration, bool, types.DateTime, 
 		return 0, false, types.DateTime{}, err
 	}
 
-	return user.Timer.GetTimeLeft(), user.Timer.IsActive(), g.Settings.NextTimerResetDate(), nil
+	return user.Timer.GetTimeLeft(), user.Timer.IsActive(), g.GC.Settings.NextTimerResetDate(), nil
 }

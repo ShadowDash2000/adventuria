@@ -27,7 +27,7 @@ func main() {
 		gs.GET("/{path...}", apis.Static(os.DirFS("./static"), false))
 
 		g := se.Router.Group("/api")
-		g.Bind(game.Settings.CheckActionsBlock(), apis.RequireAuth())
+		g.Bind(game.GC.Settings.CheckActionsBlock(), apis.RequireAuth())
 
 		g.POST("/roll", handlers.RollHandler)
 		g.POST("/choose-game", handlers.ChooseGameHandler)

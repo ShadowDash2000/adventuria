@@ -18,20 +18,20 @@ type Effects struct {
 }
 
 type Item struct {
-	app     core.App
+	gc      *GameComponents
 	item    *core.Record
-	effects []*Effect
+	effects []IEffect
 }
 
-func NewItem(record *core.Record, app core.App) (*Item, error) {
-	errs := app.ExpandRecord(record, []string{"effects"}, nil)
+func NewItem(record *core.Record, gc *GameComponents) (*Item, error) {
+	errs := gc.app.ExpandRecord(record, []string{"effects"}, nil)
 	if errs != nil {
 		for _, err := range errs {
 			return nil, err
 		}
 	}
 
-	var effects []*Effect
+	var effects []IEffect
 	for _, effectRecord := range record.ExpandedAll("effects") {
 		effect, err := NewEffect(effectRecord)
 		if err != nil {
@@ -42,7 +42,7 @@ func NewItem(record *core.Record, app core.App) (*Item, error) {
 	}
 
 	item := &Item{
-		app:     app,
+		gc:      gc,
 		item:    record,
 		effects: effects,
 	}
@@ -53,7 +53,7 @@ func NewItem(record *core.Record, app core.App) (*Item, error) {
 }
 
 func (i *Item) bindHooks() {
-	i.app.OnRecordAfterUpdateSuccess(TableItems).BindFunc(func(e *core.RecordEvent) error {
+	i.gc.app.OnRecordAfterUpdateSuccess(TableItems).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == i.item.Id {
 			i.item = e.Record
 		}
@@ -81,8 +81,8 @@ func (i *Item) EffectsCount() int {
 	return len(i.effects)
 }
 
-func (i *Item) GetEffectsByEvent(event string) []*Effect {
-	var effects []*Effect
+func (i *Item) GetEffectsByEvent(event string) []IEffect {
+	var effects []IEffect
 	for _, e := range i.effects {
 		if e.Event() == event {
 			effects = append(effects, e)
