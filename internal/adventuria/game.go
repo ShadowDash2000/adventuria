@@ -221,6 +221,8 @@ func (g *Game) Roll(userId string) (int, []int, *core.Record, error) {
 		n += diceRolls[i]
 	}
 
+	// TODO: need to get rid of the logic like this in Game struct
+	// actually, all modifiers should be observers responsibility
 	if effects.DiceMultiplier > 0 {
 		n *= effects.DiceMultiplier
 	}
@@ -474,13 +476,12 @@ func (g *Game) RollItem(userId string) (string, error) {
 		return "", err
 	}
 
-	// 'Cause we have items that actually doesn't affect the game,
-	// we need to check if an item have some effects.
-	// If item doesn't have any effect, we don't need to store it to inventory.
-	if len(item.GetStringSlice("effects")) > 0 {
-		user.Inventory.MustAddItem(item.Id)
+	err = user.Inventory.MustAddItem(item.Id)
+	if err != nil {
+		return "", err
 	}
 
+	// TODO: this should be in observer
 	if user.ItemWheelsCount() > 0 {
 		user.Set("itemWheelsCount", user.ItemWheelsCount()-1)
 		err = user.Save()
