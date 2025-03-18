@@ -52,11 +52,27 @@ export default class Timer {
         }
     }
 
+    static async fetchUserTimeLeft(userId) {
+        const res = await fetch(`/api/timer/left/${userId}`, {
+            method: "GET",
+        });
+
+        const data = await res.json();
+
+        const time = data.time < 0 ? Math.abs(data.time) : data.time;
+
+        return this.formatSecondsToString(time, data.time < 0);
+    }
+
+    static formatSecondsToString(time, isNegative) {
+        let hours = String(Math.floor(time / 3600)).padStart(2, '0');
+        let minutes = String(Math.floor((time % 3600) / 60)).padStart(2, '0');
+        let seconds = String(time % 60).padStart(2, '0');
+        return (isNegative ? '-' : '') + `${hours}:${minutes}:${seconds}`;
+    }
+
     updateDisplay() {
-        let hours = String(Math.floor(this.remainingTime / 3600)).padStart(2, '0');
-        let minutes = String(Math.floor((this.remainingTime % 3600) / 60)).padStart(2, '0');
-        let seconds = String(this.remainingTime % 60).padStart(2, '0');
-        this.timer.textContent = (this.isNegative ? '-' : '') + `${hours}:${minutes}:${seconds}`;
+        this.timer.textContent = Timer.formatSecondsToString(this.remainingTime, this.isNegative);
 
         if (this.resetDate) {
             this.resetDate.innerText = Helper.formatDateLocalized(this.nextTimerResetDate);

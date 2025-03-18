@@ -969,6 +969,10 @@ table.users {
     margin: 1vw 0;
 }
 
+.profile-modal__timer {
+    font-size: 2vw;
+}
+
 #profile-modal .actions {
     .actions__action {
         width: 100%;

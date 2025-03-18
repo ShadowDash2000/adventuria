@@ -4,6 +4,10 @@ github.com/AlexanderGrom/go-event v0.0.0-20180406111247-a2f1486e096e h1:VGZKZCJ6
 github.com/AlexanderGrom/go-event v0.0.0-20180406111247-a2f1486e096e/go.mod h1:EDsvGVsiDX518UqAQ5Ve+zBDNZlKrh3wvYRujZmgIwo=
 github.com/ShadowDash2000/adventuria v1.0.1 h1:r7ARhKU8akjxOUqZORubpkazdsc7eI8Z89O/AZHfGJw=
 github.com/ShadowDash2000/adventuria v1.0.1/go.mod h1:v7/p7itPG803xQUP9jbSF8Ad24mTGlEhKzTSjRRZ7vI=
+github.com/ShadowDash2000/adventuria v1.0.2 h1:DQmaU1308ENRSmF6RodWlUDHfkCSKi+SZ7YN+YEP3w4=
+github.com/ShadowDash2000/adventuria v1.0.2/go.mod h1:v7/p7itPG803xQUP9jbSF8Ad24mTGlEhKzTSjRRZ7vI=
+github.com/ShadowDash2000/adventuria v1.0.3 h1:k70xOhfjcannbF0OGf7XoDAkTVXZTc41Ax84s8I+dgc=
+github.com/ShadowDash2000/adventuria v1.0.3/go.mod h1:v7/p7itPG803xQUP9jbSF8Ad24mTGlEhKzTSjRRZ7vI=
 github.com/asaskevich/govalidator v0.0.0-20200108200545-475eaeb16496/go.mod h1:oGkLhpf+kjZl6xBf758TQhh5XrAeiJv/7FRz/2spLIg=
 github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 h1:DklsrG3dyBCFEj5IhUbnKptjxatkF07cF2ak3yi77so=
 github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2/go.mod h1:WaHUgvxTVq04UNunO+XhnAqY/wQc+bxr74GqbsZ/Jqw=

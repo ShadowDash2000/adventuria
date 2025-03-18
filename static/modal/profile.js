@@ -1,5 +1,6 @@
 import {app} from "../app.js";
 import Helper from "../helper.js";
+import Timer from "../timer.js";
 
 const profileModal = document.getElementById('profile-modal');
 const profileName = profileModal.querySelector('h2');
@@ -9,6 +10,8 @@ const profileDescription = profileModal.querySelector('.profile-modal .profile-m
 const profileCellImg = profileModal.querySelector('.current-cell img');
 const profileCellName = profileModal.querySelector('.current-cell .profile-modal__name');
 const profileCellDescription = profileModal.querySelector('.current-cell .profile-modal__description');
+
+const profileTimer = profileModal.querySelector('.profile-modal__timer div');
 
 const drops = profileModal.querySelector('.profile-modal__stats .profile-modal__drops');
 const rerolls = profileModal.querySelector('.profile-modal__stats .profile-modal__rerolls');
@@ -85,6 +88,10 @@ function putUserInfoToProfile(userId) {
     profileAvatar.src = Helper.getFile('avatar', user);
     profileAvatar.style.borderColor = user.color;
     profileDescription.innerHTML = user.description;
+
+    Timer.fetchUserTimeLeft(userId).then((time) => {
+        profileTimer.innerText = time;
+    });
 
     profileCellImg.src = Helper.getFile('icon', currentCell, {'thumb': '250x0'});
     profileCellName.innerText = currentCell.name;

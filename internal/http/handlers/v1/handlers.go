@@ -279,3 +279,21 @@ func (h *Handlers) GetTimeLeftHandler(e *core.RequestEvent) error {
 
 	return nil
 }
+
+func (h *Handlers) GetTimeLeftByUserHandler(e *core.RequestEvent) error {
+	userId := e.Request.PathValue("userId")
+
+	time, isActive, nextTimerResetDate, err := h.Game.GetTimeLeft(userId)
+	if err != nil {
+		e.JSON(http.StatusInternalServerError, err.Error())
+		return err
+	}
+
+	e.JSON(http.StatusOK, map[string]interface{}{
+		"time":               time,
+		"isActive":           isActive,
+		"nextTimerResetDate": nextTimerResetDate,
+	})
+
+	return nil
+}

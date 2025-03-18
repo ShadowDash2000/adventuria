@@ -26,29 +26,37 @@ func main() {
 		gs.GET("/{path...}", apis.Static(os.DirFS("./static"), false))
 
 		g := se.Router.Group("/api")
-		g.Bind(game.Settings().CheckActionsBlock(), apis.RequireAuth())
 
-		g.POST("/roll", handlers.RollHandler)
-		g.POST("/choose-game", handlers.ChooseGameHandler)
+		g.GET("/timer/left/{userId}", handlers.GetTimeLeftByUserHandler)
 
-		g.GET("/get-next-step-type", handlers.GetNextStepTypeHandler)
-		g.GET("/get-last-action", handlers.GetLastActionHandler)
-		g.GET("/get-roll-effects", handlers.GetRollEffectsHandler)
+		ga := g.Group("")
+		ga.Bind(apis.RequireAuth())
 
-		g.POST("/reroll", handlers.RerollHandler)
-		g.POST("/drop", handlers.DropHandler)
-		g.POST("/done", handlers.DoneHandler)
+		ga.GET("/timer/left", handlers.GetTimeLeftHandler)
 
-		g.POST("/roll-cell", handlers.RollCellHandler)
-		g.POST("/roll-wheel-preset", handlers.RollWheelPresetHandler)
-		g.POST("/roll-item", handlers.RollItemHandler)
+		gab := ga.Group("")
+		gab.Bind(game.Settings().CheckActionsBlock())
 
-		g.POST("/use-item", handlers.UseItemHandler)
-		g.POST("/drop-item", handlers.DropItemHandler)
+		gab.POST("/roll", handlers.RollHandler)
+		gab.POST("/choose-game", handlers.ChooseGameHandler)
 
-		g.POST("/timer/start", handlers.StartTimerHandler)
-		g.POST("/timer/stop", handlers.StopTimerHandler)
-		g.GET("/timer/left", handlers.GetTimeLeftHandler)
+		gab.GET("/get-next-step-type", handlers.GetNextStepTypeHandler)
+		gab.GET("/get-last-action", handlers.GetLastActionHandler)
+		gab.GET("/get-roll-effects", handlers.GetRollEffectsHandler)
+
+		gab.POST("/reroll", handlers.RerollHandler)
+		gab.POST("/drop", handlers.DropHandler)
+		gab.POST("/done", handlers.DoneHandler)
+
+		gab.POST("/roll-cell", handlers.RollCellHandler)
+		gab.POST("/roll-wheel-preset", handlers.RollWheelPresetHandler)
+		gab.POST("/roll-item", handlers.RollItemHandler)
+
+		gab.POST("/use-item", handlers.UseItemHandler)
+		gab.POST("/drop-item", handlers.DropItemHandler)
+
+		gab.POST("/timer/start", handlers.StartTimerHandler)
+		gab.POST("/timer/stop", handlers.StopTimerHandler)
 
 		return se.Next()
 	})
