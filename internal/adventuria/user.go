@@ -3,15 +3,13 @@ package adventuria
 import (
 	"encoding/json"
 	"errors"
-	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
 )
 
 type User struct {
+	core.BaseRecordProxy
 	gc         *GameComponents
-	userId     string
-	user       *core.Record
-	lastAction *core.Record
+	lastAction Action
 	Inventory  *Inventory
 	cells      *Cells
 	Timer      *Timer
@@ -41,23 +39,22 @@ func NewUser(userId string, cells *Cells, gc *GameComponents) (*User, error) {
 	}
 
 	u := &User{
-		gc:     gc,
-		userId: userId,
-		cells:  cells,
-		Timer:  timer,
+		gc:    gc,
+		cells: cells,
+		Timer: timer,
 	}
 
-	err = u.fetchUser()
+	err = u.fetchUser(userId)
 	if err != nil {
 		return nil, err
 	}
 
-	err = u.fetchUserAction()
+	u.lastAction, err = NewLastUserAction(userId, u.gc)
 	if err != nil {
 		return nil, err
 	}
 
-	u.Inventory, err = NewInventory(userId, u.user.GetInt("maxInventorySlots"), gc)
+	u.Inventory, err = NewInventory(userId, u.MaxInventorySlots(), gc)
 	if err != nil {
 		return nil, err
 	}
@@ -68,77 +65,45 @@ func NewUser(userId string, cells *Cells, gc *GameComponents) (*User, error) {
 }
 
 func (u *User) bindHooks() {
-	u.gc.app.OnRecordAfterCreateSuccess(TableActions).BindFunc(func(e *core.RecordEvent) error {
-		userId := e.Record.GetString("user")
-		if userId == u.userId {
-			u.lastAction = e.Record
-		}
-		return e.Next()
-	})
-	u.gc.app.OnRecordAfterUpdateSuccess(TableActions).BindFunc(func(e *core.RecordEvent) error {
-		if e.Record.Id == u.lastAction.Id {
-			u.lastAction = e.Record
-		}
-		return e.Next()
-	})
-	u.gc.app.OnRecordAfterDeleteSuccess(TableActions).BindFunc(func(e *core.RecordEvent) error {
-		userId := e.Record.GetString("user")
-		if userId == u.userId {
-			u.fetchUserAction()
-		}
-		return e.Next()
-	})
 	u.gc.app.OnRecordAfterUpdateSuccess(TableUsers).BindFunc(func(e *core.RecordEvent) error {
-		if e.Record.Id == u.userId {
-			u.user = e.Record
-			u.Inventory.SetMaxSlots(e.Record.GetInt("maxInventorySlots"))
-			u.user.UnmarshalJSONField("stats", &u.Stats)
+		if e.Record.Id == u.Id {
+			u.SetProxyRecord(e.Record)
+			u.Inventory.SetMaxSlots(u.MaxInventorySlots())
+			u.UnmarshalJSONField("stats", &u.Stats)
 		}
 		return e.Next()
 	})
 }
 
-func (u *User) fetchUser() error {
-	var err error
-	u.user, err = u.gc.app.FindRecordById(TableUsers, u.userId)
+func (u *User) fetchUser(userId string) error {
+	user, err := u.gc.app.FindRecordById(TableUsers, userId)
 	if err != nil {
 		return err
 	}
 
-	u.user.UnmarshalJSONField("stats", &u.Stats)
-
-	return nil
-}
-
-func (u *User) fetchUserAction() error {
-	actions, err := u.gc.app.FindRecordsByFilter(
-		TableActions,
-		"user.id = {:userId}",
-		"-created",
-		1,
-		0,
-		dbx.Params{"userId": u.userId},
-	)
-	if err != nil {
-		return err
-	}
-
-	if len(actions) > 0 {
-		u.lastAction = actions[0]
-	}
+	u.SetProxyRecord(user)
+	u.UnmarshalJSONField("stats", &u.Stats)
 
 	return nil
 }
 
 func (u *User) IsSafeDrop() bool {
-	return u.DropsInARow() < u.gc.Settings.DropsToJail()
+	return u.DropsInARow() < u.gc.settings.DropsToJail()
+}
+
+func (u *User) SetIsSafeDrop(b bool) {
+	u.Set("isSafeDrop", b)
 }
 
 func (u *User) IsInJail() bool {
-	return u.user.GetBool("isInJail")
+	return u.GetBool("isInJail")
 }
 
-func (u *User) CurrentCell() (*core.Record, bool) {
+func (u *User) SetIsInJail(b bool) {
+	u.Set("isInJail", b)
+}
+
+func (u *User) CurrentCell() (*Cell, bool) {
 	cellsPassed := u.CellsPassed()
 	currentCellNum := cellsPassed % u.cells.Count()
 
@@ -146,30 +111,96 @@ func (u *User) CurrentCell() (*core.Record, bool) {
 }
 
 func (u *User) Points() int {
-	return u.user.GetInt("points")
+	return u.GetInt("points")
+}
+
+func (u *User) SetPoints(points int) {
+	u.Set("points", points)
 }
 
 func (u *User) DropsInARow() int {
-	return u.user.GetInt("dropsInARow")
+	return u.GetInt("dropsInARow")
+}
+
+func (u *User) SetDropsInARow(drops int) {
+	u.Set("dropsInARow", drops)
 }
 
 func (u *User) CellsPassed() int {
-	return u.user.GetInt("cellsPassed")
+	return u.GetInt("cellsPassed")
+}
+
+func (u *User) SetCellsPassed(cellsPassed int) {
+	u.Set("cellsPassed", cellsPassed)
+}
+
+func (u *User) MaxInventorySlots() int {
+	return u.GetInt("maxInventorySlots")
+}
+
+func (u *User) SetMaxInventorySlots(maxInventorySlots int) {
+	u.Set("maxInventorySlots", maxInventorySlots)
 }
 
 func (u *User) ItemWheelsCount() int {
-	return u.user.GetInt("itemWheelsCount")
+	return u.GetInt("itemWheelsCount")
 }
 
-func (u *User) Set(key string, value any) {
-	u.user.Set(key, value)
+func (u *User) SetItemWheelsCount(itemWheelsCount int) {
+	u.Set("itemWheelsCount", itemWheelsCount)
 }
 
 func (u *User) Save() error {
 	statsJson, _ := json.Marshal(u.Stats)
-	u.user.Set("stats", string(statsJson))
+	u.Set("stats", string(statsJson))
 
-	return u.gc.app.Save(u.user)
+	return u.gc.app.Save(u)
+}
+
+func (u *User) Move(n int) (Action, *Cell, error) {
+	cellsPassed := u.CellsPassed()
+	currentCellNum := (cellsPassed + n) % u.cells.Count()
+	currentCell, _ := u.cells.GetByOrder(currentCellNum)
+
+	action := NewAction(u.Id, ActionTypeRoll, u.gc)
+	action.SetCell(currentCell.Id)
+	action.SetValue(n)
+	err := action.Save()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// Every lap gives one item wheel
+	prevCellNum := cellsPassed % u.cells.Count()
+	lapsPassed := (prevCellNum + n) / u.cells.Count()
+	// Check if we're not moving backwards and passed new lap(-s)
+	if n > 0 && lapsPassed > 0 {
+		u.SetItemWheelsCount(u.ItemWheelsCount() + lapsPassed)
+	}
+
+	u.SetCellsPassed(cellsPassed + n)
+
+	return action, currentCell, nil
+}
+
+func (u *User) MoveToJail() error {
+	jailCellPos, ok := u.cells.GetOrderByType(CellTypeJail)
+	if !ok {
+		return errors.New("jail cell not found")
+	}
+
+	currentCellNum := u.CellsPassed() % u.cells.Count()
+
+	_, _, err := u.Move(jailCellPos - currentCellNum)
+	if err != nil {
+		return err
+	}
+
+	u.SetIsInJail(true)
+
+	u.gc.event.Go(OnAfterGoToJail, u)
+
+	return nil
 }
 
 // GetNextStepType
@@ -182,19 +213,17 @@ func (u *User) GetNextStepType() (string, error) {
 		return ActionTypeRoll, nil
 	}
 
-	cell, ok := u.CurrentCell()
+	currentCell, ok := u.CurrentCell()
 	if !ok {
 		return nextStepType, errors.New("current cell not found")
 	}
 
-	cellType := cell.GetString("type")
-	cantChooseAfterDrop := cell.GetBool("cantChooseAfterDrop")
 	lastActionType := ""
-	if u.lastAction.GetString("cell") == cell.Id {
-		lastActionType = u.lastAction.GetString("type")
+	if u.lastAction.CellId() == currentCell.Id {
+		lastActionType = u.lastAction.Type()
 	}
 
-	if cantChooseAfterDrop && lastActionType == ActionTypeDrop {
+	if currentCell.CantChooseAfterDrop() && lastActionType == ActionTypeDrop {
 		return ActionTypeRoll, nil
 	}
 
@@ -203,7 +232,7 @@ func (u *User) GetNextStepType() (string, error) {
 	}
 
 	// TODO: in future, maybe, this part needs to be in DB table
-	switch cellType {
+	switch currentCell.Type() {
 	case CellTypeGame:
 		switch lastActionType {
 		case ActionTypeRoll,

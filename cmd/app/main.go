@@ -1,7 +1,7 @@
 package main
 
 import (
-	"adventuria/internal/adventuria"
+	"adventuria/internal/adventuria2"
 	"adventuria/internal/http/handlers/v1"
 	_ "adventuria/migrations"
 	"adventuria/pkg/etag"
@@ -15,7 +15,7 @@ import (
 func main() {
 	app := pocketbase.New()
 
-	game := adventuria.NewGame(app.App)
+	game := adventuria2.NewGame(app.App)
 
 	handlers := handlers.New(game)
 
@@ -27,7 +27,7 @@ func main() {
 		gs.GET("/{path...}", apis.Static(os.DirFS("./static"), false))
 
 		g := se.Router.Group("/api")
-		g.Bind(game.GC.Settings.CheckActionsBlock(), apis.RequireAuth())
+		g.Bind(game.Settings().CheckActionsBlock(), apis.RequireAuth())
 
 		g.POST("/roll", handlers.RollHandler)
 		g.POST("/choose-game", handlers.ChooseGameHandler)

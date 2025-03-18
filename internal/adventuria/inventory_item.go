@@ -34,15 +34,15 @@ func NewInventoryItem(record *core.Record, gc *GameComponents) (*InventoryItem, 
 	return ii, nil
 }
 
-func (ii *InventoryItem) GetEffectsByEvent(event string) []IEffect {
+func (ii *InventoryItem) GetEffectsByEvent(event string) []Effect {
 	if !ii.IsActive() {
 		return nil
 	}
 
 	appliedEffects := ii.AppliedEffectsMap()
-	var effects []IEffect
+	var effects []Effect
 	for _, effect := range ii.item.GetEffectsByEvent(event) {
-		if _, ok := appliedEffects[effect.Id()]; !ok {
+		if _, ok := appliedEffects[effect.GetId()]; !ok {
 			effects = append(effects, effect)
 		}
 	}

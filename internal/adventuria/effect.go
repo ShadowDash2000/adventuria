@@ -3,6 +3,7 @@ package adventuria
 import (
 	"fmt"
 	"github.com/pocketbase/pocketbase/core"
+	"maps"
 	"strings"
 )
 
@@ -15,56 +16,18 @@ const (
 )
 
 const (
-	ItemUseInstant        = "useInstant"
-	ItemUseOnRoll         = "useOnRoll"
-	ItemUseOnReroll       = "useOnReroll"
-	ItemUseOnDrop         = "useOnDrop"
-	ItemUseOnChooseResult = "useOnChooseResult"
-	ItemUseOnChooseGame   = "useOnChooseGame"
-	ItemUseOnRollItem     = "useOnRollItem"
-
-	EffectTypeNothing          = "nothing"
-	EffectTypePointsIncrement  = "pointsIncrement"
-	EffectTypeJailEscape       = "jailEscape"
-	EffectTypeDiceMultiplier   = "diceMultiplier"
-	EffectTypeDiceIncrement    = "diceIncrement"
-	EffectTypeChangeDices      = "changeDices"
-	EffectTypeSafeDrop         = "isSafeDrop"
-	EffectTypeTimerIncrement   = "timerIncrement"
-	EffectTypeRollReverse      = "rollReverse"
-	EffectTypeDropInventory    = "dropInventory"
-	EffectTypeCellPointsDivide = "cellPointsDivide"
+	EffectUseInstant        = "useInstant"
+	EffectUseOnRoll         = "useOnRoll"
+	EffectUseOnReroll       = "useOnReroll"
+	EffectUseOnDrop         = "useOnDrop"
+	EffectUseOnChooseResult = "useOnChooseResult"
+	EffectUseOnChooseGame   = "useOnChooseGame"
+	EffectUseOnRollItem     = "useOnRollItem"
 )
 
-var (
-	EffectKindInt IEffect = &EffectInt{Effect{
-		kind: Int,
-	}}
-	EffectKindBool IEffect = &EffectBool{Effect{
-		kind: Bool,
-	}}
-	EffectKindSlice IEffect = &EffectSlice{Effect{
-		kind: Slice,
-	}}
-)
-
-var EffectsKindList = map[string]IEffect{
-	EffectTypeNothing:          EffectKindInt,
-	EffectTypePointsIncrement:  EffectKindInt,
-	EffectTypeJailEscape:       EffectKindBool,
-	EffectTypeDiceMultiplier:   EffectKindInt,
-	EffectTypeDiceIncrement:    EffectKindInt,
-	EffectTypeChangeDices:      EffectKindSlice,
-	EffectTypeSafeDrop:         EffectKindBool,
-	EffectTypeTimerIncrement:   EffectKindInt,
-	EffectTypeRollReverse:      EffectKindBool,
-	EffectTypeDropInventory:    EffectKindBool,
-	EffectTypeCellPointsDivide: EffectKindInt,
-}
-
-type IEffect interface {
-	SetRecord(*core.Record)
-	Id() string
+type Effect interface {
+	core.RecordProxy
+	GetId() string
 	Name() string
 	Event() string
 	Kind() EffectKind
@@ -72,85 +35,121 @@ type IEffect interface {
 	Value() any
 }
 
-type Effect struct {
-	effect *core.Record
-	kind   EffectKind
+type BaseEffect struct {
+	core.BaseRecordProxy
+	kind EffectKind
 }
 
-func NewEffect(record *core.Record) (IEffect, error) {
+var EffectsList = map[string]EffectCreator{}
+
+func RegisterEffects(effects map[string]EffectCreator) {
+	maps.Insert(EffectsList, maps.All(effects))
+}
+
+type EffectCreator func() Effect
+
+func NewEffect(record *core.Record) (Effect, error) {
 	effectType := record.GetString("type")
-	effect, ok := EffectsKindList[effectType]
+	effectCreator, ok := EffectsList[effectType]
 	if !ok {
 		return nil, fmt.Errorf("unknown effect type: %s", effectType)
 	}
 
-	effect.SetRecord(record)
+	effect := effectCreator()
+	effect.SetProxyRecord(record)
 
 	return effect, nil
 }
 
-func (e *Effect) SetRecord(record *core.Record) {
-	e.effect = record
+func (e *BaseEffect) GetId() string {
+	return e.Id
 }
 
-func (e *Effect) Id() string {
-	return e.effect.Id
+func (e *BaseEffect) Name() string {
+	return e.GetString("name")
 }
 
-func (e *Effect) Name() string {
-	return e.effect.GetString("name")
+func (e *BaseEffect) Event() string {
+	return e.GetString("event")
 }
 
-func (e *Effect) Event() string {
-	return e.effect.GetString("event")
-}
-
-func (e *Effect) Kind() EffectKind {
+func (e *BaseEffect) Kind() EffectKind {
 	return e.kind
 }
 
-func (e *Effect) Type() string {
-	return e.effect.GetString("type")
+func (e *BaseEffect) Type() string {
+	return e.GetString("type")
 }
 
-func (e *Effect) Value() any {
+func (e *BaseEffect) Value() any {
 	return nil
 }
 
-func (e *Effect) parseString(s string) []string {
+func (e *BaseEffect) parseString(s string) []string {
 	return strings.Split(s, ", ")
 }
 
 type EffectInt struct {
-	Effect
+	BaseEffect
+}
+
+func NewEffectInt() EffectCreator {
+	return func() Effect {
+		return &EffectInt{
+			BaseEffect: BaseEffect{
+				kind: Int,
+			},
+		}
+	}
 }
 
 func (ei *EffectInt) Value() any {
-	return ei.effect.GetInt("value")
+	return ei.GetInt("value")
 }
 
 type EffectBool struct {
-	Effect
+	BaseEffect
+}
+
+func NewEffectBool() EffectCreator {
+	return func() Effect {
+		return &EffectInt{
+			BaseEffect: BaseEffect{
+				kind: Bool,
+			},
+		}
+	}
 }
 
 func (eb *EffectBool) Value() any {
-	return eb.effect.GetBool("value")
+	return eb.GetBool("value")
 }
 
-type EffectSlice struct {
-	Effect
+type EffectSlice[T any] struct {
+	BaseEffect
+	source map[string]T
 }
 
-func (ef *EffectSlice) Value() any {
+func NewEffectSlice[T any](source map[string]T) EffectCreator {
+	return func() Effect {
+		return &EffectSlice[T]{
+			BaseEffect: BaseEffect{
+				kind: Slice,
+			},
+			source: source,
+		}
+	}
+}
+
+func (ef *EffectSlice[T]) Value() any {
 	var res []any
-	sl := ef.parseString(ef.effect.GetString("value"))
+	sl := ef.parseString(ef.GetString("value"))
 
-	// TODO: instead of switch case here, this should be different Effect struct for different effects of type slice
-	// Or maybe, we can somehow pass a slice from which we can append elements
-	switch ef.Type() {
-	case EffectTypeChangeDices:
-		for _, v := range sl {
-			res = append(res, Dices[v])
+	for _, key := range sl {
+		if srcVal, ok := ef.source[key]; ok {
+			res = append(res, srcVal)
+		} else {
+			// TODO: log error
 		}
 	}
 

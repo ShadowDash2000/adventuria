@@ -18,9 +18,15 @@ type Effects struct {
 }
 
 type Item struct {
+	core.BaseRecordProxy
 	gc      *GameComponents
-	item    *core.Record
-	effects []IEffect
+	effects []Effect
+}
+
+func NewBaseItem(record *core.Record) *Item {
+	item := &Item{}
+	item.SetProxyRecord(record)
+	return item
 }
 
 func NewItem(record *core.Record, gc *GameComponents) (*Item, error) {
@@ -31,7 +37,7 @@ func NewItem(record *core.Record, gc *GameComponents) (*Item, error) {
 		}
 	}
 
-	var effects []IEffect
+	var effects []Effect
 	for _, effectRecord := range record.ExpandedAll("effects") {
 		effect, err := NewEffect(effectRecord)
 		if err != nil {
@@ -43,10 +49,10 @@ func NewItem(record *core.Record, gc *GameComponents) (*Item, error) {
 
 	item := &Item{
 		gc:      gc,
-		item:    record,
 		effects: effects,
 	}
 
+	item.SetProxyRecord(record)
 	item.bindHooks()
 
 	return item, nil
@@ -54,35 +60,39 @@ func NewItem(record *core.Record, gc *GameComponents) (*Item, error) {
 
 func (i *Item) bindHooks() {
 	i.gc.app.OnRecordAfterUpdateSuccess(TableItems).BindFunc(func(e *core.RecordEvent) error {
-		if e.Record.Id == i.item.Id {
-			i.item = e.Record
+		if e.Record.Id == i.Id {
+			i.SetProxyRecord(e.Record)
 		}
 		return e.Next()
 	})
 }
 
+func (i *Item) Name() string {
+	return i.GetString("name")
+}
+
 func (i *Item) IsUsingSlot() bool {
-	return i.item.GetBool("isUsingSlot")
+	return i.GetBool("isUsingSlot")
 }
 
 func (i *Item) IsActiveByDefault() bool {
-	return i.item.GetBool("isActiveByDefault")
+	return i.GetBool("isActiveByDefault")
 }
 
 func (i *Item) CanDrop() bool {
-	return i.item.GetBool("canDrop")
+	return i.GetBool("canDrop")
 }
 
 func (i *Item) Order() int {
-	return i.item.GetInt("order")
+	return i.GetInt("order")
 }
 
 func (i *Item) EffectsCount() int {
 	return len(i.effects)
 }
 
-func (i *Item) GetEffectsByEvent(event string) []IEffect {
-	var effects []IEffect
+func (i *Item) GetEffectsByEvent(event string) []Effect {
+	var effects []Effect
 	for _, e := range i.effects {
 		if e.Event() == event {
 			effects = append(effects, e)
@@ -90,8 +100,4 @@ func (i *Item) GetEffectsByEvent(event string) []IEffect {
 	}
 
 	return effects
-}
-
-func (i *Item) Name() string {
-	return i.item.GetString("name")
 }

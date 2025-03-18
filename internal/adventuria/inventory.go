@@ -57,7 +57,7 @@ func (i *Inventory) bindHooks() {
 }
 
 func (i *Inventory) fetchInventory() error {
-	inventory, err := i.gc.app.FindRecordsByFilter(
+	invItems, err := i.gc.app.FindRecordsByFilter(
 		TableInventory,
 		"user.id = {:userId}",
 		"-created",
@@ -70,8 +70,8 @@ func (i *Inventory) fetchInventory() error {
 	}
 
 	i.invItems = make(map[string]*InventoryItem)
-	for _, item := range inventory {
-		i.invItems[item.Id], err = NewInventoryItem(item, i.gc)
+	for _, invItem := range invItems {
+		i.invItems[invItem.Id], err = NewInventoryItem(invItem, i.gc)
 		if err != nil {
 			return err
 		}
@@ -194,7 +194,7 @@ func (i *Inventory) GetEffects(event string) (*Effects, map[string][]string, err
 			}
 
 			i.gc.log.Add(i.userId, LogTypeItemEffectApplied, effect.Name())
-			effectsIds = append(effectsIds, effect.Id())
+			effectsIds = append(effectsIds, effect.GetId())
 		}
 
 		invItemsEffectsIds[invItemId] = effectsIds
@@ -208,7 +208,7 @@ func (i *Inventory) GetEffects(event string) (*Effects, map[string][]string, err
 	return effects, invItemsEffectsIds, nil
 }
 
-func (i *Inventory) ApplyEffects(event string) (*Effects, error) {
+func (i *Inventory) applyEffects(event string) (*Effects, error) {
 	effects, invItemsEffectsIds, err := i.GetEffects(event)
 	if err != nil {
 		return nil, err

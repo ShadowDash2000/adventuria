@@ -7,10 +7,10 @@ import (
 )
 
 type Handlers struct {
-	Game *adventuria.Game
+	Game adventuria.Game
 }
 
-func New(g *adventuria.Game) *Handlers {
+func New(g adventuria.Game) *Handlers {
 	return &Handlers{Game: g}
 }
 
@@ -135,7 +135,7 @@ func (h *Handlers) GetLastActionHandler(e *core.RequestEvent) error {
 	}
 
 	e.JSON(http.StatusOK, map[string]interface{}{
-		"title":    action.GetString("value"),
+		"title":    action.Value(),
 		"isInJail": isInJail,
 	})
 
@@ -185,7 +185,7 @@ func (h *Handlers) RollItemHandler(e *core.RequestEvent) error {
 }
 
 func (h *Handlers) GetRollEffectsHandler(e *core.RequestEvent) error {
-	effects, err := h.Game.GetItemsEffects(e.Auth.Id, adventuria.ItemUseOnRoll)
+	effects, err := h.Game.GetItemsEffects(e.Auth.Id, adventuria.EffectUseOnRoll)
 	if err != nil {
 		e.JSON(http.StatusInternalServerError, err.Error())
 		return err

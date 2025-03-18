@@ -5,6 +5,12 @@ import (
 	"github.com/pocketbase/pocketbase/core"
 )
 
+const (
+	LogTypeItemUse           = "itemUse"
+	LogTypeItemDrop          = "itemDrop"
+	LogTypeItemEffectApplied = "itemEffectApplied"
+)
+
 type Log struct {
 	app  core.App
 	cols *collections.Collections

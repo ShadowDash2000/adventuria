@@ -29,7 +29,7 @@ func NewTimer(userId string, gc *GameComponents) (*Timer, error) {
 		timer.gc = gc
 		timer.SetProxyRecord(record)
 	} else {
-		timer, err = CreateTimer(userId, gc.Settings.TimerTimeLimit(), gc)
+		timer, err = CreateTimer(userId, gc.settings.TimerTimeLimit(), gc)
 		if err != nil {
 			return nil, err
 		}

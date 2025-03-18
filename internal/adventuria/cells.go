@@ -9,8 +9,8 @@ import (
 
 type Cells struct {
 	gc            *GameComponents
-	cells         *cache.MemoryCache[string, *core.Record]
-	cellsByCode   *cache.MemoryCache[string, *core.Record]
+	cells         *cache.MemoryCache[string, *Cell]
+	cellsByCode   *cache.MemoryCache[string, *Cell]
 	cellsOrder    []string
 	cellsIdsOrder map[string]int
 	mx            sync.Mutex
@@ -19,8 +19,8 @@ type Cells struct {
 func NewCells(gc *GameComponents) *Cells {
 	cells := &Cells{
 		gc:          gc,
-		cells:       cache.NewMemoryCache[string, *core.Record](0, true),
-		cellsByCode: cache.NewMemoryCache[string, *core.Record](0, true),
+		cells:       cache.NewMemoryCache[string, *Cell](0, true),
+		cellsByCode: cache.NewMemoryCache[string, *Cell](0, true),
 	}
 
 	cells.fetch()
@@ -71,9 +71,11 @@ func (c *Cells) fetch() error {
 }
 
 func (c *Cells) add(record *core.Record) {
-	c.cells.Set(record.Id, record)
+	cell := NewCell(record)
+
+	c.cells.Set(record.Id, cell)
 	if code := record.GetString("code"); code != "" {
-		c.cellsByCode.Set(code, record)
+		c.cellsByCode.Set(code, cell)
 	}
 }
 
@@ -103,7 +105,7 @@ func (c *Cells) sort() {
 
 // GetByOrder
 // Note: cells order starts from 0
-func (c *Cells) GetByOrder(order int) (*core.Record, bool) {
+func (c *Cells) GetByOrder(order int) (*Cell, bool) {
 	if cellId := c.cellsOrder[order]; cellId != "" {
 		return c.cells.Get(cellId)
 	}
@@ -128,12 +130,12 @@ func (c *Cells) GetOrderByType(t string) (int, bool) {
 	return 0, false
 }
 
-func (c *Cells) GetByCode(code string) (*core.Record, bool) {
+func (c *Cells) GetByCode(code string) (*Cell, bool) {
 	return c.cellsByCode.Get(code)
 }
 
-func (c *Cells) GetAllByType(t string) []*core.Record {
-	var res []*core.Record
+func (c *Cells) GetAllByType(t string) []*Cell {
+	var res []*Cell
 	for _, record := range c.cells.GetAll() {
 		if record.GetString("type") == t {
 			res = append(res, record)
@@ -142,7 +144,7 @@ func (c *Cells) GetAllByType(t string) []*core.Record {
 	return res
 }
 
-func (c *Cells) GetByType(t string) (*core.Record, bool) {
+func (c *Cells) GetByType(t string) (*Cell, bool) {
 	for _, record := range c.cells.GetAll() {
 		if record.GetString("type") == t {
 			return record, true
