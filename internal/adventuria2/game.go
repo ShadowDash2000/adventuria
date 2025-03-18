@@ -1,7 +1,7 @@
 package adventuria2
 
 import (
-	"adventuria/internal/adventuria"
+	"github.com/ShadowDash2000/adventuria"
 	"github.com/pocketbase/pocketbase/core"
 )
 
