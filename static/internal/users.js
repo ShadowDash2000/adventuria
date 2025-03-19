@@ -12,9 +12,14 @@ export default class Users {
 
         document.addEventListener('record.users.update', (e) => {
             this.users.set(e.detail.record.id, e.detail.record);
+            this.sort();
             this.refreshCells();
             this.refreshTable();
         });
+    }
+
+    sort() {
+        this.users = new Map([...this.users.entries()].sort((a, b) => b[1].points - a[1].points));
     }
 
     async fetch() {
