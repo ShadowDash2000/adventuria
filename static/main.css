@@ -29,6 +29,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .center {
+    overflow: auto;
     padding-top: 2vw;
     color: white;
     text-shadow:
@@ -44,7 +45,7 @@ h1, h2, h3, h4, h5, h6 {
     display: flex;
     justify-items: center;
     align-items: center;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     flex-direction: column;
     gap: 3vw;
 
@@ -54,10 +55,10 @@ h1, h2, h3, h4, h5, h6 {
 
         .button {
             font-family: "Dela Gothic One", serif;
-            font-size: 28px;
+            font-size: 1.5vw;
             color: white;
             border: none;
-            padding: 10px 50px;
+            padding: .7vw 3vw;
         }
 
         .game-roll {
@@ -80,7 +81,7 @@ h1, h2, h3, h4, h5, h6 {
     font-family: "Dela Gothic One", serif;
     font-size: 4vw;
     font-weight: 400;
-    letter-spacing: 12px;
+    letter-spacing: 1vw;
 }
 
 .row {
@@ -515,8 +516,13 @@ table.users {
         border: solid #5e4334 0.2vw;
     }
 
+    button {
+        font-size: 1vw;
+    }
+
     td:not(:first-child) {
-        padding: 0 35px 0 35px;
+        padding: 0 2vw;
+        text-align: center;
     }
 
     .users__avatar img {
@@ -596,6 +602,11 @@ table.users {
             flex-direction: column;
             align-items: center;
 
+            img {
+                max-width: 11vw;
+                max-height: 11vw;
+            }
+
             span {
                 font-size: 1.3vw;
             }
@@ -620,12 +631,21 @@ table.users {
         padding-top: 1vw;
         margin-top: 1vw;
         border-top: solid black 0.2vw;
+
+        img {
+            max-width: 6vw;
+            max-height: 6vw;
+        }
     }
 }
 
 .graph-modal .graph-modal__container {
     background: #303e54;
     width: 53vw;
+
+    @media (max-width: 768px) {
+        width: 100%;
+    }
 
     h2 {
         color: white;
@@ -885,6 +905,11 @@ table.users {
     h2 {
         text-align: center;
         font-size: 5vw;
+    }
+
+    img {
+        max-width: 8vw;
+        max-height: 8vw;
     }
 
     .container {
