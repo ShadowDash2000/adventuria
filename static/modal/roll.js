@@ -4,18 +4,19 @@ import Helper from "../helper.js";
 
 const dice = new Dice();
 
-let rollModal, scene, rollButton, rollResult, cell;
-
-rollModal = document.querySelector('.graph-modal__container.dice');
-scene = rollModal.querySelector('.scene');
-rollButton = document.getElementById('roll');
-rollResult = rollModal.querySelector('.roll-result');
-cell = rollModal.querySelector('.cell');
+const graphModal = document.querySelector('.graph-modal');
+const rollModal = document.querySelector('.graph-modal__container.dice');
+const scene = rollModal.querySelector('.scene');
+const rollButton = document.getElementById('roll');
+const rollResult = rollModal.querySelector('.roll-result');
+const cell = rollModal.querySelector('.cell');
 
 document.addEventListener('modal.open', async (e) => {
     const modalName = e.detail.modalName;
 
     if (modalName !== 'dice') return;
+
+    graphModal.classList.add('bg-black');
 
     scene.innerHTML = '';
     rollResult.classList.add('hidden');
@@ -29,6 +30,7 @@ document.addEventListener('modal.open', async (e) => {
 });
 
 document.addEventListener('modal.close', () => {
+    graphModal.classList.remove('bg-black');
     rollButton.removeEventListener('click', roll);
 });
 

@@ -667,8 +667,8 @@ table.users {
     }
 }
 
-.graph-modal.is-open {
-    background-color: rgba(0, 0, 0, 1);
+.bg-black {
+    background-color: rgba(0, 0, 0, 1) !important;
 }
 
 .button {

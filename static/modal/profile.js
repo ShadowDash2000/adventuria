@@ -73,7 +73,6 @@ document.addEventListener('modal.close', (e) => {
 });
 
 async function fetchUserActions(userId, page, limit) {
-    console.log(userId)
     return await app.pb.collection('actions').getList(page, limit, {
         filter: `user.id = "${userId}" && '["roll", "reroll", "drop", "chooseResult", "chooseGame", "rollCell", "rollWheelPreset"]' ~ type`,
         sort: '-created',
