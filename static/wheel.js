@@ -1,3 +1,5 @@
+import Helper from "./helper.js";
+
 export default class Wheel {
     constructor() {
         this.items = null;
@@ -8,14 +10,24 @@ export default class Wheel {
         this.wheel = document.getElementById('wheel');
         this.title = document.getElementById('wheel-title');
         this.wheel.innerHTML = '';
+
+        Helper.shuffleArray(items);
         this.items = items;
 
         items.forEach((item, index) => {
             const li = document.createElement('li');
 
+            const segments = Math.max(items.length, 4);
+
             li.style.rotate = `${360 / items.length * index}deg`;
             li.style.background = `hsl(${360 / items.length * (index + 1)}deg, 100%, 75%)`;
-            li.style.aspectRatio = `1 / ${(2 * Math.tan(180 * (Math.PI / 180) / items.length))}`;
+            li.style.aspectRatio = `1 / ${(2 * Math.tan(180 * (Math.PI / 180) / segments))}`;
+
+            if (items.length < 4) {
+                const angle = 360 / segments;
+                const x = (100 + (Math.tan(angle * Math.PI / 360) * 50)) * -1;
+                li.style.clipPath = `polygon(0% ${x}%, 100% 50%, 0% 100%)`;
+            }
 
             const div = document.createElement('div');
             if (item.src) {
