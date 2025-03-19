@@ -59,9 +59,13 @@ export default class Timer {
 
         const data = await res.json();
 
-        const time = data.time < 0 ? Math.abs(data.time) : data.time;
+        return this.secondsToTimerFormat(data.time);
+    }
 
-        return this.formatSecondsToString(time, data.time < 0);
+    static secondsToTimerFormat(seconds) {
+        const time = seconds < 0 ? Math.abs(seconds) : seconds;
+
+        return this.formatSecondsToString(time, seconds < 0);
     }
 
     static formatSecondsToString(time, isNegative) {

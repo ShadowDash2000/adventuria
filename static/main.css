@@ -525,14 +525,28 @@ table.users {
         text-align: center;
     }
 
-    .users__avatar img {
-        width: 4vw;
-        height: 4vw;
+    .users__avatar {
+        position: relative;
 
-        border: 0.2vw solid;
-        border-radius: 100%;
+        img {
+            width: 4vw;
+            height: 4vw;
 
-        cursor: pointer;
+            border: 0.2vw solid;
+            border-radius: 100%;
+
+            cursor: pointer;
+        }
+
+        span {
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            font-size: .7vw;
+            width: 100%;
+            text-align: center;
+            color: #ff0000;
+        }
     }
 }
 

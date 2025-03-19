@@ -3,10 +3,11 @@ import Helper from "../helper.js";
 export default class Users {
     collectionName = 'users';
 
-    constructor(pb, cells) {
+    constructor(pb, cells, timers) {
         this.pb = pb;
         this.cells = cells;
         this.users = new Map();
+        this.timers = timers;
         this.usersElements = [];
         this.usersTableItemTemplate = document.getElementById('users-table-item');
 
@@ -14,6 +15,9 @@ export default class Users {
             this.users.set(e.detail.record.id, e.detail.record);
             this.sort();
             this.refreshCells();
+            this.refreshTable();
+        });
+        document.addEventListener('timer.update', (e) => {
             this.refreshTable();
         });
     }
@@ -62,6 +66,7 @@ export default class Users {
 
         this.users.forEach((user) => {
             const userItemNode = this.usersTableItemTemplate.content.cloneNode(true);
+            const userTimer = this.timers.getByUserId(user.id);
 
             const avatar = userItemNode.querySelector('.users__avatar img');
             avatar.src = Helper.getFile('avatar', user);
@@ -74,6 +79,10 @@ export default class Users {
                     }
                 }));
             });
+
+            if (userTimer?.isActive) {
+                userItemNode.querySelector('.users__avatar span').classList.remove('hidden');
+            }
 
             userItemNode.querySelector('.users__name').innerHTML = user.name;
             userItemNode.querySelector('.users__points').innerHTML = user.points;
