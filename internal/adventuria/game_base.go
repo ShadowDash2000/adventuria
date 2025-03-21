@@ -7,6 +7,7 @@ import (
 	"errors"
 	"github.com/AlexanderGrom/go-event"
 	"github.com/pocketbase/pocketbase/core"
+	"github.com/pocketbase/pocketbase/tools/filesystem"
 	"github.com/pocketbase/pocketbase/tools/types"
 	"time"
 )
@@ -131,7 +132,7 @@ func (g *BaseGame) GetNextStepType(userId string) (string, error) {
 	return nextStepType, nil
 }
 
-func (g *BaseGame) Reroll(comment string, userId string) error {
+func (g *BaseGame) Reroll(comment string, file *filesystem.File, userId string) error {
 	user, err := g.GetUser(userId)
 	if err != nil {
 		return err
@@ -156,6 +157,7 @@ func (g *BaseGame) Reroll(comment string, userId string) error {
 	action.SetCell(currentCell.Id)
 	action.SetComment(comment)
 	action.SetValue(user.lastAction.Value())
+	action.SetIcon(file)
 	err = action.Save()
 	if err != nil {
 		return err
@@ -214,7 +216,7 @@ func (g *BaseGame) Roll(userId string) (int, []int, *Cell, error) {
 	return rollResult.N, diceRolls, currentCell, nil
 }
 
-func (g *BaseGame) Drop(comment string, userId string) error {
+func (g *BaseGame) Drop(comment string, file *filesystem.File, userId string) error {
 	user, err := g.GetUser(userId)
 	if err != nil {
 		return err
@@ -242,6 +244,7 @@ func (g *BaseGame) Drop(comment string, userId string) error {
 	action.SetCell(currentCell.Id)
 	action.SetComment(comment)
 	action.SetValue(user.lastAction.Value())
+	action.SetIcon(file)
 	err = action.Save()
 	if err != nil {
 		return err
@@ -268,7 +271,7 @@ func (g *BaseGame) Drop(comment string, userId string) error {
 	return nil
 }
 
-func (g *BaseGame) Done(comment string, userId string) error {
+func (g *BaseGame) Done(comment string, file *filesystem.File, userId string) error {
 	user, err := g.GetUser(userId)
 	if err != nil {
 		return err
@@ -292,6 +295,7 @@ func (g *BaseGame) Done(comment string, userId string) error {
 	action.SetCell(currentCell.Id)
 	action.SetComment(comment)
 	action.SetValue(user.lastAction.Value())
+	action.SetIcon(file)
 	err = action.Save()
 	if err != nil {
 		return err

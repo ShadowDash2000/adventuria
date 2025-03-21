@@ -86,4 +86,10 @@ export default class Helper {
             [array[i], array[j]] = [array[j], array[i]];
         }
     }
+
+    static formDataToJson(formData) {
+        let o = {};
+        formData.forEach((value, key) => o[key] = value);
+        return JSON.stringify(o);
+    }
 }

@@ -1,14 +1,20 @@
 import {app} from "../app.js";
 
 const gameResultModal = document.querySelector('.graph-modal__content.game-result');
-const gameResultComment = gameResultModal.querySelector('textarea');
+const gameResultForm = gameResultModal.querySelector('form');
 const rerollButton = gameResultModal.querySelector('.button.reroll');
 const dropButton = gameResultModal.querySelector('.button.drop');
 const doneButton = gameResultModal.querySelector('.button.done');
 
+gameResultForm.querySelector('input[type="file"]').addEventListener('change', updateFileName);
 rerollButton.addEventListener('click', gameResultActions);
 dropButton.addEventListener('click', gameResultActions);
 doneButton.addEventListener('click', gameResultActions);
+
+function updateFileName(e) {
+    const fileName = gameResultForm.querySelector('.file-name');
+    fileName.innerText = e.target.files[0]?.name;
+}
 
 function gameResultActions(e) {
     e.preventDefault();
@@ -28,18 +34,23 @@ function gameResultActions(e) {
 
     app.submit.open({
         text: text,
-        onAccept: () => {
-            fetch('/api/' + action, {
+        onAccept: async () => {
+            const formData = new FormData(gameResultForm);
+
+            const res = await fetch('/api/' + action, {
                 method: "POST",
                 headers: {
                     "Authorization": app.getUserAuthToken(),
-                    "Content-Type": "application/json",
                 },
-                body: JSON.stringify({
-                    "comment": gameResultComment.value,
-                }),
+                body: formData,
             });
-            gameResultComment.value = '';
+
+            if (!res.ok) {
+                app.modal.open('game-result');
+                return;
+            }
+
+            gameResultForm.reset();
         },
         onDecline: () => {
             app.modal.open('game-result');

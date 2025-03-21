@@ -3,6 +3,7 @@ package handlers
 import (
 	"adventuria/internal/adventuria"
 	"github.com/pocketbase/pocketbase/core"
+	"github.com/pocketbase/pocketbase/tools/filesystem"
 	"net/http"
 )
 
@@ -69,14 +70,24 @@ func (h *Handlers) GetNextStepTypeHandler(e *core.RequestEvent) error {
 
 func (h *Handlers) RerollHandler(e *core.RequestEvent) error {
 	data := struct {
-		Comment string `json:"comment"`
+		Comment string `form:"comment"`
 	}{}
+
 	if err := e.BindBody(&data); err != nil {
 		e.JSON(http.StatusBadRequest, err.Error())
 		return nil
 	}
 
-	err := h.Game.Reroll(data.Comment, e.Auth.Id)
+	var file *filesystem.File
+	files, err := e.FindUploadedFiles("result-file")
+	if err != nil {
+		e.JSON(http.StatusInternalServerError, err.Error())
+		return nil
+	} else if len(files) > 0 {
+		file = files[0]
+	}
+
+	err = h.Game.Reroll(data.Comment, file, e.Auth.Id)
 	if err != nil {
 		e.JSON(http.StatusInternalServerError, err.Error())
 		return err
@@ -88,7 +99,7 @@ func (h *Handlers) RerollHandler(e *core.RequestEvent) error {
 
 func (h *Handlers) DropHandler(e *core.RequestEvent) error {
 	data := struct {
-		Comment string `json:"comment"`
+		Comment string `form:"comment"`
 	}{}
 
 	err := e.BindBody(&data)
@@ -97,7 +108,16 @@ func (h *Handlers) DropHandler(e *core.RequestEvent) error {
 		return nil
 	}
 
-	err = h.Game.Drop(data.Comment, e.Auth.Id)
+	var file *filesystem.File
+	files, err := e.FindUploadedFiles("result-file")
+	if err != nil {
+		e.JSON(http.StatusInternalServerError, err.Error())
+		return nil
+	} else if len(files) > 0 {
+		file = files[0]
+	}
+
+	err = h.Game.Drop(data.Comment, file, e.Auth.Id)
 	if err != nil {
 		e.JSON(http.StatusInternalServerError, err.Error())
 		return err
@@ -110,14 +130,24 @@ func (h *Handlers) DropHandler(e *core.RequestEvent) error {
 
 func (h *Handlers) DoneHandler(e *core.RequestEvent) error {
 	data := struct {
-		Comment string `json:"comment"`
+		Comment string `form:"comment"`
 	}{}
+
 	if err := e.BindBody(&data); err != nil {
 		e.JSON(http.StatusBadRequest, err.Error())
 		return nil
 	}
 
-	err := h.Game.Done(data.Comment, e.Auth.Id)
+	var file *filesystem.File
+	files, err := e.FindUploadedFiles("result-file")
+	if err != nil {
+		e.JSON(http.StatusInternalServerError, err.Error())
+		return nil
+	} else if len(files) > 0 {
+		file = files[0]
+	}
+
+	err = h.Game.Done(data.Comment, file, e.Auth.Id)
 	if err != nil {
 		e.JSON(http.StatusInternalServerError, err.Error())
 		return err

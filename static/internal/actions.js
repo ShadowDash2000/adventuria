@@ -78,7 +78,14 @@ export default class Actions {
         cellIcon.loading = 'lazy';
         cellName.innerText = `НА КЛЕТКЕ: ${cell.name}`;
 
-        const actionText = actionNode.querySelector('.action__type span');
+        const actionType = actionNode.querySelector('.action__type')
+        const actionIcon = actionType.querySelector('img');
+        const actionText = actionType.querySelector('span');
+
+        if (action.icon) {
+            actionIcon.src = Helper.getFile('icon', action);
+        }
+
         let text = action.value;
         const textTemplate = actionParams?.template;
         if (textTemplate) {

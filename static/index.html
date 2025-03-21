@@ -123,8 +123,15 @@
         <button class="btn-reset graph-modal__close js-modal-close" aria-label="Закрыть модальное окно"></button>
         <div class="graph-modal__content game-result">
             <h2>РЕЗУЛЬТАТ</h2>
-            <div class="game-title">{{GAME NAME}}</div>
-            <textarea placeholder="Комментарий к пройденой игре, фильму, дропу или реролу..."></textarea>
+            <div class="game-title text-shadow text-soft-shadow">{{GAME NAME}}</div>
+            <form>
+                <textarea name="comment" placeholder="Комментарий к пройденой игре, фильму, дропу или реролу..."></textarea>
+                <label for="result-file" class="button result-file">
+                    <span>Картинка или гифка</span>
+                    <span class="file-name"></span>
+                </label>
+                <input id="result-file" name="result-file" type="file" accept=".jpg,.png,.gif">
+            </form>
             <div class="container">
                 <button class="button reroll" data-action="reroll">РЕРОЛ</button>
                 <button class="button drop" data-action="drop">ДРОП</button>

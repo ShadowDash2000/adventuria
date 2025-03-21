@@ -3,6 +3,7 @@ package adventuria
 import (
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
+	"github.com/pocketbase/pocketbase/tools/filesystem"
 )
 
 const (
@@ -27,6 +28,7 @@ type Action interface {
 	Value() string
 	SetValue(value any)
 	Type() string
+	SetIcon(*filesystem.File)
 }
 
 type BaseAction struct {
@@ -88,6 +90,10 @@ func (a *BaseAction) Type() string {
 
 func (a *BaseAction) setType(t string) {
 	a.Set("type", t)
+}
+
+func (a *BaseAction) SetIcon(icon *filesystem.File) {
+	a.Set("icon", icon)
 }
 
 type UserAction struct {

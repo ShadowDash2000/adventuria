@@ -998,6 +998,24 @@ func init() {
 							"rollItem",
 							"rollWheelPreset"
 						]
+					},
+					{
+						"hidden": false,
+						"id": "file1704208859",
+						"maxSelect": 1,
+						"maxSize": 0,
+						"mimeTypes": [
+							"image/jpeg",
+							"image/png",
+							"image/gif"
+						],
+						"name": "icon",
+						"presentable": false,
+						"protected": false,
+						"required": false,
+						"system": false,
+						"thumbs": [],
+						"type": "file"
 					}
 				],
 				"id": "pbc_2484833797",

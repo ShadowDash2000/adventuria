@@ -2,6 +2,7 @@ package adventuria
 
 import (
 	"github.com/AlexanderGrom/go-event"
+	"github.com/pocketbase/pocketbase/tools/filesystem"
 	"github.com/pocketbase/pocketbase/tools/types"
 	"time"
 )
@@ -13,10 +14,10 @@ type Game interface {
 	GetUser(userId string) (*User, error)
 	ChooseGame(game string, userId string) error
 	GetNextStepType(userId string) (string, error)
-	Reroll(comment string, userId string) error
+	Reroll(comment string, file *filesystem.File, userId string) error
 	Roll(userId string) (int, []int, *Cell, error)
-	Drop(comment string, userId string) error
-	Done(comment string, userId string) error
+	Drop(comment string, file *filesystem.File, userId string) error
+	Done(comment string, file *filesystem.File, userId string) error
 	GetLastAction(userId string) (bool, Action, error)
 	GetItemsEffects(userId, event string) (*Effects, error)
 	RollCell(userId string) (string, error)
