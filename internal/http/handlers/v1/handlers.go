@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"github.com/ShadowDash2000/adventuria"
+	"adventuria/internal/adventuria"
 	"github.com/pocketbase/pocketbase/core"
 	"net/http"
 )

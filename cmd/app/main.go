@@ -1,9 +1,9 @@
 package main
 
 import (
-	"adventuria2/internal/adventuria2"
-	"adventuria2/internal/http/handlers/v1"
-	"adventuria2/pkg/etag"
+	"adventuria/internal/adventuria"
+	"adventuria/internal/http/handlers/v1"
+	"adventuria/pkg/etag"
 	"github.com/pocketbase/pocketbase"
 	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/core"
@@ -14,7 +14,10 @@ import (
 func main() {
 	app := pocketbase.New()
 
-	game := adventuria2.NewGame(app.App)
+	game := adventuria.New(app)
+
+	game = adventuria.WithBaseEvents(game)
+	adventuria.WithBaseEffects()
 
 	handlers := handlers.New(game)
 
