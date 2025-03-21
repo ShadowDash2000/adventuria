@@ -26,6 +26,10 @@ export default class Timer {
             this.fetchTimeLeft();
         });
 
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) this.fetchTimeLeft();
+        });
+
         this.fetchTimeLeft();
     }
 
