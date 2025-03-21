@@ -1,6 +1,5 @@
 import {app} from "../app.js";
 
-
 const authForm = document.getElementById('auth');
 authForm.addEventListener('submit', async (e) => {
     e.preventDefault();

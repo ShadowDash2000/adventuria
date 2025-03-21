@@ -5,14 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Приключпопия</title>
     <meta name="description" content="Приключпопия — ивент по прохождению игр на поле Монополии 🎡">
-    <link href="/main.css" rel="stylesheet">
-    <link href="/graph-modal/graph-modal.min.css" rel="stylesheet">
+    <base href="/modules/1.0.0/">
+    <link href="main.css" rel="stylesheet">
+    <link href="graph-modal/graph-modal.min.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&display=swap" rel="stylesheet">
 
-    <link href="/dice.css" rel="stylesheet">
-    <link href="/wheel.css" rel="stylesheet">
+    <link href="dice.css" rel="stylesheet">
+    <link href="wheel.css" rel="stylesheet">
 </head>
 <body>
 <div class="gradient-bg hidden">
@@ -105,7 +106,7 @@
     <div class="sentinel"></div>
 </section>
 <div id="tooltip" class="tooltip">
-    <img class="hidden" src="/img/undefined.jpg">
+    <img class="hidden" src="img/undefined.jpg">
     <span>{{TOOLTIP TEXT}}</span>
 </div>
 <div class="graph-modal">
@@ -182,7 +183,7 @@
                 <span class="roll-result__number">{{ROLL RESULT}}</span>
             </div>
             <div class="cell hidden">
-                <img src="img/kiryu.gif">
+                <img src="modules/1.0.0/img/kiryu.gif">
                 <div class="cell-info">
                     <span class="cell-info__name">{{CELL NAME}}</span>
                     <div class="cell-info__description">{{CELL DESCRIPTION}}</div>
@@ -267,7 +268,7 @@
 <template id="cell-template">
     <div class="space property">
         <div class="container">
-            <img src="/img/undefined.jpg">
+            <img src="img/undefined.jpg">
             <div class="name text-soft-shadow">{{NAME}}</div>
             <div class="color-bar"></div>
             <div class="users"></div>
@@ -278,7 +279,7 @@
     <div class="space property">
         <div class="container">
             <div class="color-bar"></div>
-            <img src="/img/undefined.jpg">
+            <img src="img/undefined.jpg">
             <div class="name text-soft-shadow">{{NAME}}</div>
             <div class="users"></div>
         </div>
@@ -286,7 +287,7 @@
 </template>
 <template id="special-cell-template">
     <div class="container">
-        <img src="/img/undefined.jpg">
+        <img src="img/undefined.jpg">
         <div class="name text-soft-shadow">{{NAME}}</div>
         <div class="users"></div>
     </div>
@@ -379,7 +380,7 @@
 <template id="users-table-item">
     <tr>
         <td class="users__avatar">
-            <img src="/img/undefined.jpg" width="100" height="100">
+            <img src="img/undefined.jpg" width="100" height="100">
             <span class="text-shadow text-soft-shadow hidden">LIVE</span>
         </td>
         <td class="users__name">{{NAME}}</td>
@@ -413,25 +414,5 @@
     </div>
 </template>
 </body>
-<script defer>
-    const scripts = [
-        '/modal/auth.js',
-        '/modal/game-picker.js',
-        '/modal/result.js',
-        '/modal/roll.js',
-        '/modal/wheel.js',
-        '/modal/submit.js',
-        '/modal/inventory.js',
-        '/modal/profile.js',
-        '/tooltip.js',
-    ];
-
-    for (const src of scripts) {
-        const script = document.createElement('script');
-        script.src = src;
-        script.type = 'module';
-
-        document.head.append(script);
-    }
-</script>
+<script type="module" defer src="app.js"></script>
 </html>

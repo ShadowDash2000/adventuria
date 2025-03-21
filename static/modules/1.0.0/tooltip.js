@@ -1,6 +1,3 @@
-import {app} from "/app.js";
-import Helper from "./helper.js";
-
 const tooltip = document.getElementById('tooltip');
 const tooltipImg = tooltip.querySelector('img');
 const tooltipText = tooltip.querySelector('span');

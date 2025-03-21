@@ -1,4 +1,4 @@
-import PocketBase, {BaseAuthStore} from "/pocketbase/pocketbase.es.js";
+import PocketBase, {BaseAuthStore} from "./pocketbase/pocketbase.es.js";
 import Helper from "./helper.js";
 
 export default class Timer {

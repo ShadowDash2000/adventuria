@@ -1,5 +1,5 @@
-import GraphModal from "/graph-modal/graph-modal.js";
-import PocketBase from "/pocketbase/pocketbase.es.js";
+import GraphModal from "./graph-modal/graph-modal.js";
+import PocketBase from "./pocketbase/pocketbase.es.js";
 import Submit from "./modal/submit.js";
 import Timer from "./timer.js";
 import Helper from "./helper.js";
@@ -188,6 +188,26 @@ class App {
         this.actions = new Actions(this.pb, this.cells, this.users);
 
         this.updateInnerField();
+
+        const scripts = [
+            'modal/auth.js',
+            'modal/game-picker.js',
+            'modal/result.js',
+            'modal/roll.js',
+            'modal/wheel.js',
+            'modal/submit.js',
+            'modal/inventory.js',
+            'modal/profile.js',
+            'tooltip.js',
+        ];
+
+        for (const src of scripts) {
+            const script = document.createElement('script');
+            script.src = src;
+            script.type = 'module';
+
+            document.head.append(script);
+        }
     }
 
     setVolume(v) {
