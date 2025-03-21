@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"adventuria/internal/adventuria"
+	"errors"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/tools/filesystem"
 	"net/http"
@@ -80,7 +81,7 @@ func (h *Handlers) RerollHandler(e *core.RequestEvent) error {
 
 	var file *filesystem.File
 	files, err := e.FindUploadedFiles("result-file")
-	if err != nil {
+	if err != nil && !errors.Is(err, http.ErrMissingFile) {
 		e.JSON(http.StatusInternalServerError, err.Error())
 		return nil
 	} else if len(files) > 0 {
@@ -103,7 +104,7 @@ func (h *Handlers) DropHandler(e *core.RequestEvent) error {
 	}{}
 
 	err := e.BindBody(&data)
-	if err != nil {
+	if err != nil && !errors.Is(err, http.ErrMissingFile) {
 		e.JSON(http.StatusBadRequest, err.Error())
 		return nil
 	}
@@ -140,7 +141,7 @@ func (h *Handlers) DoneHandler(e *core.RequestEvent) error {
 
 	var file *filesystem.File
 	files, err := e.FindUploadedFiles("result-file")
-	if err != nil {
+	if err != nil && !errors.Is(err, http.ErrMissingFile) {
 		e.JSON(http.StatusInternalServerError, err.Error())
 		return nil
 	} else if len(files) > 0 {

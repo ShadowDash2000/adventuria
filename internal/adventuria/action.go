@@ -93,7 +93,9 @@ func (a *BaseAction) setType(t string) {
 }
 
 func (a *BaseAction) SetIcon(icon *filesystem.File) {
-	a.Set("icon", icon)
+	if icon != nil {
+		a.Set("icon", icon)
+	}
 }
 
 type UserAction struct {
