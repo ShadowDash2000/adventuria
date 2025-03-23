@@ -6,14 +6,52 @@ const rerollButton = gameResultModal.querySelector('.button.reroll');
 const dropButton = gameResultModal.querySelector('.button.drop');
 const doneButton = gameResultModal.querySelector('.button.done');
 
-gameResultForm.querySelector('input[type="file"]').addEventListener('change', updateFileName);
+const resultFileBlock = gameResultModal.querySelector('.result-file');
+const resultFile = gameResultForm.querySelector('input[type="file"]');
+
+resultFile.addEventListener('change', onInputChange);
+resultFileBlock.addEventListener('dragenter', onDragEnter);
+resultFileBlock.addEventListener('dragleave', onDragLeave);
+resultFileBlock.addEventListener('dragover', (e) => {e.preventDefault()});
+resultFileBlock.addEventListener('drop', onDrop);
+
 rerollButton.addEventListener('click', gameResultActions);
 dropButton.addEventListener('click', gameResultActions);
 doneButton.addEventListener('click', gameResultActions);
 
-function updateFileName(e) {
+function updateFileName(name) {
     const fileName = gameResultForm.querySelector('.file-name');
-    fileName.innerText = e.target.files[0]?.name;
+    fileName.innerText = name;
+}
+
+function onInputChange(e) {
+    updateFileName(e.target.files[0]?.name);
+}
+
+let dragTarget = null;
+
+function onDragEnter(e) {
+    e.preventDefault();
+    if (dragTarget) return;
+    dragTarget = e.currentTarget;
+    resultFileBlock.classList.add('drag-n-drop');
+}
+
+function onDragLeave(e) {
+    e.preventDefault();
+    if (dragTarget !== e.target) return;
+    dragTarget = null;
+    resultFileBlock.classList.remove('drag-n-drop');
+}
+
+function onDrop(e) {
+    e.preventDefault();
+    updateFileName(e.dataTransfer.files[0]?.name);
+
+    const newData = new DataTransfer();
+    newData.items.add(e.dataTransfer.files[0]);
+    resultFile.files = newData.files;
+    resultFileBlock.classList.remove('drag-n-drop');
 }
 
 function gameResultActions(e) {

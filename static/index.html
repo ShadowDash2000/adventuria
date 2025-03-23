@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Приключпопия</title>
     <meta name="description" content="Приключпопия — ивент по прохождению игр на поле Монополии 🎡">
-    <base href="/modules/1.0.0/">
+    <base href="/modules/1.0.1/">
     <link href="main.css" rel="stylesheet">
     <link href="graph-modal/graph-modal.min.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -127,11 +127,13 @@
             <div class="game-title text-shadow text-soft-shadow">{{GAME NAME}}</div>
             <form>
                 <textarea name="comment" placeholder="Комментарий к пройденой игре, фильму, дропу или реролу..."></textarea>
-                <label for="result-file" class="button result-file">
-                    <span>Картинка или гифка</span>
-                    <span class="file-name"></span>
-                </label>
-                <input id="result-file" name="result-file" type="file" accept=".jpg,.png,.gif">
+                <div class="result-file">
+                    <label for="result-file" class="button result-file__label">
+                        <span>Картинка или гифка</span>
+                        <span class="file-name"></span>
+                    </label>
+                    <input id="result-file" name="result-file" type="file" accept=".jpg,.png,.gif">
+                </div>
             </form>
             <div class="container">
                 <button class="button reroll" data-action="reroll">РЕРОЛ</button>
@@ -183,7 +185,7 @@
                 <span class="roll-result__number">{{ROLL RESULT}}</span>
             </div>
             <div class="cell hidden">
-                <img src="modules/1.0.0/img/kiryu.gif">
+                <img src="img/undefined.jpg">
                 <div class="cell-info">
                     <span class="cell-info__name">{{CELL NAME}}</span>
                     <div class="cell-info__description">{{CELL DESCRIPTION}}</div>

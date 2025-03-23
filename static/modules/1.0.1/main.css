@@ -348,7 +348,7 @@ h1, h2, h3, h4, h5, h6 {
             height: 6vw;
         }
 
-        .result-file {
+        .result-file__label {
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -357,6 +357,10 @@ h1, h2, h3, h4, h5, h6 {
                 font-size: .6vw;
                 color: #20c7bf;
             }
+        }
+
+        .drag-n-drop {
+            border: white 0.5vw dashed;
         }
 
         input[type="file"] {
