@@ -1007,7 +1007,8 @@ func init() {
 						"mimeTypes": [
 							"image/jpeg",
 							"image/png",
-							"image/gif"
+							"image/gif",
+							"image/webp"
 						],
 						"name": "icon",
 						"presentable": false,
