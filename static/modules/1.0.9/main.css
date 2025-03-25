@@ -1094,11 +1094,13 @@ table.users {
     .wheels-modal__preset {
         display: flex;
         flex-direction: column;
+        align-items: center;
         gap: 1vw;
 
         .wheels-modal__items {
             display: flex;
             flex-wrap: wrap;
+            justify-content: center;
             gap: 1vw;
 
             img {
