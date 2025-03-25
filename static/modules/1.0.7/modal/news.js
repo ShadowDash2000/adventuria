@@ -5,6 +5,7 @@ const modal = document.getElementById('news-modal');
 const modalContent = modal.querySelector('.news-modal__content');
 const newsSentinel = modal.querySelector('.sentinel');
 const newsItemTemplate = document.getElementById('news-item-template');
+const newsButton = document.getElementById('show-news');
 
 let isLoading = false;
 let page = 1;
@@ -12,9 +13,7 @@ let totalPages = 1;
 const limit = 10;
 let observer;
 
-document.addEventListener('modal.open', (e) => {
-    if (e.detail.modalName !== 'news') return;
-
+newsButton.addEventListener('click', (e) => {
     modalContent.innerHTML = '';
 
     observer = new IntersectionObserver(async (entries, observer) => {
@@ -39,6 +38,11 @@ document.addEventListener('modal.open', (e) => {
     });
 
     observer.observe(newsSentinel);
+
+    app.modal.open('news', {
+        speed: 100,
+        animation: 'fadeInUp',
+    });
 });
 
 async function fetchNews(page, limit) {
