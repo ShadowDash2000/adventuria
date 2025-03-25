@@ -3,6 +3,14 @@ import Helper from "../helper.js";
 
 const modal = document.getElementById('items-modal');
 const modalContent = modal.querySelector('.items-modal__content');
+const itemsButton = document.getElementById('show-items');
+
+itemsButton.addEventListener('click', () => {
+    app.modal.open('items', {
+        speed: 100,
+        animation: 'fadeInUp',
+    });
+});
 
 document.addEventListener('modal.open.items', (e) => {
     putItemsIntoModal();

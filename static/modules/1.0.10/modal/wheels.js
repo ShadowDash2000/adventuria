@@ -3,6 +3,14 @@ import Helper from "../helper.js";
 
 const modal = document.getElementById('wheels-modal');
 const modalContent = modal.querySelector('.wheels-modal__content');
+const wheelsButton = document.getElementById('show-wheels');
+
+wheelsButton.addEventListener('click', () => {
+    app.modal.open('wheels', {
+        speed: 100,
+        animation: 'fadeInUp',
+    });
+});
 
 document.addEventListener('modal.open.wheels', (e) => {
     putWheelsIntoModal();
