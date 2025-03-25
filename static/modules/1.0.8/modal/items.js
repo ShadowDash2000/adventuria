@@ -4,7 +4,9 @@ import Helper from "../helper.js";
 const modal = document.getElementById('items-modal');
 const modalContent = modal.querySelector('.items-modal__content');
 
-putItemsIntoModal();
+document.addEventListener('modal.open.items', (e) => {
+    putItemsIntoModal();
+}, {once: true});
 
 function putItemsIntoModal() {
     const items = app.items.getAll();

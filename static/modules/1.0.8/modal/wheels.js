@@ -4,7 +4,9 @@ import Helper from "../helper.js";
 const modal = document.getElementById('wheels-modal');
 const modalContent = modal.querySelector('.wheels-modal__content');
 
-putWheelsIntoModal();
+document.addEventListener('modal.open.wheels', (e) => {
+    putWheelsIntoModal();
+}, {once: true});
 
 function putWheelsIntoModal() {
     const wheelPresets = app.wheelItems.wheelItems;

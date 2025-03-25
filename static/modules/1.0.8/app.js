@@ -47,12 +47,26 @@ class App {
                         modalName,
                     },
                 }));
+
+                document.dispatchEvent(new CustomEvent(`modal.open.${modalName}`, {
+                    detail: {
+                        activeModal,
+                        modalName,
+                    },
+                }));
             },
             isClose: (modal) => {
                 const activeModal = modal.modalContainer;
                 const modalName = activeModal.dataset.graphTarget;
 
                 document.dispatchEvent(new CustomEvent("modal.close", {
+                    detail: {
+                        activeModal,
+                        modalName,
+                    },
+                }));
+
+                document.dispatchEvent(new CustomEvent(`modal.close.${modalName}`, {
                     detail: {
                         activeModal,
                         modalName,
