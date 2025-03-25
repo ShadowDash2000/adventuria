@@ -29,6 +29,7 @@ type Action interface {
 	SetValue(value any)
 	Type() string
 	SetIcon(*filesystem.File)
+	SetNotAffectNextStep(bool)
 }
 
 type BaseAction struct {
@@ -98,6 +99,10 @@ func (a *BaseAction) SetIcon(icon *filesystem.File) {
 	}
 }
 
+func (a *BaseAction) SetNotAffectNextStep(b bool) {
+	a.Set("notAffectNextStep", b)
+}
+
 type UserAction struct {
 	BaseAction
 }
@@ -119,7 +124,8 @@ func NewLastUserAction(userId string, gc *GameComponents) (Action, error) {
 func (ua *UserAction) bindHooks() {
 	ua.gc.app.OnRecordAfterCreateSuccess(TableActions).BindFunc(func(e *core.RecordEvent) error {
 		userId := e.Record.GetString("user")
-		if userId == ua.UserId() {
+		notAffectNextStep := e.Record.GetBool("notAffectNextStep")
+		if userId == ua.UserId() && !notAffectNextStep {
 			ua.SetProxyRecord(e.Record)
 		}
 		return e.Next()
@@ -142,7 +148,7 @@ func (ua *UserAction) bindHooks() {
 func (ua *UserAction) fetchLastUserAction(userId string) error {
 	actions, err := ua.gc.app.FindRecordsByFilter(
 		TableActions,
-		"user.id = {:userId}",
+		"user.id = {:userId} && notAffectNextStep = false",
 		"-created",
 		1,
 		0,

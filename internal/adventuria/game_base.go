@@ -404,6 +404,9 @@ func (g *BaseGame) RollItem(userId string) (string, error) {
 	action := NewAction(userId, ActionTypeRollItem, g.gc)
 	action.SetCell(currentCell.Id)
 	action.SetValue(item.Name())
+	if user.ItemWheelsCount() > 0 {
+		action.SetNotAffectNextStep(true)
+	}
 	err = action.Save()
 	if err != nil {
 		return "", err

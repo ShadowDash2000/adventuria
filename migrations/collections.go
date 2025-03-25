@@ -1017,6 +1017,15 @@ func init() {
 						"system": false,
 						"thumbs": [],
 						"type": "file"
+					},
+					{
+						"hidden": false,
+						"id": "bool251867723",
+						"name": "notAffectNextStep",
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "bool"
 					}
 				],
 				"id": "pbc_2484833797",
