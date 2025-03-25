@@ -737,6 +737,10 @@ table.users {
     background-color: #d3c621;
 }
 
+.light-purple {
+    background-color: #5231d6;
+}
+
 .hidden {
     display: none !important;
 }
@@ -1120,5 +1124,20 @@ table.users {
             width: 11vw;
             height: 11vw;
         }
+    }
+}
+
+.news-modal__content {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2vw;
+    padding-top: 1vw;
+    width: 100%;
+
+    .news-modal__item {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        border-bottom: 0.2vw solid black;
     }
 }

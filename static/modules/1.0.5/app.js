@@ -200,6 +200,7 @@ class App {
             'modal/profile.js',
             'modal/wheels.js',
             'modal/items.js',
+            'modal/news.js',
             'tooltip.js',
         ];
 
