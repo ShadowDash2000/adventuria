@@ -25,7 +25,7 @@ function putWheelsIntoModal() {
             const wheelItemNode = document.createElement('img');
 
             wheelItemNode.loading = 'lazy';
-            wheelItemNode.src = Helper.getFile('icon', wheelItem);
+            wheelItemNode.src = wheelItem.icon ? Helper.getFile('icon', wheelItem) : 'img/undefined.jpg';
             wheelItemNode.dataset.description = wheelItem.name;
 
             itemsNode.appendChild(wheelItemNode);
