@@ -235,12 +235,12 @@ func (u *User) GetNextStepType() (string, error) {
 	case CellTypeGame:
 		switch lastActionType {
 		case ActionTypeRoll,
-			ActionTypeReroll,
-			ActionTypeDrop:
+			ActionTypeReroll:
 			nextStepType = ActionTypeChooseGame
 		case ActionTypeChooseGame:
 			nextStepType = ActionTypeChooseResult
-		case ActionTypeChooseResult:
+		case ActionTypeChooseResult,
+			ActionTypeDrop:
 			nextStepType = ActionTypeRoll
 		default:
 			nextStepType = ActionTypeChooseGame
@@ -294,12 +294,12 @@ func (u *User) GetNextStepType() (string, error) {
 	case CellTypeWheelPreset:
 		switch lastActionType {
 		case ActionTypeRoll,
-			ActionTypeReroll,
-			ActionTypeDrop:
+			ActionTypeReroll:
 			nextStepType = ActionTypeRollWheelPreset
 		case ActionTypeRollWheelPreset:
 			nextStepType = ActionTypeChooseResult
-		case ActionTypeChooseResult:
+		case ActionTypeChooseResult,
+			ActionTypeDrop:
 			nextStepType = ActionTypeRoll
 		default:
 			nextStepType = ActionTypeRollWheelPreset
