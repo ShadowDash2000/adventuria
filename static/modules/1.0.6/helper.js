@@ -23,36 +23,42 @@ export default class Helper {
             'modal': 'dice',
             'color': '',
             'template': 'БРОСИЛ КУБИКИ НА: {{VALUE}}',
+            'icon': 'img/dices.png',
         },
         'reroll': {
             'name': 'РЕРОЛЛ',
             'modal': '',
             'color': '#20c7bf',
             'template': 'РЕРОЛЬНУЛ: {{VALUE}}',
+            'icon': 'img/wheel.png',
         },
         'drop': {
             'name': 'DROP',
             'modal': '',
             'color': '#c72020',
             'template': 'ДРОПНУЛ: {{VALUE}}',
+            'icon': 'img/drop.png',
         },
         'chooseResult': {
             'name': 'ВЫБРАТЬ РЕЗУЛЬТАТ',
             'modal': 'game-result',
             'color': '#20c723',
             'template': 'ЗАВЕРШИЛ: {{VALUE}}',
+            'icon': 'img/finish.png',
         },
         'chooseGame': {
             'name': 'ВЫБРАТЬ ИГРУ',
             'modal': 'game-picker',
             'color': '#20c7bf',
             'template': 'НАЧАЛ: {{VALUE}}',
+            'icon': 'img/start.webp',
         },
         'rollCell': {
             'name': 'КОЛЁСИКО',
             'modal': 'wheel',
             'color': '',
             'template': 'ВЫРОЛЯЛ НА КОЛЕСЕ КЛЕТКУ: {{VALUE}}',
+            'icon': 'img/wheel.png',
         },
         'rollItem': {
             'name': 'КОЛЁСИКО',
@@ -64,6 +70,7 @@ export default class Helper {
             'modal': 'wheel',
             'color': '',
             'template': 'ВЫРОЛЯЛ НА КОЛЕСЕ: {{VALUE}}',
+            'icon': 'img/wheel.png',
         },
     };
 

@@ -84,6 +84,8 @@ export default class Actions {
 
         if (action.icon) {
             actionIcon.src = Helper.getFile('icon', action);
+        } else if (actionParams.icon) {
+            actionIcon.src = actionParams.icon;
         }
 
         let text = action.value;
