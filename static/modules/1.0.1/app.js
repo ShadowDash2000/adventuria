@@ -198,6 +198,8 @@ class App {
             'modal/submit.js',
             'modal/inventory.js',
             'modal/profile.js',
+            'modal/wheels.js',
+            'modal/items.js',
             'tooltip.js',
         ];
 

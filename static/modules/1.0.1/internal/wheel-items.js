@@ -1,10 +1,12 @@
 export default class WheelItems {
     collectionName = 'wheel_items';
+    presetsCollectionName = 'wheel_items_presets';
 
     constructor(pb) {
         this.pb = pb;
         this.wheelItems = new Map();
         this.wheelItemsList = new Map();
+        this.presets = new Map();
 
         document.addEventListener('record.wheel_items.create', async (e) => {
             this.addItem(e.detail.record);
@@ -26,6 +28,9 @@ export default class WheelItems {
             this.addItem(item);
             this.addToList(item);
         }
+        for (const item of await this.pb.collection(this.presetsCollectionName).getFullList()) {
+            this.addPreset(item);
+        }
     }
 
     addItem(item) {
@@ -42,11 +47,19 @@ export default class WheelItems {
         this.wheelItemsList.set(item.id, item);
     }
 
+    addPreset(item) {
+        this.presets.set(item.id, item);
+    }
+
     getByPreset(preset) {
         return this.wheelItems.get(preset);
     }
 
     getById(id) {
         return this.wheelItemsList.get(id);
+    }
+
+    getPresetById(id) {
+        return this.presets.get(id);
     }
 }

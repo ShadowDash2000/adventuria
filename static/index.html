@@ -31,6 +31,15 @@
                 data-graph-speed="100">ВХОД
         </button>
         <button id="show-rules" class="button green">ПРАВИЛА</button>
+        <!--<button id="game-stats" class="button golden" data-graph-path="game-stats" data-graph-animation="fadeInUp"
+                data-graph-speed="100">ИТОГИ
+        </button>-->
+        <button class="button yellow" data-graph-path="items" data-graph-animation="fadeInUp"
+                data-graph-speed="100">ПРЕДМЕТЫ
+        </button>
+        <button class="button purple" data-graph-path="wheels" data-graph-animation="fadeInUp"
+                data-graph-speed="100">КОЛЁСА
+        </button>
     </div>
     <div class="profile hidden" data-authorized="">
         <div class="profile__slow-pc">
@@ -248,6 +257,43 @@
             <div class="container">
                 <h2>ПРАВИЛА</h2>
                 <div class="rules-modal text-shadow text-soft-shadow"></div>
+            </div>
+        </div>
+    </div>
+    <div id="items-modal" class="graph-modal__container dice" role="dialog" aria-modal="true" data-graph-target="items">
+        <button class="btn-reset graph-modal__close js-modal-close" aria-label="Закрыть модальное окно"></button>
+        <div class="graph-modal__content">
+            <div class="container">
+                <h2>ПРЕДМЕТЫ</h2>
+                <div class="items-modal__content text-shadow text-soft-shadow"></div>
+            </div>
+        </div>
+    </div>
+    <div id="wheels-modal" class="graph-modal__container dice" role="dialog" aria-modal="true" data-graph-target="wheels">
+        <button class="btn-reset graph-modal__close js-modal-close" aria-label="Закрыть модальное окно"></button>
+        <div class="graph-modal__content">
+            <div class="container">
+                <h2>КОЛЁСА</h2>
+                <div class="wheels-modal__content text-shadow text-soft-shadow"></div>
+            </div>
+        </div>
+    </div>
+    <div id="game-stats-modal" class="graph-modal__container dice" role="dialog" aria-modal="true" data-graph-target="game-stats">
+        <button class="btn-reset graph-modal__close js-modal-close" aria-label="Закрыть модальное окно"></button>
+        <div class="graph-modal__content">
+            <div class="container">
+                <h2>ИТОГИ</h2>
+                <div class="game-stats-modal text-shadow text-soft-shadow">
+                    <div class="game-stats-modal__stat">
+                        <h3>ПОБЕДИТЕЛЬ!</h3>
+                        <div class="game-stats-modal__stat-detail">
+                            <div class="stat-user">
+                                <img src="img/undefined.jpg" width="150" height="150">
+                                <span>{{USER_NAME}}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

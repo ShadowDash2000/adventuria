@@ -725,6 +725,18 @@ table.users {
     background-color: #20c723;
 }
 
+.golden {
+    background-color: #c7a920;
+}
+
+.purple {
+    background-color: #783d73;
+}
+
+.yellow {
+    background-color: #d3c621;
+}
+
 .hidden {
     display: none !important;
 }
@@ -1067,5 +1079,45 @@ table.users {
         display: flex;
         margin-left: 1.8vw;
         gap: 1vw;
+    }
+}
+
+.wheels-modal__content {
+    display: flex;
+    flex-direction: column;
+    gap: 1vw;
+
+    .wheels-modal__preset {
+        display: flex;
+        flex-direction: column;
+        gap: 1vw;
+
+        .wheels-modal__items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1vw;
+
+            img {
+                max-width: 11vw;
+                max-height: 24vw;
+            }
+        }
+    }
+}
+
+.items-modal__content {
+    display: flex;
+    justify-content: center;
+    gap: 1vw;
+
+    .items-modal__item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+
+        img {
+            width: 11vw;
+            height: 11vw;
+        }
     }
 }
