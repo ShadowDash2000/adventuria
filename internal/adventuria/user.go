@@ -64,7 +64,7 @@ func NewUser(userId string, gc *GameComponents) (*User, error) {
 }
 
 func (u *User) bindHooks() {
-	u.gc.app.OnRecordAfterUpdateSuccess(TableUsers).BindFunc(func(e *core.RecordEvent) error {
+	u.gc.App.OnRecordAfterUpdateSuccess(TableUsers).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == u.Id {
 			u.SetProxyRecord(e.Record)
 			u.Inventory.SetMaxSlots(u.MaxInventorySlots())
@@ -75,7 +75,7 @@ func (u *User) bindHooks() {
 }
 
 func (u *User) fetchUser(userId string) error {
-	user, err := u.gc.app.FindRecordById(TableUsers, userId)
+	user, err := u.gc.App.FindRecordById(TableUsers, userId)
 	if err != nil {
 		return err
 	}
@@ -87,7 +87,7 @@ func (u *User) fetchUser(userId string) error {
 }
 
 func (u *User) IsSafeDrop() bool {
-	return u.DropsInARow() < u.gc.settings.DropsToJail()
+	return u.DropsInARow() < u.gc.Settings.DropsToJail()
 }
 
 func (u *User) SetIsSafeDrop(b bool) {
@@ -104,9 +104,9 @@ func (u *User) SetIsInJail(b bool) {
 
 func (u *User) CurrentCell() (*Cell, bool) {
 	cellsPassed := u.CellsPassed()
-	currentCellNum := cellsPassed % u.gc.cells.Count()
+	currentCellNum := cellsPassed % u.gc.Cells.Count()
 
-	return u.gc.cells.GetByOrder(currentCellNum)
+	return u.gc.Cells.GetByOrder(currentCellNum)
 }
 
 func (u *User) Points() int {
@@ -153,13 +153,13 @@ func (u *User) Save() error {
 	statsJson, _ := json.Marshal(u.Stats)
 	u.Set("stats", string(statsJson))
 
-	return u.gc.app.Save(u)
+	return u.gc.App.Save(u)
 }
 
 func (u *User) Move(n int) (Action, *Cell, error) {
 	cellsPassed := u.CellsPassed()
-	currentCellNum := (cellsPassed + n) % u.gc.cells.Count()
-	currentCell, _ := u.gc.cells.GetByOrder(currentCellNum)
+	currentCellNum := (cellsPassed + n) % u.gc.Cells.Count()
+	currentCell, _ := u.gc.Cells.GetByOrder(currentCellNum)
 
 	action := NewAction(u.Id, ActionTypeRoll, u.gc)
 	action.SetCell(currentCell.Id)
@@ -171,23 +171,23 @@ func (u *User) Move(n int) (Action, *Cell, error) {
 
 	u.SetCellsPassed(cellsPassed + n)
 
-	prevCellNum := cellsPassed % u.gc.cells.Count()
-	lapsPassed := (prevCellNum + n) / u.gc.cells.Count()
+	prevCellNum := cellsPassed % u.gc.Cells.Count()
+	lapsPassed := (prevCellNum + n) / u.gc.Cells.Count()
 	// Check if we're not moving backwards and passed new lap(-s)
 	if n > 0 && lapsPassed > 0 {
-		u.gc.event.Go(OnNewLap, u, lapsPassed, u.gc)
+		u.gc.Event.Go(OnNewLap, u, lapsPassed, u.gc)
 	}
 
 	return action, currentCell, nil
 }
 
 func (u *User) MoveToJail() error {
-	jailCellPos, ok := u.gc.cells.GetOrderByType(CellTypeJail)
+	jailCellPos, ok := u.gc.Cells.GetOrderByType(CellTypeJail)
 	if !ok {
 		return errors.New("jail cell not found")
 	}
 
-	currentCellNum := u.CellsPassed() % u.gc.cells.Count()
+	currentCellNum := u.CellsPassed() % u.gc.Cells.Count()
 
 	_, _, err := u.Move(jailCellPos - currentCellNum)
 	if err != nil {
@@ -196,18 +196,18 @@ func (u *User) MoveToJail() error {
 
 	u.SetIsInJail(true)
 
-	u.gc.event.Go(OnAfterGoToJail, u, u.gc)
+	u.gc.Event.Go(OnAfterGoToJail, u, u.gc)
 
 	return nil
 }
 
 func (u *User) MoveToCellId(cellId string) error {
-	cellPos, ok := u.gc.cells.GetOrderById(cellId)
+	cellPos, ok := u.gc.Cells.GetOrderById(cellId)
 	if !ok {
 		return fmt.Errorf("cell %s not found", cellId)
 	}
 
-	currentCellNum := u.CellsPassed() % u.gc.cells.Count()
+	currentCellNum := u.CellsPassed() % u.gc.Cells.Count()
 
 	_, _, err := u.Move(cellPos - currentCellNum)
 	if err != nil {

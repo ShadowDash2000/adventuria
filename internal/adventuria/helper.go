@@ -8,7 +8,7 @@ import (
 )
 
 func RandomItem(gc *GameComponents) (*Item, error) {
-	items, err := gc.app.FindRecordsByFilter(
+	items, err := gc.App.FindRecordsByFilter(
 		TableItems,
 		"isRollable = true",
 		"",
@@ -27,7 +27,7 @@ func RandomItem(gc *GameComponents) (*Item, error) {
 }
 
 func RandomPresetItem(presetId string, gc *GameComponents) (*core.Record, error) {
-	wheelItems, err := gc.app.FindRecordsByFilter(
+	wheelItems, err := gc.App.FindRecordsByFilter(
 		TableWheelItems,
 		"presets.id = {:presetId}",
 		"",

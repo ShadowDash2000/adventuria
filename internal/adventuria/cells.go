@@ -31,17 +31,17 @@ func NewCells(gc *GameComponents) *Cells {
 }
 
 func (c *Cells) bindHooks() {
-	c.gc.app.OnRecordAfterCreateSuccess(TableCells).BindFunc(func(e *core.RecordEvent) error {
+	c.gc.App.OnRecordAfterCreateSuccess(TableCells).BindFunc(func(e *core.RecordEvent) error {
 		c.add(e.Record)
 		c.sort()
 		return e.Next()
 	})
-	c.gc.app.OnRecordAfterUpdateSuccess(TableCells).BindFunc(func(e *core.RecordEvent) error {
+	c.gc.App.OnRecordAfterUpdateSuccess(TableCells).BindFunc(func(e *core.RecordEvent) error {
 		c.add(e.Record)
 		c.sort()
 		return e.Next()
 	})
-	c.gc.app.OnRecordAfterDeleteSuccess(TableCells).BindFunc(func(e *core.RecordEvent) error {
+	c.gc.App.OnRecordAfterDeleteSuccess(TableCells).BindFunc(func(e *core.RecordEvent) error {
 		c.delete(e.Record)
 		c.sort()
 		return e.Next()
@@ -52,7 +52,7 @@ func (c *Cells) fetch() error {
 	c.cells.Clear()
 	c.cellsByCode.Clear()
 
-	cells, err := c.gc.app.FindRecordsByFilter(
+	cells, err := c.gc.App.FindRecordsByFilter(
 		TableCells,
 		"",
 		"sort",

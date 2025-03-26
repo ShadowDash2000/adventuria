@@ -7,14 +7,6 @@ import (
 	"strings"
 )
 
-type EffectKind uint
-
-const (
-	Int EffectKind = 1 << iota
-	Bool
-	Slice
-)
-
 const (
 	EffectUseInstant        = "useInstant"
 	EffectUseOnRoll         = "useOnRoll"
@@ -30,137 +22,128 @@ type Effect interface {
 	GetId() string
 	Name() string
 	Event() string
-	Kind() EffectKind
 	Type() string
 	Value() any
+	AddValue(any)
 }
 
-type BaseEffect struct {
+type EffectBase struct {
 	core.BaseRecordProxy
-	kind EffectKind
+	value any
 }
 
-var EffectsList = map[string]EffectCreator{}
+var EffectsList = map[string]Effect{}
 
-func RegisterEffects(effects map[string]EffectCreator) {
+func RegisterEffects(effects map[string]Effect) {
 	maps.Insert(EffectsList, maps.All(effects))
 }
 
-type EffectCreator func() Effect
-
 func NewEffect(record *core.Record) (Effect, error) {
-	effectType := record.GetString("type")
-	effectCreator, ok := EffectsList[effectType]
+	t := record.GetString("type")
+	fmt.Println("EFFECT:", t, record.Id)
+	effect, ok := EffectsList[t]
 	if !ok {
-		return nil, fmt.Errorf("unknown effect type: %s", effectType)
+		return nil, fmt.Errorf("unknown effect type: %s", t)
 	}
 
-	effect := effectCreator()
 	effect.SetProxyRecord(record)
 
 	return effect, nil
 }
 
-func (e *BaseEffect) GetId() string {
+func (e *EffectBase) GetId() string {
 	return e.Id
 }
 
-func (e *BaseEffect) Name() string {
+func (e *EffectBase) Name() string {
 	return e.GetString("name")
 }
 
-func (e *BaseEffect) Event() string {
+func (e *EffectBase) Event() string {
 	return e.GetString("event")
 }
 
-func (e *BaseEffect) Kind() EffectKind {
-	return e.kind
-}
-
-func (e *BaseEffect) Type() string {
+func (e *EffectBase) Type() string {
 	return e.GetString("type")
 }
 
-func (e *BaseEffect) Value() any {
-	return nil
+func (e *EffectBase) Value() any {
+	return e.value
 }
 
-func (e *BaseEffect) parseString(s string) []string {
+func (e *EffectBase) parseString(s string) []string {
 	return strings.Split(s, ", ")
 }
 
 type EffectInt struct {
-	BaseEffect
+	EffectBase
 }
 
-func NewEffectInt() EffectCreator {
-	return func() Effect {
-		return &EffectInt{
-			BaseEffect: BaseEffect{
-				kind: Int,
-			},
-		}
+func NewEffectInt() Effect {
+	return &EffectInt{
+		EffectBase{
+			value: 0,
+		},
 	}
 }
 
-func (ei *EffectInt) Value() any {
-	return ei.GetInt("value")
+func (ei *EffectInt) AddValue(i any) {
+	ei.value = ei.value.(int) + i.(int)
 }
 
 type EffectBool struct {
-	BaseEffect
+	EffectBase
 }
 
-func NewEffectBool() EffectCreator {
-	return func() Effect {
-		return &EffectInt{
-			BaseEffect: BaseEffect{
-				kind: Bool,
-			},
-		}
+func NewEffectBool() Effect {
+	return &EffectBool{
+		EffectBase{
+			value: false,
+		},
 	}
 }
 
-func (eb *EffectBool) Value() any {
-	return eb.GetBool("value")
+func (eb *EffectBool) AddValue(any) {
+	eb.value = true
 }
 
 type EffectSlice struct {
-	BaseEffect
+	EffectBase
 }
 
-func NewEffectSlice() EffectCreator {
-	return func() Effect {
-		return &EffectSlice{
-			BaseEffect: BaseEffect{
-				kind: Slice,
-			},
-		}
-	}
+func NewEffectSlice() Effect {
+	return &EffectSlice{}
 }
 
 func (ef *EffectSlice) Value() any {
+	if ef.Record == nil {
+		return nil
+	}
+
 	return ef.parseString(ef.GetString("value"))
 }
 
+func (ef *EffectSlice) AddValue(v any) {
+	ef.value = v
+}
+
 type EffectSliceWithSource[T any] struct {
-	BaseEffect
+	EffectBase
 	source map[string]T
 }
 
-func NewEffectSliceWithSource[T any](source map[string]T) EffectCreator {
-	return func() Effect {
-		return &EffectSliceWithSource[T]{
-			BaseEffect: BaseEffect{
-				kind: Slice,
-			},
-			source: source,
-		}
+func NewEffectSliceWithSource[T any](source map[string]T) Effect {
+	return &EffectSliceWithSource[T]{
+		source: source,
 	}
 }
 
 func (ef *EffectSliceWithSource[T]) Value() any {
-	var res []any
+	if ef.Record == nil {
+		return nil
+	}
+
+	var res []T
 	sl := ef.parseString(ef.GetString("value"))
 
 	for _, key := range sl {
@@ -172,4 +155,44 @@ func (ef *EffectSliceWithSource[T]) Value() any {
 	}
 
 	return res
+}
+
+func (ef *EffectSliceWithSource[T]) AddValue(v any) {
+	ef.value = v
+}
+
+type Effects struct {
+	effects map[string]Effect
+}
+
+func NewEffects() *Effects {
+	effects := &Effects{}
+	effects.effects = map[string]Effect{}
+
+	for t, effect := range EffectsList {
+		effects.effects[t] = effect
+	}
+
+	return effects
+}
+
+func (ee *Effects) Effect(t string) Effect {
+	return ee.effects[t]
+}
+
+func (ee *Effects) AddValue(t string, v any) {
+	ee.effects[t].AddValue(v)
+}
+
+func (ee *Effects) Map() map[string]any {
+	m := make(map[string]any)
+	for t, effect := range ee.effects {
+		m[t] = effect.Value()
+	}
+	return m
+}
+
+func EffectAs[T any](e Effect) T {
+	v, _ := e.Value().(T)
+	return v
 }

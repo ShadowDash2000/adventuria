@@ -40,7 +40,7 @@ type BaseAction struct {
 func NewAction(userId string, actionType string, gc *GameComponents) Action {
 	a := &BaseAction{gc: gc}
 
-	actionsCollection, _ := gc.cols.Get(TableActions)
+	actionsCollection, _ := gc.Cols.Get(TableActions)
 
 	a.SetProxyRecord(core.NewRecord(actionsCollection))
 	a.setUserId(userId)
@@ -50,7 +50,7 @@ func NewAction(userId string, actionType string, gc *GameComponents) Action {
 }
 
 func (a *BaseAction) Save() error {
-	return a.gc.app.Save(a)
+	return a.gc.App.Save(a)
 }
 
 func (a *BaseAction) UserId() string {
@@ -122,7 +122,7 @@ func NewLastUserAction(userId string, gc *GameComponents) (Action, error) {
 }
 
 func (ua *UserAction) bindHooks() {
-	ua.gc.app.OnRecordAfterCreateSuccess(TableActions).BindFunc(func(e *core.RecordEvent) error {
+	ua.gc.App.OnRecordAfterCreateSuccess(TableActions).BindFunc(func(e *core.RecordEvent) error {
 		userId := e.Record.GetString("user")
 		notAffectNextStep := e.Record.GetBool("notAffectNextStep")
 		if userId == ua.UserId() && !notAffectNextStep {
@@ -130,13 +130,13 @@ func (ua *UserAction) bindHooks() {
 		}
 		return e.Next()
 	})
-	ua.gc.app.OnRecordAfterUpdateSuccess(TableActions).BindFunc(func(e *core.RecordEvent) error {
+	ua.gc.App.OnRecordAfterUpdateSuccess(TableActions).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == ua.Id {
 			ua.SetProxyRecord(e.Record)
 		}
 		return e.Next()
 	})
-	ua.gc.app.OnRecordAfterDeleteSuccess(TableActions).BindFunc(func(e *core.RecordEvent) error {
+	ua.gc.App.OnRecordAfterDeleteSuccess(TableActions).BindFunc(func(e *core.RecordEvent) error {
 		userId := e.Record.GetString("user")
 		if userId == ua.UserId() {
 			ua.fetchLastUserAction(userId)
@@ -146,7 +146,7 @@ func (ua *UserAction) bindHooks() {
 }
 
 func (ua *UserAction) fetchLastUserAction(userId string) error {
-	actions, err := ua.gc.app.FindRecordsByFilter(
+	actions, err := ua.gc.App.FindRecordsByFilter(
 		TableActions,
 		"user.id = {:userId} && notAffectNextStep = false",
 		"-created",
@@ -161,7 +161,7 @@ func (ua *UserAction) fetchLastUserAction(userId string) error {
 	if len(actions) > 0 {
 		ua.SetProxyRecord(actions[0])
 	} else {
-		actionsCollection, _ := ua.gc.cols.Get(TableActions)
+		actionsCollection, _ := ua.gc.Cols.Get(TableActions)
 		ua.SetProxyRecord(core.NewRecord(actionsCollection))
 		ua.setUserId(userId)
 	}

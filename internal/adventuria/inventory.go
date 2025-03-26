@@ -3,7 +3,6 @@ package adventuria
 import (
 	"adventuria/pkg/helper"
 	"errors"
-	"github.com/mitchellh/mapstructure"
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
 	"maps"
@@ -36,19 +35,19 @@ func NewInventory(userId string, maxSlots int, gc *GameComponents) (*Inventory, 
 }
 
 func (i *Inventory) bindHooks() {
-	i.gc.app.OnRecordAfterCreateSuccess(TableInventory).BindFunc(func(e *core.RecordEvent) error {
+	i.gc.App.OnRecordAfterCreateSuccess(TableInventory).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.GetString("user") == i.userId {
 			i.invItems[e.Record.Id], _ = NewInventoryItem(e.Record, i.gc)
 		}
 		return e.Next()
 	})
-	i.gc.app.OnRecordAfterUpdateSuccess(TableInventory).BindFunc(func(e *core.RecordEvent) error {
+	i.gc.App.OnRecordAfterUpdateSuccess(TableInventory).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.GetString("user") == i.userId {
 			i.invItems[e.Record.Id].SetProxyRecord(e.Record)
 		}
 		return e.Next()
 	})
-	i.gc.app.OnRecordAfterDeleteSuccess(TableInventory).BindFunc(func(e *core.RecordEvent) error {
+	i.gc.App.OnRecordAfterDeleteSuccess(TableInventory).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.GetString("user") == i.userId {
 			delete(i.invItems, e.Record.Id)
 		}
@@ -57,7 +56,7 @@ func (i *Inventory) bindHooks() {
 }
 
 func (i *Inventory) fetchInventory() error {
-	invItems, err := i.gc.app.FindRecordsByFilter(
+	invItems, err := i.gc.App.FindRecordsByFilter(
 		TableInventory,
 		"user.id = {:userId}",
 		"-created",
@@ -99,7 +98,7 @@ func (i *Inventory) HasEmptySlots() bool {
 }
 
 func (i *Inventory) AddItem(itemId string) error {
-	item, err := i.gc.app.FindRecordById(TableItems, itemId)
+	item, err := i.gc.App.FindRecordById(TableItems, itemId)
 	if err != nil {
 		return err
 	}
@@ -120,7 +119,7 @@ func (i *Inventory) AddItem(itemId string) error {
 // Note: before an item added, checks if there is some empty slots.
 // If not, trys to drop a random item from inventory.
 func (i *Inventory) MustAddItem(itemId string) error {
-	item, err := i.gc.app.FindRecordById(TableItems, itemId)
+	item, err := i.gc.App.FindRecordById(TableItems, itemId)
 	if err != nil {
 		return err
 	}
@@ -140,7 +139,7 @@ func (i *Inventory) MustAddItem(itemId string) error {
 }
 
 func (i *Inventory) CreateInventoryRecord(item *core.Record) error {
-	inventoryCollection, err := i.gc.cols.Get(TableInventory)
+	inventoryCollection, err := i.gc.Cols.Get(TableInventory)
 	if err != nil {
 		return err
 	}
@@ -149,7 +148,7 @@ func (i *Inventory) CreateInventoryRecord(item *core.Record) error {
 	record.Set("user", i.userId)
 	record.Set("item", item.Id)
 	record.Set("isActive", item.GetBool("isActiveByDefault"))
-	err = i.gc.app.Save(record)
+	err = i.gc.App.Save(record)
 	if err != nil {
 		return err
 	}
@@ -164,13 +163,7 @@ func (i *Inventory) GetEffects(event string) (*Effects, map[string][]string, err
 		return i.invItems[keys[k]].item.Order() < i.invItems[keys[j]].item.Order()
 	})
 
-	var effects *Effects
-	var effectsMap map[string]interface{}
-
-	err := mapstructure.Decode(&Effects{}, &effectsMap)
-	if err != nil {
-		return nil, nil, err
-	}
+	effects := NewEffects()
 
 	invItemsEffectsIds := make(map[string][]string)
 	for _, invItemId := range keys {
@@ -182,27 +175,13 @@ func (i *Inventory) GetEffects(event string) (*Effects, map[string][]string, err
 
 		var effectsIds []string
 		for _, effect := range itemEffects {
-			if effectsMap[effect.Type()] != nil {
-				switch effect.Kind() {
-				case Int:
-					effectsMap[effect.Type()] = effectsMap[effect.Type()].(int) + effect.Value().(int)
-				case Bool:
-					effectsMap[effect.Type()] = true
-				case Slice:
-					effectsMap[effect.Type()] = effect.Value()
-				}
-			}
+			effects.AddValue(effect.Type(), effect.Value())
 
-			i.gc.log.Add(i.userId, LogTypeItemEffectApplied, effect.Name())
+			i.gc.Log.Add(i.userId, LogTypeItemEffectApplied, effect.Name())
 			effectsIds = append(effectsIds, effect.GetId())
 		}
 
 		invItemsEffectsIds[invItemId] = effectsIds
-	}
-
-	err = mapstructure.Decode(effectsMap, &effects)
-	if err != nil {
-		return nil, nil, err
 	}
 
 	return effects, invItemsEffectsIds, nil
@@ -222,12 +201,12 @@ func (i *Inventory) applyEffects(event string) (*Effects, error) {
 		appliedEffectsCount := len(invItem.AppliedEffects())
 
 		if appliedEffectsCount < invItem.EffectsCount() {
-			err = i.gc.app.Save(invItem)
+			err = i.gc.App.Save(invItem)
 			if err != nil {
 				return nil, err
 			}
 		} else {
-			err = i.gc.app.Delete(invItem)
+			err = i.gc.App.Delete(invItem)
 			if err != nil {
 				return nil, err
 			}
@@ -243,7 +222,7 @@ func (i *Inventory) UseItem(itemId string) error {
 		return errors.New("item not found")
 	}
 
-	i.gc.log.Add(i.userId, LogTypeItemUse, item.GetName())
+	i.gc.Log.Add(i.userId, LogTypeItemUse, item.GetName())
 
 	return item.Use()
 }
@@ -258,12 +237,12 @@ func (i *Inventory) DropItem(invItemId string) error {
 		return errors.New("inventory item isn't droppable")
 	}
 
-	err := i.gc.app.Delete(invItem)
+	err := i.gc.App.Delete(invItem)
 	if err != nil {
 		return err
 	}
 
-	i.gc.log.Add(i.userId, LogTypeItemDrop, invItem.GetName())
+	i.gc.Log.Add(i.userId, LogTypeItemDrop, invItem.GetName())
 
 	return nil
 }

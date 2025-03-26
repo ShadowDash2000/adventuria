@@ -44,18 +44,18 @@ func DefaultSettings(cols *collections.Collections) (*core.Record, error) {
 }
 
 func (s *Settings) bindHooks() {
-	s.gc.app.OnRecordAfterCreateSuccess(TableSettings).BindFunc(func(e *core.RecordEvent) error {
+	s.gc.App.OnRecordAfterCreateSuccess(TableSettings).BindFunc(func(e *core.RecordEvent) error {
 		s.SetProxyRecord(e.Record)
 		return e.Next()
 	})
-	s.gc.app.OnRecordAfterUpdateSuccess(TableSettings).BindFunc(func(e *core.RecordEvent) error {
+	s.gc.App.OnRecordAfterUpdateSuccess(TableSettings).BindFunc(func(e *core.RecordEvent) error {
 		s.SetProxyRecord(e.Record)
 		return e.Next()
 	})
 }
 
 func (s *Settings) init() error {
-	record, err := s.gc.app.FindFirstRecordByFilter(
+	record, err := s.gc.App.FindFirstRecordByFilter(
 		TableSettings,
 		"",
 	)
@@ -66,13 +66,13 @@ func (s *Settings) init() error {
 	if record != nil {
 		s.SetProxyRecord(record)
 	} else {
-		record, err = DefaultSettings(s.gc.cols)
+		record, err = DefaultSettings(s.gc.Cols)
 		if err != nil {
 			return err
 		}
 
 		s.SetProxyRecord(record)
-		err = s.gc.app.Save(s)
+		err = s.gc.App.Save(s)
 		if err != nil {
 			return err
 		}
@@ -144,21 +144,21 @@ func (s *Settings) checkActionsBlock() func(*core.RequestEvent) error {
 }
 
 func (s *Settings) RegisterSettingsCron() {
-	s.gc.app.Cron().MustAdd("settings", "* * * * *", func() {
+	s.gc.App.Cron().MustAdd("settings", "* * * * *", func() {
 		week := s.GetCurrentWeekNum()
 		if s.CurrentWeek() == week {
 			return
 		}
 
 		s.SetCurrentWeek(week)
-		err := s.gc.app.Save(s)
+		err := s.gc.App.Save(s)
 		if err != nil {
-			s.gc.app.Logger().Error("save settings failed", "err", err)
+			s.gc.App.Logger().Error("save settings failed", "err", err)
 		}
 
 		err = ResetAllTimers(s.TimerTimeLimit(), s.LimitExceedPenalty(), s.gc)
 		if err != nil {
-			s.gc.app.Logger().Error("failed to clear timers", "err", err)
+			s.gc.App.Logger().Error("failed to clear timers", "err", err)
 		}
 	})
 }

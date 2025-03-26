@@ -19,7 +19,7 @@ func NewInventoryItem(record *core.Record, gc *GameComponents) (*InventoryItem, 
 
 	ii.SetProxyRecord(record)
 
-	errs := gc.app.ExpandRecord(ii.Record, []string{"item"}, nil)
+	errs := gc.App.ExpandRecord(ii.Record, []string{"item"}, nil)
 	if errs != nil {
 		for _, err = range errs {
 			return nil, err
@@ -88,7 +88,7 @@ func (ii *InventoryItem) Use() error {
 	}
 
 	ii.SetIsActive(true)
-	err := ii.gc.app.Save(ii)
+	err := ii.gc.App.Save(ii)
 	if err != nil {
 		return err
 	}

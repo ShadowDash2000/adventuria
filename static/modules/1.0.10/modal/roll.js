@@ -47,8 +47,8 @@ async function fetchDices() {
     const json = await res.json();
 
     let dices = [];
-    if (json.dices) {
-        for (const dice of json.dices) {
+    if (json.changeDices) {
+        for (const dice of json.changeDices) {
             dices.push(dice.type);
         }
     } else dices = ['d6', 'd6'];

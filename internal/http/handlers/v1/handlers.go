@@ -222,7 +222,7 @@ func (h *Handlers) GetRollEffectsHandler(e *core.RequestEvent) error {
 		return err
 	}
 
-	e.JSON(http.StatusOK, effects)
+	e.JSON(http.StatusOK, effects.Map())
 
 	return nil
 }

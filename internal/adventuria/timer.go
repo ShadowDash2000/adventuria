@@ -21,7 +21,7 @@ func NewBaseTimerFromRecord(record *core.Record, gc *GameComponents) *Timer {
 }
 
 func NewTimer(userId string, gc *GameComponents) (*Timer, error) {
-	record, err := gc.app.FindFirstRecordByFilter(
+	record, err := gc.App.FindFirstRecordByFilter(
 		TableTimers,
 		"user.id = {:userId}",
 		dbx.Params{"userId": userId},
@@ -35,7 +35,7 @@ func NewTimer(userId string, gc *GameComponents) (*Timer, error) {
 		timer.gc = gc
 		timer.SetProxyRecord(record)
 	} else {
-		timer, err = CreateTimer(userId, gc.settings.TimerTimeLimit(), gc)
+		timer, err = CreateTimer(userId, gc.Settings.TimerTimeLimit(), gc)
 		if err != nil {
 			return nil, err
 		}
@@ -47,15 +47,15 @@ func NewTimer(userId string, gc *GameComponents) (*Timer, error) {
 }
 
 func (t *Timer) bindHooks() {
-	t.gc.app.OnRecordAfterUpdateSuccess(TableTimers).BindFunc(func(e *core.RecordEvent) error {
+	t.gc.App.OnRecordAfterUpdateSuccess(TableTimers).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.GetString("user") == t.UserId() {
 			t.SetProxyRecord(e.Record)
 		}
 		return e.Next()
 	})
-	t.gc.app.OnRecordAfterDeleteSuccess(TableTimers).BindFunc(func(e *core.RecordEvent) error {
+	t.gc.App.OnRecordAfterDeleteSuccess(TableTimers).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == t.Id {
-			timersCollection, _ := t.gc.cols.Get(TableTimers)
+			timersCollection, _ := t.gc.Cols.Get(TableTimers)
 			t.SetProxyRecord(core.NewRecord(timersCollection))
 		}
 		return e.Next()
@@ -73,7 +73,7 @@ func (t *Timer) Start() error {
 	t.SetIsActive(true)
 	t.SetStartTime(types.NowDateTime())
 
-	return t.gc.app.Save(t)
+	return t.gc.App.Save(t)
 }
 
 func (t *Timer) Stop() error {
@@ -85,7 +85,7 @@ func (t *Timer) Stop() error {
 	timePassed := t.TimePassed() + time.Now().Sub(t.StartTime().Time())
 	t.SetTimePassed(timePassed)
 
-	return t.gc.app.Save(t)
+	return t.gc.App.Save(t)
 }
 
 // GetTimeLeft returns time.Duration in seconds
@@ -143,11 +143,11 @@ func (t *Timer) SetStartTime(time types.DateTime) {
 
 func (t *Timer) AddSecondsTimeLimit(secs int) error {
 	t.SetTimeLimit(t.TimeLimit() + (time.Duration(secs) * time.Second))
-	return t.gc.app.Save(t)
+	return t.gc.App.Save(t)
 }
 
 func CreateTimer(userId string, timeLimit int, gc *GameComponents) (*Timer, error) {
-	collection, err := gc.cols.Get(TableTimers)
+	collection, err := gc.Cols.Get(TableTimers)
 	if err != nil {
 		return nil, err
 	}
@@ -159,7 +159,7 @@ func CreateTimer(userId string, timeLimit int, gc *GameComponents) (*Timer, erro
 	timer.Set("timeLimit", timeLimit)
 	timer.Set("timePassed", 0)
 	timer.Set("isActive", false)
-	err = gc.app.Save(timer)
+	err = gc.App.Save(timer)
 	if err != nil {
 		return nil, err
 	}
@@ -168,7 +168,7 @@ func CreateTimer(userId string, timeLimit int, gc *GameComponents) (*Timer, erro
 }
 
 func ResetAllTimers(timeLimit int, limitExceedPenalty int, gc *GameComponents) error {
-	records, err := gc.app.FindAllRecords(TableTimers)
+	records, err := gc.App.FindAllRecords(TableTimers)
 	if err != nil {
 		return err
 	}
@@ -196,7 +196,7 @@ func ResetAllTimers(timeLimit int, limitExceedPenalty int, gc *GameComponents) e
 
 		timer.SetTimeLimit(newTimeLimit)
 		timer.SetTimePassed(0)
-		err = gc.app.Save(timer)
+		err = gc.App.Save(timer)
 		if err != nil {
 			return err
 		}

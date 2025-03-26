@@ -4,20 +4,6 @@ import (
 	"github.com/pocketbase/pocketbase/core"
 )
 
-type Effects struct {
-	PointsIncrement      int      `json:"pointsIncrement" mapstructure:"pointsIncrement"`
-	JailEscape           bool     `json:"jailEscape" mapstructure:"jailEscape"`
-	DiceMultiplier       int      `json:"diceMultiplier" mapstructure:"diceMultiplier"`
-	DiceIncrement        int      `json:"diceIncrement" mapstructure:"diceIncrement"`
-	Dices                []Dice   `json:"dices" mapstructure:"changeDices"`
-	IsSafeDrop           bool     `json:"isSafeDrop" mapstructure:"isSafeDrop"`
-	TimerIncrement       int      `json:"timerIncrement" mapstructure:"timerIncrement"`
-	RollReverse          bool     `json:"rollReverse" mapstructure:"rollReverse"`
-	DropInventory        bool     `json:"dropInventory" mapstructure:"dropInventory"`
-	CellPointsDivide     int      `json:"cellPointsDivide" mapstructure:"cellPointsDivide"`
-	CellByTypeTeleportTo []string `json:"teleportToRandomCellByTypes" mapstructure:"teleportToRandomCellByTypes"`
-}
-
 type Item struct {
 	core.BaseRecordProxy
 	gc      *GameComponents
@@ -31,7 +17,7 @@ func NewBaseItem(record *core.Record) *Item {
 }
 
 func NewItem(record *core.Record, gc *GameComponents) (*Item, error) {
-	errs := gc.app.ExpandRecord(record, []string{"effects"}, nil)
+	errs := gc.App.ExpandRecord(record, []string{"effects"}, nil)
 	if errs != nil {
 		for _, err := range errs {
 			return nil, err
@@ -60,7 +46,7 @@ func NewItem(record *core.Record, gc *GameComponents) (*Item, error) {
 }
 
 func (i *Item) bindHooks() {
-	i.gc.app.OnRecordAfterUpdateSuccess(TableItems).BindFunc(func(e *core.RecordEvent) error {
+	i.gc.App.OnRecordAfterUpdateSuccess(TableItems).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == i.Id {
 			i.SetProxyRecord(e.Record)
 		}

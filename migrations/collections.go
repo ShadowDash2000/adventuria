@@ -1652,7 +1652,8 @@ func init() {
 							"timerIncrement",
 							"rollReverse",
 							"dropInventory",
-							"cellPointsDivide"
+							"cellPointsDivide",
+							"teleportToRandomCellByTypes"
 						]
 					},
 					{
