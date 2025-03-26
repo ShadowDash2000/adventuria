@@ -14,12 +14,12 @@ import (
 
 type BaseGame struct {
 	gc    *GameComponents
-	cells *Cells
 	users *cache.MemoryCache[string, *User]
 }
 
 type GameComponents struct {
 	app      core.App
+	cells    *Cells
 	log      *Log
 	cols     *collections.Collections
 	settings *Settings
@@ -43,7 +43,7 @@ func New(app core.App) Game {
 
 func (g *BaseGame) Init() {
 	g.gc.settings = NewSettings(g.gc)
-	g.cells = NewCells(g.gc)
+	g.gc.cells = NewCells(g.gc)
 }
 
 func (g *BaseGame) Settings() *Settings {
@@ -60,7 +60,7 @@ func (g *BaseGame) GetUser(userId string) (*User, error) {
 		return user, nil
 	}
 
-	user, err := NewUser(userId, g.cells, g.gc)
+	user, err := NewUser(userId, g.gc)
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +108,7 @@ func (g *BaseGame) ChooseGame(game string, userId string) error {
 		return err
 	}
 
-	g.gc.event.Go(OnAfterChooseGame, user)
+	g.gc.event.Go(OnAfterChooseGame, user, g.gc)
 
 	err = g.afterAction(user, EffectUseOnChooseGame)
 	if err != nil {
@@ -163,7 +163,7 @@ func (g *BaseGame) Reroll(comment string, file *filesystem.File, userId string) 
 		return err
 	}
 
-	g.gc.event.Go(OnAfterReroll, user)
+	g.gc.event.Go(OnAfterReroll, user, g.gc)
 
 	err = g.afterAction(user, EffectUseOnReroll)
 	if err != nil {
@@ -191,7 +191,7 @@ func (g *BaseGame) Roll(userId string) (int, []int, *Cell, error) {
 	dicesResult := &RollDicesResult{
 		[]Dice{DiceTypeD6, DiceTypeD6},
 	}
-	g.gc.event.Go(OnBeforeRoll, user, dicesResult)
+	g.gc.event.Go(OnBeforeRoll, user, dicesResult, g.gc)
 
 	rollResult := &RollResult{
 		N: 0,
@@ -202,11 +202,11 @@ func (g *BaseGame) Roll(userId string) (int, []int, *Cell, error) {
 		rollResult.N += diceRolls[i]
 	}
 
-	g.gc.event.Go(OnBeforeRollMove, user, rollResult)
+	g.gc.event.Go(OnBeforeRollMove, user, rollResult, g.gc)
 
 	_, currentCell, err := user.Move(rollResult.N)
 
-	g.gc.event.Go(OnAfterRoll, user, rollResult)
+	g.gc.event.Go(OnAfterRoll, user, rollResult, g.gc)
 
 	err = g.afterAction(user, EffectUseOnRoll)
 	if err != nil {
@@ -238,7 +238,7 @@ func (g *BaseGame) Drop(comment string, file *filesystem.File, userId string) er
 	}
 
 	effects := &Effects{}
-	g.gc.event.Go(OnBeforeDrop, user, effects)
+	g.gc.event.Go(OnBeforeDrop, user, effects, g.gc)
 
 	action := NewAction(userId, ActionTypeDrop, g.gc)
 	action.SetCell(currentCell.Id)
@@ -261,7 +261,7 @@ func (g *BaseGame) Drop(comment string, file *filesystem.File, userId string) er
 		}
 	}
 
-	g.gc.event.Go(OnAfterDrop, user)
+	g.gc.event.Go(OnAfterDrop, user, g.gc)
 
 	err = g.afterAction(user, EffectUseOnDrop)
 	if err != nil {
@@ -287,7 +287,7 @@ func (g *BaseGame) Done(comment string, file *filesystem.File, userId string) er
 	}
 
 	effects := &Effects{}
-	g.gc.event.Go(OnBeforeDone, user, effects)
+	g.gc.event.Go(OnBeforeDone, user, effects, g.gc)
 
 	currentCell, _ := user.CurrentCell()
 
@@ -310,7 +310,7 @@ func (g *BaseGame) Done(comment string, file *filesystem.File, userId string) er
 	user.SetIsInJail(false)
 	user.SetPoints(user.Points() + cellPoints)
 
-	g.gc.event.Go(OnAfterDone, user)
+	g.gc.event.Go(OnAfterDone, user, g.gc)
 
 	err = g.afterAction(user, EffectUseOnChooseResult)
 	if err != nil {
@@ -358,7 +358,7 @@ func (g *BaseGame) RollCell(userId string) (string, error) {
 		return "", errors.New("next step isn't roll cell")
 	}
 
-	gameCells := g.cells.GetAllByType(CellTypeGame)
+	gameCells := g.gc.cells.GetAllByType(CellTypeGame)
 	cell := helper.RandomItemFromSlice(gameCells)
 
 	action := NewAction(userId, ActionTypeRollCell, g.gc)
@@ -369,7 +369,7 @@ func (g *BaseGame) RollCell(userId string) (string, error) {
 		return "", err
 	}
 
-	g.gc.event.Go(OnAfterWheelRoll, user)
+	g.gc.event.Go(OnAfterWheelRoll, user, g.gc)
 
 	err = g.afterAction(user, "")
 	if err != nil {
@@ -423,8 +423,8 @@ func (g *BaseGame) RollItem(userId string) (string, error) {
 		user.SetItemWheelsCount(user.ItemWheelsCount() - 1)
 	}
 
-	g.gc.event.Go(OnAfterItemRoll, user)
-	g.gc.event.Go(OnAfterWheelRoll, user)
+	g.gc.event.Go(OnAfterItemRoll, user, g.gc)
+	g.gc.event.Go(OnAfterWheelRoll, user, g.gc)
 
 	err = g.afterAction(user, EffectUseOnRollItem)
 	if err != nil {
@@ -464,7 +464,7 @@ func (g *BaseGame) RollWheelPreset(userId string) (string, error) {
 		return "", err
 	}
 
-	g.gc.event.Go(OnAfterWheelRoll, user)
+	g.gc.event.Go(OnAfterWheelRoll, user, g.gc)
 
 	err = g.afterAction(user, "")
 	if err != nil {
@@ -485,7 +485,12 @@ func (g *BaseGame) UseItem(userId, itemId string) error {
 		return err
 	}
 
-	g.gc.event.Go(OnAfterItemUse, user)
+	g.gc.event.Go(OnAfterItemUse, user, g.gc)
+
+	err = g.afterAction(user, EffectUseInstant)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

@@ -1,5 +1,7 @@
 package adventuria
 
+import "adventuria/pkg/helper"
+
 func WithBaseEvents(g Game) Game {
 	g.Event().On(OnAfterChooseGame, OnAfterChooseGameEffects)
 	g.Event().On(OnAfterReroll, OnAfterRerollStats)
@@ -20,13 +22,13 @@ func WithBaseEvents(g Game) Game {
 	return g
 }
 
-func OnAfterChooseGameEffects(user *User) error {
+func OnAfterChooseGameEffects(user *User, gc *GameComponents) error {
 	effects, _, err := user.Inventory.GetEffects(EffectUseOnChooseGame)
 	if err != nil {
 		return err
 	}
 
-	err = ApplyGenericEffects(effects, user)
+	err = ApplyGenericEffects(effects, user, gc)
 	if err != nil {
 		return err
 	}
@@ -39,7 +41,7 @@ func OnAfterRerollStats(user *User) error {
 	return nil
 }
 
-func OnBeforeDropEffects(user *User, dropEffects *Effects) error {
+func OnBeforeDropEffects(user *User, dropEffects *Effects, gc *GameComponents) error {
 	effects, _, err := user.Inventory.GetEffects(EffectUseOnDrop)
 	if err != nil {
 		return err
@@ -47,7 +49,7 @@ func OnBeforeDropEffects(user *User, dropEffects *Effects) error {
 
 	dropEffects.IsSafeDrop = effects.IsSafeDrop
 
-	err = ApplyGenericEffects(effects, user)
+	err = ApplyGenericEffects(effects, user, gc)
 	if err != nil {
 		return err
 	}
@@ -65,7 +67,7 @@ func OnAfterGoToJailStats(user *User) error {
 	return nil
 }
 
-func OnBeforeDoneEffects(user *User, doneEffects *Effects) error {
+func OnBeforeDoneEffects(user *User, doneEffects *Effects, gc *GameComponents) error {
 	effects, _, err := user.Inventory.GetEffects(EffectUseOnChooseResult)
 	if err != nil {
 		return err
@@ -73,7 +75,7 @@ func OnBeforeDoneEffects(user *User, doneEffects *Effects) error {
 
 	doneEffects.CellPointsDivide = effects.CellPointsDivide
 
-	err = ApplyGenericEffects(effects, user)
+	err = ApplyGenericEffects(effects, user, gc)
 	if err != nil {
 		return err
 	}
@@ -86,7 +88,7 @@ func OnAfterDoneStats(user *User) error {
 	return nil
 }
 
-func OnBeforeRollEffects(user *User, dicesResult *RollDicesResult) error {
+func OnBeforeRollEffects(user *User, dicesResult *RollDicesResult, gc *GameComponents) error {
 	effects, _, err := user.Inventory.GetEffects(EffectUseOnRoll)
 	if err != nil {
 		return err
@@ -96,7 +98,7 @@ func OnBeforeRollEffects(user *User, dicesResult *RollDicesResult) error {
 		dicesResult.Dices = effects.Dices
 	}
 
-	err = ApplyGenericEffects(effects, user)
+	err = ApplyGenericEffects(effects, user, gc)
 	if err != nil {
 		return err
 	}
@@ -135,13 +137,13 @@ func OnAfterWheelRollStats(user *User) error {
 	return nil
 }
 
-func OnAfterItemRollEffects(user *User) error {
+func OnAfterItemRollEffects(user *User, gc *GameComponents) error {
 	effects, _, err := user.Inventory.GetEffects(EffectUseOnRollItem)
 	if err != nil {
 		return err
 	}
 
-	err = ApplyGenericEffects(effects, user)
+	err = ApplyGenericEffects(effects, user, gc)
 	if err != nil {
 		return err
 	}
@@ -149,13 +151,13 @@ func OnAfterItemRollEffects(user *User) error {
 	return nil
 }
 
-func OnAfterItemUseEffects(user *User) error {
+func OnAfterItemUseEffects(user *User, gc *GameComponents) error {
 	effects, _, err := user.Inventory.GetEffects(EffectUseInstant)
 	if err != nil {
 		return err
 	}
 
-	err = ApplyGenericEffects(effects, user)
+	err = ApplyGenericEffects(effects, user, gc)
 	if err != nil {
 		return err
 	}
@@ -168,7 +170,7 @@ func OnAfterItemUseStats(user *User) error {
 	return nil
 }
 
-func ApplyGenericEffects(effects *Effects, user *User) error {
+func ApplyGenericEffects(effects *Effects, user *User, gc *GameComponents) error {
 	if effects.PointsIncrement != 0 {
 		user.SetPoints(user.Points() + effects.PointsIncrement)
 	}
@@ -191,8 +193,23 @@ func ApplyGenericEffects(effects *Effects, user *User) error {
 		}
 	}
 
+	if len(effects.CellByTypeTeleportTo) > 0 {
+		cells := gc.cells.GetAllByTypes(effects.CellByTypeTeleportTo)
+		if currentCell, ok := user.CurrentCell(); ok {
+			cells = FilterByField(cells, []string{currentCell.Id}, func(cell *Cell) string {
+				return cell.Id
+			})
+		}
+		cell := helper.RandomItemFromSlice(cells)
+		err := user.MoveToCellId(cell.Id)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
+
 func OnNewLapItemWheel(user *User, laps int) error {
 	// Every lap gives one item wheel
 	user.SetItemWheelsCount(user.ItemWheelsCount() + laps)

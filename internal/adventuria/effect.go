@@ -125,14 +125,32 @@ func (eb *EffectBool) Value() any {
 	return eb.GetBool("value")
 }
 
-type EffectSlice[T any] struct {
+type EffectSlice struct {
+	BaseEffect
+}
+
+func NewEffectSlice() EffectCreator {
+	return func() Effect {
+		return &EffectSlice{
+			BaseEffect: BaseEffect{
+				kind: Slice,
+			},
+		}
+	}
+}
+
+func (ef *EffectSlice) Value() any {
+	return ef.parseString(ef.GetString("value"))
+}
+
+type EffectSliceWithSource[T any] struct {
 	BaseEffect
 	source map[string]T
 }
 
-func NewEffectSlice[T any](source map[string]T) EffectCreator {
+func NewEffectSliceWithSource[T any](source map[string]T) EffectCreator {
 	return func() Effect {
-		return &EffectSlice[T]{
+		return &EffectSliceWithSource[T]{
 			BaseEffect: BaseEffect{
 				kind: Slice,
 			},
@@ -141,7 +159,7 @@ func NewEffectSlice[T any](source map[string]T) EffectCreator {
 	}
 }
 
-func (ef *EffectSlice[T]) Value() any {
+func (ef *EffectSliceWithSource[T]) Value() any {
 	var res []any
 	sl := ef.parseString(ef.GetString("value"))
 

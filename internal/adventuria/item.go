@@ -5,16 +5,17 @@ import (
 )
 
 type Effects struct {
-	PointsIncrement  int    `json:"pointsIncrement" mapstructure:"pointsIncrement"`
-	JailEscape       bool   `json:"jailEscape" mapstructure:"jailEscape"`
-	DiceMultiplier   int    `json:"diceMultiplier" mapstructure:"diceMultiplier"`
-	DiceIncrement    int    `json:"diceIncrement" mapstructure:"diceIncrement"`
-	Dices            []Dice `json:"dices" mapstructure:"changeDices"`
-	IsSafeDrop       bool   `json:"isSafeDrop" mapstructure:"isSafeDrop"`
-	TimerIncrement   int    `json:"timerIncrement" mapstructure:"timerIncrement"`
-	RollReverse      bool   `json:"rollReverse" mapstructure:"rollReverse"`
-	DropInventory    bool   `json:"dropInventory" mapstructure:"dropInventory"`
-	CellPointsDivide int    `json:"cellPointsDivide" mapstructure:"cellPointsDivide"`
+	PointsIncrement      int      `json:"pointsIncrement" mapstructure:"pointsIncrement"`
+	JailEscape           bool     `json:"jailEscape" mapstructure:"jailEscape"`
+	DiceMultiplier       int      `json:"diceMultiplier" mapstructure:"diceMultiplier"`
+	DiceIncrement        int      `json:"diceIncrement" mapstructure:"diceIncrement"`
+	Dices                []Dice   `json:"dices" mapstructure:"changeDices"`
+	IsSafeDrop           bool     `json:"isSafeDrop" mapstructure:"isSafeDrop"`
+	TimerIncrement       int      `json:"timerIncrement" mapstructure:"timerIncrement"`
+	RollReverse          bool     `json:"rollReverse" mapstructure:"rollReverse"`
+	DropInventory        bool     `json:"dropInventory" mapstructure:"dropInventory"`
+	CellPointsDivide     int      `json:"cellPointsDivide" mapstructure:"cellPointsDivide"`
+	CellByTypeTeleportTo []string `json:"teleportToRandomCellByTypes" mapstructure:"teleportToRandomCellByTypes"`
 }
 
 type Item struct {

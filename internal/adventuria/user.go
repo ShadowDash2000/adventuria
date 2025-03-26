@@ -3,6 +3,7 @@ package adventuria
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/pocketbase/pocketbase/core"
 )
 
@@ -11,7 +12,6 @@ type User struct {
 	gc         *GameComponents
 	lastAction Action
 	Inventory  *Inventory
-	cells      *Cells
 	Timer      *Timer
 	Stats      Stats
 }
@@ -27,7 +27,7 @@ type Stats struct {
 	WheelRolled int `json:"wheelRolled"`
 }
 
-func NewUser(userId string, cells *Cells, gc *GameComponents) (*User, error) {
+func NewUser(userId string, gc *GameComponents) (*User, error) {
 	if userId == "" {
 		return nil, errors.New("you're not authorized")
 	}
@@ -40,7 +40,6 @@ func NewUser(userId string, cells *Cells, gc *GameComponents) (*User, error) {
 
 	u := &User{
 		gc:    gc,
-		cells: cells,
 		Timer: timer,
 	}
 
@@ -105,9 +104,9 @@ func (u *User) SetIsInJail(b bool) {
 
 func (u *User) CurrentCell() (*Cell, bool) {
 	cellsPassed := u.CellsPassed()
-	currentCellNum := cellsPassed % u.cells.Count()
+	currentCellNum := cellsPassed % u.gc.cells.Count()
 
-	return u.cells.GetByOrder(currentCellNum)
+	return u.gc.cells.GetByOrder(currentCellNum)
 }
 
 func (u *User) Points() int {
@@ -159,8 +158,8 @@ func (u *User) Save() error {
 
 func (u *User) Move(n int) (Action, *Cell, error) {
 	cellsPassed := u.CellsPassed()
-	currentCellNum := (cellsPassed + n) % u.cells.Count()
-	currentCell, _ := u.cells.GetByOrder(currentCellNum)
+	currentCellNum := (cellsPassed + n) % u.gc.cells.Count()
+	currentCell, _ := u.gc.cells.GetByOrder(currentCellNum)
 
 	action := NewAction(u.Id, ActionTypeRoll, u.gc)
 	action.SetCell(currentCell.Id)
@@ -172,23 +171,23 @@ func (u *User) Move(n int) (Action, *Cell, error) {
 
 	u.SetCellsPassed(cellsPassed + n)
 
-	prevCellNum := cellsPassed % u.cells.Count()
-	lapsPassed := (prevCellNum + n) / u.cells.Count()
+	prevCellNum := cellsPassed % u.gc.cells.Count()
+	lapsPassed := (prevCellNum + n) / u.gc.cells.Count()
 	// Check if we're not moving backwards and passed new lap(-s)
 	if n > 0 && lapsPassed > 0 {
-		u.gc.event.Go(OnNewLap, u, lapsPassed)
+		u.gc.event.Go(OnNewLap, u, lapsPassed, u.gc)
 	}
 
 	return action, currentCell, nil
 }
 
 func (u *User) MoveToJail() error {
-	jailCellPos, ok := u.cells.GetOrderByType(CellTypeJail)
+	jailCellPos, ok := u.gc.cells.GetOrderByType(CellTypeJail)
 	if !ok {
 		return errors.New("jail cell not found")
 	}
 
-	currentCellNum := u.CellsPassed() % u.cells.Count()
+	currentCellNum := u.CellsPassed() % u.gc.cells.Count()
 
 	_, _, err := u.Move(jailCellPos - currentCellNum)
 	if err != nil {
@@ -197,7 +196,23 @@ func (u *User) MoveToJail() error {
 
 	u.SetIsInJail(true)
 
-	u.gc.event.Go(OnAfterGoToJail, u)
+	u.gc.event.Go(OnAfterGoToJail, u, u.gc)
+
+	return nil
+}
+
+func (u *User) MoveToCellId(cellId string) error {
+	cellPos, ok := u.gc.cells.GetOrderById(cellId)
+	if !ok {
+		return fmt.Errorf("cell %s not found", cellId)
+	}
+
+	currentCellNum := u.CellsPassed() % u.gc.cells.Count()
+
+	_, _, err := u.Move(cellPos - currentCellNum)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

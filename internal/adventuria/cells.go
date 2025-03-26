@@ -3,6 +3,7 @@ package adventuria
 import (
 	"adventuria/pkg/cache"
 	"github.com/pocketbase/pocketbase/core"
+	"slices"
 	"sort"
 	"sync"
 )
@@ -138,6 +139,16 @@ func (c *Cells) GetAllByType(t string) []*Cell {
 	var res []*Cell
 	for _, record := range c.cells.GetAll() {
 		if record.GetString("type") == t {
+			res = append(res, record)
+		}
+	}
+	return res
+}
+
+func (c *Cells) GetAllByTypes(t []string) []*Cell {
+	var res []*Cell
+	for _, record := range c.cells.GetAll() {
+		if slices.Contains(t, record.GetString("type")) {
 			res = append(res, record)
 		}
 	}
