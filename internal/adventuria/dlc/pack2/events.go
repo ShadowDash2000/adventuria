@@ -25,7 +25,7 @@ func OnAfterItemRollEffects(user *adventuria.User, gc *adventuria.GameComponents
 	return nil
 }
 
-func ClearNextStepTypeItems(user *adventuria.User) error {
+func ClearNextStepTypeItems(user *adventuria.User, event string, gc *adventuria.GameComponents) error {
 	var invItemsEffectsIds map[string][]string
 	for invItemId, invItem := range user.Inventory.Items() {
 		effects := invItem.GetEffectsByEvent(adventuria.OnBeforeNextStepType)

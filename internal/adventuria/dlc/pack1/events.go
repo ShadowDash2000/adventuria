@@ -39,7 +39,7 @@ func OnAfterChooseGameEffects(user *adventuria.User, gc *adventuria.GameComponen
 	return nil
 }
 
-func OnAfterRerollStats(user *adventuria.User) error {
+func OnAfterRerollStats(user *adventuria.User, gc *adventuria.GameComponents) error {
 	user.Stats.Rerolls++
 	return nil
 }
@@ -60,12 +60,12 @@ func OnBeforeDropEffects(user *adventuria.User, dropEffects *adventuria.DropEffe
 	return nil
 }
 
-func OnAfterDropStats(user *adventuria.User) error {
+func OnAfterDropStats(user *adventuria.User, gc *adventuria.GameComponents) error {
 	user.Stats.Drops++
 	return nil
 }
 
-func OnAfterGoToJailStats(user *adventuria.User) error {
+func OnAfterGoToJailStats(user *adventuria.User, gc *adventuria.GameComponents) error {
 	user.Stats.WasInJail++
 	return nil
 }
@@ -86,7 +86,7 @@ func OnBeforeDoneEffects(user *adventuria.User, doneEffects *adventuria.DoneEffe
 	return nil
 }
 
-func OnAfterDoneStats(user *adventuria.User) error {
+func OnAfterDoneStats(user *adventuria.User, gc *adventuria.GameComponents) error {
 	user.Stats.Finished++
 	return nil
 }
@@ -111,7 +111,7 @@ func OnBeforeRollEffects(user *adventuria.User, dicesResult *adventuria.RollDice
 	return nil
 }
 
-func OnBeforeRollMoveEffects(user *adventuria.User, rollResult *adventuria.RollResult) error {
+func OnBeforeRollMoveEffects(user *adventuria.User, rollResult *adventuria.RollResult, gc *adventuria.GameComponents) error {
 	effects, _, err := user.Inventory.GetEffects(adventuria.EffectUseOnRoll)
 	if err != nil {
 		return err
@@ -133,7 +133,7 @@ func OnBeforeRollMoveEffects(user *adventuria.User, rollResult *adventuria.RollR
 	return nil
 }
 
-func OnAfterRollStats(user *adventuria.User, rollResult *adventuria.RollResult) error {
+func OnAfterRollStats(user *adventuria.User, rollResult *adventuria.RollResult, gc *adventuria.GameComponents) error {
 	user.Stats.DiceRolls++
 	if rollResult.N > user.Stats.MaxDiceRoll {
 		user.Stats.MaxDiceRoll = rollResult.N
@@ -141,7 +141,7 @@ func OnAfterRollStats(user *adventuria.User, rollResult *adventuria.RollResult) 
 	return nil
 }
 
-func OnAfterWheelRollStats(user *adventuria.User) error {
+func OnAfterWheelRollStats(user *adventuria.User, gc *adventuria.GameComponents) error {
 	user.Stats.WheelRolled++
 	return nil
 }
@@ -174,7 +174,7 @@ func OnAfterItemUseEffects(user *adventuria.User, gc *adventuria.GameComponents)
 	return nil
 }
 
-func OnAfterItemUseStats(user *adventuria.User) error {
+func OnAfterItemUseStats(user *adventuria.User, gc *adventuria.GameComponents) error {
 	user.Stats.ItemsUsed++
 	return nil
 }
@@ -196,6 +196,7 @@ func ApplyGenericEffects(effects *adventuria.Effects, user *adventuria.User, gc 
 	jailEscape := effects.Effect(EffectTypeJailEscape).Bool()
 	if jailEscape {
 		user.SetIsInJail(false)
+		user.SetDropsInARow(0)
 	}
 
 	dropInventory := effects.Effect(EffectTypeDropInventory).Bool()
@@ -224,7 +225,7 @@ func ApplyGenericEffects(effects *adventuria.Effects, user *adventuria.User, gc 
 	return nil
 }
 
-func OnNewLapItemWheel(user *adventuria.User, laps int) error {
+func OnNewLapItemWheel(user *adventuria.User, laps int, gc *adventuria.GameComponents) error {
 	// Every lap gives one item wheel
 	user.SetItemWheelsCount(user.ItemWheelsCount() + laps)
 

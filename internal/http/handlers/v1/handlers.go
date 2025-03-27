@@ -111,7 +111,7 @@ func (h *Handlers) DropHandler(e *core.RequestEvent) error {
 
 	var file *filesystem.File
 	files, err := e.FindUploadedFiles("result-file")
-	if err != nil {
+	if err != nil && !errors.Is(err, http.ErrMissingFile) {
 		e.JSON(http.StatusInternalServerError, err.Error())
 		return nil
 	} else if len(files) > 0 {
