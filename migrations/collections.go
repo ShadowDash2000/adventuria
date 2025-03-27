@@ -1657,20 +1657,6 @@ func init() {
 						]
 					},
 					{
-						"autogeneratePattern": "",
-						"hidden": false,
-						"id": "text494360628",
-						"max": 0,
-						"min": 0,
-						"name": "value",
-						"pattern": "",
-						"presentable": false,
-						"primaryKey": false,
-						"required": false,
-						"system": false,
-						"type": "text"
-					},
-					{
 						"hidden": false,
 						"id": "select1001261735",
 						"maxSelect": 1,
@@ -1688,6 +1674,16 @@ func init() {
 							"useOnChooseGame",
 							"useOnRollItem"
 						]
+					},
+					{
+						"hidden": false,
+						"id": "json494360628",
+						"maxSize": 0,
+						"name": "value",
+						"presentable": false,
+						"required": true,
+						"system": false,
+						"type": "json"
 					}
 				],
 				"id": "pbc_3646440256",
