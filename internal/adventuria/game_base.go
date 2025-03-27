@@ -75,6 +75,8 @@ func (g *BaseGame) afterAction(user *User, event string) error {
 		return err
 	}
 
+	g.gc.Event.Go(OnAfterAction, user, event, g.gc)
+
 	_, err = user.Inventory.applyEffects(event)
 	if err != nil {
 		return err
@@ -156,7 +158,7 @@ func (g *BaseGame) Reroll(comment string, file *filesystem.File, userId string) 
 	action := NewAction(userId, ActionTypeReroll, g.gc)
 	action.SetCell(currentCell.Id)
 	action.SetComment(comment)
-	action.SetValue(user.lastAction.Value())
+	action.SetValue(user.LastAction.Value())
 	action.SetIcon(file)
 	err = action.Save()
 	if err != nil {
@@ -243,7 +245,7 @@ func (g *BaseGame) Drop(comment string, file *filesystem.File, userId string) er
 	action := NewAction(userId, ActionTypeDrop, g.gc)
 	action.SetCell(currentCell.Id)
 	action.SetComment(comment)
-	action.SetValue(user.lastAction.Value())
+	action.SetValue(user.LastAction.Value())
 	action.SetIcon(file)
 	err = action.Save()
 	if err != nil {
@@ -294,7 +296,7 @@ func (g *BaseGame) Done(comment string, file *filesystem.File, userId string) er
 	action := NewAction(userId, ActionTypeChooseResult, g.gc)
 	action.SetCell(currentCell.Id)
 	action.SetComment(comment)
-	action.SetValue(user.lastAction.Value())
+	action.SetValue(user.LastAction.Value())
 	action.SetIcon(file)
 	err = action.Save()
 	if err != nil {
@@ -326,7 +328,7 @@ func (g *BaseGame) GetLastAction(userId string) (bool, Action, error) {
 		return false, nil, err
 	}
 
-	return user.IsInJail(), user.lastAction, nil
+	return user.IsInJail(), user.LastAction, nil
 }
 
 func (g *BaseGame) GetItemsEffects(userId, event string) (*Effects, error) {
@@ -362,7 +364,7 @@ func (g *BaseGame) RollCell(userId string) (string, error) {
 	cell := helper.RandomItemFromSlice(gameCells)
 
 	action := NewAction(userId, ActionTypeRollCell, g.gc)
-	action.SetCell(user.lastAction.CellId())
+	action.SetCell(user.LastAction.CellId())
 	action.SetValue(cell.GetString("name"))
 	err = action.Save()
 	if err != nil {

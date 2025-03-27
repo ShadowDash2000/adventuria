@@ -4,7 +4,16 @@ import (
 	"fmt"
 	"github.com/pocketbase/pocketbase/core"
 	"maps"
-	"strings"
+)
+
+type Kind uint
+
+const (
+	Int Kind = iota
+	Bool
+	String
+	Slice
+	SliceWithSource
 )
 
 const (
@@ -23,32 +32,64 @@ type Effect interface {
 	Name() string
 	Event() string
 	Type() string
-	Value() any
-	AddValue(any)
+	Condition() string
+	Int() int
+	Bool() bool
+	String() string
+	Slice() []string
+	ParseJSON()
+	AddInt(int)
+	AddBool(bool)
+	AddString(string)
+	AddSlice([]string)
+	Kind() Kind
+	ReceiveSource() any
 }
 
 type EffectBase struct {
 	core.BaseRecordProxy
-	value any
+	value  EffectValue
+	kind   Kind
+	source EffectSourceReceiver
 }
 
-var EffectsList = map[string]Effect{}
+type EffectValue struct {
+	Int    int      `json:"int"`
+	Bool   bool     `json:"bool"`
+	String string   `json:"string"`
+	Slice  []string `json:"slice"`
+}
 
-func RegisterEffects(effects map[string]Effect) {
+var EffectsList = map[string]EffectCreator{}
+
+type EffectCreator func() Effect
+
+func RegisterEffects(effects map[string]EffectCreator) {
 	maps.Insert(EffectsList, maps.All(effects))
 }
 
-func NewEffect(record *core.Record) (Effect, error) {
+func NewEffectRecord(record *core.Record) (Effect, error) {
 	t := record.GetString("type")
-	fmt.Println("EFFECT:", t, record.Id)
-	effect, ok := EffectsList[t]
+
+	effectCreator, ok := EffectsList[t]
 	if !ok {
 		return nil, fmt.Errorf("unknown effect type: %s", t)
 	}
 
+	effect := effectCreator()
 	effect.SetProxyRecord(record)
+	effect.ParseJSON()
 
 	return effect, nil
+}
+
+func NewEffect(kind Kind) EffectCreator {
+	return func() Effect {
+		return &EffectBase{
+			value: EffectValue{},
+			kind:  kind,
+		}
+	}
 }
 
 func (e *EffectBase) GetId() string {
@@ -67,132 +108,128 @@ func (e *EffectBase) Type() string {
 	return e.GetString("type")
 }
 
-func (e *EffectBase) Value() any {
-	return e.value
+func (e *EffectBase) Condition() string {
+	return e.GetString("condition")
 }
 
-func (e *EffectBase) parseString(s string) []string {
-	return strings.Split(s, ", ")
+func (e *EffectBase) Int() int {
+	return e.value.Int
 }
 
-type EffectInt struct {
-	EffectBase
+func (e *EffectBase) Bool() bool {
+	return e.value.Bool
 }
 
-func NewEffectInt() Effect {
-	return &EffectInt{
-		EffectBase{
-			value: 0,
-		},
-	}
+func (e *EffectBase) String() string {
+	return e.value.String
 }
 
-func (ei *EffectInt) AddValue(i any) {
-	ei.value = ei.value.(int) + i.(int)
+func (e *EffectBase) Slice() []string {
+	return e.value.Slice
 }
 
-type EffectBool struct {
-	EffectBase
+func (e *EffectBase) ParseJSON() {
+	e.UnmarshalJSONField("value", &e.value)
 }
 
-func NewEffectBool() Effect {
-	return &EffectBool{
-		EffectBase{
-			value: false,
-		},
-	}
+func (e *EffectBase) AddInt(i int) {
+	e.value.Int += i
 }
 
-func (eb *EffectBool) AddValue(any) {
-	eb.value = true
+func (e *EffectBase) AddBool(b bool) {
+	e.value.Bool = b
 }
 
-type EffectSlice struct {
-	EffectBase
+func (e *EffectBase) AddString(s string) {
+	e.value.String = s
 }
 
-func NewEffectSlice() Effect {
-	return &EffectSlice{}
+func (e *EffectBase) AddSlice(slice []string) {
+	e.value.Slice = slice
 }
 
-func (ef *EffectSlice) Value() any {
-	if ef.Record == nil {
-		return nil
-	}
-
-	return ef.parseString(ef.GetString("value"))
+func (e *EffectBase) Kind() Kind {
+	return e.kind
 }
 
-func (ef *EffectSlice) AddValue(v any) {
-	ef.value = v
+func (e *EffectBase) ReceiveSource() any {
+	return e.source(e.Slice())
 }
 
-type EffectSliceWithSource[T any] struct {
-	EffectBase
-	source map[string]T
+type EffectSourceGiver[T any] interface {
+	Slice() []T
 }
 
-func NewEffectSliceWithSource[T any](source map[string]T) Effect {
-	return &EffectSliceWithSource[T]{
-		source: source,
-	}
-}
+type EffectSourceReceiver func([]string) any
 
-func (ef *EffectSliceWithSource[T]) Value() any {
-	if ef.Record == nil {
-		return nil
-	}
-
-	var res []T
-	sl := ef.parseString(ef.GetString("value"))
-
-	for _, key := range sl {
-		if srcVal, ok := ef.source[key]; ok {
-			res = append(res, srcVal)
-		} else {
-			// TODO: log error
+func NewEffectWithSource(source EffectSourceReceiver) EffectCreator {
+	return func() Effect {
+		return &EffectBase{
+			value:  EffectValue{},
+			kind:   SliceWithSource,
+			source: source,
 		}
 	}
-
-	return res
-}
-
-func (ef *EffectSliceWithSource[T]) AddValue(v any) {
-	ef.value = v
 }
 
 type Effects struct {
 	effects map[string]Effect
 }
 
+// NewEffects
+// My dear diary, I am losing my mind with this piece of fucking
+// retarded thrash of bullshit. Sorry, I'm just too tired right now.
+// It's 4AM... Maybe I should go to sleep now, but I'm doing this stupid Effects.
 func NewEffects() *Effects {
 	effects := &Effects{}
-	effects.effects = map[string]Effect{}
 
-	for t, effect := range EffectsList {
-		effects.effects[t] = effect
+	effects.effects = make(map[string]Effect, len(EffectsList))
+	for t, creator := range EffectsList {
+		effects.effects[t] = creator()
 	}
 
 	return effects
+}
+
+func (ee *Effects) Add(effect Effect) {
+	e, ok := ee.effects[effect.Type()]
+	if !ok {
+		return
+	}
+
+	switch e.Kind() {
+	case Int:
+		e.AddInt(effect.Int())
+	case Bool:
+		e.AddBool(true)
+	case String:
+		e.AddString(effect.String())
+	case Slice, SliceWithSource:
+		e.AddSlice(effect.Slice())
+	}
+
+	ee.effects[effect.Type()] = e
 }
 
 func (ee *Effects) Effect(t string) Effect {
 	return ee.effects[t]
 }
 
-func (ee *Effects) AddValue(t string, v any) {
-	ee.effects[t].AddValue(v)
-}
-
 func (ee *Effects) Map() map[string]any {
 	m := make(map[string]any)
-	for t, effect := range ee.effects {
-		m[t] = effect.Value()
+	for t, e := range ee.effects {
+		switch e.Kind() {
+		case Int:
+			m[t] = e.Int()
+		case Bool:
+			m[t] = e.Bool()
+		case String:
+			m[t] = e.String()
+		case Slice:
+			m[t] = e.Slice()
+		case SliceWithSource:
+			m[t] = e.ReceiveSource()
+		}
 	}
 	return m
-}
-
-func EffectAs[T any](e Effect) T {
-	v, _ := e.Value().(T)
-	return v
 }

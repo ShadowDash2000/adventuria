@@ -175,9 +175,10 @@ func (i *Inventory) GetEffects(event string) (*Effects, map[string][]string, err
 
 		var effectsIds []string
 		for _, effect := range itemEffects {
-			effects.AddValue(effect.Type(), effect.Value())
+			effects.Add(effect)
 
-			i.gc.Log.Add(i.userId, LogTypeItemEffectApplied, effect.Name())
+			// TODO this shouldn't be here
+			//i.gc.Log.Add(i.userId, LogTypeItemEffectApplied, effect.Name())
 			effectsIds = append(effectsIds, effect.GetId())
 		}
 
@@ -193,6 +194,12 @@ func (i *Inventory) applyEffects(event string) (*Effects, error) {
 		return nil, err
 	}
 
+	err = i.ApplyEffects(invItemsEffectsIds)
+
+	return effects, nil
+}
+
+func (i *Inventory) ApplyEffects(invItemsEffectsIds map[string][]string) error {
 	for invItemId, effectsIds := range invItemsEffectsIds {
 		invItem := i.invItems[invItemId]
 
@@ -201,19 +208,19 @@ func (i *Inventory) applyEffects(event string) (*Effects, error) {
 		appliedEffectsCount := len(invItem.AppliedEffects())
 
 		if appliedEffectsCount < invItem.EffectsCount() {
-			err = i.gc.App.Save(invItem)
+			err := i.gc.App.Save(invItem)
 			if err != nil {
-				return nil, err
+				return err
 			}
 		} else {
-			err = i.gc.App.Delete(invItem)
+			err := i.gc.App.Delete(invItem)
 			if err != nil {
-				return nil, err
+				return err
 			}
 		}
 	}
 
-	return effects, nil
+	return nil
 }
 
 func (i *Inventory) UseItem(itemId string) error {
@@ -277,4 +284,8 @@ func (i *Inventory) DropInventory() error {
 		}
 	}
 	return nil
+}
+
+func (i *Inventory) Items() map[string]*InventoryItem {
+	return i.invItems
 }

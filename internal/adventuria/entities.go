@@ -15,3 +15,7 @@ type RollDicesResult struct {
 type RollResult struct {
 	N int
 }
+
+type NextStepTypeEffects struct {
+	NextStepType string
+}

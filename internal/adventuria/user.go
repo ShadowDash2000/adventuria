@@ -10,7 +10,7 @@ import (
 type User struct {
 	core.BaseRecordProxy
 	gc         *GameComponents
-	lastAction Action
+	LastAction Action
 	Inventory  *Inventory
 	Timer      *Timer
 	Stats      Stats
@@ -48,7 +48,7 @@ func NewUser(userId string, gc *GameComponents) (*User, error) {
 		return nil, err
 	}
 
-	u.lastAction, err = NewLastUserAction(userId, u.gc)
+	u.LastAction, err = NewLastUserAction(userId, u.gc)
 	if err != nil {
 		return nil, err
 	}
@@ -223,7 +223,7 @@ func (u *User) GetNextStepType() (string, error) {
 	var nextStepType string
 
 	// Если еще не было сделано никаких lastAction, то делаем roll
-	if u.lastAction == nil {
+	if u.LastAction == nil {
 		return ActionTypeRoll, nil
 	}
 
@@ -233,8 +233,8 @@ func (u *User) GetNextStepType() (string, error) {
 	}
 
 	lastActionType := ""
-	if u.lastAction.CellId() == currentCell.Id {
-		lastActionType = u.lastAction.Type()
+	if u.LastAction.CellId() == currentCell.Id {
+		lastActionType = u.LastAction.Type()
 	}
 
 	if currentCell.CantChooseAfterDrop() && lastActionType == ActionTypeDrop {
@@ -243,6 +243,14 @@ func (u *User) GetNextStepType() (string, error) {
 
 	if u.ItemWheelsCount() > 0 {
 		return ActionTypeRollItem, nil
+	}
+
+	effects := NextStepTypeEffects{}
+	u.gc.Event.Go(OnBeforeNextStepType, u, effects, u.gc)
+
+	if effects.NextStepType != "" {
+		nextStepType = effects.NextStepType
+		return nextStepType, nil
 	}
 
 	// TODO: in future, maybe, this part needs to be in DB table

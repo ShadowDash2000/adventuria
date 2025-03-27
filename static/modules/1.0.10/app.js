@@ -12,6 +12,7 @@ import Audios from "./internal/audios.js";
 import Actions from "./internal/actions.js";
 import Settings from "./internal/settings.js";
 import Timers from "./internal/timers.js";
+import ChooseBetween from "./modal/choose-between.js";
 
 class App {
     constructor() {
@@ -75,6 +76,7 @@ class App {
             },
         });
         this.submit = new Submit(this.modal);
+        //this.chooseBetween = new ChooseBetween(this.modal);
 
         document.addEventListener('record.actions.create', async (e) => {
             if (e.detail.record.user !== this.getUserId()) return;

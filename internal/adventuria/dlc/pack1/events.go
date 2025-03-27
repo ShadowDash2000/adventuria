@@ -50,7 +50,7 @@ func OnBeforeDropEffects(user *adventuria.User, dropEffects *adventuria.DropEffe
 		return err
 	}
 
-	dropEffects.IsSafeDrop = adventuria.EffectAs[bool](effects.Effect(EffectTypeSafeDrop))
+	dropEffects.IsSafeDrop = effects.Effect(EffectTypeSafeDrop).Bool()
 
 	err = ApplyGenericEffects(effects, user, gc)
 	if err != nil {
@@ -76,7 +76,7 @@ func OnBeforeDoneEffects(user *adventuria.User, doneEffects *adventuria.DoneEffe
 		return err
 	}
 
-	doneEffects.CellPointsDivide = adventuria.EffectAs[int](effects.Effect(EffectTypeCellPointsDivide))
+	doneEffects.CellPointsDivide = effects.Effect(EffectTypeCellPointsDivide).Int()
 
 	err = ApplyGenericEffects(effects, user, gc)
 	if err != nil {
@@ -97,7 +97,8 @@ func OnBeforeRollEffects(user *adventuria.User, dicesResult *adventuria.RollDice
 		return err
 	}
 
-	dices := adventuria.EffectAs[[]adventuria.Dice](effects.Effect(EffectTypeChangeDices))
+	dicesSrc := adventuria.NewDiceEffectSourceGiver[adventuria.Dice](effects.Effect(EffectTypeChangeDices).Slice())
+	dices := dicesSrc.Slice()
 	if len(dices) > 0 {
 		dicesResult.Dices = dices
 	}
@@ -116,15 +117,15 @@ func OnBeforeRollMoveEffects(user *adventuria.User, rollResult *adventuria.RollR
 		return err
 	}
 
-	diceMultiplier := adventuria.EffectAs[int](effects.Effect(EffectTypeDiceMultiplier))
+	diceMultiplier := effects.Effect(EffectTypeDiceMultiplier).Int()
 	if diceMultiplier > 0 {
 		rollResult.N *= diceMultiplier
 	}
 
-	diceIncrement := adventuria.EffectAs[int](effects.Effect(EffectTypeDiceIncrement))
+	diceIncrement := effects.Effect(EffectTypeDiceIncrement).Int()
 	rollResult.N += diceIncrement
 
-	rollReverse := adventuria.EffectAs[bool](effects.Effect(EffectTypeRollReverse))
+	rollReverse := effects.Effect(EffectTypeRollReverse).Bool()
 	if rollReverse {
 		rollResult.N *= -1
 	}
@@ -179,12 +180,12 @@ func OnAfterItemUseStats(user *adventuria.User) error {
 }
 
 func ApplyGenericEffects(effects *adventuria.Effects, user *adventuria.User, gc *adventuria.GameComponents) error {
-	pointsIncrement := adventuria.EffectAs[int](effects.Effect(EffectTypePointsIncrement))
+	pointsIncrement := effects.Effect(EffectTypePointsIncrement).Int()
 	if pointsIncrement != 0 {
 		user.SetPoints(user.Points() + pointsIncrement)
 	}
 
-	timerIncrement := adventuria.EffectAs[int](effects.Effect(EffectTypeTimerIncrement))
+	timerIncrement := effects.Effect(EffectTypeTimerIncrement).Int()
 	if timerIncrement != 0 {
 		err := user.Timer.AddSecondsTimeLimit(timerIncrement)
 		if err != nil {
@@ -192,12 +193,12 @@ func ApplyGenericEffects(effects *adventuria.Effects, user *adventuria.User, gc 
 		}
 	}
 
-	jailEscape := adventuria.EffectAs[bool](effects.Effect(EffectTypeJailEscape))
+	jailEscape := effects.Effect(EffectTypeJailEscape).Bool()
 	if jailEscape {
 		user.SetIsInJail(false)
 	}
 
-	dropInventory := adventuria.EffectAs[bool](effects.Effect(EffectTypeDropInventory))
+	dropInventory := effects.Effect(EffectTypeDropInventory).Bool()
 	if dropInventory {
 		err := user.Inventory.DropInventory()
 		if err != nil {
@@ -205,7 +206,7 @@ func ApplyGenericEffects(effects *adventuria.Effects, user *adventuria.User, gc 
 		}
 	}
 
-	cellTypes := adventuria.EffectAs[[]string](effects.Effect(EffectTypeTeleportToRandomCellByTypes))
+	cellTypes := effects.Effect(EffectTypeTeleportToRandomCellByTypes).Slice()
 	if len(cellTypes) > 0 {
 		cells := gc.Cells.GetAllByTypes(cellTypes)
 		if currentCell, ok := user.CurrentCell(); ok {

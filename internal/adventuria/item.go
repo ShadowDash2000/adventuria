@@ -26,7 +26,7 @@ func NewItem(record *core.Record, gc *GameComponents) (*Item, error) {
 
 	var effects []Effect
 	for _, effectRecord := range record.ExpandedAll("effects") {
-		effect, err := NewEffect(effectRecord)
+		effect, err := NewEffectRecord(effectRecord)
 		if err != nil {
 			return nil, err
 		}

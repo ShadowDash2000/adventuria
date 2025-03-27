@@ -141,3 +141,41 @@ document.addEventListener('worker.dropItem', async (e) => {
         inventoryItems.querySelector(`[data-inventory-item-id="${e.detail.result}"]`).remove();
     }
 });
+
+const effects = {
+    'stealItem': {
+        title: 'У кого воруем предмет?',
+        onUse: chooseUserModal,
+    },
+}
+
+function chooseUserModal(userId, invItemId, effect) {
+    app.chooseBetween.open({
+        text: effect.title,
+        onAccept: (itemId) => {
+
+        },
+        onDecline: () => {
+
+        },
+    });
+}
+
+function createUsersList() {
+    const usersNode = document.createElement('div');
+    for (const user of app.users.users) {
+        const userNode = document.createElement('div');
+        userNode.dataset.id = user.id;
+
+        const img = document.createElement('img');
+        img.src = Helper.getFile('avatar', user);
+
+        const name = document.createElement('span');
+        name.innerText = user.name;
+
+        userNode.append(img, name);
+        usersNode.appendChild(userNode);
+    }
+
+    return usersNode;
+}

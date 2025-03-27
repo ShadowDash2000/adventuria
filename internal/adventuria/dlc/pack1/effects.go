@@ -18,18 +18,18 @@ const (
 )
 
 func WithBaseEffects() {
-	adventuria.RegisterEffects(map[string]adventuria.Effect{
-		EffectTypeNothing:                     adventuria.NewEffectInt(),
-		EffectTypePointsIncrement:             adventuria.NewEffectInt(),
-		EffectTypeJailEscape:                  adventuria.NewEffectBool(),
-		EffectTypeDiceMultiplier:              adventuria.NewEffectInt(),
-		EffectTypeDiceIncrement:               adventuria.NewEffectInt(),
-		EffectTypeChangeDices:                 adventuria.NewEffectSliceWithSource(adventuria.Dices),
-		EffectTypeSafeDrop:                    adventuria.NewEffectBool(),
-		EffectTypeTimerIncrement:              adventuria.NewEffectInt(),
-		EffectTypeRollReverse:                 adventuria.NewEffectBool(),
-		EffectTypeDropInventory:               adventuria.NewEffectBool(),
-		EffectTypeCellPointsDivide:            adventuria.NewEffectInt(),
-		EffectTypeTeleportToRandomCellByTypes: adventuria.NewEffectSlice(),
+	adventuria.RegisterEffects(map[string]adventuria.EffectCreator{
+		EffectTypeNothing:                     adventuria.NewEffect(adventuria.Bool),
+		EffectTypePointsIncrement:             adventuria.NewEffect(adventuria.Int),
+		EffectTypeJailEscape:                  adventuria.NewEffect(adventuria.Bool),
+		EffectTypeDiceMultiplier:              adventuria.NewEffect(adventuria.Int),
+		EffectTypeDiceIncrement:               adventuria.NewEffect(adventuria.Int),
+		EffectTypeChangeDices:                 adventuria.NewEffectWithSource(adventuria.DiceEffectSourceReceiver),
+		EffectTypeSafeDrop:                    adventuria.NewEffect(adventuria.Bool),
+		EffectTypeTimerIncrement:              adventuria.NewEffect(adventuria.Int),
+		EffectTypeRollReverse:                 adventuria.NewEffect(adventuria.Bool),
+		EffectTypeDropInventory:               adventuria.NewEffect(adventuria.Bool),
+		EffectTypeCellPointsDivide:            adventuria.NewEffect(adventuria.Int),
+		EffectTypeTeleportToRandomCellByTypes: adventuria.NewEffect(adventuria.Slice),
 	})
 }
