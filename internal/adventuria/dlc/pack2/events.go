@@ -1,13 +1,15 @@
-package pack1
+package pack2
 
 import (
 	"adventuria/internal/adventuria"
+	"adventuria/pkg/helper"
 )
 
 func WithBaseEvents(g adventuria.Game) adventuria.Game {
 	g.Event().On(adventuria.OnAfterItemRoll, OnAfterItemRollEffects)
-	g.Event().On(adventuria.OnAfterAction, ClearNextStepTypeItems)
+	//g.Event().On(adventuria.OnAfterAction, ClearNextStepTypeItems)
 	g.Event().On(adventuria.OnAfterRoll, OnAfterRollEffects)
+	g.Event().On(adventuria.OnAfterAction, TeleportToRandomCellByIds)
 	return g
 }
 
@@ -57,6 +59,25 @@ func OnAfterRollEffects(user *adventuria.User, rollResult *adventuria.RollResult
 	_, _, err := user.Inventory.GetEffects(adventuria.EffectUseOnRoll)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func TeleportToRandomCellByIds(user *adventuria.User, event string, gc *adventuria.GameComponents) error {
+	effects, _, err := user.Inventory.GetEffects(event)
+	if err != nil {
+		return err
+	}
+
+	effect := effects.Effect(EffectTypeTeleportToRandomCellByIds)
+	cellIds := effect.Slice()
+	if len(cellIds) > 0 {
+		cellId := helper.RandomItemFromSlice(cellIds)
+		err = user.MoveToCellId(cellId)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

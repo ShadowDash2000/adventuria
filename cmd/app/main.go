@@ -3,6 +3,7 @@ package main
 import (
 	"adventuria/internal/adventuria"
 	"adventuria/internal/adventuria/dlc/pack1"
+	"adventuria/internal/adventuria/dlc/pack2"
 	"adventuria/internal/http/handlers/v1"
 	"adventuria/pkg/etag"
 	"github.com/pocketbase/pocketbase"
@@ -17,6 +18,7 @@ func main() {
 
 	game := adventuria.New(app)
 	game = pack1.WithItemPack1(game)
+	game = pack2.WithItemPack2(game)
 
 	handlers := handlers.New(game)
 

@@ -6,7 +6,6 @@ import (
 )
 
 func WithBaseEvents(g adventuria.Game) adventuria.Game {
-	g.Event().On(adventuria.OnAfterChooseGame, OnAfterChooseGameEffects)
 	g.Event().On(adventuria.OnAfterReroll, OnAfterRerollStats)
 	g.Event().On(adventuria.OnBeforeDrop, OnBeforeDropEffects)
 	g.Event().On(adventuria.OnAfterDrop, OnAfterDropStats)
@@ -17,26 +16,12 @@ func WithBaseEvents(g adventuria.Game) adventuria.Game {
 	g.Event().On(adventuria.OnBeforeRollMove, OnBeforeRollMoveEffects)
 	g.Event().On(adventuria.OnAfterRoll, OnAfterRollStats)
 	g.Event().On(adventuria.OnAfterWheelRoll, OnAfterWheelRollStats)
-	g.Event().On(adventuria.OnAfterItemRoll, OnAfterItemRollEffects)
-	g.Event().On(adventuria.OnAfterItemUse, OnAfterItemUseEffects)
 	g.Event().On(adventuria.OnAfterItemUse, OnAfterItemUseStats)
 	g.Event().On(adventuria.OnNewLap, OnNewLapItemWheel)
 
+	g.Event().On(adventuria.OnAfterAction, ApplyGenericEffects)
+
 	return g
-}
-
-func OnAfterChooseGameEffects(user *adventuria.User, gc *adventuria.GameComponents) error {
-	effects, _, err := user.Inventory.GetEffects(adventuria.EffectUseOnChooseGame)
-	if err != nil {
-		return err
-	}
-
-	err = ApplyGenericEffects(effects, user, gc)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func OnAfterRerollStats(user *adventuria.User, gc *adventuria.GameComponents) error {
@@ -51,11 +36,6 @@ func OnBeforeDropEffects(user *adventuria.User, dropEffects *adventuria.DropEffe
 	}
 
 	dropEffects.IsSafeDrop = effects.Effect(EffectTypeSafeDrop).Bool()
-
-	err = ApplyGenericEffects(effects, user, gc)
-	if err != nil {
-		return err
-	}
 
 	return nil
 }
@@ -78,11 +58,6 @@ func OnBeforeDoneEffects(user *adventuria.User, doneEffects *adventuria.DoneEffe
 
 	doneEffects.CellPointsDivide = effects.Effect(EffectTypeCellPointsDivide).Int()
 
-	err = ApplyGenericEffects(effects, user, gc)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -101,11 +76,6 @@ func OnBeforeRollEffects(user *adventuria.User, dicesResult *adventuria.RollDice
 	dices := dicesSrc.Slice()
 	if len(dices) > 0 {
 		dicesResult.Dices = dices
-	}
-
-	err = ApplyGenericEffects(effects, user, gc)
-	if err != nil {
-		return err
 	}
 
 	return nil
@@ -146,40 +116,17 @@ func OnAfterWheelRollStats(user *adventuria.User, gc *adventuria.GameComponents)
 	return nil
 }
 
-func OnAfterItemRollEffects(user *adventuria.User, gc *adventuria.GameComponents) error {
-	effects, _, err := user.Inventory.GetEffects(adventuria.EffectUseOnRollItem)
-	if err != nil {
-		return err
-	}
-
-	err = ApplyGenericEffects(effects, user, gc)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func OnAfterItemUseEffects(user *adventuria.User, gc *adventuria.GameComponents) error {
-	effects, _, err := user.Inventory.GetEffects(adventuria.EffectUseInstant)
-	if err != nil {
-		return err
-	}
-
-	err = ApplyGenericEffects(effects, user, gc)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func OnAfterItemUseStats(user *adventuria.User, gc *adventuria.GameComponents) error {
 	user.Stats.ItemsUsed++
 	return nil
 }
 
-func ApplyGenericEffects(effects *adventuria.Effects, user *adventuria.User, gc *adventuria.GameComponents) error {
+func ApplyGenericEffects(user *adventuria.User, event string, gc *adventuria.GameComponents) error {
+	effects, _, err := user.Inventory.GetEffects(event)
+	if err != nil {
+		return err
+	}
+
 	pointsIncrement := effects.Effect(EffectTypePointsIncrement).Int()
 	if pointsIncrement != 0 {
 		user.SetPoints(user.Points() + pointsIncrement)

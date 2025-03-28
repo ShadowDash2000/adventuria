@@ -70,12 +70,12 @@ func (g *BaseGame) GetUser(userId string) (*User, error) {
 }
 
 func (g *BaseGame) afterAction(user *User, event string) error {
+	g.gc.Event.Go(OnAfterAction, user, event, g.gc)
+
 	err := user.Save()
 	if err != nil {
 		return err
 	}
-
-	g.gc.Event.Go(OnAfterAction, user, event, g.gc)
 
 	_, err = user.Inventory.applyEffects(event)
 	if err != nil {

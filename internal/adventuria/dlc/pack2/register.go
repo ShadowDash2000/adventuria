@@ -1,4 +1,4 @@
-package pack1
+package pack2
 
 import "adventuria/internal/adventuria"
 
