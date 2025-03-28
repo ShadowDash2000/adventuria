@@ -1890,7 +1890,7 @@ func init() {
 						"hidden": false,
 						"id": "file410859157",
 						"maxSelect": 1,
-						"maxSize": 0,
+						"maxSize": 10000000,
 						"mimeTypes": [],
 						"name": "audio",
 						"presentable": false,
@@ -1908,7 +1908,7 @@ func init() {
 						"name": "duration",
 						"onlyInt": true,
 						"presentable": false,
-						"required": true,
+						"required": false,
 						"system": false,
 						"type": "number"
 					}
@@ -2259,7 +2259,8 @@ func init() {
 							"roll",
 							"rollCell",
 							"rollItem",
-							"rollWheelPreset"
+							"rollWheelPreset",
+							"fm"
 						]
 					}
 				],
