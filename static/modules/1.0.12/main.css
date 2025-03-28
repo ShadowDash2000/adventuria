@@ -599,20 +599,6 @@ table.users {
         font-size: 1.1vw;
     }
 
-    .volume {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-
-        label {
-            font-size: 1.1vw;
-        }
-
-        input {
-            width: 7vw;
-        }
-    }
-
     .fixed {
         position: fixed;
         bottom: 0;
@@ -620,47 +606,99 @@ table.users {
     }
 }
 
+.fm-player.fm-player__hidden {
+    background: none;
+
+    .fm-player__center-controls {
+        visibility: hidden;
+        opacity: 0;
+    }
+
+    .fm-player__hide {
+        img {
+            transform: rotate(-90deg) !important;
+        }
+    }
+}
+
 .fm-player {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-
-    background: rgba(0, 0, 0, .9);
-    border-radius: 7%;
-
     position: fixed;
     bottom: 0;
     z-index: 1001;
+    width: 100%;
 
-    padding: 0 1.3vw;
-    margin-left: 1vw;
+    transition: .5s;
+    background: rgba(0, 0, 0, .9);
 
-    img {
-        width: 2vw;
-        height: 2vw;
-
-        border: .2vw solid aquamarine;
-        border-radius: 100%;
-        background-color: aquamarine;
-
-        cursor: pointer;
-    }
-
-    .fm-player__music_control {
+    .fm-player__content {
         display: flex;
-        gap: .5vw;
-        padding: .2vw 0;
-
-        .fm-player__music_prev {
-            transform: scale(-1, -1);
-        }
+        justify-content: center;
 
         img {
-            width: 1vw;
-            height: 1vw;
+            width: 2vw;
+            height: 2vw;
 
-            border: none;
-            background-color: white;
+            border: .2vw solid aquamarine;
+            border-radius: 100%;
+            background-color: aquamarine;
+
+            cursor: pointer;
+        }
+
+        .fm-player__center-controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .fm-player__music_control {
+            display: flex;
+            gap: .5vw;
+            padding: .2vw 0;
+
+            .fm-player__music_prev {
+                transform: scale(-1, -1);
+            }
+
+            img {
+                width: 1vw;
+                height: 1vw;
+
+                border: none;
+                background-color: white;
+            }
+        }
+
+        .fm-player__right-controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: absolute;
+            right: 0;
+            margin-right: 5vw;
+            padding: .2vw 0;
+        }
+
+        .fm-player__hide {
+            img {
+                transform: rotate(90deg);
+                background-color: white;
+                border-color: white;
+            }
+        }
+
+        .fm-player__volume {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+
+            label {
+                font-size: 1.1vw;
+            }
+
+            input {
+                width: 7vw;
+            }
         }
     }
 }

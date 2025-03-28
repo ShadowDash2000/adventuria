@@ -309,6 +309,8 @@ class App {
         const anthemSeekbar = fmPlayer.querySelector('.fm-player__music_timeline');
         const anthemPrev = fmPlayer.querySelector('.fm-player__music_prev');
         const anthemNext = fmPlayer.querySelector('.fm-player__music_next');
+        const hide = fmPlayer.querySelector('.fm-player__hide');
+
         let currentTrack = 0;
         let isAnthemPlaying = false;
         this.anthemPlayer.src = anthems[currentTrack];
@@ -351,6 +353,24 @@ class App {
             this.anthemPlayer.src = anthems[currentTrack];
             this.anthemPlayer.play();
         });
+
+        const localStorageKey = 'isAudioPlayerHidden';
+        const hiddenClass = 'fm-player__hidden';
+        const setIsHidden = (hide) => {
+            if (hide) {
+                fmPlayer.classList.add(hiddenClass);
+                localStorage.setItem(localStorageKey, hide);
+            } else {
+                fmPlayer.classList.remove(hiddenClass);
+                localStorage.removeItem(localStorageKey)
+            }
+        }
+
+        hide.addEventListener('click', () => {
+            setIsHidden(!fmPlayer.classList.contains(hiddenClass));
+        });
+
+        setIsHidden(localStorage.getItem(localStorageKey));
     }
 }
 

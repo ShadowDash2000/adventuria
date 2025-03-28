@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Приключпопия</title>
     <meta name="description" content="Приключпопия — ивент по прохождению игр на поле Монополии 🎡">
-    <base href="/modules/1.0.11/">
+    <base href="/modules/1.0.12/">
     <link href="main.css" rel="stylesheet">
     <link href="graph-modal/graph-modal.min.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -26,13 +26,26 @@
     </div>
 </div>
 <div class="fm-player text-shadow">
-    <span>FM</span>
-    <img class="fm-player__music_play" src="img/play.svg">
-    <div class="fm-player__music_control">
-        <img class="fm-player__music_prev" src="img/play.svg">
-        <img class="fm-player__music_next" src="img/play.svg">
+    <div class="fm-player__content">
+        <div class="fm-player__center-controls">
+            <span>FM</span>
+            <img class="fm-player__music_play" src="img/play.svg">
+            <div class="fm-player__music_control">
+                <img class="fm-player__music_prev" src="img/play.svg">
+                <img class="fm-player__music_next" src="img/play.svg">
+            </div>
+            <input class="fm-player__music_timeline" type="range">
+        </div>
+        <div class="fm-player__right-controls">
+            <div class="fm-player__hide">
+                <img src="img/play.svg">
+            </div>
+            <div class="fm-player__volume">
+                <label for="volume-slider" class="text-shadow">Громкость</label>
+                <input type="range" id="volume-slider">
+            </div>
+        </div>
     </div>
-    <input class="fm-player__music_timeline" type="range">
 </div>
 <div class="header">
     <div class="buttons">
@@ -51,10 +64,6 @@
         <div class="profile__slow-pc">
             <label for="slow-pc-checkbox" class="text-shadow">У меня говно ПК</label>
             <input id="slow-pc-checkbox" type="checkbox">
-        </div>
-        <div class="volume">
-            <label for="volume-slider" class="text-shadow">Громкость</label>
-            <input type="range" id="volume-slider">
         </div>
         <img class="profile__avatar hidden" src="img/undefined.jpg" width="60" height="60" data-authorized="">
     </div>
