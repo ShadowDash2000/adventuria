@@ -176,12 +176,5 @@ func OnNewLapItemWheel(user *adventuria.User, laps int, gc *adventuria.GameCompo
 	// Every lap gives one item wheel
 	user.SetItemWheelsCount(user.ItemWheelsCount() + laps)
 
-	currentCell, _ := user.CurrentCell()
-
-	// If we moved to item cell type, we need to add one additional item roll
-	if currentCell.Type() == adventuria.CellTypeItem {
-		user.SetItemWheelsCount(user.ItemWheelsCount() + 1)
-	}
-
 	return nil
 }
