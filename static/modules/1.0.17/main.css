@@ -1106,6 +1106,7 @@ table.users {
 
             .action__comment {
                 width: 100%;
+                word-break: break-word;
             }
 
             div {
