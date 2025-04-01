@@ -607,11 +607,16 @@ table.users {
 }
 
 .fm-player.fm-player__hidden {
+    pointer-events: none;
     background: none;
 
     .fm-player__center-controls {
         visibility: hidden;
         opacity: 0;
+    }
+
+    .fm-player__right-controls {
+        pointer-events: all;
     }
 
     .fm-player__hide {
