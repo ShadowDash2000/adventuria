@@ -251,7 +251,7 @@ class App {
 
     getUserId() {
         if (this.pb.authStore) {
-            return this.pb.authStore.record.id;
+            return this.pb.authStore.record?.id;
         }
     }
 
