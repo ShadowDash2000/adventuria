@@ -8,6 +8,7 @@ const doneButton = gameResultModal.querySelector('.button.done');
 
 const resultFileBlock = gameResultModal.querySelector('.result-file');
 const resultFile = gameResultForm.querySelector('input[type="file"]');
+const error = gameResultForm.querySelector('.error');
 
 resultFile.addEventListener('change', onInputChange);
 resultFileBlock.addEventListener('dragenter', onDragEnter);
@@ -47,11 +48,19 @@ function onDragLeave(e) {
 function onDrop(e) {
     e.preventDefault();
     updateFileName(e.dataTransfer.files[0]?.name);
+    dragTarget = null;
 
     const newData = new DataTransfer();
     newData.items.add(e.dataTransfer.files[0]);
     resultFile.files = newData.files;
     resultFileBlock.classList.remove('drag-n-drop');
+}
+
+function updateError(text) {
+    error.innerText = text;
+
+    if (text.length === 0) error.classList.add('hidden');
+    else error.classList.remove('hidden');
 }
 
 function gameResultActions(e) {
@@ -74,6 +83,7 @@ function gameResultActions(e) {
         text: text,
         onAccept: async () => {
             const formData = new FormData(gameResultForm);
+            updateError('');
 
             const res = await fetch('/api/' + action, {
                 method: "POST",
@@ -84,11 +94,13 @@ function gameResultActions(e) {
             });
 
             if (!res.ok) {
+                updateError(await res.text());
                 app.modal.open('game-result');
                 return;
             }
 
             gameResultForm.reset();
+            updateFileName('');
         },
         onDecline: () => {
             app.modal.open('game-result');

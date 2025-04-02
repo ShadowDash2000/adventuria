@@ -366,6 +366,12 @@ h1, h2, h3, h4, h5, h6 {
         input[type="file"] {
             display: none;
         }
+
+        .error {
+            font-size: .8vw;
+            text-align: center;
+            color: red;
+        }
     }
 
     .game-title {
