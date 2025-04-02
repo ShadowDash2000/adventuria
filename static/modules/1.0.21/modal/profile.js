@@ -28,6 +28,7 @@ let page = 1;
 let totalPages = 1;
 const limit = 10;
 let observer;
+let userId = '';
 
 const actionsTypes = profileModal.querySelectorAll('.profile-modal__actions-type .actions-type__item');
 let actionType = 'all';
@@ -35,7 +36,7 @@ actionsTypes.forEach(el => {
     el.addEventListener('click', changeActionType);
 });
 
-function changeActionType(e) {
+async function changeActionType(e) {
     if (isLoading) return;
 
     const target = e.currentTarget;
@@ -51,11 +52,12 @@ function changeActionType(e) {
 
     resetActions();
     actionContainer.innerHTML = '';
+    await fetchNextUserActions();
 }
 
 document.addEventListener('profile.open', (e) => {
     actionContainer.innerHTML = '';
-    const userId = e.detail.userId;
+    userId = e.detail.userId;
 
     putUserInfoToProfile(userId);
 
@@ -68,16 +70,7 @@ document.addEventListener('profile.open', (e) => {
                 return;
             }
 
-            isLoading = true;
-            const actions = await fetchUserActions(userId, page, limit, actionType);
-            totalPages = actions.totalPages;
-            page++;
-            isLoading = false;
-
-            for (const action of actions.items) {
-                const actionNode = app.actions.createActionNode(action);
-                actionContainer.appendChild(actionNode);
-            }
+            await fetchNextUserActions();
         }
     });
 
@@ -92,12 +85,25 @@ document.addEventListener('profile.open', (e) => {
 document.addEventListener('modal.close', (e) => {
     if (e.detail.modalName !== 'profile') return;
     resetActions();
-    observer.unobserve(actionsSentinel);
 });
 
 function resetActions() {
     page = 1;
     totalPages = 1;
+    observer.unobserve(actionsSentinel);
+}
+
+async function fetchNextUserActions() {
+    isLoading = true;
+    const actions = await fetchUserActions(userId, page, limit, actionType);
+    totalPages = actions.totalPages;
+    page++;
+    isLoading = false;
+
+    for (const action of actions.items) {
+        const actionNode = app.actions.createActionNode(action);
+        actionContainer.appendChild(actionNode);
+    }
 }
 
 async function fetchUserActions(userId, page, limit, action = '') {
