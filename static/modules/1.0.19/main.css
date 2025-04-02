@@ -1167,6 +1167,46 @@ table.users {
     }
 }
 
+.profile-modal__actions-type {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5vw;
+    padding: .9vw 0;
+
+    .actions-type__item {
+        background: #202938;
+        border-radius: .4vw;
+        padding: .5vw .9vw;
+        cursor: pointer;
+    }
+
+    .actions-type__item.active {
+        background: #168f3a;
+        cursor: auto;
+    }
+}
+
+.actions__actions-type {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5vw;
+    padding: .9vw 0;
+
+    .actions-type__item {
+        background: #202938;
+        border-radius: .4vw;
+        padding: .5vw .9vw;
+        cursor: pointer;
+    }
+
+    .actions-type__item.active {
+        background: #168f3a;
+        cursor: auto;
+    }
+}
+
 .header {
     display: flex;
     justify-content: space-between;

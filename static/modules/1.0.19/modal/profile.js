@@ -29,6 +29,30 @@ let totalPages = 1;
 const limit = 10;
 let observer;
 
+const actionsTypes = profileModal.querySelectorAll('.profile-modal__actions-type .actions-type__item');
+let actionType = 'all';
+actionsTypes.forEach(el => {
+    el.addEventListener('click', changeActionType);
+});
+
+function changeActionType(e) {
+    if (isLoading) return;
+
+    const target = e.currentTarget;
+
+    if (target.classList.contains('active')) return;
+
+    actionsTypes.forEach(el => {
+        el.classList.remove('active');
+    });
+
+    target.classList.add('active');
+    actionType = target.dataset.type;
+
+    resetActions();
+    actionContainer.innerHTML = '';
+}
+
 document.addEventListener('profile.open', (e) => {
     actionContainer.innerHTML = '';
     const userId = e.detail.userId;
@@ -45,7 +69,7 @@ document.addEventListener('profile.open', (e) => {
             }
 
             isLoading = true;
-            const actions = await fetchUserActions(userId, page, limit);
+            const actions = await fetchUserActions(userId, page, limit, actionType);
             totalPages = actions.totalPages;
             page++;
             isLoading = false;
@@ -67,14 +91,25 @@ document.addEventListener('profile.open', (e) => {
 
 document.addEventListener('modal.close', (e) => {
     if (e.detail.modalName !== 'profile') return;
-    page = 1;
-    totalPages = 1;
+    resetActions();
     observer.unobserve(actionsSentinel);
 });
 
-async function fetchUserActions(userId, page, limit) {
+function resetActions() {
+    page = 1;
+    totalPages = 1;
+}
+
+async function fetchUserActions(userId, page, limit, action = '') {
+    let actions = ["roll", "reroll", "drop", "chooseResult", "chooseGame", "rollCell", "rollWheelPreset"];
+    if (action.length > 0 && action !== 'all') {
+        actions = [action];
+    }
+
+    const actionsFilter = actions.map(action => `type="${action}"`).join("||");
+
     return await app.pb.collection('actions').getList(page, limit, {
-        filter: `user.id = "${userId}" && '["roll", "reroll", "drop", "chooseResult", "chooseGame", "rollCell", "rollWheelPreset"]' ~ type`,
+        filter: `user.id = "${userId}" && ${actionsFilter}`,
         sort: '-created',
     });
 }

@@ -5,7 +5,6 @@ export default class Actions {
 
     constructor(pb, cells, users) {
         this.pb = pb;
-        this.actions = null;
         this.cells = cells;
         this.users = users;
 
@@ -17,6 +16,14 @@ export default class Actions {
         this.actionContainer = document.querySelector('.actions .container');
         this.actionsSentinel = document.querySelector('.actions .sentinel');
         this.actionTemplate = document.getElementById('action-template');
+        this.actionsTypes = document.querySelectorAll(' .actions .actions__actions-type .actions-type__item');
+        this.actionType = 'all';
+
+        this.actionsTypes.forEach(el => {
+            el.addEventListener('click', (e) => {
+                this.changeActionType(e);
+            });
+        });
 
         const observer = new IntersectionObserver(async (entries, observer) => {
             const entry = entries[0];
@@ -27,30 +34,35 @@ export default class Actions {
                     return;
                 }
 
-                await this.fetch();
+                this.isLoading = true;
+                const actions = await this.fetch(this.page, this.limit, this.actionType);
+                this.totalPages = actions.totalPages;
+                this.page++;
+
+                for (const action of actions.items) {
+                    const actionNode = this.createActionNode(action);
+                    this.appendActionNode(actionNode);
+                }
+
+                this.isLoading = false;
             }
         });
 
         observer.observe(this.actionsSentinel);
     }
 
-    async fetch() {
-        this.isLoading = true;
-
-        this.actions = await this.pb.collection(this.collectionName).getList(this.page, this.limit, {
-            filter: '\'["roll", "reroll", "drop", "chooseResult", "chooseGame", "rollCell", "rollWheelPreset"]\' ~ type',
-            sort: '-created',
-        });
-
-        this.totalPages = this.actions.totalPages;
-        this.page++;
-
-        for (const action of this.actions.items) {
-            const actionNode = this.createActionNode(action);
-            this.appendActionNode(actionNode);
+    async fetch(page, limit, action = '') {
+        let actions = ["roll", "reroll", "drop", "chooseResult", "chooseGame", "rollCell", "rollWheelPreset"];
+        if (action.length > 0 && action !== 'all') {
+            actions = [action];
         }
 
-        this.isLoading = false;
+        const actionsFilter = actions.map(action => `type="${action}"`).join("||");
+
+        return await this.pb.collection(this.collectionName).getList(page, limit, {
+            filter: `${actionsFilter}`,
+            sort: '-created',
+        });
     }
 
     createActionNode(action) {
@@ -110,5 +122,28 @@ export default class Actions {
 
     prependActionNode(actionNode) {
         this.actionContainer.prepend(actionNode);
+    }
+
+    resetActions() {
+        this.page = 1;
+        this.totalPages = 1;
+    }
+
+    changeActionType(e) {
+        if (this.isLoading) return;
+
+        const target = e.currentTarget;
+
+        if (target.classList.contains('active')) return;
+
+        this.actionsTypes.forEach(el => {
+            el.classList.remove('active');
+        });
+
+        target.classList.add('active');
+        this.actionType = target.dataset.type;
+
+        this.resetActions();
+        this.actionContainer.innerHTML = '';
     }
 }
