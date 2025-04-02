@@ -53,6 +53,7 @@ async function changeActionType(e) {
     resetActions();
     actionContainer.innerHTML = '';
     await fetchNextUserActions();
+    observer.observe(actionsSentinel);
 }
 
 document.addEventListener('profile.open', (e) => {
