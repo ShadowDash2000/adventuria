@@ -109,7 +109,7 @@ async function fetchUserActions(userId, page, limit, action = '') {
     const actionsFilter = actions.map(action => `type="${action}"`).join("||");
 
     return await app.pb.collection('actions').getList(page, limit, {
-        filter: `user.id = "${userId}" && ${actionsFilter}`,
+        filter: `user.id = "${userId}" && (${actionsFilter})`,
         sort: '-created',
     });
 }
