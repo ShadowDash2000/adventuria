@@ -20,12 +20,12 @@ export default class Actions {
         this.actionType = 'all';
 
         this.actionsTypes.forEach(el => {
-            el.addEventListener('click', (e) => {
-                this.changeActionType(e);
+            el.addEventListener('click', async (e) => {
+                await this.changeActionType(e);
             });
         });
 
-        const observer = new IntersectionObserver(async (entries, observer) => {
+         this.observer = new IntersectionObserver(async (entries, observer) => {
             const entry = entries[0];
 
             if (entry.isIntersecting && !this.isLoading) {
@@ -34,21 +34,25 @@ export default class Actions {
                     return;
                 }
 
-                this.isLoading = true;
-                const actions = await this.fetch(this.page, this.limit, this.actionType);
-                this.totalPages = actions.totalPages;
-                this.page++;
-
-                for (const action of actions.items) {
-                    const actionNode = this.createActionNode(action);
-                    this.appendActionNode(actionNode);
-                }
-
-                this.isLoading = false;
+                await this.fetchNextActions();
             }
         });
 
-        observer.observe(this.actionsSentinel);
+        this.observer.observe(this.actionsSentinel);
+    }
+
+    async fetchNextActions() {
+        this.isLoading = true;
+        const actions = await this.fetch(this.page, this.limit, this.actionType);
+        this.totalPages = actions.totalPages;
+        this.page++;
+
+        for (const action of actions.items) {
+            const actionNode = this.createActionNode(action);
+            this.appendActionNode(actionNode);
+        }
+
+        this.isLoading = false;
     }
 
     async fetch(page, limit, action = '') {
@@ -127,9 +131,10 @@ export default class Actions {
     resetActions() {
         this.page = 1;
         this.totalPages = 1;
+        this.observer.unobserve(this.actionsSentinel);
     }
 
-    changeActionType(e) {
+    async changeActionType(e) {
         if (this.isLoading) return;
 
         const target = e.currentTarget;
@@ -145,5 +150,7 @@ export default class Actions {
 
         this.resetActions();
         this.actionContainer.innerHTML = '';
+        await this.fetchNextActions();
+        this.observer.observe(this.actionsSentinel);
     }
 }
