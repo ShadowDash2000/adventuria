@@ -409,6 +409,87 @@ h1, h2, h3, h4, h5, h6 {
     }
 }
 
+.graph-modal__content.game-result-update {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+
+    h2 {
+        font-family: "Dela Gothic One", serif;
+        text-align: center;
+        font-size: 64px;
+        padding-bottom: 40px;
+    }
+
+    form {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1vw;
+        width: 100%;
+
+        font-size: 1vw;
+        margin-bottom: 1vw;
+
+        textarea {
+            max-width: 100%;
+            width: 100%;
+            height: 6vw;
+        }
+
+        .result-file__label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+
+            .file-name {
+                font-size: .6vw;
+                color: #20c7bf;
+            }
+        }
+
+        .drag-n-drop {
+            border: white 0.5vw dashed;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .error {
+            font-size: .8vw;
+            text-align: center;
+            color: red;
+        }
+    }
+
+    .game-title {
+        font-family: "Dela Gothic One", serif;
+        text-align: center;
+        font-size: 24px;
+        padding-bottom: 18px;
+    }
+
+    .container {
+        display: flex;
+        justify-content: space-evenly;
+        gap: 30px;
+
+        font-size: 48px;
+
+        .button {
+            font-family: "Dela Gothic One", serif;
+            color: white;
+            border: none;
+            padding: 10px 50px;
+        }
+
+        .done {
+            background-color: #20c723;
+        }
+    }
+}
+
 .graph-modal__content.submit {
     display: flex;
     align-items: center;
@@ -1083,10 +1164,24 @@ table.users {
             flex-wrap: wrap;
             justify-content: flex-start;
             align-items: flex-start;
+            position: relative;
 
             background: #783d73;
             border-radius: 1vw;
             padding: 3vw 5vw;
+
+            .action__edit {
+                position: absolute;
+                top: 10%;
+                right: 5%;
+
+                background: #202938;
+                border-radius: .4vw;
+                padding: .5vw .9vw;
+                cursor: pointer;
+
+                font-size: .8vw;
+            }
 
             .action__date {
                 width: 20%;

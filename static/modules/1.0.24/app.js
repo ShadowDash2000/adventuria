@@ -221,6 +221,8 @@ class App {
             'modal/wheels.js',
             'modal/items.js',
             'modal/news.js',
+            'modal/game-stats.js',
+            'modal/result-update.js',
             'tooltip.js',
         ];
 

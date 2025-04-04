@@ -1,7 +1,14 @@
 import Helper from "../helper.js";
+import {app} from "../app.js";
+import {openActionUpdateModal} from "../modal/result-update.js";
 
 export default class Actions {
     collectionName = 'actions';
+    editableActions = [
+        'chooseResult',
+        'drop',
+        'reroll',
+    ]
 
     constructor(pb, cells, users) {
         this.pb = pb;
@@ -115,6 +122,16 @@ export default class Actions {
             const actionComment = actionNode.querySelector('.action__comment p');
             actionComment.innerText = action.comment;
             actionComment.classList.remove('hidden');
+        }
+
+        const currentUser = app.getUserRecord();
+        if (currentUser?.id === user.id && this.editableActions.includes(action.type)) {
+            const actionEdit = actionNode.querySelector('.action__edit');
+            actionEdit.dataset.actionId = action.id;
+            actionEdit.classList.remove('hidden');
+            actionEdit.addEventListener('click', async () => {
+                await openActionUpdateModal(action.id);
+            });
         }
 
         return actionNode;
