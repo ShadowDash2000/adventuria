@@ -104,8 +104,9 @@ export async function openActionUpdateModal(id) {
     actionIdInput.value = actionId;
     gameTitle.innerText = action.value;
     comment.value = action.comment;
-    updateFileName(action.icon)
+    updateFileName(action.icon);
 
+    app.modal.close();
     app.modal.open('game-result-update', {
         speed: 100,
         animation: 'fadeInUp',
