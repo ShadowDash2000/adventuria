@@ -69,6 +69,36 @@ func (h *Handlers) GetNextStepTypeHandler(e *core.RequestEvent) error {
 	return nil
 }
 
+func (h *Handlers) UpdateActionHandler(e *core.RequestEvent) error {
+	data := struct {
+		ActionID string `form:"actionId"`
+		Comment  string `form:"comment"`
+	}{}
+
+	if err := e.BindBody(&data); err != nil {
+		e.JSON(http.StatusBadRequest, err.Error())
+		return nil
+	}
+
+	var file *filesystem.File
+	files, err := e.FindUploadedFiles("icon")
+	if err != nil && !errors.Is(err, http.ErrMissingFile) {
+		e.JSON(http.StatusInternalServerError, err.Error())
+		return nil
+	} else if len(files) > 0 {
+		file = files[0]
+	}
+
+	err = h.Game.UpdateAction(data.ActionID, data.Comment, file, e.Auth.Id)
+	if err != nil {
+		e.JSON(http.StatusInternalServerError, err.Error())
+		return err
+	}
+
+	e.JSON(http.StatusOK, struct{}{})
+	return nil
+}
+
 func (h *Handlers) RerollHandler(e *core.RequestEvent) error {
 	data := struct {
 		Comment string `form:"comment"`

@@ -6,30 +6,24 @@ import (
 )
 
 func WithBaseEvents(g adventuria.Game) adventuria.Game {
-	g.Event().On(adventuria.OnAfterItemRoll, OnAfterItemRollEffects)
-	//g.Event().On(adventuria.OnAfterAction, ClearNextStepTypeItems)
-	g.Event().On(adventuria.OnAfterRoll, OnAfterRollEffects)
+	g.Event().On(adventuria.OnBeforeNextStepType, ChangeNextStepType)
+	g.Event().On(adventuria.OnAfterAction, ClearNextStepTypeEffects)
 	g.Event().On(adventuria.OnAfterAction, TeleportToRandomCellByIds)
 	return g
 }
 
-func OnAfterItemRollEffects(user *adventuria.User, gc *adventuria.GameComponents) error {
-	effects, _, err := user.Inventory.GetEffects(adventuria.EffectUseOnRollItem)
-	if err != nil {
-		return err
-	}
+func ChangeNextStepType(e adventuria.EventFields) error {
+	effects := e.Effects(adventuria.EffectUseOnRollItem)
+	fields := e.Fields().(*adventuria.OnBeforeNextStepFields)
 
-	nextStepType := effects.Effect(EffectTypeChangeNextStepType).String()
-	if nextStepType != "" {
-
-	}
+	fields.NextStepType = effects.Effect(EffectTypeChangeNextStepType).String()
 
 	return nil
 }
 
-func ClearNextStepTypeItems(user *adventuria.User, event string, gc *adventuria.GameComponents) error {
+func ClearNextStepTypeEffects(e adventuria.EventFields) error {
 	var invItemsEffectsIds map[string][]string
-	for invItemId, invItem := range user.Inventory.Items() {
+	for invItemId, invItem := range e.User().Inventory.Items() {
 		effects := invItem.GetEffectsByEvent(adventuria.OnBeforeNextStepType)
 		for _, effect := range effects {
 			if effect.Type() != EffectTypeChangeNextStepType {
@@ -37,7 +31,7 @@ func ClearNextStepTypeItems(user *adventuria.User, event string, gc *adventuria.
 			}
 
 			nextStepType := effect.String()
-			if nextStepType != user.LastAction.Type() {
+			if nextStepType != e.User().LastAction.Type() {
 				continue
 			}
 
@@ -46,7 +40,7 @@ func ClearNextStepTypeItems(user *adventuria.User, event string, gc *adventuria.
 	}
 
 	if len(invItemsEffectsIds) > 0 {
-		err := user.Inventory.ApplyEffects(invItemsEffectsIds)
+		err := e.User().Inventory.ApplyEffects(invItemsEffectsIds)
 		if err != nil {
 			return err
 		}
@@ -55,26 +49,15 @@ func ClearNextStepTypeItems(user *adventuria.User, event string, gc *adventuria.
 	return nil
 }
 
-func OnAfterRollEffects(user *adventuria.User, rollResult *adventuria.RollResult, gc *adventuria.GameComponents) error {
-	_, _, err := user.Inventory.GetEffects(adventuria.EffectUseOnRoll)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func TeleportToRandomCellByIds(user *adventuria.User, event string, gc *adventuria.GameComponents) error {
-	effects, _, err := user.Inventory.GetEffects(event)
-	if err != nil {
-		return err
-	}
+func TeleportToRandomCellByIds(e adventuria.EventFields) error {
+	fields := e.Fields().(*adventuria.OnAfterActionFields)
+	effects := e.Effects(fields.Event)
 
 	effect := effects.Effect(EffectTypeTeleportToRandomCellByIds)
 	cellIds := effect.Slice()
 	if len(cellIds) > 0 {
 		cellId := helper.RandomItemFromSlice(cellIds)
-		err = user.MoveToCellId(cellId)
+		err := e.User().MoveToCellId(cellId)
 		if err != nil {
 			return err
 		}

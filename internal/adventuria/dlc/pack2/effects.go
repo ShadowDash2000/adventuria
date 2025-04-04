@@ -11,8 +11,8 @@ const (
 
 func WithBaseEffects() {
 	adventuria.RegisterEffects(map[string]adventuria.EffectCreator{
-		EffectTypeChangeNextStepType:        adventuria.NewEffect(adventuria.String),
-		EffectTypeGoToJail:                  adventuria.NewEffect(adventuria.Bool),
-		EffectTypeTeleportToRandomCellByIds: adventuria.NewEffect(adventuria.Slice),
+		EffectTypeChangeNextStepType:        adventuria.NewEffect(adventuria.String, adventuria.EffectUseOnAny),
+		EffectTypeGoToJail:                  adventuria.NewEffect(adventuria.Bool, adventuria.EffectUseOnAny),
+		EffectTypeTeleportToRandomCellByIds: adventuria.NewEffect(adventuria.Slice, adventuria.EffectUseOnAny),
 	})
 }

@@ -48,6 +48,8 @@ func main() {
 		gab.GET("/get-last-action", handlers.GetLastActionHandler)
 		gab.GET("/get-roll-effects", handlers.GetRollEffectsHandler)
 
+		gab.POST("/update-action", handlers.UpdateActionHandler)
+
 		gab.POST("/reroll", handlers.RerollHandler)
 		gab.POST("/drop", handlers.DropHandler)
 		gab.POST("/done", handlers.DoneHandler)

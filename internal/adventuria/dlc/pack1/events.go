@@ -24,117 +24,110 @@ func WithBaseEvents(g adventuria.Game) adventuria.Game {
 	return g
 }
 
-func OnAfterRerollStats(user *adventuria.User, gc *adventuria.GameComponents) error {
-	user.Stats.Rerolls++
+func OnAfterRerollStats(e adventuria.EventFields) error {
+	e.User().Stats.Rerolls++
 	return nil
 }
 
-func OnBeforeDropEffects(user *adventuria.User, dropEffects *adventuria.DropEffects, gc *adventuria.GameComponents) error {
-	effects, _, err := user.Inventory.GetEffects(adventuria.EffectUseOnDrop)
-	if err != nil {
-		return err
-	}
+func OnBeforeDropEffects(e adventuria.EventFields) error {
+	effects := e.Effects(adventuria.EffectUseOnDrop)
+	fields := e.Fields().(*adventuria.OnBeforeDropFields)
 
-	dropEffects.IsSafeDrop = effects.Effect(EffectTypeSafeDrop).Bool()
-
-	return nil
-}
-
-func OnAfterDropStats(user *adventuria.User, gc *adventuria.GameComponents) error {
-	user.Stats.Drops++
-	return nil
-}
-
-func OnAfterGoToJailStats(user *adventuria.User, gc *adventuria.GameComponents) error {
-	user.Stats.WasInJail++
-	return nil
-}
-
-func OnBeforeDoneEffects(user *adventuria.User, doneEffects *adventuria.DoneEffects, gc *adventuria.GameComponents) error {
-	effects, _, err := user.Inventory.GetEffects(adventuria.EffectUseOnChooseResult)
-	if err != nil {
-		return err
-	}
-
-	doneEffects.CellPointsDivide = effects.Effect(EffectTypeCellPointsDivide).Int()
+	fields.IsSafeDrop = effects.Effect(EffectTypeSafeDrop).Bool()
 
 	return nil
 }
 
-func OnAfterDoneStats(user *adventuria.User, gc *adventuria.GameComponents) error {
-	user.Stats.Finished++
+func OnAfterDropStats(e adventuria.EventFields) error {
+	e.User().Stats.Drops++
 	return nil
 }
 
-func OnBeforeRollEffects(user *adventuria.User, dicesResult *adventuria.RollDicesResult, gc *adventuria.GameComponents) error {
-	effects, _, err := user.Inventory.GetEffects(adventuria.EffectUseOnRoll)
-	if err != nil {
-		return err
-	}
+func OnAfterGoToJailStats(e adventuria.EventFields) error {
+	e.User().Stats.WasInJail++
+	return nil
+}
+
+func OnBeforeDoneEffects(e adventuria.EventFields) error {
+	effects := e.Effects(adventuria.EffectUseOnChooseResult)
+	fields := e.Fields().(*adventuria.OnBeforeDoneFields)
+
+	fields.CellPointsDivide = effects.Effect(EffectTypeCellPointsDivide).Int()
+
+	return nil
+}
+
+func OnAfterDoneStats(e adventuria.EventFields) error {
+	e.User().Stats.Finished++
+	return nil
+}
+
+func OnBeforeRollEffects(e adventuria.EventFields) error {
+	effects := e.Effects(adventuria.EffectUseOnRoll)
+	fields := e.Fields().(*adventuria.OnBeforeRollFields)
 
 	dicesSrc := adventuria.NewDiceEffectSourceGiver[adventuria.Dice](effects.Effect(EffectTypeChangeDices).Slice())
 	dices := dicesSrc.Slice()
 	if len(dices) > 0 {
-		dicesResult.Dices = dices
+		fields.Dices = dices
 	}
 
 	return nil
 }
 
-func OnBeforeRollMoveEffects(user *adventuria.User, rollResult *adventuria.RollResult, gc *adventuria.GameComponents) error {
-	effects, _, err := user.Inventory.GetEffects(adventuria.EffectUseOnRoll)
-	if err != nil {
-		return err
-	}
+func OnBeforeRollMoveEffects(e adventuria.EventFields) error {
+	effects := e.Effects(adventuria.EffectUseOnRoll)
+	fields := e.Fields().(*adventuria.OnBeforeRollMoveFields)
 
 	diceMultiplier := effects.Effect(EffectTypeDiceMultiplier).Int()
 	if diceMultiplier > 0 {
-		rollResult.N *= diceMultiplier
+		fields.N *= diceMultiplier
 	}
 
 	diceIncrement := effects.Effect(EffectTypeDiceIncrement).Int()
-	rollResult.N += diceIncrement
+	fields.N += diceIncrement
 
 	rollReverse := effects.Effect(EffectTypeRollReverse).Bool()
 	if rollReverse {
-		rollResult.N *= -1
+		fields.N *= -1
 	}
 
 	return nil
 }
 
-func OnAfterRollStats(user *adventuria.User, rollResult *adventuria.RollResult, gc *adventuria.GameComponents) error {
-	user.Stats.DiceRolls++
-	if rollResult.N > user.Stats.MaxDiceRoll {
-		user.Stats.MaxDiceRoll = rollResult.N
+func OnAfterRollStats(e adventuria.EventFields) error {
+	fields := e.Fields().(*adventuria.OnAfterRollFields)
+
+	e.User().Stats.DiceRolls++
+
+	if fields.N > e.User().Stats.MaxDiceRoll {
+		e.User().Stats.MaxDiceRoll = fields.N
 	}
 	return nil
 }
 
-func OnAfterWheelRollStats(user *adventuria.User, gc *adventuria.GameComponents) error {
-	user.Stats.WheelRolled++
+func OnAfterWheelRollStats(e adventuria.EventFields) error {
+	e.User().Stats.WheelRolled++
 	return nil
 }
 
-func OnAfterItemUseStats(user *adventuria.User, gc *adventuria.GameComponents) error {
-	user.Stats.ItemsUsed++
+func OnAfterItemUseStats(e adventuria.EventFields) error {
+	e.User().Stats.ItemsUsed++
 	return nil
 }
 
-func ApplyGenericEffects(user *adventuria.User, event string, gc *adventuria.GameComponents) error {
-	effects, _, err := user.Inventory.GetEffects(event)
-	if err != nil {
-		return err
-	}
+func ApplyGenericEffects(e adventuria.EventFields) error {
+	fields := e.Fields().(*adventuria.OnAfterActionFields)
+	effects := e.Effects(fields.Event)
 
 	pointsIncrement := effects.Effect(EffectTypePointsIncrement).Int()
 	if pointsIncrement != 0 {
-		user.SetPoints(user.Points() + pointsIncrement)
+		e.User().SetPoints(e.User().Points() + pointsIncrement)
 	}
 
 	timerIncrement := effects.Effect(EffectTypeTimerIncrement).Int()
 	if timerIncrement != 0 {
-		err := user.Timer.AddSecondsTimeLimit(timerIncrement)
+		err := e.User().Timer.AddSecondsTimeLimit(timerIncrement)
 		if err != nil {
 			return err
 		}
@@ -142,13 +135,13 @@ func ApplyGenericEffects(user *adventuria.User, event string, gc *adventuria.Gam
 
 	jailEscape := effects.Effect(EffectTypeJailEscape).Bool()
 	if jailEscape {
-		user.SetIsInJail(false)
-		user.SetDropsInARow(0)
+		e.User().SetIsInJail(false)
+		e.User().SetDropsInARow(0)
 	}
 
 	dropInventory := effects.Effect(EffectTypeDropInventory).Bool()
 	if dropInventory {
-		err := user.Inventory.DropInventory()
+		err := e.User().Inventory.DropInventory()
 		if err != nil {
 			return err
 		}
@@ -156,14 +149,14 @@ func ApplyGenericEffects(user *adventuria.User, event string, gc *adventuria.Gam
 
 	cellTypes := effects.Effect(EffectTypeTeleportToRandomCellByTypes).Slice()
 	if len(cellTypes) > 0 {
-		cells := gc.Cells.GetAllByTypes(cellTypes)
-		if currentCell, ok := user.CurrentCell(); ok {
+		cells := e.Components().Cells.GetAllByTypes(cellTypes)
+		if currentCell, ok := e.User().CurrentCell(); ok {
 			cells = adventuria.FilterByField(cells, []string{currentCell.Id}, func(cell *adventuria.Cell) string {
 				return cell.Id
 			})
 		}
 		cell := helper.RandomItemFromSlice(cells)
-		err := user.MoveToCellId(cell.Id)
+		err := e.User().MoveToCellId(cell.Id)
 		if err != nil {
 			return err
 		}
@@ -172,9 +165,11 @@ func ApplyGenericEffects(user *adventuria.User, event string, gc *adventuria.Gam
 	return nil
 }
 
-func OnNewLapItemWheel(user *adventuria.User, laps int, gc *adventuria.GameComponents) error {
+func OnNewLapItemWheel(e adventuria.EventFields) error {
 	// Every lap gives one item wheel
-	user.SetItemWheelsCount(user.ItemWheelsCount() + laps)
+	fields := e.Fields().(*adventuria.OnNewLapFields)
+
+	e.User().SetItemWheelsCount(e.User().ItemWheelsCount() + fields.Laps)
 
 	return nil
 }

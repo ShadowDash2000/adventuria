@@ -175,7 +175,10 @@ func (u *User) Move(n int) (Action, *Cell, error) {
 	lapsPassed := (prevCellNum + n) / u.gc.Cells.Count()
 	// Check if we're not moving backwards and passed new lap(-s)
 	if n > 0 && lapsPassed > 0 {
-		u.gc.Event.Go(OnNewLap, u, lapsPassed, u.gc)
+		onNewLapFields := &OnNewLapFields{
+			Laps: lapsPassed,
+		}
+		u.gc.Event.Go(OnNewLap, NewEventFields(u, u.gc, onNewLapFields))
 	}
 
 	return action, currentCell, nil
@@ -196,7 +199,8 @@ func (u *User) MoveToJail() error {
 
 	u.SetIsInJail(true)
 
-	u.gc.Event.Go(OnAfterGoToJail, u, u.gc)
+	onAfterGoToJailFields := &OnAfterGoToJailFields{}
+	u.gc.Event.Go(OnAfterGoToJail, NewEventFields(u, u.gc, onAfterGoToJailFields))
 
 	return nil
 }
@@ -245,11 +249,13 @@ func (u *User) GetNextStepType() (string, error) {
 		return ActionTypeRollItem, nil
 	}
 
-	effects := NextStepTypeEffects{}
-	u.gc.Event.Go(OnBeforeNextStepType, u, effects, u.gc)
+	onBeforeNextStepFields := &OnBeforeNextStepFields{
+		NextStepType: "",
+	}
+	u.gc.Event.Go(OnBeforeNextStepType, NewEventFields(u, u.gc, onBeforeNextStepFields))
 
-	if effects.NextStepType != "" {
-		nextStepType = effects.NextStepType
+	if onBeforeNextStepFields.NextStepType != "" {
+		nextStepType = onBeforeNextStepFields.NextStepType
 		return nextStepType, nil
 	}
 

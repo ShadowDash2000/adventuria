@@ -24,6 +24,7 @@ const (
 	EffectUseOnChooseResult = "useOnChooseResult"
 	EffectUseOnChooseGame   = "useOnChooseGame"
 	EffectUseOnRollItem     = "useOnRollItem"
+	EffectUseOnAny          = "useOnAny"
 )
 
 type Effect interface {
@@ -51,6 +52,7 @@ type EffectBase struct {
 	value  EffectValue
 	kind   Kind
 	source EffectSourceReceiver
+	event  string
 }
 
 type EffectValue struct {
@@ -83,11 +85,12 @@ func NewEffectRecord(record *core.Record) (Effect, error) {
 	return effect, nil
 }
 
-func NewEffect(kind Kind) EffectCreator {
+func NewEffect(kind Kind, event string) EffectCreator {
 	return func() Effect {
 		return &EffectBase{
 			value: EffectValue{},
 			kind:  kind,
+			event: event,
 		}
 	}
 }
@@ -101,7 +104,15 @@ func (e *EffectBase) Name() string {
 }
 
 func (e *EffectBase) Event() string {
-	return e.GetString("event")
+	if e.event != EffectUseOnAny {
+		return e.event
+	}
+
+	if event := e.GetString("useOn"); event != "" {
+		return event
+	}
+
+	return e.event
 }
 
 func (e *EffectBase) Type() string {
@@ -162,12 +173,13 @@ type EffectSourceGiver[T any] interface {
 
 type EffectSourceReceiver func([]string) any
 
-func NewEffectWithSource(source EffectSourceReceiver) EffectCreator {
+func NewEffectWithSource(source EffectSourceReceiver, event string) EffectCreator {
 	return func() Effect {
 		return &EffectBase{
 			value:  EffectValue{},
 			kind:   SliceWithSource,
 			source: source,
+			event:  event,
 		}
 	}
 }

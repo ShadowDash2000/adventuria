@@ -49,6 +49,14 @@ func NewAction(userId string, actionType string, gc *GameComponents) Action {
 	return a
 }
 
+func NewActionFromRecord(record *core.Record, gc *GameComponents) Action {
+	a := &BaseAction{gc: gc}
+
+	a.SetProxyRecord(record)
+
+	return a
+}
+
 func (a *BaseAction) Save() error {
 	return a.gc.App.Save(a)
 }

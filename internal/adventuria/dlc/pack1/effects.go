@@ -19,17 +19,17 @@ const (
 
 func WithBaseEffects() {
 	adventuria.RegisterEffects(map[string]adventuria.EffectCreator{
-		EffectTypeNothing:                     adventuria.NewEffect(adventuria.Bool),
-		EffectTypePointsIncrement:             adventuria.NewEffect(adventuria.Int),
-		EffectTypeJailEscape:                  adventuria.NewEffect(adventuria.Bool),
-		EffectTypeDiceMultiplier:              adventuria.NewEffect(adventuria.Int),
-		EffectTypeDiceIncrement:               adventuria.NewEffect(adventuria.Int),
-		EffectTypeChangeDices:                 adventuria.NewEffectWithSource(adventuria.DiceEffectSourceReceiver),
-		EffectTypeSafeDrop:                    adventuria.NewEffect(adventuria.Bool),
-		EffectTypeTimerIncrement:              adventuria.NewEffect(adventuria.Int),
-		EffectTypeRollReverse:                 adventuria.NewEffect(adventuria.Bool),
-		EffectTypeDropInventory:               adventuria.NewEffect(adventuria.Bool),
-		EffectTypeCellPointsDivide:            adventuria.NewEffect(adventuria.Int),
-		EffectTypeTeleportToRandomCellByTypes: adventuria.NewEffect(adventuria.Slice),
+		EffectTypeNothing:                     adventuria.NewEffect(adventuria.Bool, adventuria.EffectUseOnAny),
+		EffectTypePointsIncrement:             adventuria.NewEffect(adventuria.Int, adventuria.EffectUseOnAny),
+		EffectTypeJailEscape:                  adventuria.NewEffect(adventuria.Bool, adventuria.EffectUseInstant),
+		EffectTypeDiceMultiplier:              adventuria.NewEffect(adventuria.Int, adventuria.EffectUseOnRoll),
+		EffectTypeDiceIncrement:               adventuria.NewEffect(adventuria.Int, adventuria.EffectUseOnRoll),
+		EffectTypeChangeDices:                 adventuria.NewEffectWithSource(adventuria.DiceEffectSourceReceiver, adventuria.EffectUseOnRoll),
+		EffectTypeSafeDrop:                    adventuria.NewEffect(adventuria.Bool, adventuria.EffectUseOnDrop),
+		EffectTypeTimerIncrement:              adventuria.NewEffect(adventuria.Int, adventuria.EffectUseInstant),
+		EffectTypeRollReverse:                 adventuria.NewEffect(adventuria.Bool, adventuria.EffectUseOnRoll),
+		EffectTypeDropInventory:               adventuria.NewEffect(adventuria.Bool, adventuria.EffectUseOnAny),
+		EffectTypeCellPointsDivide:            adventuria.NewEffect(adventuria.Int, adventuria.EffectUseOnChooseResult),
+		EffectTypeTeleportToRandomCellByTypes: adventuria.NewEffect(adventuria.Slice, adventuria.EffectUseOnAny),
 	})
 }
