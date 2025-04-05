@@ -1035,7 +1035,7 @@ func init() {
 				"system": false,
 				"type": "base",
 				"updateRule": null,
-				"viewRule": null
+				"viewRule": ""
 			},
 			{
 				"createRule": null,
@@ -1653,16 +1653,19 @@ func init() {
 							"rollReverse",
 							"dropInventory",
 							"cellPointsDivide",
-							"teleportToRandomCellByTypes"
+							"teleportToRandomCellByTypes",
+							"teleportToRandomCellByIds",
+							"changeNextStepType",
+							"goToJail"
 						]
 					},
 					{
 						"hidden": false,
 						"id": "select1001261735",
 						"maxSelect": 1,
-						"name": "event",
+						"name": "useOn",
 						"presentable": false,
-						"required": true,
+						"required": false,
 						"system": false,
 						"type": "select",
 						"values": [

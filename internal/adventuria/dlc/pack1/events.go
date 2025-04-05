@@ -21,6 +21,8 @@ func WithBaseEvents(g adventuria.Game) adventuria.Game {
 
 	g.Event().On(adventuria.OnAfterAction, ApplyGenericEffects)
 
+	g.Event().On(adventuria.OnAfterDone, GiveOneItemWheel)
+
 	return g
 }
 
@@ -161,6 +163,12 @@ func ApplyGenericEffects(e adventuria.EventFields) error {
 			return err
 		}
 	}
+
+	return nil
+}
+
+func GiveOneItemWheel(e adventuria.EventFields) error {
+	e.User().SetItemWheelsCount(e.User().ItemWheelsCount() + 1)
 
 	return nil
 }
