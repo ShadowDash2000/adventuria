@@ -1374,7 +1374,7 @@ table.users {
     }
 }
 
-#game-stats-modal {
+#game-stats-modal .graph-modal__content .container {
     display: flex;
     flex-direction: column;
     align-items: center;

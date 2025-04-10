@@ -2,6 +2,7 @@ import {app} from "../app.js";
 import Helper from "../helper.js";
 
 const gameStatsModal = document.getElementById('game-stats-modal');
+const container = gameStatsModal.querySelector('.graph-modal__content .container');
 
 document.addEventListener('modal.open.game-stats', putStatsIntoModal, {once: true});
 
@@ -31,6 +32,7 @@ function putStatsIntoModal() {
             statDetailEl.classList.add('stat__detail');
 
             const avatar = document.createElement('img');
+            avatar.style.borderColor = statValue.user.color;
             const userName = document.createElement('span');
             userName.classList.add(...textShadow);
             const value = document.createElement('span');
@@ -42,7 +44,7 @@ function putStatsIntoModal() {
 
             statDetailEl.append(avatar, userName, value);
             statEl.append(title, description, statDetailEl);
-            gameStatsModal.appendChild(statEl);
+            container.appendChild(statEl);
         }
     }
 }
