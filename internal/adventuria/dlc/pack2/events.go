@@ -9,6 +9,8 @@ func WithBaseEvents(g adventuria.Game) adventuria.Game {
 	g.Event().On(adventuria.OnBeforeNextStepType, ChangeNextStepType)
 	g.Event().On(adventuria.OnAfterAction, ClearNextStepTypeEffects)
 	g.Event().On(adventuria.OnAfterAction, TeleportToRandomCellByIds)
+	g.Event().On(adventuria.OnBeforeNextStepType, ChangeCellType)
+	g.Event().On(adventuria.OnAfterMove, ClearChangeCellTypeEffects)
 	return g
 }
 
@@ -24,7 +26,7 @@ func ChangeNextStepType(e adventuria.EventFields) error {
 func ClearNextStepTypeEffects(e adventuria.EventFields) error {
 	var invItemsEffectsIds map[string][]string
 	for invItemId, invItem := range e.User().Inventory.Items() {
-		effects := invItem.GetEffectsByEvent(adventuria.OnBeforeNextStepType)
+		effects := invItem.EffectsByEvent(adventuria.OnBeforeNextStepType)
 		for _, effect := range effects {
 			if effect.Type() != EffectTypeChangeNextStepType {
 				continue
@@ -35,7 +37,7 @@ func ClearNextStepTypeEffects(e adventuria.EventFields) error {
 				continue
 			}
 
-			invItemsEffectsIds[invItemId] = append(invItemsEffectsIds[invItemId], invItemId)
+			invItemsEffectsIds[invItemId] = append(invItemsEffectsIds[invItemId], effect.ID())
 		}
 	}
 
@@ -64,4 +66,20 @@ func TeleportToRandomCellByIds(e adventuria.EventFields) error {
 	}
 
 	return nil
+}
+
+func ChangeCellType(e adventuria.EventFields) error {
+	effects := e.Effects(adventuria.EffectUseOnRollItem)
+	fields := e.Fields().(*adventuria.OnBeforeNextStepFields)
+
+	cellType := adventuria.CellType(effects.Effect(EffectChangeCellType).String())
+	if cellType != "" {
+		fields.CurrentCell.SetType(cellType)
+	}
+
+	return nil
+}
+
+func ClearChangeCellTypeEffects(e adventuria.EventFields) error {
+	return e.User().Inventory.ApplyEffectsByTypes([]string{EffectChangeCellType})
 }

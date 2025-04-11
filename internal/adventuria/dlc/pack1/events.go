@@ -17,11 +17,15 @@ func WithBaseEvents(g adventuria.Game) adventuria.Game {
 	g.Event().On(adventuria.OnAfterRoll, OnAfterRollStats)
 	g.Event().On(adventuria.OnAfterWheelRoll, OnAfterWheelRollStats)
 	g.Event().On(adventuria.OnAfterItemUse, OnAfterItemUseStats)
+
+	// item wheels
+	g.Event().On(adventuria.OnBeforeNextStepType, CheckItemWheelsCount)
+	g.Event().On(adventuria.OnBeforeWheelRoll, ChangeCellTypeToItemWheel)
 	g.Event().On(adventuria.OnNewLap, OnNewLapItemWheel)
+	g.Event().On(adventuria.OnAfterDone, GiveOneItemWheel)
+	g.Event().On(adventuria.OnAfterItemRoll, DecreaseItemWheel)
 
 	g.Event().On(adventuria.OnAfterAction, ApplyGenericEffects)
-
-	g.Event().On(adventuria.OnAfterDone, GiveOneItemWheel)
 
 	return g
 }
@@ -68,7 +72,7 @@ func OnBeforeRollEffects(e adventuria.EventFields) error {
 	effects := e.Effects(adventuria.EffectUseOnRoll)
 	fields := e.Fields().(*adventuria.OnBeforeRollFields)
 
-	dicesSrc := adventuria.NewDiceEffectSourceGiver[adventuria.Dice](effects.Effect(EffectTypeChangeDices).Slice())
+	dicesSrc := adventuria.NewDiceEffectSourceGiver(effects.Effect(EffectTypeChangeDices).Slice())
 	dices := dicesSrc.Slice()
 	if len(dices) > 0 {
 		fields.Dices = dices
@@ -149,19 +153,40 @@ func ApplyGenericEffects(e adventuria.EventFields) error {
 		}
 	}
 
-	cellTypes := effects.Effect(EffectTypeTeleportToRandomCellByTypes).Slice()
+	cellTypesSrc := adventuria.NewCellTypeSourceGiver(effects.Effect(EffectTypeTeleportToRandomCellByTypes).Slice())
+	cellTypes := cellTypesSrc.Slice()
 	if len(cellTypes) > 0 {
 		cells := e.Components().Cells.GetAllByTypes(cellTypes)
 		if currentCell, ok := e.User().CurrentCell(); ok {
-			cells = adventuria.FilterByField(cells, []string{currentCell.Id}, func(cell *adventuria.Cell) string {
-				return cell.Id
+			cells = helper.FilterByField(cells, []string{currentCell.ID()}, func(cell adventuria.Cell) string {
+				return cell.ID()
 			})
 		}
 		cell := helper.RandomItemFromSlice(cells)
-		err := e.User().MoveToCellId(cell.Id)
+		err := e.User().MoveToCellId(cell.ID())
 		if err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func CheckItemWheelsCount(e adventuria.EventFields) error {
+	fields := e.Fields().(*adventuria.OnBeforeNextStepFields)
+
+	if e.User().ItemWheelsCount() > 0 {
+		fields.NextStepType = adventuria.ActionTypeRollWheel
+	}
+
+	return nil
+}
+
+func ChangeCellTypeToItemWheel(e adventuria.EventFields) error {
+	fields := e.Fields().(*adventuria.OnBeforeWheelRollFields)
+
+	if e.User().ItemWheelsCount() > 0 {
+		fields.CurrentCell = adventuria.NewCellItem()().(adventuria.CellWheel)
 	}
 
 	return nil
@@ -178,6 +203,14 @@ func OnNewLapItemWheel(e adventuria.EventFields) error {
 	fields := e.Fields().(*adventuria.OnNewLapFields)
 
 	e.User().SetItemWheelsCount(e.User().ItemWheelsCount() + fields.Laps)
+
+	return nil
+}
+
+func DecreaseItemWheel(e adventuria.EventFields) error {
+	if e.User().ItemWheelsCount() > 0 {
+		e.User().SetItemWheelsCount(e.User().ItemWheelsCount() - 1)
+	}
 
 	return nil
 }

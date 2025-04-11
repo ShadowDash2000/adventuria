@@ -7,6 +7,7 @@ const (
 	EffectTypeCustomGame                = "customGame"
 	EffectTypeGoToJail                  = "goToJail"
 	EffectTypeTeleportToRandomCellByIds = "teleportToRandomCellByIds"
+	EffectChangeCellType                = "changeCellType"
 )
 
 func WithBaseEffects() {
@@ -14,5 +15,6 @@ func WithBaseEffects() {
 		EffectTypeChangeNextStepType:        adventuria.NewEffect(adventuria.String, adventuria.EffectUseOnAny),
 		EffectTypeGoToJail:                  adventuria.NewEffect(adventuria.Bool, adventuria.EffectUseOnAny),
 		EffectTypeTeleportToRandomCellByIds: adventuria.NewEffect(adventuria.Slice, adventuria.EffectUseOnAny),
+		EffectChangeCellType:                adventuria.NewEffect(adventuria.String, adventuria.EffectUseOnAny),
 	})
 }

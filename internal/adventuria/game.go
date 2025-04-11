@@ -15,14 +15,12 @@ type Game interface {
 	GetNextStepType(userId string) (string, error)
 	UpdateAction(actionId string, comment string, file *filesystem.File, userId string) error
 	Reroll(comment string, file *filesystem.File, userId string) error
-	Roll(userId string) (int, []int, *Cell, error)
+	Roll(userId string) (int, []int, Cell, error)
 	Drop(comment string, file *filesystem.File, userId string) error
 	Done(comment string, file *filesystem.File, userId string) error
+	RollWheel(userId string) (*WheelRollResult, error)
 	GetLastAction(userId string) (bool, Action, error)
-	GetItemsEffects(userId, event string) (*Effects, error)
-	RollCell(userId string) (string, error)
-	RollItem(userId string) (string, error)
-	RollWheelPreset(userId string) (string, error)
+	GetItemsEffects(userId string, event EffectUse) (*Effects, error)
 	UseItem(userId, itemId string) error
 	DropItem(userId, itemId string) error
 	StartTimer(userId string) error

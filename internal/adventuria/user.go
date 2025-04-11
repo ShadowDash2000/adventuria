@@ -11,7 +11,7 @@ type User struct {
 	core.BaseRecordProxy
 	gc         *GameComponents
 	LastAction Action
-	Inventory  *Inventory
+	Inventory  Inventory
 	Timer      *Timer
 	Stats      Stats
 }
@@ -102,7 +102,7 @@ func (u *User) SetIsInJail(b bool) {
 	u.Set("isInJail", b)
 }
 
-func (u *User) CurrentCell() (*Cell, bool) {
+func (u *User) CurrentCell() (Cell, bool) {
 	cellsPassed := u.CellsPassed()
 	currentCellNum := cellsPassed % u.gc.Cells.Count()
 
@@ -156,30 +156,42 @@ func (u *User) Save() error {
 	return u.gc.App.Save(u)
 }
 
-func (u *User) Move(n int) (Action, *Cell, error) {
+func (u *User) Move(steps int) (Action, Cell, error) {
 	cellsPassed := u.CellsPassed()
-	currentCellNum := (cellsPassed + n) % u.gc.Cells.Count()
+	currentCellNum := (cellsPassed + steps) % u.gc.Cells.Count()
 	currentCell, _ := u.gc.Cells.GetByOrder(currentCellNum)
 
-	action := NewAction(u.Id, ActionTypeRoll, u.gc)
-	action.SetCell(currentCell.Id)
-	action.SetValue(n)
-	err := action.Save()
+	u.SetCellsPassed(cellsPassed + steps)
+
+	err := currentCell.OnCellReached(u, u.gc)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	u.SetCellsPassed(cellsPassed + n)
+	action := NewAction(u.Id, ActionTypeRoll, u.gc)
+	action.SetCell(currentCell.ID())
+	action.SetValue(steps)
+	err = action.Save()
+	if err != nil {
+		return nil, nil, err
+	}
 
 	prevCellNum := cellsPassed % u.gc.Cells.Count()
-	lapsPassed := (prevCellNum + n) / u.gc.Cells.Count()
+	lapsPassed := (prevCellNum + steps) / u.gc.Cells.Count()
 	// Check if we're not moving backwards and passed new lap(-s)
-	if n > 0 && lapsPassed > 0 {
+	if steps > 0 && lapsPassed > 0 {
 		onNewLapFields := &OnNewLapFields{
 			Laps: lapsPassed,
 		}
 		u.gc.Event.Go(OnNewLap, NewEventFields(u, u.gc, onNewLapFields))
 	}
+
+	onAfterMoveFields := &OnAfterMoveFields{
+		Steps:       steps,
+		Action:      action,
+		CurrentCell: currentCell,
+	}
+	u.gc.Event.Go(OnAfterMove, NewEventFields(u, u.gc, onAfterMoveFields))
 
 	return action, currentCell, nil
 }
@@ -224,8 +236,6 @@ func (u *User) MoveToCellId(cellId string) error {
 // GetNextStepType
 // WHAT IS THE NEXT STEP OF THE OPERATION? 👽
 func (u *User) GetNextStepType() (string, error) {
-	var nextStepType string
-
 	// Если еще не было сделано никаких lastAction, то делаем roll
 	if u.LastAction == nil {
 		return ActionTypeRoll, nil
@@ -233,11 +243,11 @@ func (u *User) GetNextStepType() (string, error) {
 
 	currentCell, ok := u.CurrentCell()
 	if !ok {
-		return nextStepType, errors.New("current cell not found")
+		return "", errors.New("current cell not found")
 	}
 
 	lastActionType := ""
-	if u.LastAction.CellId() == currentCell.Id {
+	if u.LastAction.CellId() == currentCell.ID() {
 		lastActionType = u.LastAction.Type()
 	}
 
@@ -245,94 +255,15 @@ func (u *User) GetNextStepType() (string, error) {
 		return ActionTypeRoll, nil
 	}
 
-	if u.ItemWheelsCount() > 0 {
-		return ActionTypeRollItem, nil
-	}
-
 	onBeforeNextStepFields := &OnBeforeNextStepFields{
 		NextStepType: "",
+		CurrentCell:  currentCell,
 	}
 	u.gc.Event.Go(OnBeforeNextStepType, NewEventFields(u, u.gc, onBeforeNextStepFields))
 
 	if onBeforeNextStepFields.NextStepType != "" {
-		nextStepType = onBeforeNextStepFields.NextStepType
-		return nextStepType, nil
+		return onBeforeNextStepFields.NextStepType, nil
 	}
 
-	// TODO: in future, maybe, this part needs to be in DB table
-	switch currentCell.Type() {
-	case CellTypeGame:
-		switch lastActionType {
-		case ActionTypeRoll,
-			ActionTypeReroll:
-			nextStepType = ActionTypeChooseGame
-		case ActionTypeChooseGame:
-			nextStepType = ActionTypeChooseResult
-		case ActionTypeChooseResult,
-			ActionTypeDrop:
-			nextStepType = ActionTypeRoll
-		default:
-			nextStepType = ActionTypeChooseGame
-		}
-	case CellTypeStart:
-		nextStepType = ActionTypeRoll
-	case CellTypeJail:
-		if u.IsInJail() {
-			switch lastActionType {
-			case ActionTypeRoll,
-				ActionTypeReroll,
-				ActionTypeDrop:
-				nextStepType = ActionTypeRollCell
-			case ActionTypeRollCell:
-				nextStepType = ActionTypeChooseGame
-			case ActionTypeChooseGame:
-				nextStepType = ActionTypeChooseResult
-			case ActionTypeChooseResult:
-				nextStepType = ActionTypeRoll
-			default:
-				nextStepType = ActionTypeRollCell
-			}
-		} else {
-			nextStepType = ActionTypeRoll
-		}
-	case CellTypePreset:
-		switch lastActionType {
-		case ActionTypeRoll,
-			ActionTypeReroll:
-			nextStepType = ActionTypeRollWheelPreset
-		case ActionTypeRollWheelPreset:
-			nextStepType = ActionTypeChooseGame
-		case ActionTypeChooseGame:
-			nextStepType = ActionTypeChooseResult
-		case ActionTypeChooseResult,
-			ActionTypeDrop:
-			nextStepType = ActionTypeRoll
-		default:
-			nextStepType = ActionTypeRollWheelPreset
-		}
-	case CellTypeItem:
-		switch lastActionType {
-		case ActionTypeRoll:
-			nextStepType = ActionTypeRollItem
-		case ActionTypeRollItem:
-			nextStepType = ActionTypeRoll
-		default:
-			nextStepType = ActionTypeRollItem
-		}
-	case CellTypeWheelPreset:
-		switch lastActionType {
-		case ActionTypeRoll,
-			ActionTypeReroll:
-			nextStepType = ActionTypeRollWheelPreset
-		case ActionTypeRollWheelPreset:
-			nextStepType = ActionTypeChooseResult
-		case ActionTypeChooseResult,
-			ActionTypeDrop:
-			nextStepType = ActionTypeRoll
-		default:
-			nextStepType = ActionTypeRollWheelPreset
-		}
-	}
-
-	return nextStepType, nil
+	return currentCell.NextStep(u), nil
 }

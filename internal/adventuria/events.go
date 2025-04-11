@@ -13,12 +13,14 @@ const (
 	OnBeforeRoll         = "OnBeforeRoll"
 	OnBeforeRollMove     = "OnBeforeRollMove"
 	OnAfterRoll          = "OnAfterRoll"
+	OnBeforeWheelRoll    = "OnBeforeWheelRoll"
 	OnAfterWheelRoll     = "OnAfterWheelRoll"
 	OnAfterItemRoll      = "OnAfterItemRoll"
 	OnAfterItemUse       = "OnAfterItemUse"
 	OnNewLap             = "OnNewLap"
 	OnBeforeNextStepType = "OnBeforeNextStepType"
 	OnAfterAction        = "OnAfterAction"
+	OnAfterMove          = "OnAfterMove"
 )
 
 type Event interface {
@@ -50,14 +52,14 @@ type EventFields interface {
 	User() *User
 	Components() *GameComponents
 	Fields() any
-	Effects(string) *Effects
+	Effects(EffectUse) *Effects
 }
 
 type EventFieldsBase struct {
 	user    *User
 	gc      *GameComponents
 	fields  any
-	effects map[string]*Effects
+	effects map[EffectUse]*Effects
 }
 
 func NewEventFields(user *User, gc *GameComponents, fields any) EventFields {
@@ -65,7 +67,7 @@ func NewEventFields(user *User, gc *GameComponents, fields any) EventFields {
 		user:    user,
 		gc:      gc,
 		fields:  fields,
-		effects: map[string]*Effects{},
+		effects: map[EffectUse]*Effects{},
 	}
 }
 
@@ -81,16 +83,16 @@ func (e *EventFieldsBase) Fields() any {
 	return e.fields
 }
 
-func (e *EventFieldsBase) Effects(event string) *Effects {
+func (e *EventFieldsBase) Effects(event EffectUse) *Effects {
 	if effects, ok := e.effects[event]; ok {
 		return effects
 	}
 
-	e.effects[event], _, _ = e.User().Inventory.GetEffects(event)
+	e.effects[event], _, _ = e.User().Inventory.Effects(event)
 	return e.effects[event]
 }
 
-func (e *EventFieldsBase) Effect(event, effect string) Effect {
+func (e *EventFieldsBase) Effect(event EffectUse, effect string) Effect {
 	effects := e.Effects(event)
 	return effects.Effect(effect)
 }
@@ -121,6 +123,9 @@ type OnAfterRollFields struct {
 	Dices []Dice
 	N     int
 }
+type OnBeforeWheelRollFields struct {
+	CurrentCell CellWheel
+}
 type OnAfterWheelRollFields struct {
 	ItemId string
 }
@@ -135,7 +140,14 @@ type OnNewLapFields struct {
 }
 type OnBeforeNextStepFields struct {
 	NextStepType string
+	CurrentCell  Cell
 }
 type OnAfterActionFields struct {
-	Event string
+	Event EffectUse
+}
+
+type OnAfterMoveFields struct {
+	Steps       int
+	Action      Action
+	CurrentCell Cell
 }

@@ -10,11 +10,12 @@ const (
 	ActionTypeRoll            = "roll"
 	ActionTypeReroll          = "reroll"
 	ActionTypeDrop            = "drop"
-	ActionTypeChooseResult    = "chooseResult"
+	ActionTypeDone            = "done"
 	ActionTypeChooseGame      = "chooseGame"
 	ActionTypeRollCell        = "rollCell"
 	ActionTypeRollItem        = "rollItem"
 	ActionTypeRollWheelPreset = "rollWheelPreset"
+	ActionTypeRollWheel       = "rollWheel"
 )
 
 type Action interface {
@@ -30,6 +31,8 @@ type Action interface {
 	Type() string
 	SetIcon(*filesystem.File)
 	SetNotAffectNextStep(bool)
+	CollectionRef() string
+	SetCollectionRef(string)
 }
 
 type BaseAction struct {
@@ -109,6 +112,14 @@ func (a *BaseAction) SetIcon(icon *filesystem.File) {
 
 func (a *BaseAction) SetNotAffectNextStep(b bool) {
 	a.Set("notAffectNextStep", b)
+}
+
+func (a *BaseAction) CollectionRef() string {
+	return a.GetString("collectionRef")
+}
+
+func (a *BaseAction) SetCollectionRef(collectionRef string) {
+	a.Set("collectionRef", collectionRef)
 }
 
 type UserAction struct {

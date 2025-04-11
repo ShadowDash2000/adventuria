@@ -30,6 +30,6 @@ func WithBaseEffects() {
 		EffectTypeRollReverse:                 adventuria.NewEffect(adventuria.Bool, adventuria.EffectUseOnRoll),
 		EffectTypeDropInventory:               adventuria.NewEffect(adventuria.Bool, adventuria.EffectUseOnAny),
 		EffectTypeCellPointsDivide:            adventuria.NewEffect(adventuria.Int, adventuria.EffectUseOnChooseResult),
-		EffectTypeTeleportToRandomCellByTypes: adventuria.NewEffect(adventuria.Slice, adventuria.EffectUseOnAny),
+		EffectTypeTeleportToRandomCellByTypes: adventuria.NewEffectWithSource(adventuria.DefaultEffectSourceReceiver, adventuria.EffectUseOnAny),
 	})
 }

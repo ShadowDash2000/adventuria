@@ -44,19 +44,19 @@ var (
 	DiceTypeD8 = &DiceBase{"d8", 8}
 )
 
-type DiceEffectSourceGiver[T Dice] struct {
+type DiceEffectSourceGiver struct {
 	source []string
 }
 
-func NewDiceEffectSourceGiver[T Dice](source []string) EffectSourceGiver[T] {
-	return &DiceEffectSourceGiver[T]{source: source}
+func NewDiceEffectSourceGiver(source []string) EffectSourceGiver[Dice] {
+	return &DiceEffectSourceGiver{source: source}
 }
 
-func (dg *DiceEffectSourceGiver[T]) Slice() []T {
-	var res []T
+func (dg *DiceEffectSourceGiver) Slice() []Dice {
+	var res []Dice
 	for _, key := range dg.source {
 		if dice, ok := DicesList[key]; ok {
-			res = append(res, dice.(T))
+			res = append(res, dice)
 		} else {
 			// TODO: log error
 		}

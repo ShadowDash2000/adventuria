@@ -54,10 +54,6 @@ func main() {
 		gab.POST("/drop", handlers.DropHandler)
 		gab.POST("/done", handlers.DoneHandler)
 
-		gab.POST("/roll-cell", handlers.RollCellHandler)
-		gab.POST("/roll-wheel-preset", handlers.RollWheelPresetHandler)
-		gab.POST("/roll-item", handlers.RollItemHandler)
-
 		gab.POST("/use-item", handlers.UseItemHandler)
 		gab.POST("/drop-item", handlers.DropItemHandler)
 

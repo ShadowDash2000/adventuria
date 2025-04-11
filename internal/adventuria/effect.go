@@ -16,22 +16,24 @@ const (
 	SliceWithSource
 )
 
+type EffectUse string
+
 const (
-	EffectUseInstant        = "useInstant"
-	EffectUseOnRoll         = "useOnRoll"
-	EffectUseOnReroll       = "useOnReroll"
-	EffectUseOnDrop         = "useOnDrop"
-	EffectUseOnChooseResult = "useOnChooseResult"
-	EffectUseOnChooseGame   = "useOnChooseGame"
-	EffectUseOnRollItem     = "useOnRollItem"
-	EffectUseOnAny          = "useOnAny"
+	EffectUseInstant        EffectUse = "useInstant"
+	EffectUseOnRoll         EffectUse = "useOnRoll"
+	EffectUseOnReroll       EffectUse = "useOnReroll"
+	EffectUseOnDrop         EffectUse = "useOnDrop"
+	EffectUseOnChooseResult EffectUse = "useOnChooseResult"
+	EffectUseOnChooseGame   EffectUse = "useOnChooseGame"
+	EffectUseOnRollItem     EffectUse = "useOnRollItem"
+	EffectUseOnAny          EffectUse = "useOnAny"
 )
 
 type Effect interface {
 	core.RecordProxy
-	GetId() string
+	ID() string
 	Name() string
-	Event() string
+	Event() EffectUse
 	Type() string
 	Condition() string
 	Int() int
@@ -52,7 +54,7 @@ type EffectBase struct {
 	value  EffectValue
 	kind   Kind
 	source EffectSourceReceiver
-	event  string
+	event  EffectUse
 }
 
 type EffectValue struct {
@@ -85,7 +87,7 @@ func NewEffectRecord(record *core.Record) (Effect, error) {
 	return effect, nil
 }
 
-func NewEffect(kind Kind, event string) EffectCreator {
+func NewEffect(kind Kind, event EffectUse) EffectCreator {
 	return func() Effect {
 		return &EffectBase{
 			value: EffectValue{},
@@ -95,7 +97,7 @@ func NewEffect(kind Kind, event string) EffectCreator {
 	}
 }
 
-func (e *EffectBase) GetId() string {
+func (e *EffectBase) ID() string {
 	return e.Id
 }
 
@@ -103,13 +105,13 @@ func (e *EffectBase) Name() string {
 	return e.GetString("name")
 }
 
-func (e *EffectBase) Event() string {
+func (e *EffectBase) Event() EffectUse {
 	if e.event != EffectUseOnAny {
 		return e.event
 	}
 
 	if event := e.GetString("useOn"); event != "" {
-		return event
+		return EffectUse(event)
 	}
 
 	return e.event
@@ -173,7 +175,11 @@ type EffectSourceGiver[T any] interface {
 
 type EffectSourceReceiver func([]string) any
 
-func NewEffectWithSource(source EffectSourceReceiver, event string) EffectCreator {
+func DefaultEffectSourceReceiver(source []string) any {
+	return source
+}
+
+func NewEffectWithSource(source EffectSourceReceiver, event EffectUse) EffectCreator {
 	return func() Effect {
 		return &EffectBase{
 			value:  EffectValue{},
