@@ -17,7 +17,6 @@ const (
 
 type Cell interface {
 	core.RecordProxy
-	SetGameComponents(*GameComponents)
 	ID() string
 	Sort() int
 	Type() CellType
@@ -34,14 +33,15 @@ type Cell interface {
 	CantChooseAfterDrop() bool
 	IsSafeDrop() bool
 	NextStep(*User) string
-	OnCellReached(*User, *GameComponents) error
+	OnCellReached(*User) error
 }
 
 var CellsList = map[CellType]CellCreator{
-	CellTypeGame:  NewCellGame(),
-	CellTypeStart: NewCellStart(),
-	CellTypeJail:  NewCellJail(),
-	CellTypeItem:  NewCellItem(),
+	CellTypeGame:   NewCellGame(),
+	CellTypeStart:  NewCellStart(),
+	CellTypeJail:   NewCellJail(),
+	CellTypePreset: NewCellPreset(),
+	CellTypeItem:   NewCellItem(),
 }
 
 type CellCreator func() Cell

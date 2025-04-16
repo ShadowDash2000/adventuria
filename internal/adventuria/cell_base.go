@@ -7,10 +7,9 @@ import (
 
 type CellBase struct {
 	core.BaseRecordProxy
-	gc *GameComponents
 }
 
-func NewCellFromRecord(record *core.Record, gc *GameComponents) (Cell, error) {
+func NewCellFromRecord(record *core.Record) (Cell, error) {
 	t := CellType(record.GetString("type"))
 
 	cellCreator, ok := CellsList[t]
@@ -20,13 +19,8 @@ func NewCellFromRecord(record *core.Record, gc *GameComponents) (Cell, error) {
 
 	cell := cellCreator()
 	cell.SetProxyRecord(record)
-	cell.SetGameComponents(gc)
 
 	return cell, nil
-}
-
-func (c *CellBase) SetGameComponents(gc *GameComponents) {
-	c.gc = gc
 }
 
 func (c *CellBase) ID() string {
@@ -90,10 +84,10 @@ func (c *CellBase) IsSafeDrop() bool {
 }
 
 func (c *CellBase) NextStep(_ *User) string {
-	return ActionTypeRoll
+	return ActionTypeRollDice
 }
 
-func (c *CellBase) OnCellReached(_ *User, _ *GameComponents) error {
+func (c *CellBase) OnCellReached(_ *User) error {
 	return nil
 }
 

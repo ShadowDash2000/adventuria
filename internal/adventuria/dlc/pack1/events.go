@@ -6,26 +6,23 @@ import (
 )
 
 func WithBaseEvents(g adventuria.Game) adventuria.Game {
-	g.Event().On(adventuria.OnAfterReroll, OnAfterRerollStats)
-	g.Event().On(adventuria.OnBeforeDrop, OnBeforeDropEffects)
-	g.Event().On(adventuria.OnAfterDrop, OnAfterDropStats)
-	g.Event().On(adventuria.OnAfterGoToJail, OnAfterGoToJailStats)
-	g.Event().On(adventuria.OnBeforeDone, OnBeforeDoneEffects)
-	g.Event().On(adventuria.OnAfterDone, OnAfterDoneStats)
-	g.Event().On(adventuria.OnBeforeRoll, OnBeforeRollEffects)
-	g.Event().On(adventuria.OnBeforeRollMove, OnBeforeRollMoveEffects)
-	g.Event().On(adventuria.OnAfterRoll, OnAfterRollStats)
-	g.Event().On(adventuria.OnAfterWheelRoll, OnAfterWheelRollStats)
-	g.Event().On(adventuria.OnAfterItemUse, OnAfterItemUseStats)
+	adventuria.GameEvent.On(adventuria.OnAfterReroll, OnAfterRerollStats)
+	adventuria.GameEvent.On(adventuria.OnBeforeDrop, OnBeforeDropEffects)
+	adventuria.GameEvent.On(adventuria.OnAfterDrop, OnAfterDropStats)
+	adventuria.GameEvent.On(adventuria.OnAfterGoToJail, OnAfterGoToJailStats)
+	adventuria.GameEvent.On(adventuria.OnBeforeDone, OnBeforeDoneEffects)
+	adventuria.GameEvent.On(adventuria.OnAfterDone, OnAfterDoneStats)
+	adventuria.GameEvent.On(adventuria.OnBeforeRoll, OnBeforeRollEffects)
+	adventuria.GameEvent.On(adventuria.OnBeforeRollMove, OnBeforeRollMoveEffects)
+	adventuria.GameEvent.On(adventuria.OnAfterRoll, OnAfterRollStats)
+	adventuria.GameEvent.On(adventuria.OnAfterWheelRoll, OnAfterWheelRollStats)
+	adventuria.GameEvent.On(adventuria.OnAfterItemUse, OnAfterItemUseStats)
 
 	// item wheels
-	g.Event().On(adventuria.OnBeforeNextStepType, CheckItemWheelsCount)
-	g.Event().On(adventuria.OnBeforeWheelRoll, ChangeCellTypeToItemWheel)
-	g.Event().On(adventuria.OnNewLap, OnNewLapItemWheel)
-	g.Event().On(adventuria.OnAfterDone, GiveOneItemWheel)
-	g.Event().On(adventuria.OnAfterItemRoll, DecreaseItemWheel)
+	adventuria.GameEvent.On(adventuria.OnNewLap, OnNewLapItemWheel)
+	adventuria.GameEvent.On(adventuria.OnAfterDone, GiveOneItemWheel)
 
-	g.Event().On(adventuria.OnAfterAction, ApplyGenericEffects)
+	adventuria.GameEvent.On(adventuria.OnAfterAction, ApplyGenericEffects)
 
 	return g
 }
@@ -55,7 +52,7 @@ func OnAfterGoToJailStats(e adventuria.EventFields) error {
 }
 
 func OnBeforeDoneEffects(e adventuria.EventFields) error {
-	effects := e.Effects(adventuria.EffectUseOnChooseResult)
+	effects := e.Effects(adventuria.EffectUseOnDone)
 	fields := e.Fields().(*adventuria.OnBeforeDoneFields)
 
 	fields.CellPointsDivide = effects.Effect(EffectTypeCellPointsDivide).Int()
@@ -156,7 +153,7 @@ func ApplyGenericEffects(e adventuria.EventFields) error {
 	cellTypesSrc := adventuria.NewCellTypeSourceGiver(effects.Effect(EffectTypeTeleportToRandomCellByTypes).Slice())
 	cellTypes := cellTypesSrc.Slice()
 	if len(cellTypes) > 0 {
-		cells := e.Components().Cells.GetAllByTypes(cellTypes)
+		cells := adventuria.GameCells.GetAllByTypes(cellTypes)
 		if currentCell, ok := e.User().CurrentCell(); ok {
 			cells = helper.FilterByField(cells, []string{currentCell.ID()}, func(cell adventuria.Cell) string {
 				return cell.ID()
@@ -167,26 +164,6 @@ func ApplyGenericEffects(e adventuria.EventFields) error {
 		if err != nil {
 			return err
 		}
-	}
-
-	return nil
-}
-
-func CheckItemWheelsCount(e adventuria.EventFields) error {
-	fields := e.Fields().(*adventuria.OnBeforeNextStepFields)
-
-	if e.User().ItemWheelsCount() > 0 {
-		fields.NextStepType = adventuria.ActionTypeRollWheel
-	}
-
-	return nil
-}
-
-func ChangeCellTypeToItemWheel(e adventuria.EventFields) error {
-	fields := e.Fields().(*adventuria.OnBeforeWheelRollFields)
-
-	if e.User().ItemWheelsCount() > 0 {
-		fields.CurrentCell = adventuria.NewCellItem()().(adventuria.CellWheel)
 	}
 
 	return nil
@@ -203,14 +180,6 @@ func OnNewLapItemWheel(e adventuria.EventFields) error {
 	fields := e.Fields().(*adventuria.OnNewLapFields)
 
 	e.User().SetItemWheelsCount(e.User().ItemWheelsCount() + fields.Laps)
-
-	return nil
-}
-
-func DecreaseItemWheel(e adventuria.EventFields) error {
-	if e.User().ItemWheelsCount() > 0 {
-		e.User().SetItemWheelsCount(e.User().ItemWheelsCount() - 1)
-	}
 
 	return nil
 }

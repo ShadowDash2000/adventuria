@@ -11,17 +11,16 @@ import (
 
 type Timer struct {
 	core.BaseRecordProxy
-	gc *GameComponents
 }
 
-func NewBaseTimerFromRecord(record *core.Record, gc *GameComponents) *Timer {
-	timer := &Timer{gc: gc}
+func NewBaseTimerFromRecord(record *core.Record) *Timer {
+	timer := &Timer{}
 	timer.SetProxyRecord(record)
 	return timer
 }
 
-func NewTimer(userId string, gc *GameComponents) (*Timer, error) {
-	record, err := gc.App.FindFirstRecordByFilter(
+func NewTimer(userId string) (*Timer, error) {
+	record, err := GameApp.FindFirstRecordByFilter(
 		TableTimers,
 		"user.id = {:userId}",
 		dbx.Params{"userId": userId},
@@ -32,10 +31,9 @@ func NewTimer(userId string, gc *GameComponents) (*Timer, error) {
 
 	timer := &Timer{}
 	if record != nil {
-		timer.gc = gc
 		timer.SetProxyRecord(record)
 	} else {
-		timer, err = CreateTimer(userId, gc.Settings.TimerTimeLimit(), gc)
+		timer, err = CreateTimer(userId, GameSettings.TimerTimeLimit())
 		if err != nil {
 			return nil, err
 		}
@@ -47,15 +45,15 @@ func NewTimer(userId string, gc *GameComponents) (*Timer, error) {
 }
 
 func (t *Timer) bindHooks() {
-	t.gc.App.OnRecordAfterUpdateSuccess(TableTimers).BindFunc(func(e *core.RecordEvent) error {
+	GameApp.OnRecordAfterUpdateSuccess(TableTimers).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.GetString("user") == t.UserId() {
 			t.SetProxyRecord(e.Record)
 		}
 		return e.Next()
 	})
-	t.gc.App.OnRecordAfterDeleteSuccess(TableTimers).BindFunc(func(e *core.RecordEvent) error {
+	GameApp.OnRecordAfterDeleteSuccess(TableTimers).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == t.Id {
-			timersCollection, _ := t.gc.Cols.Get(TableTimers)
+			timersCollection, _ := GameCollections.Get(TableTimers)
 			t.SetProxyRecord(core.NewRecord(timersCollection))
 		}
 		return e.Next()
@@ -73,7 +71,7 @@ func (t *Timer) Start() error {
 	t.SetIsActive(true)
 	t.SetStartTime(types.NowDateTime())
 
-	return t.gc.App.Save(t)
+	return GameApp.Save(t)
 }
 
 func (t *Timer) Stop() error {
@@ -85,7 +83,7 @@ func (t *Timer) Stop() error {
 	timePassed := t.TimePassed() + time.Now().Sub(t.StartTime().Time())
 	t.SetTimePassed(timePassed)
 
-	return t.gc.App.Save(t)
+	return GameApp.Save(t)
 }
 
 // GetTimeLeft returns time.Duration in seconds
@@ -143,23 +141,22 @@ func (t *Timer) SetStartTime(time types.DateTime) {
 
 func (t *Timer) AddSecondsTimeLimit(secs int) error {
 	t.SetTimeLimit(t.TimeLimit() + (time.Duration(secs) * time.Second))
-	return t.gc.App.Save(t)
+	return GameApp.Save(t)
 }
 
-func CreateTimer(userId string, timeLimit int, gc *GameComponents) (*Timer, error) {
-	collection, err := gc.Cols.Get(TableTimers)
+func CreateTimer(userId string, timeLimit int) (*Timer, error) {
+	collection, err := GameCollections.Get(TableTimers)
 	if err != nil {
 		return nil, err
 	}
 
 	timer := &Timer{}
-	timer.gc = gc
 	timer.SetProxyRecord(core.NewRecord(collection))
 	timer.Set("user", userId)
 	timer.Set("timeLimit", timeLimit)
 	timer.Set("timePassed", 0)
 	timer.Set("isActive", false)
-	err = gc.App.Save(timer)
+	err = GameApp.Save(timer)
 	if err != nil {
 		return nil, err
 	}
@@ -167,14 +164,14 @@ func CreateTimer(userId string, timeLimit int, gc *GameComponents) (*Timer, erro
 	return timer, nil
 }
 
-func ResetAllTimers(timeLimit int, limitExceedPenalty int, gc *GameComponents) error {
-	records, err := gc.App.FindAllRecords(TableTimers)
+func ResetAllTimers(timeLimit int, limitExceedPenalty int) error {
+	records, err := GameApp.FindAllRecords(TableTimers)
 	if err != nil {
 		return err
 	}
 
 	for _, record := range records {
-		timer := NewBaseTimerFromRecord(record, gc)
+		timer := NewBaseTimerFromRecord(record)
 
 		timePassed := timer.TimePassed()
 		if timer.IsActive() {
@@ -196,7 +193,7 @@ func ResetAllTimers(timeLimit int, limitExceedPenalty int, gc *GameComponents) e
 
 		timer.SetTimeLimit(newTimeLimit)
 		timer.SetTimePassed(0)
-		err = gc.App.Save(timer)
+		err = GameApp.Save(timer)
 		if err != nil {
 			return err
 		}

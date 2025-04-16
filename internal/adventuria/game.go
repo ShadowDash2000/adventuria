@@ -8,16 +8,14 @@ import (
 
 type Game interface {
 	Init()
-	Settings() *Settings
-	Event() Event
 	GetUser(userId string) (*User, error)
-	ChooseGame(game string, userId string) error
 	GetNextStepType(userId string) (string, error)
 	UpdateAction(actionId string, comment string, file *filesystem.File, userId string) error
+	RollDice(userId string) (int, []int, Cell, error)
 	Reroll(comment string, file *filesystem.File, userId string) error
-	Roll(userId string) (int, []int, Cell, error)
 	Drop(comment string, file *filesystem.File, userId string) error
 	Done(comment string, file *filesystem.File, userId string) error
+	RollItem(userId string) (*WheelRollResult, error)
 	RollWheel(userId string) (*WheelRollResult, error)
 	GetLastAction(userId string) (bool, Action, error)
 	GetItemsEffects(userId string, event EffectUse) (*Effects, error)

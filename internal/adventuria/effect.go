@@ -19,14 +19,14 @@ const (
 type EffectUse string
 
 const (
-	EffectUseInstant        EffectUse = "useInstant"
-	EffectUseOnRoll         EffectUse = "useOnRoll"
-	EffectUseOnReroll       EffectUse = "useOnReroll"
-	EffectUseOnDrop         EffectUse = "useOnDrop"
-	EffectUseOnChooseResult EffectUse = "useOnChooseResult"
-	EffectUseOnChooseGame   EffectUse = "useOnChooseGame"
-	EffectUseOnRollItem     EffectUse = "useOnRollItem"
-	EffectUseOnAny          EffectUse = "useOnAny"
+	EffectUseInstant      EffectUse = "useInstant"
+	EffectUseOnRoll       EffectUse = "useOnRoll"
+	EffectUseOnReroll     EffectUse = "useOnReroll"
+	EffectUseOnDrop       EffectUse = "useOnDrop"
+	EffectUseOnDone       EffectUse = "useOnDone"
+	EffectUseOnChooseGame EffectUse = "useOnChooseGame"
+	EffectUseOnRollItem   EffectUse = "useOnRollItem"
+	EffectUseOnAny        EffectUse = "useOnAny"
 )
 
 type Effect interface {

@@ -6,11 +6,11 @@ import (
 )
 
 func WithBaseEvents(g adventuria.Game) adventuria.Game {
-	g.Event().On(adventuria.OnBeforeNextStepType, ChangeNextStepType)
-	g.Event().On(adventuria.OnAfterAction, ClearNextStepTypeEffects)
-	g.Event().On(adventuria.OnAfterAction, TeleportToRandomCellByIds)
-	g.Event().On(adventuria.OnBeforeNextStepType, ChangeCellType)
-	g.Event().On(adventuria.OnAfterMove, ClearChangeCellTypeEffects)
+	adventuria.GameEvent.On(adventuria.OnBeforeNextStepType, ChangeNextStepType)
+	adventuria.GameEvent.On(adventuria.OnAfterAction, ClearNextStepTypeEffects)
+	adventuria.GameEvent.On(adventuria.OnAfterAction, TeleportToRandomCellByIds)
+	adventuria.GameEvent.On(adventuria.OnBeforeNextStepType, ChangeCellType)
+	adventuria.GameEvent.On(adventuria.OnAfterMove, ClearChangeCellTypeEffects)
 	return g
 }
 

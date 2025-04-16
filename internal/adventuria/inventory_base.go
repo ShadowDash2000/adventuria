@@ -11,15 +11,13 @@ import (
 )
 
 type InventoryBase struct {
-	gc       *GameComponents
 	userId   string
 	invItems map[string]InventoryItem
 	maxSlots int
 }
 
-func NewInventory(userId string, maxSlots int, gc *GameComponents) (Inventory, error) {
+func NewInventory(userId string, maxSlots int) (Inventory, error) {
 	i := &InventoryBase{
-		gc:       gc,
 		userId:   userId,
 		maxSlots: maxSlots,
 	}
@@ -35,19 +33,19 @@ func NewInventory(userId string, maxSlots int, gc *GameComponents) (Inventory, e
 }
 
 func (i *InventoryBase) bindHooks() {
-	i.gc.App.OnRecordAfterCreateSuccess(TableInventory).BindFunc(func(e *core.RecordEvent) error {
+	GameApp.OnRecordAfterCreateSuccess(TableInventory).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.GetString("user") == i.userId {
-			i.invItems[e.Record.Id], _ = NewInventoryItemFromRecord(e.Record, i.gc)
+			i.invItems[e.Record.Id], _ = NewInventoryItemFromRecord(e.Record)
 		}
 		return e.Next()
 	})
-	i.gc.App.OnRecordAfterUpdateSuccess(TableInventory).BindFunc(func(e *core.RecordEvent) error {
+	GameApp.OnRecordAfterUpdateSuccess(TableInventory).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.GetString("user") == i.userId {
 			i.invItems[e.Record.Id].SetProxyRecord(e.Record)
 		}
 		return e.Next()
 	})
-	i.gc.App.OnRecordAfterDeleteSuccess(TableInventory).BindFunc(func(e *core.RecordEvent) error {
+	GameApp.OnRecordAfterDeleteSuccess(TableInventory).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.GetString("user") == i.userId {
 			delete(i.invItems, e.Record.Id)
 		}
@@ -56,7 +54,7 @@ func (i *InventoryBase) bindHooks() {
 }
 
 func (i *InventoryBase) fetchInventory() error {
-	invItems, err := i.gc.App.FindRecordsByFilter(
+	invItems, err := GameApp.FindRecordsByFilter(
 		TableInventory,
 		"user.id = {:userId}",
 		"-created",
@@ -70,7 +68,7 @@ func (i *InventoryBase) fetchInventory() error {
 
 	i.invItems = make(map[string]InventoryItem)
 	for _, invItem := range invItems {
-		i.invItems[invItem.Id], err = NewInventoryItemFromRecord(invItem, i.gc)
+		i.invItems[invItem.Id], err = NewInventoryItemFromRecord(invItem)
 		if err != nil {
 			return err
 		}
@@ -102,7 +100,7 @@ func (i *InventoryBase) HasEmptySlots() bool {
 }
 
 func (i *InventoryBase) AddItem(item Item) error {
-	inventoryCollection, err := i.gc.Cols.Get(TableInventory)
+	inventoryCollection, err := GameCollections.Get(TableInventory)
 	if err != nil {
 		return err
 	}
@@ -111,7 +109,7 @@ func (i *InventoryBase) AddItem(item Item) error {
 	record.Set("user", i.userId)
 	record.Set("item", item.ID())
 	record.Set("isActive", item.IsActiveByDefault())
-	err = i.gc.App.Save(record)
+	err = GameApp.Save(record)
 	if err != nil {
 		return err
 	}
@@ -120,7 +118,7 @@ func (i *InventoryBase) AddItem(item Item) error {
 }
 
 func (i *InventoryBase) AddItemById(itemId string) error {
-	item, ok := i.gc.Items.GetById(itemId)
+	item, ok := GameItems.GetById(itemId)
 	if !ok {
 		return errors.New("item not found")
 	}
@@ -141,7 +139,7 @@ func (i *InventoryBase) AddItemById(itemId string) error {
 // Note: before an item added, checks if there is some empty slots.
 // If not, trys to drop a random item from inventory.
 func (i *InventoryBase) MustAddItemById(itemId string) error {
-	item, ok := i.gc.Items.GetById(itemId)
+	item, ok := GameItems.GetById(itemId)
 	if !ok {
 		return errors.New("item not found")
 	}

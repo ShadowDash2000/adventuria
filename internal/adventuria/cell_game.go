@@ -1,7 +1,7 @@
 package adventuria
 
 type CellGame struct {
-	CellWheelBase
+	CellBase
 }
 
 func NewCellGame() CellCreator {
@@ -14,16 +14,16 @@ func (c *CellGame) NextStep(user *User) string {
 	nextStepType := ""
 
 	switch user.LastAction.Type() {
-	case ActionTypeRoll,
+	case ActionTypeRollDice,
 		ActionTypeReroll:
-		nextStepType = ActionTypeChooseGame
-	case ActionTypeChooseGame:
-		nextStepType = ActionTypeDone
-	case ActionTypeDone,
+		nextStepType = ActionTypeRollWheel
+	case ActionTypeRollWheel:
+		nextStepType = ActionTypeChooseResult
+	case ActionTypeChooseResult,
 		ActionTypeDrop:
-		nextStepType = ActionTypeRoll
+		nextStepType = ActionTypeRollDice
 	default:
-		nextStepType = ActionTypeChooseGame
+		nextStepType = ActionTypeRollWheel
 	}
 
 	return nextStepType
@@ -31,6 +31,9 @@ func (c *CellGame) NextStep(user *User) string {
 
 func (c *CellGame) Roll(_ *User) (*WheelRollResult, error) {
 	res := &WheelRollResult{}
+
+	// TODO
+	panic("implement me")
 
 	return res, nil
 }

@@ -29,7 +29,7 @@ func WithBaseEffects() {
 		EffectTypeTimerIncrement:              adventuria.NewEffect(adventuria.Int, adventuria.EffectUseOnAny),
 		EffectTypeRollReverse:                 adventuria.NewEffect(adventuria.Bool, adventuria.EffectUseOnRoll),
 		EffectTypeDropInventory:               adventuria.NewEffect(adventuria.Bool, adventuria.EffectUseOnAny),
-		EffectTypeCellPointsDivide:            adventuria.NewEffect(adventuria.Int, adventuria.EffectUseOnChooseResult),
+		EffectTypeCellPointsDivide:            adventuria.NewEffect(adventuria.Int, adventuria.EffectUseOnDone),
 		EffectTypeTeleportToRandomCellByTypes: adventuria.NewEffectWithSource(adventuria.DefaultEffectSourceReceiver, adventuria.EffectUseOnAny),
 	})
 }

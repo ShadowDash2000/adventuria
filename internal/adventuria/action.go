@@ -1,21 +1,16 @@
 package adventuria
 
 import (
-	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
-	"github.com/pocketbase/pocketbase/tools/filesystem"
 )
 
 const (
-	ActionTypeRoll            = "roll"
-	ActionTypeReroll          = "reroll"
-	ActionTypeDrop            = "drop"
-	ActionTypeDone            = "done"
-	ActionTypeChooseGame      = "chooseGame"
-	ActionTypeRollCell        = "rollCell"
-	ActionTypeRollItem        = "rollItem"
-	ActionTypeRollWheelPreset = "rollWheelPreset"
-	ActionTypeRollWheel       = "rollWheel"
+	ActionTypeRollDice     = "rollDice"
+	ActionTypeDone         = "done"
+	ActionTypeReroll       = "reroll"
+	ActionTypeDrop         = "drop"
+	ActionTypeChooseResult = "chooseResult"
+	ActionTypeRollWheel    = "rollWheel"
 )
 
 type Action interface {
@@ -23,167 +18,18 @@ type Action interface {
 	Save() error
 	UserId() string
 	CellId() string
-	SetCell(cellId string)
+	SetCell(string)
 	Comment() string
-	SetComment(comment string)
+	SetComment(string)
 	Value() string
 	SetValue(value any)
 	Type() string
-	SetIcon(*filesystem.File)
+	SetType(string)
 	SetNotAffectNextStep(bool)
 	CollectionRef() string
 	SetCollectionRef(string)
-}
-
-type BaseAction struct {
-	core.BaseRecordProxy
-	gc *GameComponents
-}
-
-func NewAction(userId string, actionType string, gc *GameComponents) Action {
-	a := &BaseAction{gc: gc}
-
-	actionsCollection, _ := gc.Cols.Get(TableActions)
-
-	a.SetProxyRecord(core.NewRecord(actionsCollection))
-	a.setUserId(userId)
-	a.setType(actionType)
-
-	return a
-}
-
-func NewActionFromRecord(record *core.Record, gc *GameComponents) Action {
-	a := &BaseAction{gc: gc}
-
-	a.SetProxyRecord(record)
-
-	return a
-}
-
-func (a *BaseAction) Save() error {
-	return a.gc.App.Save(a)
-}
-
-func (a *BaseAction) UserId() string {
-	return a.GetString("user")
-}
-
-func (a *BaseAction) setUserId(userId string) {
-	a.Set("user", userId)
-}
-
-func (a *BaseAction) CellId() string {
-	return a.GetString("cell")
-}
-
-func (a *BaseAction) SetCell(cellId string) {
-	a.Set("cell", cellId)
-}
-
-func (a *BaseAction) Comment() string {
-	return a.GetString("comment")
-}
-
-func (a *BaseAction) SetComment(comment string) {
-	a.Set("comment", comment)
-}
-
-func (a *BaseAction) Value() string {
-	return a.GetString("value")
-}
-
-func (a *BaseAction) SetValue(value any) {
-	a.Set("value", value)
-}
-
-func (a *BaseAction) Type() string {
-	return a.GetString("type")
-}
-
-func (a *BaseAction) setType(t string) {
-	a.Set("type", t)
-}
-
-func (a *BaseAction) SetIcon(icon *filesystem.File) {
-	if icon != nil {
-		a.Set("icon", icon)
-	}
-}
-
-func (a *BaseAction) SetNotAffectNextStep(b bool) {
-	a.Set("notAffectNextStep", b)
-}
-
-func (a *BaseAction) CollectionRef() string {
-	return a.GetString("collectionRef")
-}
-
-func (a *BaseAction) SetCollectionRef(collectionRef string) {
-	a.Set("collectionRef", collectionRef)
-}
-
-type UserAction struct {
-	BaseAction
-}
-
-func NewLastUserAction(userId string, gc *GameComponents) (Action, error) {
-	a := &UserAction{
-		BaseAction: BaseAction{gc: gc},
-	}
-
-	err := a.fetchLastUserAction(userId)
-	if err != nil {
-		return nil, err
-	}
-	a.bindHooks()
-
-	return a, nil
-}
-
-func (ua *UserAction) bindHooks() {
-	ua.gc.App.OnRecordAfterCreateSuccess(TableActions).BindFunc(func(e *core.RecordEvent) error {
-		userId := e.Record.GetString("user")
-		notAffectNextStep := e.Record.GetBool("notAffectNextStep")
-		if userId == ua.UserId() && !notAffectNextStep {
-			ua.SetProxyRecord(e.Record)
-		}
-		return e.Next()
-	})
-	ua.gc.App.OnRecordAfterUpdateSuccess(TableActions).BindFunc(func(e *core.RecordEvent) error {
-		if e.Record.Id == ua.Id {
-			ua.SetProxyRecord(e.Record)
-		}
-		return e.Next()
-	})
-	ua.gc.App.OnRecordAfterDeleteSuccess(TableActions).BindFunc(func(e *core.RecordEvent) error {
-		userId := e.Record.GetString("user")
-		if userId == ua.UserId() {
-			ua.fetchLastUserAction(userId)
-		}
-		return e.Next()
-	})
-}
-
-func (ua *UserAction) fetchLastUserAction(userId string) error {
-	actions, err := ua.gc.App.FindRecordsByFilter(
-		TableActions,
-		"user.id = {:userId} && notAffectNextStep = false",
-		"-created",
-		1,
-		0,
-		dbx.Params{"userId": userId},
-	)
-	if err != nil {
-		return err
-	}
-
-	if len(actions) > 0 {
-		ua.SetProxyRecord(actions[0])
-	} else {
-		actionsCollection, _ := ua.gc.Cols.Get(TableActions)
-		ua.SetProxyRecord(core.NewRecord(actionsCollection))
-		ua.setUserId(userId)
-	}
-
-	return nil
+	DiceRoll() int
+	SetDiceRoll(int)
+	ItemsUsed() []string
+	SetItemsUsed([]string)
 }

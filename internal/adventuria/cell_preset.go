@@ -7,7 +7,7 @@ import (
 )
 
 type CellPreset struct {
-	CellWheelBase
+	CellBase
 }
 
 func NewCellPreset() CellCreator {
@@ -20,16 +20,16 @@ func (c *CellPreset) NextStep(user *User) string {
 	nextStepType := ""
 
 	switch user.LastAction.Type() {
-	case ActionTypeRoll,
+	case ActionTypeRollDice,
 		ActionTypeReroll:
-		nextStepType = ActionTypeRollWheelPreset
-	case ActionTypeRollWheelPreset:
-		nextStepType = ActionTypeDone
-	case ActionTypeDone,
+		nextStepType = ActionTypeRollWheel
+	case ActionTypeRollWheel:
+		nextStepType = ActionTypeChooseResult
+	case ActionTypeChooseResult,
 		ActionTypeDrop:
-		nextStepType = ActionTypeRoll
+		nextStepType = ActionTypeRollDice
 	default:
-		nextStepType = ActionTypeRollWheelPreset
+		nextStepType = ActionTypeRollWheel
 	}
 
 	return nextStepType
@@ -40,7 +40,7 @@ func (c *CellPreset) Roll(_ *User) (*WheelRollResult, error) {
 		return nil, errors.New("preset is not set")
 	}
 
-	wheelItemsCol, err := c.gc.Cols.Get(TableWheelItems)
+	wheelItemsCol, err := GameCollections.Get(TableWheelItems)
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +49,7 @@ func (c *CellPreset) Roll(_ *User) (*WheelRollResult, error) {
 		Collection: wheelItemsCol,
 	}
 
-	items, err := c.gc.App.FindRecordsByFilter(
+	items, err := GameApp.FindRecordsByFilter(
 		TableWheelItems,
 		"presets.id = {:presetId}",
 		"",

@@ -8,18 +8,15 @@ import (
 
 type InventoryItemBase struct {
 	core.BaseRecordProxy
-	gc   *GameComponents
 	item Item
 }
 
-func NewInventoryItemFromRecord(record *core.Record, gc *GameComponents) (InventoryItem, error) {
-	ii := &InventoryItemBase{
-		gc: gc,
-	}
+func NewInventoryItemFromRecord(record *core.Record) (InventoryItem, error) {
+	ii := &InventoryItemBase{}
 
 	ii.SetProxyRecord(record)
 
-	item, ok := gc.Items.GetById(ii.ItemId())
+	item, ok := GameItems.GetById(ii.ItemId())
 	if !ok {
 		return nil, errors.New("item not found")
 	}
@@ -131,12 +128,12 @@ func (ii *InventoryItemBase) ApplyEffects(effectsIds []string) error {
 	ii.AppendAppliedEffects(effectsIds)
 
 	if len(ii.AppliedEffects()) < ii.EffectsCount() {
-		err := ii.gc.App.Save(ii)
+		err := GameApp.Save(ii)
 		if err != nil {
 			return err
 		}
 	} else {
-		err := ii.gc.App.Delete(ii)
+		err := GameApp.Delete(ii)
 		if err != nil {
 			return err
 		}
@@ -167,12 +164,13 @@ func (ii *InventoryItemBase) Use() error {
 	}
 
 	ii.SetIsActive(true)
-	err := ii.gc.App.Save(ii)
+	err := GameApp.Save(ii)
 	if err != nil {
 		return err
 	}
 
-	ii.gc.Log.Add(ii.UserId(), LogTypeItemUse, ii.Name())
+	// TODO add used item ID to the latest user action
+	//ii.gc.Log.Add(ii.UserId(), LogTypeItemUse, ii.Name())
 
 	return nil
 }
@@ -182,12 +180,12 @@ func (ii *InventoryItemBase) Drop() error {
 		return errors.New("item isn't droppable")
 	}
 
-	err := ii.gc.App.Delete(ii)
+	err := GameApp.Delete(ii)
 	if err != nil {
 		return err
 	}
 
-	ii.gc.Log.Add(ii.UserId(), LogTypeItemDrop, ii.Name())
+	//ii.gc.Log.Add(ii.UserId(), LogTypeItemDrop, ii.Name())
 
 	return nil
 }

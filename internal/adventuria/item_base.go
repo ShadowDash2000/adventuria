@@ -6,7 +6,6 @@ import (
 
 type ItemBase struct {
 	core.BaseRecordProxy
-	gc      *GameComponents
 	effects []Effect
 }
 
@@ -16,8 +15,8 @@ func NewBaseItemFromRecord(record *core.Record) Item {
 	return item
 }
 
-func NewItemFromRecord(record *core.Record, gc *GameComponents) (Item, error) {
-	errs := gc.App.ExpandRecord(record, []string{"effects"}, nil)
+func NewItemFromRecord(record *core.Record) (Item, error) {
+	errs := GameApp.ExpandRecord(record, []string{"effects"}, nil)
 	if errs != nil {
 		for _, err := range errs {
 			return nil, err
@@ -35,7 +34,6 @@ func NewItemFromRecord(record *core.Record, gc *GameComponents) (Item, error) {
 	}
 
 	item := &ItemBase{
-		gc:      gc,
 		effects: effects,
 	}
 
@@ -46,7 +44,7 @@ func NewItemFromRecord(record *core.Record, gc *GameComponents) (Item, error) {
 }
 
 func (i *ItemBase) bindHooks() {
-	i.gc.App.OnRecordAfterUpdateSuccess(TableItems).BindFunc(func(e *core.RecordEvent) error {
+	GameApp.OnRecordAfterUpdateSuccess(TableItems).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == i.Id {
 			i.SetProxyRecord(e.Record)
 		}

@@ -762,6 +762,15 @@ func init() {
 					},
 					{
 						"hidden": false,
+						"id": "bool3645399621",
+						"name": "cantDrop",
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "bool"
+					},
+					{
+						"hidden": false,
 						"id": "bool886364180",
 						"name": "isInJail",
 						"presentable": false,
@@ -954,6 +963,20 @@ func init() {
 					{
 						"autogeneratePattern": "",
 						"hidden": false,
+						"id": "text2363381545",
+						"max": 0,
+						"min": 0,
+						"name": "type",
+						"pattern": "^[a-zA-Z0-9]+$",
+						"presentable": false,
+						"primaryKey": false,
+						"required": true,
+						"system": false,
+						"type": "text"
+					},
+					{
+						"autogeneratePattern": "",
+						"hidden": false,
 						"id": "text590033292",
 						"max": 0,
 						"min": 0,
@@ -968,11 +991,11 @@ func init() {
 					{
 						"autogeneratePattern": "",
 						"hidden": false,
-						"id": "text2490651244",
+						"id": "text455797646",
 						"max": 0,
 						"min": 0,
-						"name": "comment",
-						"pattern": "",
+						"name": "collectionRef",
+						"pattern": "^[a-zA-Z0-9]+$",
 						"presentable": false,
 						"primaryKey": false,
 						"required": false,
@@ -980,43 +1003,15 @@ func init() {
 						"type": "text"
 					},
 					{
+						"convertURLs": false,
 						"hidden": false,
-						"id": "select2063623452",
-						"maxSelect": 1,
-						"name": "type",
-						"presentable": false,
-						"required": true,
-						"system": false,
-						"type": "select",
-						"values": [
-							"roll",
-							"reroll",
-							"drop",
-							"chooseResult",
-							"chooseGame",
-							"rollCell",
-							"rollItem",
-							"rollWheelPreset"
-						]
-					},
-					{
-						"hidden": false,
-						"id": "file1704208859",
-						"maxSelect": 1,
+						"id": "editor2490651244",
 						"maxSize": 0,
-						"mimeTypes": [
-							"image/jpeg",
-							"image/png",
-							"image/gif",
-							"image/webp"
-						],
-						"name": "icon",
+						"name": "comment",
 						"presentable": false,
-						"protected": false,
 						"required": false,
 						"system": false,
-						"thumbs": [],
-						"type": "file"
+						"type": "editor"
 					},
 					{
 						"hidden": false,
@@ -1026,6 +1021,31 @@ func init() {
 						"required": false,
 						"system": false,
 						"type": "bool"
+					},
+					{
+						"hidden": false,
+						"id": "number1608302395",
+						"max": null,
+						"min": null,
+						"name": "diceRoll",
+						"onlyInt": true,
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "number"
+					},
+					{
+						"cascadeDelete": false,
+						"collectionId": "pbc_710432678",
+						"hidden": false,
+						"id": "relation359942872",
+						"maxSelect": 999,
+						"minSelect": 0,
+						"name": "itemsUsed",
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "relation"
 					}
 				],
 				"id": "pbc_2484833797",
@@ -1088,22 +1108,18 @@ func init() {
 						"type": "number"
 					},
 					{
+						"autogeneratePattern": "",
 						"hidden": false,
-						"id": "select2363381545",
-						"maxSelect": 1,
+						"id": "text2363381545",
+						"max": 0,
+						"min": 0,
 						"name": "type",
+						"pattern": "",
 						"presentable": false,
+						"primaryKey": false,
 						"required": true,
 						"system": false,
-						"type": "select",
-						"values": [
-							"game",
-							"start",
-							"jail",
-							"preset",
-							"item",
-							"wheelPreset"
-						]
+						"type": "text"
 					},
 					{
 						"cascadeDelete": false,
@@ -1127,7 +1143,7 @@ func init() {
 						"minSelect": 0,
 						"name": "audioPresets",
 						"presentable": false,
-						"required": true,
+						"required": false,
 						"system": false,
 						"type": "relation"
 					},
@@ -1826,6 +1842,48 @@ func init() {
 						"required": false,
 						"system": false,
 						"type": "editor"
+					},
+					{
+						"autogeneratePattern": "",
+						"hidden": false,
+						"id": "text3051127011",
+						"max": 0,
+						"min": 0,
+						"name": "twitchClientId",
+						"pattern": "",
+						"presentable": false,
+						"primaryKey": false,
+						"required": false,
+						"system": false,
+						"type": "text"
+					},
+					{
+						"autogeneratePattern": "",
+						"hidden": false,
+						"id": "text1007952131",
+						"max": 0,
+						"min": 0,
+						"name": "twitchClientSecret",
+						"pattern": "",
+						"presentable": false,
+						"primaryKey": false,
+						"required": false,
+						"system": false,
+						"type": "text"
+					},
+					{
+						"autogeneratePattern": "",
+						"hidden": false,
+						"id": "text3562874678",
+						"max": 0,
+						"min": 0,
+						"name": "igdbParseSettings",
+						"pattern": "",
+						"presentable": false,
+						"primaryKey": false,
+						"required": false,
+						"system": false,
+						"type": "text"
 					}
 				],
 				"id": "pbc_2769025244",
@@ -2330,6 +2388,330 @@ func init() {
 				"indexes": [],
 				"listRule": "",
 				"name": "news",
+				"system": false,
+				"type": "base",
+				"updateRule": null,
+				"viewRule": null
+			},
+			{
+				"createRule": null,
+				"deleteRule": null,
+				"fields": [
+					{
+						"autogeneratePattern": "[a-z0-9]{15}",
+						"hidden": false,
+						"id": "text3208210256",
+						"max": 15,
+						"min": 15,
+						"name": "id",
+						"pattern": "^[a-z0-9]+$",
+						"presentable": false,
+						"primaryKey": true,
+						"required": true,
+						"system": true,
+						"type": "text"
+					},
+					{
+						"hidden": false,
+						"id": "autodate2990389176",
+						"name": "created",
+						"onCreate": true,
+						"onUpdate": false,
+						"presentable": false,
+						"system": false,
+						"type": "autodate"
+					},
+					{
+						"hidden": false,
+						"id": "autodate3332085495",
+						"name": "updated",
+						"onCreate": true,
+						"onUpdate": true,
+						"presentable": false,
+						"system": false,
+						"type": "autodate"
+					},
+					{
+						"hidden": false,
+						"id": "number4063107981",
+						"max": null,
+						"min": null,
+						"name": "igdb_id",
+						"onlyInt": true,
+						"presentable": false,
+						"required": true,
+						"system": false,
+						"type": "number"
+					},
+					{
+						"autogeneratePattern": "",
+						"hidden": false,
+						"id": "text1579384326",
+						"max": 0,
+						"min": 0,
+						"name": "name",
+						"pattern": "",
+						"presentable": false,
+						"primaryKey": false,
+						"required": true,
+						"system": false,
+						"type": "text"
+					},
+					{
+						"autogeneratePattern": "",
+						"hidden": false,
+						"id": "text3731873690",
+						"max": 0,
+						"min": 0,
+						"name": "checksum",
+						"pattern": "",
+						"presentable": false,
+						"primaryKey": false,
+						"required": true,
+						"system": false,
+						"type": "text"
+					},
+					{
+						"hidden": false,
+						"id": "json2918445923",
+						"maxSize": 0,
+						"name": "data",
+						"presentable": false,
+						"required": true,
+						"system": false,
+						"type": "json"
+					}
+				],
+				"id": "pbc_1025546041",
+				"indexes": [
+					"CREATE UNIQUE INDEX ` + "`" + `idx_zjPBSkDWUI` + "`" + ` ON ` + "`" + `platforms` + "`" + ` (\n  ` + "`" + `igdb_id` + "`" + `,\n  ` + "`" + `name` + "`" + `\n)"
+				],
+				"listRule": null,
+				"name": "platforms",
+				"system": false,
+				"type": "base",
+				"updateRule": null,
+				"viewRule": null
+			},
+			{
+				"createRule": null,
+				"deleteRule": null,
+				"fields": [
+					{
+						"autogeneratePattern": "[a-z0-9]{15}",
+						"hidden": false,
+						"id": "text3208210256",
+						"max": 15,
+						"min": 15,
+						"name": "id",
+						"pattern": "^[a-z0-9]+$",
+						"presentable": false,
+						"primaryKey": true,
+						"required": true,
+						"system": true,
+						"type": "text"
+					},
+					{
+						"hidden": false,
+						"id": "autodate2990389176",
+						"name": "created",
+						"onCreate": true,
+						"onUpdate": false,
+						"presentable": false,
+						"system": false,
+						"type": "autodate"
+					},
+					{
+						"hidden": false,
+						"id": "autodate3332085495",
+						"name": "updated",
+						"onCreate": true,
+						"onUpdate": true,
+						"presentable": false,
+						"system": false,
+						"type": "autodate"
+					},
+					{
+						"hidden": false,
+						"id": "number4063107981",
+						"max": null,
+						"min": null,
+						"name": "igdb_id",
+						"onlyInt": true,
+						"presentable": false,
+						"required": true,
+						"system": false,
+						"type": "number"
+					},
+					{
+						"autogeneratePattern": "",
+						"hidden": false,
+						"id": "text1579384326",
+						"max": 0,
+						"min": 0,
+						"name": "name",
+						"pattern": "",
+						"presentable": false,
+						"primaryKey": false,
+						"required": true,
+						"system": false,
+						"type": "text"
+					},
+					{
+						"hidden": false,
+						"id": "date1985597558",
+						"max": "",
+						"min": "",
+						"name": "firstReleaseDate",
+						"presentable": false,
+						"required": true,
+						"system": false,
+						"type": "date"
+					},
+					{
+						"cascadeDelete": false,
+						"collectionId": "pbc_1025546041",
+						"hidden": false,
+						"id": "relation394364643",
+						"maxSelect": 999,
+						"minSelect": 0,
+						"name": "platforms",
+						"presentable": false,
+						"required": true,
+						"system": false,
+						"type": "relation"
+					},
+					{
+						"autogeneratePattern": "",
+						"hidden": false,
+						"id": "text3731873690",
+						"max": 0,
+						"min": 0,
+						"name": "checksum",
+						"pattern": "",
+						"presentable": false,
+						"primaryKey": false,
+						"required": true,
+						"system": false,
+						"type": "text"
+					},
+					{
+						"hidden": false,
+						"id": "json2918445923",
+						"maxSize": 0,
+						"name": "data",
+						"presentable": false,
+						"required": true,
+						"system": false,
+						"type": "json"
+					}
+				],
+				"id": "pbc_2224754354",
+				"indexes": [
+					"CREATE UNIQUE INDEX ` + "`" + `idx_GK1ojyUpY9` + "`" + ` ON ` + "`" + `games` + "`" + ` (\n  ` + "`" + `igdb_id` + "`" + `,\n  ` + "`" + `name` + "`" + `\n)"
+				],
+				"listRule": null,
+				"name": "games",
+				"system": false,
+				"type": "base",
+				"updateRule": null,
+				"viewRule": null
+			},
+			{
+				"createRule": null,
+				"deleteRule": null,
+				"fields": [
+					{
+						"autogeneratePattern": "[a-z0-9]{15}",
+						"hidden": false,
+						"id": "text3208210256",
+						"max": 15,
+						"min": 15,
+						"name": "id",
+						"pattern": "^[a-z0-9]+$",
+						"presentable": false,
+						"primaryKey": true,
+						"required": true,
+						"system": true,
+						"type": "text"
+					},
+					{
+						"hidden": false,
+						"id": "autodate2990389176",
+						"name": "created",
+						"onCreate": true,
+						"onUpdate": false,
+						"presentable": false,
+						"system": false,
+						"type": "autodate"
+					},
+					{
+						"hidden": false,
+						"id": "autodate3332085495",
+						"name": "updated",
+						"onCreate": true,
+						"onUpdate": true,
+						"presentable": false,
+						"system": false,
+						"type": "autodate"
+					},
+					{
+						"hidden": false,
+						"id": "number4063107981",
+						"max": null,
+						"min": null,
+						"name": "igdb_id",
+						"onlyInt": true,
+						"presentable": false,
+						"required": true,
+						"system": false,
+						"type": "number"
+					},
+					{
+						"autogeneratePattern": "",
+						"hidden": false,
+						"id": "text1579384326",
+						"max": 0,
+						"min": 0,
+						"name": "name",
+						"pattern": "",
+						"presentable": false,
+						"primaryKey": false,
+						"required": true,
+						"system": false,
+						"type": "text"
+					},
+					{
+						"autogeneratePattern": "",
+						"hidden": false,
+						"id": "text3731873690",
+						"max": 0,
+						"min": 0,
+						"name": "checksum",
+						"pattern": "",
+						"presentable": false,
+						"primaryKey": false,
+						"required": true,
+						"system": false,
+						"type": "text"
+					},
+					{
+						"hidden": false,
+						"id": "json2918445923",
+						"maxSize": 0,
+						"name": "data",
+						"presentable": false,
+						"required": true,
+						"system": false,
+						"type": "json"
+					}
+				],
+				"id": "pbc_2833628128",
+				"indexes": [
+					"CREATE UNIQUE INDEX ` + "`" + `idx_vbAmX65ekn` + "`" + ` ON ` + "`" + `companies` + "`" + ` (` + "`" + `igdb_id` + "`" + `)"
+				],
+				"listRule": null,
+				"name": "companies",
 				"system": false,
 				"type": "base",
 				"updateRule": null,

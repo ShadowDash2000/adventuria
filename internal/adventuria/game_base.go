@@ -3,6 +3,7 @@ package adventuria
 import (
 	"adventuria/pkg/cache"
 	"adventuria/pkg/collections"
+	"adventuria/pkg/helper"
 	"errors"
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
@@ -11,48 +12,34 @@ import (
 	"time"
 )
 
+var (
+	GameApp         core.App
+	GameCells       *Cells
+	GameItems       *Items
+	GameCollections *collections.Collections
+	GameSettings    *Settings
+	GameEvent       Event
+)
+
 type BaseGame struct {
-	gc    *GameComponents
+	app   core.App
 	users *cache.MemoryCache[string, *User]
 }
 
-type GameComponents struct {
-	App      core.App
-	Cells    *Cells
-	Items    *Items
-	Log      *Log
-	Cols     *collections.Collections
-	Settings *Settings
-	Event    Event
-}
-
 func New(app core.App) Game {
-	cols := collections.NewCollections(app)
-	gc := &GameComponents{
-		App:   app,
-		Log:   NewLog(cols, app),
-		Cols:  cols,
-		Event: NewEvent(),
-	}
-
 	return &BaseGame{
-		gc:    gc,
+		app:   app,
 		users: cache.NewMemoryCache[string, *User](0, true),
 	}
 }
 
 func (g *BaseGame) Init() {
-	g.gc.Settings = NewSettings(g.gc)
-	g.gc.Cells = NewCells(g.gc)
-	g.gc.Items = NewItems(g.gc)
-}
-
-func (g *BaseGame) Settings() *Settings {
-	return g.gc.Settings
-}
-
-func (g *BaseGame) Event() Event {
-	return g.gc.Event
+	GameApp = g.app
+	GameCells = NewCells()
+	GameItems = NewItems()
+	GameCollections = collections.NewCollections(g.app)
+	GameSettings = NewSettings()
+	GameEvent = NewEvent()
 }
 
 func (g *BaseGame) GetUser(userId string) (*User, error) {
@@ -61,7 +48,7 @@ func (g *BaseGame) GetUser(userId string) (*User, error) {
 		return user, nil
 	}
 
-	user, err := NewUser(userId, g.gc)
+	user, err := NewUser(userId)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +61,7 @@ func (g *BaseGame) afterAction(user *User, event EffectUse) error {
 	onAfterActionFields := &OnAfterActionFields{
 		Event: event,
 	}
-	g.Event().Go(OnAfterAction, NewEventFields(user, g.gc, onAfterActionFields))
+	GameEvent.Go(OnAfterAction, NewEventFields(user, onAfterActionFields))
 
 	err := user.Save()
 	if err != nil {
@@ -82,42 +69,6 @@ func (g *BaseGame) afterAction(user *User, event EffectUse) error {
 	}
 
 	_, err = user.Inventory.ApplyEffectsByEvent(event)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (g *BaseGame) ChooseGame(game string, userId string) error {
-	user, err := g.GetUser(userId)
-	if err != nil {
-		return err
-	}
-
-	nextStepType, err := user.GetNextStepType()
-	if err != nil {
-		return err
-	}
-
-	if nextStepType != ActionTypeChooseGame {
-		return errors.New("next step isn't choose game")
-	}
-
-	currentCell, _ := user.CurrentCell()
-
-	action := NewAction(userId, ActionTypeChooseGame, g.gc)
-	action.SetCell(currentCell.ID())
-	action.SetValue(game)
-	err = action.Save()
-	if err != nil {
-		return err
-	}
-
-	onAfterChooseGameFields := &OnAfterChooseGameFields{}
-	g.Event().Go(OnAfterChooseGame, NewEventFields(user, g.gc, onAfterChooseGameFields))
-
-	err = g.afterAction(user, EffectUseOnChooseGame)
 	if err != nil {
 		return err
 	}
@@ -140,13 +91,13 @@ func (g *BaseGame) GetNextStepType(userId string) (string, error) {
 }
 
 func (g *BaseGame) UpdateAction(actionId string, comment string, file *filesystem.File, userId string) error {
-	actionsCollection, err := g.gc.Cols.Get(TableActions)
+	actionsCollection, err := GameCollections.Get(TableActions)
 	if err != nil {
 		return err
 	}
 
 	record := &core.Record{}
-	err = g.gc.App.
+	err = GameApp.
 		RecordQuery(actionsCollection).
 		AndWhere(
 			dbx.HashExp{
@@ -167,9 +118,8 @@ func (g *BaseGame) UpdateAction(actionId string, comment string, file *filesyste
 		return err
 	}
 
-	action := NewActionFromRecord(record, g.gc)
+	action := NewActionFromRecord(record)
 	action.SetComment(comment)
-	action.SetIcon(file)
 
 	return action.Save()
 }
@@ -185,7 +135,7 @@ func (g *BaseGame) Reroll(comment string, file *filesystem.File, userId string) 
 		return err
 	}
 
-	if nextStepType != ActionTypeDone {
+	if nextStepType != ActionTypeChooseResult {
 		return errors.New("next step isn't choose result")
 	}
 
@@ -195,18 +145,16 @@ func (g *BaseGame) Reroll(comment string, file *filesystem.File, userId string) 
 		return errors.New("can't reroll on this cell")
 	}
 
-	action := NewAction(userId, ActionTypeReroll, g.gc)
-	action.SetCell(currentCell.ID())
+	action := user.LastAction
+	action.SetType(ActionTypeReroll)
 	action.SetComment(comment)
-	action.SetValue(user.LastAction.Value())
-	action.SetIcon(file)
 	err = action.Save()
 	if err != nil {
 		return err
 	}
 
 	onAfterRerollFields := &OnAfterRerollFields{}
-	g.Event().Go(OnAfterReroll, NewEventFields(user, g.gc, onAfterRerollFields))
+	GameEvent.Go(OnAfterReroll, NewEventFields(user, onAfterRerollFields))
 
 	err = g.afterAction(user, EffectUseOnReroll)
 	if err != nil {
@@ -216,7 +164,7 @@ func (g *BaseGame) Reroll(comment string, file *filesystem.File, userId string) 
 	return nil
 }
 
-func (g *BaseGame) Roll(userId string) (int, []int, Cell, error) {
+func (g *BaseGame) RollDice(userId string) (int, []int, Cell, error) {
 	user, err := g.GetUser(userId)
 	if err != nil {
 		return 0, nil, nil, err
@@ -227,14 +175,14 @@ func (g *BaseGame) Roll(userId string) (int, []int, Cell, error) {
 		return 0, nil, nil, err
 	}
 
-	if nextStepType != ActionTypeRoll {
-		return 0, nil, nil, errors.New("next step isn't roll")
+	if nextStepType != ActionTypeRollDice {
+		return 0, nil, nil, errors.New("next step isn't roll dice")
 	}
 
 	onBeforeRollFields := &OnBeforeRollFields{
 		Dices: []Dice{DiceTypeD6, DiceTypeD6},
 	}
-	g.Event().Go(OnBeforeRoll, NewEventFields(user, g.gc, onBeforeRollFields))
+	GameEvent.Go(OnBeforeRoll, NewEventFields(user, onBeforeRollFields))
 
 	onBeforeRollMoveFields := &OnBeforeRollMoveFields{
 		N: 0,
@@ -245,22 +193,22 @@ func (g *BaseGame) Roll(userId string) (int, []int, Cell, error) {
 		onBeforeRollMoveFields.N += diceRolls[i]
 	}
 
-	g.Event().Go(OnBeforeRollMove, NewEventFields(user, g.gc, onBeforeRollMoveFields))
+	GameEvent.Go(OnBeforeRollMove, NewEventFields(user, onBeforeRollMoveFields))
 
-	_, currentCell, err := user.Move(onBeforeRollMoveFields.N)
+	fields, err := user.Move(onBeforeRollMoveFields.N)
 
 	onAfterRollFields := &OnAfterRollFields{
 		Dices: onBeforeRollFields.Dices,
 		N:     onBeforeRollMoveFields.N,
 	}
-	g.Event().Go(OnAfterRoll, NewEventFields(user, g.gc, onAfterRollFields))
+	GameEvent.Go(OnAfterRoll, NewEventFields(user, onAfterRollFields))
 
 	err = g.afterAction(user, EffectUseOnRoll)
 	if err != nil {
 		return 0, nil, nil, err
 	}
 
-	return onBeforeRollMoveFields.N, diceRolls, currentCell, nil
+	return onBeforeRollMoveFields.N, diceRolls, fields.CurrentCell, nil
 }
 
 func (g *BaseGame) Drop(comment string, file *filesystem.File, userId string) error {
@@ -274,33 +222,31 @@ func (g *BaseGame) Drop(comment string, file *filesystem.File, userId string) er
 		return err
 	}
 
-	if nextStepType != ActionTypeDone {
+	if nextStepType != ActionTypeChooseResult {
 		return errors.New("next step isn't choose result")
 	}
 
 	currentCell, _ := user.CurrentCell()
 
-	if currentCell.CantDrop() {
+	if currentCell.CantDrop() || !user.CanDrop() {
 		return errors.New("can't drop on this cell")
 	}
 
 	onBeforeDropFields := &OnBeforeDropFields{
 		IsSafeDrop: false,
 	}
-	g.Event().Go(OnBeforeDrop, NewEventFields(user, g.gc, onBeforeDropFields))
+	GameEvent.Go(OnBeforeDrop, NewEventFields(user, onBeforeDropFields))
 
-	action := NewAction(userId, ActionTypeDrop, g.gc)
-	action.SetCell(currentCell.ID())
+	action := user.LastAction
+	action.SetType(ActionTypeDrop)
 	action.SetComment(comment)
-	action.SetValue(user.LastAction.Value())
-	action.SetIcon(file)
 	err = action.Save()
 	if err != nil {
 		return err
 	}
 
 	if !onBeforeDropFields.IsSafeDrop && !currentCell.IsSafeDrop() {
-		user.SetPoints(user.Points() + g.gc.Settings.PointsForDrop())
+		user.SetPoints(user.Points() + GameSettings.PointsForDrop())
 		user.SetDropsInARow(user.DropsInARow() + 1)
 
 		if !user.IsSafeDrop() {
@@ -311,7 +257,7 @@ func (g *BaseGame) Drop(comment string, file *filesystem.File, userId string) er
 	}
 
 	onAfterDropFields := &OnAfterDropFields{}
-	g.Event().Go(OnAfterDrop, NewEventFields(user, g.gc, onAfterDropFields))
+	GameEvent.Go(OnAfterDrop, NewEventFields(user, onAfterDropFields))
 
 	err = g.afterAction(user, EffectUseOnDrop)
 	if err != nil {
@@ -332,22 +278,20 @@ func (g *BaseGame) Done(comment string, file *filesystem.File, userId string) er
 		return err
 	}
 
-	if nextStepType != ActionTypeDone {
+	if nextStepType != ActionTypeChooseResult {
 		return errors.New("next step isn't choose result")
 	}
 
 	onBeforeDoneFields := &OnBeforeDoneFields{
 		CellPointsDivide: 0,
 	}
-	g.Event().Go(OnBeforeDone, NewEventFields(user, g.gc, onBeforeDoneFields))
+	GameEvent.Go(OnBeforeDone, NewEventFields(user, onBeforeDoneFields))
 
 	currentCell, _ := user.CurrentCell()
 
-	action := NewAction(userId, ActionTypeDone, g.gc)
-	action.SetCell(currentCell.ID())
+	action := user.LastAction
+	action.SetType(ActionTypeDone)
 	action.SetComment(comment)
-	action.SetValue(user.LastAction.Value())
-	action.SetIcon(file)
 	err = action.Save()
 	if err != nil {
 		return err
@@ -360,17 +304,77 @@ func (g *BaseGame) Done(comment string, file *filesystem.File, userId string) er
 
 	user.SetDropsInARow(0)
 	user.SetIsInJail(false)
+	user.SetCantDrop(false)
 	user.SetPoints(user.Points() + cellPoints)
 
 	onAfterDoneFields := &OnAfterDoneFields{}
-	g.Event().Go(OnAfterDone, NewEventFields(user, g.gc, onAfterDoneFields))
+	GameEvent.Go(OnAfterDone, NewEventFields(user, onAfterDoneFields))
 
-	err = g.afterAction(user, EffectUseOnChooseResult)
+	err = g.afterAction(user, EffectUseOnDone)
 	if err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func (g *BaseGame) RollItem(userId string) (*WheelRollResult, error) {
+	user, err := g.GetUser(userId)
+	if err != nil {
+		return nil, err
+	}
+
+	if user.ItemWheelsCount() <= 0 {
+		return nil, errors.New("no item wheels left")
+	}
+
+	itemsCol, err := GameCollections.Get(TableItems)
+	if err != nil {
+		return nil, err
+	}
+
+	res := &WheelRollResult{
+		Collection: itemsCol,
+		EffectUse:  EffectUseOnRollItem,
+	}
+
+	items := GameItems.GetAllRollable()
+
+	if len(items) == 0 {
+		return nil, errors.New("items not found")
+	}
+
+	for _, item := range items {
+		res.FillerItems = append(res.FillerItems, &WheelItem{
+			Name: item.Name(),
+			Icon: item.Icon(),
+		})
+	}
+
+	res.WinnerId = helper.RandomItemFromSlice(items).ID()
+
+	err = user.Inventory.MustAddItemById(res.WinnerId)
+	if err != nil {
+		return nil, err
+	}
+
+	user.SetItemWheelsCount(user.ItemWheelsCount() - 1)
+
+	onAfterItemRollFields := &OnAfterItemRollFields{
+		ItemId: res.WinnerId,
+	}
+	GameEvent.Go(OnAfterItemRoll, NewEventFields(user, onAfterItemRollFields))
+	onAfterWheelRollFields := &OnAfterWheelRollFields{
+		ItemId: res.WinnerId,
+	}
+	GameEvent.Go(OnAfterWheelRoll, NewEventFields(user, onAfterWheelRollFields))
+
+	err = g.afterAction(user, EffectUseOnRollItem)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
 }
 
 func (g *BaseGame) RollWheel(userId string) (*WheelRollResult, error) {
@@ -392,33 +396,33 @@ func (g *BaseGame) RollWheel(userId string) (*WheelRollResult, error) {
 	onBeforeWheelRollFields := &OnBeforeWheelRollFields{
 		CurrentCell: currentCell.(CellWheel),
 	}
-	g.Event().Go(OnBeforeWheelRoll, NewEventFields(user, g.gc, onBeforeWheelRollFields))
+	GameEvent.Go(OnBeforeWheelRoll, NewEventFields(user, onBeforeWheelRollFields))
 
-	rollResult, err := onBeforeWheelRollFields.CurrentCell.Roll(user)
+	res, err := onBeforeWheelRollFields.CurrentCell.Roll(user)
 	if err != nil {
 		return nil, err
 	}
 
-	action := NewAction(userId, ActionTypeRollWheel, g.gc)
-	action.SetCell(currentCell.ID())
-	action.SetValue(rollResult.WinnerId)
-	action.SetCollectionRef(rollResult.Collection.Id)
+	action := user.LastAction
+	action.SetType(ActionTypeRollWheel)
+	action.SetValue(res.WinnerId)
+	action.SetCollectionRef(res.Collection.Id)
 	err = action.Save()
 	if err != nil {
 		return nil, err
 	}
 
 	onAfterWheelRollFields := &OnAfterWheelRollFields{
-		ItemId: rollResult.WinnerId,
+		ItemId: res.WinnerId,
 	}
-	g.Event().Go(OnAfterWheelRoll, NewEventFields(user, g.gc, onAfterWheelRollFields))
+	GameEvent.Go(OnAfterWheelRoll, NewEventFields(user, onAfterWheelRollFields))
 
-	err = g.afterAction(user, rollResult.EffectUse)
+	err = g.afterAction(user, res.EffectUse)
 	if err != nil {
 		return nil, err
 	}
 
-	return rollResult, nil
+	return res, nil
 }
 
 func (g *BaseGame) GetLastAction(userId string) (bool, Action, error) {
@@ -427,7 +431,7 @@ func (g *BaseGame) GetLastAction(userId string) (bool, Action, error) {
 		return false, nil, err
 	}
 
-	return user.IsInJail(), user.LastAction, nil
+	return user.CanDrop(), user.LastAction, nil
 }
 
 func (g *BaseGame) GetItemsEffects(userId string, event EffectUse) (*Effects, error) {
@@ -458,7 +462,7 @@ func (g *BaseGame) UseItem(userId, itemId string) error {
 	onAfterItemUseFields := &OnAfterItemUseFields{
 		ItemId: itemId,
 	}
-	g.Event().Go(OnAfterItemUse, NewEventFields(user, g.gc, onAfterItemUseFields))
+	GameEvent.Go(OnAfterItemUse, NewEventFields(user, onAfterItemUseFields))
 
 	err = g.afterAction(user, EffectUseInstant)
 	if err != nil {
@@ -506,5 +510,5 @@ func (g *BaseGame) GetTimeLeft(userId string) (time.Duration, bool, types.DateTi
 		return 0, false, types.DateTime{}, err
 	}
 
-	return user.Timer.GetTimeLeft(), user.Timer.IsActive(), g.gc.Settings.NextTimerResetDate(), nil
+	return user.Timer.GetTimeLeft(), user.Timer.IsActive(), GameSettings.NextTimerResetDate(), nil
 }

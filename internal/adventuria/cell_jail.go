@@ -6,7 +6,7 @@ import (
 )
 
 type CellJail struct {
-	CellWheelBase
+	CellBase
 }
 
 func NewCellJail() CellCreator {
@@ -20,28 +20,25 @@ func (c *CellJail) NextStep(user *User) string {
 
 	if user.IsInJail() {
 		switch user.LastAction.Type() {
-		case ActionTypeRoll,
-			ActionTypeReroll,
-			ActionTypeDrop:
-			nextStepType = ActionTypeRollCell
-		case ActionTypeRollCell:
-			nextStepType = ActionTypeChooseGame
-		case ActionTypeChooseGame:
-			nextStepType = ActionTypeDone
-		case ActionTypeDone:
-			nextStepType = ActionTypeRoll
+		case ActionTypeRollDice,
+			ActionTypeReroll:
+			nextStepType = ActionTypeRollWheel
+		case ActionTypeRollWheel:
+			nextStepType = ActionTypeChooseResult
+		case ActionTypeChooseResult:
+			nextStepType = ActionTypeRollDice
 		default:
-			nextStepType = ActionTypeRollCell
+			nextStepType = ActionTypeRollWheel
 		}
 	} else {
-		nextStepType = ActionTypeRoll
+		nextStepType = ActionTypeRollDice
 	}
 
 	return nextStepType
 }
 
 func (c *CellJail) Roll(_ *User) (*WheelRollResult, error) {
-	cellsCol, err := c.gc.Cols.Get(TableCells)
+	cellsCol, err := GameCollections.Get(TableCells)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +47,7 @@ func (c *CellJail) Roll(_ *User) (*WheelRollResult, error) {
 		Collection: cellsCol,
 	}
 
-	cells := c.gc.Cells.GetAllByType(CellTypeGame)
+	cells := GameCells.GetAllByType(CellTypeGame)
 
 	if len(cells) == 0 {
 		return nil, errors.New("game cells not found")
@@ -64,6 +61,9 @@ func (c *CellJail) Roll(_ *User) (*WheelRollResult, error) {
 	}
 
 	res.WinnerId = helper.RandomItemFromSlice(cells).ID()
+
+	// TODO
+	panic("implement me")
 
 	return res, nil
 }

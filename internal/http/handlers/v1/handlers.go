@@ -17,7 +17,7 @@ func New(g adventuria.Game) *Handlers {
 }
 
 func (h *Handlers) RollHandler(e *core.RequestEvent) error {
-	n, diceRolls, currentCell, err := h.Game.Roll(e.Auth.Id)
+	n, diceRolls, currentCell, err := h.Game.RollDice(e.Auth.Id)
 	if err != nil {
 		e.JSON(http.StatusInternalServerError, err.Error())
 		return err
@@ -28,30 +28,6 @@ func (h *Handlers) RollHandler(e *core.RequestEvent) error {
 		"diceRolls": diceRolls,
 		"cellId":    currentCell.ID(),
 	})
-	return nil
-}
-
-func (h *Handlers) ChooseGameHandler(e *core.RequestEvent) error {
-	data := struct {
-		Game string `json:"game"`
-	}{}
-	if err := e.BindBody(&data); err != nil {
-		e.JSON(http.StatusBadRequest, err.Error())
-		return nil
-	}
-
-	if data.Game == "" {
-		e.JSON(http.StatusBadRequest, "You must choose a game")
-		return nil
-	}
-
-	err := h.Game.ChooseGame(data.Game, e.Auth.Id)
-	if err != nil {
-		e.JSON(http.StatusInternalServerError, err.Error())
-		return nil
-	}
-
-	e.JSON(http.StatusOK, struct{}{})
 	return nil
 }
 
@@ -198,6 +174,34 @@ func (h *Handlers) GetLastActionHandler(e *core.RequestEvent) error {
 	e.JSON(http.StatusOK, map[string]interface{}{
 		"title":    action.Value(),
 		"isInJail": isInJail,
+	})
+
+	return nil
+}
+
+func (h *Handlers) RollWheelHandler(e *core.RequestEvent) error {
+	itemId, err := h.Game.RollWheel(e.Auth.Id)
+	if err != nil {
+		e.JSON(http.StatusInternalServerError, err.Error())
+		return err
+	}
+
+	e.JSON(http.StatusOK, map[string]interface{}{
+		"itemId": itemId,
+	})
+
+	return nil
+}
+
+func (h *Handlers) RollItemHandler(e *core.RequestEvent) error {
+	itemId, err := h.Game.RollItem(e.Auth.Id)
+	if err != nil {
+		e.JSON(http.StatusInternalServerError, err.Error())
+		return err
+	}
+
+	e.JSON(http.StatusOK, map[string]interface{}{
+		"itemId": itemId,
 	})
 
 	return nil

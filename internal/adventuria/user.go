@@ -9,7 +9,6 @@ import (
 
 type User struct {
 	core.BaseRecordProxy
-	gc         *GameComponents
 	LastAction Action
 	Inventory  Inventory
 	Timer      *Timer
@@ -27,19 +26,18 @@ type Stats struct {
 	WheelRolled int `json:"wheelRolled"`
 }
 
-func NewUser(userId string, gc *GameComponents) (*User, error) {
+func NewUser(userId string) (*User, error) {
 	if userId == "" {
 		return nil, errors.New("you're not authorized")
 	}
 
 	var err error
-	timer, err := NewTimer(userId, gc)
+	timer, err := NewTimer(userId)
 	if err != nil {
 		return nil, err
 	}
 
 	u := &User{
-		gc:    gc,
 		Timer: timer,
 	}
 
@@ -48,12 +46,12 @@ func NewUser(userId string, gc *GameComponents) (*User, error) {
 		return nil, err
 	}
 
-	u.LastAction, err = NewLastUserAction(userId, u.gc)
+	u.LastAction, err = NewLastUserAction(userId)
 	if err != nil {
 		return nil, err
 	}
 
-	u.Inventory, err = NewInventory(userId, u.MaxInventorySlots(), gc)
+	u.Inventory, err = NewInventory(userId, u.MaxInventorySlots())
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +62,7 @@ func NewUser(userId string, gc *GameComponents) (*User, error) {
 }
 
 func (u *User) bindHooks() {
-	u.gc.App.OnRecordAfterUpdateSuccess(TableUsers).BindFunc(func(e *core.RecordEvent) error {
+	GameApp.OnRecordAfterUpdateSuccess(TableUsers).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == u.Id {
 			u.SetProxyRecord(e.Record)
 			u.Inventory.SetMaxSlots(u.MaxInventorySlots())
@@ -75,7 +73,7 @@ func (u *User) bindHooks() {
 }
 
 func (u *User) fetchUser(userId string) error {
-	user, err := u.gc.App.FindRecordById(TableUsers, userId)
+	user, err := GameApp.FindRecordById(TableUsers, userId)
 	if err != nil {
 		return err
 	}
@@ -86,12 +84,20 @@ func (u *User) fetchUser(userId string) error {
 	return nil
 }
 
-func (u *User) IsSafeDrop() bool {
-	return u.DropsInARow() < u.gc.Settings.DropsToJail()
+func (u *User) CantDrop() bool {
+	return u.GetBool("cantDrop")
 }
 
-func (u *User) SetIsSafeDrop(b bool) {
-	u.Set("isSafeDrop", b)
+func (u *User) SetCantDrop(b bool) {
+	u.Set("cantDrop", b)
+}
+
+func (u *User) CanDrop() bool {
+	return !u.CantDrop() && !u.IsInJail()
+}
+
+func (u *User) IsSafeDrop() bool {
+	return u.DropsInARow() < GameSettings.DropsToJail()
 }
 
 func (u *User) IsInJail() bool {
@@ -103,10 +109,12 @@ func (u *User) SetIsInJail(b bool) {
 }
 
 func (u *User) CurrentCell() (Cell, bool) {
-	cellsPassed := u.CellsPassed()
-	currentCellNum := cellsPassed % u.gc.Cells.Count()
+	// TODO implement fake current cell
 
-	return u.gc.Cells.GetByOrder(currentCellNum)
+	cellsPassed := u.CellsPassed()
+	currentCellNum := cellsPassed % GameCells.Count()
+
+	return GameCells.GetByOrder(currentCellNum)
 }
 
 func (u *User) Points() int {
@@ -153,58 +161,59 @@ func (u *User) Save() error {
 	statsJson, _ := json.Marshal(u.Stats)
 	u.Set("stats", string(statsJson))
 
-	return u.gc.App.Save(u)
+	return GameApp.Save(u)
 }
 
-func (u *User) Move(steps int) (Action, Cell, error) {
+func (u *User) Move(steps int) (*OnAfterMoveFields, error) {
 	cellsPassed := u.CellsPassed()
-	currentCellNum := (cellsPassed + steps) % u.gc.Cells.Count()
-	currentCell, _ := u.gc.Cells.GetByOrder(currentCellNum)
+	currentCellNum := (cellsPassed + steps) % GameCells.Count()
+	currentCell, _ := GameCells.GetByOrder(currentCellNum)
 
 	u.SetCellsPassed(cellsPassed + steps)
 
-	err := currentCell.OnCellReached(u, u.gc)
+	err := currentCell.OnCellReached(u)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	action := NewAction(u.Id, ActionTypeRoll, u.gc)
+	action := NewAction(u.Id, ActionTypeRollDice)
 	action.SetCell(currentCell.ID())
 	action.SetValue(steps)
 	err = action.Save()
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	prevCellNum := cellsPassed % u.gc.Cells.Count()
-	lapsPassed := (prevCellNum + steps) / u.gc.Cells.Count()
+	prevCellNum := cellsPassed % GameCells.Count()
+	lapsPassed := (prevCellNum + steps) / GameCells.Count()
 	// Check if we're not moving backwards and passed new lap(-s)
 	if steps > 0 && lapsPassed > 0 {
 		onNewLapFields := &OnNewLapFields{
 			Laps: lapsPassed,
 		}
-		u.gc.Event.Go(OnNewLap, NewEventFields(u, u.gc, onNewLapFields))
+		GameEvent.Go(OnNewLap, NewEventFields(u, onNewLapFields))
 	}
 
 	onAfterMoveFields := &OnAfterMoveFields{
 		Steps:       steps,
 		Action:      action,
 		CurrentCell: currentCell,
+		Laps:        lapsPassed,
 	}
-	u.gc.Event.Go(OnAfterMove, NewEventFields(u, u.gc, onAfterMoveFields))
+	GameEvent.Go(OnAfterMove, NewEventFields(u, onAfterMoveFields))
 
-	return action, currentCell, nil
+	return onAfterMoveFields, nil
 }
 
 func (u *User) MoveToJail() error {
-	jailCellPos, ok := u.gc.Cells.GetOrderByType(CellTypeJail)
+	jailCellPos, ok := GameCells.GetOrderByType(CellTypeJail)
 	if !ok {
 		return errors.New("jail cell not found")
 	}
 
-	currentCellNum := u.CellsPassed() % u.gc.Cells.Count()
+	currentCellNum := u.CellsPassed() % GameCells.Count()
 
-	_, _, err := u.Move(jailCellPos - currentCellNum)
+	_, err := u.Move(jailCellPos - currentCellNum)
 	if err != nil {
 		return err
 	}
@@ -212,20 +221,20 @@ func (u *User) MoveToJail() error {
 	u.SetIsInJail(true)
 
 	onAfterGoToJailFields := &OnAfterGoToJailFields{}
-	u.gc.Event.Go(OnAfterGoToJail, NewEventFields(u, u.gc, onAfterGoToJailFields))
+	GameEvent.Go(OnAfterGoToJail, NewEventFields(u, onAfterGoToJailFields))
 
 	return nil
 }
 
 func (u *User) MoveToCellId(cellId string) error {
-	cellPos, ok := u.gc.Cells.GetOrderById(cellId)
+	cellPos, ok := GameCells.GetOrderById(cellId)
 	if !ok {
 		return fmt.Errorf("cell %s not found", cellId)
 	}
 
-	currentCellNum := u.CellsPassed() % u.gc.Cells.Count()
+	currentCellNum := u.CellsPassed() % GameCells.Count()
 
-	_, _, err := u.Move(cellPos - currentCellNum)
+	_, err := u.Move(cellPos - currentCellNum)
 	if err != nil {
 		return err
 	}
@@ -238,7 +247,7 @@ func (u *User) MoveToCellId(cellId string) error {
 func (u *User) GetNextStepType() (string, error) {
 	// Если еще не было сделано никаких lastAction, то делаем roll
 	if u.LastAction == nil {
-		return ActionTypeRoll, nil
+		return ActionTypeRollDice, nil
 	}
 
 	currentCell, ok := u.CurrentCell()
@@ -252,14 +261,14 @@ func (u *User) GetNextStepType() (string, error) {
 	}
 
 	if currentCell.CantChooseAfterDrop() && lastActionType == ActionTypeDrop {
-		return ActionTypeRoll, nil
+		return ActionTypeRollDice, nil
 	}
 
 	onBeforeNextStepFields := &OnBeforeNextStepFields{
 		NextStepType: "",
 		CurrentCell:  currentCell,
 	}
-	u.gc.Event.Go(OnBeforeNextStepType, NewEventFields(u, u.gc, onBeforeNextStepFields))
+	GameEvent.Go(OnBeforeNextStepType, NewEventFields(u, onBeforeNextStepFields))
 
 	if onBeforeNextStepFields.NextStepType != "" {
 		return onBeforeNextStepFields.NextStepType, nil

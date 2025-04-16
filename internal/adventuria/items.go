@@ -6,13 +6,11 @@ import (
 )
 
 type Items struct {
-	gc    *GameComponents
 	items *cache.MemoryCache[string, Item]
 }
 
-func NewItems(gc *GameComponents) *Items {
+func NewItems() *Items {
 	items := &Items{
-		gc:    gc,
 		items: cache.NewMemoryCache[string, Item](0, true),
 	}
 
@@ -23,15 +21,15 @@ func NewItems(gc *GameComponents) *Items {
 }
 
 func (i *Items) bindHooks() {
-	i.gc.App.OnRecordAfterCreateSuccess(TableItems).BindFunc(func(e *core.RecordEvent) error {
+	GameApp.OnRecordAfterCreateSuccess(TableItems).BindFunc(func(e *core.RecordEvent) error {
 		i.add(e.Record)
 		return e.Next()
 	})
-	i.gc.App.OnRecordAfterUpdateSuccess(TableItems).BindFunc(func(e *core.RecordEvent) error {
+	GameApp.OnRecordAfterUpdateSuccess(TableItems).BindFunc(func(e *core.RecordEvent) error {
 		i.add(e.Record)
 		return e.Next()
 	})
-	i.gc.App.OnRecordAfterDeleteSuccess(TableItems).BindFunc(func(e *core.RecordEvent) error {
+	GameApp.OnRecordAfterDeleteSuccess(TableItems).BindFunc(func(e *core.RecordEvent) error {
 		i.delete(e.Record.Id)
 		return e.Next()
 	})
@@ -40,7 +38,7 @@ func (i *Items) bindHooks() {
 func (i *Items) fetch() error {
 	i.items.Clear()
 
-	items, err := i.gc.App.FindAllRecords(TableItems)
+	items, err := GameApp.FindAllRecords(TableItems)
 	if err != nil {
 		return err
 	}
@@ -56,7 +54,7 @@ func (i *Items) fetch() error {
 }
 
 func (i *Items) add(record *core.Record) error {
-	item, err := NewItemFromRecord(record, i.gc)
+	item, err := NewItemFromRecord(record)
 	if err != nil {
 		return err
 	}

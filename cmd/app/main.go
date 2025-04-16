@@ -17,13 +17,23 @@ func main() {
 	app := pocketbase.New()
 
 	game := adventuria.New(app)
-	game = pack1.WithItemPack1(game)
-	game = pack2.WithItemPack2(game)
 
 	handlers := handlers.New(game)
 
 	app.OnServe().BindFunc(func(se *core.ServeEvent) error {
 		game.Init()
+
+		game = pack1.WithItemPack1(game)
+		game = pack2.WithItemPack2(game)
+
+		// TODO include parser only after twitch auth is set
+		/*games.NewParser(
+			adventuria.GameSettings.TwitchClientID(),
+			adventuria.GameSettings.TwitchClientSecret(),
+			adventuria.GameSettings.IGDBParseSettings(),
+			adventuria.GameCollections,
+			adventuria.GameApp,
+		)*/
 
 		gs := se.Router.Group("")
 		gs.BindFunc(apis.WrapStdMiddleware(etag.Etag))
@@ -39,10 +49,9 @@ func main() {
 		ga.GET("/timer/left", handlers.GetTimeLeftHandler)
 
 		gab := ga.Group("")
-		gab.Bind(game.Settings().CheckActionsBlock())
+		gab.Bind(adventuria.GameSettings.CheckActionsBlock())
 
 		gab.POST("/roll", handlers.RollHandler)
-		gab.POST("/choose-game", handlers.ChooseGameHandler)
 
 		gab.GET("/get-next-step-type", handlers.GetNextStepTypeHandler)
 		gab.GET("/get-last-action", handlers.GetLastActionHandler)
@@ -53,6 +62,9 @@ func main() {
 		gab.POST("/reroll", handlers.RerollHandler)
 		gab.POST("/drop", handlers.DropHandler)
 		gab.POST("/done", handlers.DoneHandler)
+
+		gab.POST("/roll-wheel", handlers.RollWheelHandler)
+		gab.POST("/roll-item", handlers.RollItemHandler)
 
 		gab.POST("/use-item", handlers.UseItemHandler)
 		gab.POST("/drop-item", handlers.DropItemHandler)

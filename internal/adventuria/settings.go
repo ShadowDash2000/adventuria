@@ -1,7 +1,6 @@
 package adventuria
 
 import (
-	"adventuria/pkg/collections"
 	"database/sql"
 	"errors"
 	"github.com/pocketbase/pocketbase/core"
@@ -12,13 +11,10 @@ import (
 
 type Settings struct {
 	core.BaseRecordProxy
-	gc *GameComponents
 }
 
-func NewSettings(gc *GameComponents) *Settings {
-	s := &Settings{
-		gc: gc,
-	}
+func NewSettings() *Settings {
+	s := &Settings{}
 
 	s.init()
 	s.bindHooks()
@@ -27,8 +23,8 @@ func NewSettings(gc *GameComponents) *Settings {
 	return s
 }
 
-func DefaultSettings(cols *collections.Collections) (*core.Record, error) {
-	collection, err := cols.Get(TableSettings)
+func DefaultSettings() (*core.Record, error) {
+	collection, err := GameCollections.Get(TableSettings)
 	if err != nil {
 		return nil, err
 	}
@@ -40,22 +36,23 @@ func DefaultSettings(cols *collections.Collections) (*core.Record, error) {
 	record.Set("limitExceedPenalty", 2)
 	record.Set("pointsForDrop", -2)
 	record.Set("dropsToJail", 2)
+	record.Set("igdbParseSettings", "game_type = 0 & platforms = {6}")
 	return record, nil
 }
 
 func (s *Settings) bindHooks() {
-	s.gc.App.OnRecordAfterCreateSuccess(TableSettings).BindFunc(func(e *core.RecordEvent) error {
+	GameApp.OnRecordAfterCreateSuccess(TableSettings).BindFunc(func(e *core.RecordEvent) error {
 		s.SetProxyRecord(e.Record)
 		return e.Next()
 	})
-	s.gc.App.OnRecordAfterUpdateSuccess(TableSettings).BindFunc(func(e *core.RecordEvent) error {
+	GameApp.OnRecordAfterUpdateSuccess(TableSettings).BindFunc(func(e *core.RecordEvent) error {
 		s.SetProxyRecord(e.Record)
 		return e.Next()
 	})
 }
 
 func (s *Settings) init() error {
-	record, err := s.gc.App.FindFirstRecordByFilter(
+	record, err := GameApp.FindFirstRecordByFilter(
 		TableSettings,
 		"",
 	)
@@ -66,13 +63,13 @@ func (s *Settings) init() error {
 	if record != nil {
 		s.SetProxyRecord(record)
 	} else {
-		record, err = DefaultSettings(s.gc.Cols)
+		record, err = DefaultSettings()
 		if err != nil {
 			return err
 		}
 
 		s.SetProxyRecord(record)
-		err = s.gc.App.Save(s)
+		err = GameApp.Save(s)
 		if err != nil {
 			return err
 		}
@@ -121,6 +118,18 @@ func (s *Settings) DropsToJail() int {
 	return s.GetInt("dropsToJail")
 }
 
+func (s *Settings) TwitchClientID() string {
+	return s.GetString("twitchClientId")
+}
+
+func (s *Settings) TwitchClientSecret() string {
+	return s.GetString("twitchClientSecret")
+}
+
+func (s *Settings) IGDBParseSettings() string {
+	return s.GetString("igdbParseSettings")
+}
+
 func (s *Settings) NextTimerResetDate() types.DateTime {
 	weeks := time.Duration(s.CurrentWeek()*7*24) * time.Hour
 	return s.EventDateStart().Add(weeks)
@@ -144,21 +153,21 @@ func (s *Settings) checkActionsBlock() func(*core.RequestEvent) error {
 }
 
 func (s *Settings) RegisterSettingsCron() {
-	s.gc.App.Cron().MustAdd("settings", "* * * * *", func() {
+	GameApp.Cron().MustAdd("settings", "* * * * *", func() {
 		week := s.GetCurrentWeekNum()
 		if s.CurrentWeek() == week {
 			return
 		}
 
 		s.SetCurrentWeek(week)
-		err := s.gc.App.Save(s)
+		err := GameApp.Save(s)
 		if err != nil {
-			s.gc.App.Logger().Error("save settings failed", "err", err)
+			GameApp.Logger().Error("save settings failed", "err", err)
 		}
 
-		err = ResetAllTimers(s.TimerTimeLimit(), s.LimitExceedPenalty(), s.gc)
+		err = ResetAllTimers(s.TimerTimeLimit(), s.LimitExceedPenalty())
 		if err != nil {
-			s.gc.App.Logger().Error("failed to clear timers", "err", err)
+			GameApp.Logger().Error("failed to clear timers", "err", err)
 		}
 	})
 }
