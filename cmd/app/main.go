@@ -11,6 +11,8 @@ import (
 	"github.com/pocketbase/pocketbase/core"
 	"log"
 	"os"
+
+	_ "adventuria/migrations"
 )
 
 func main() {
