@@ -3,14 +3,15 @@ package pack2
 import (
 	"adventuria/internal/adventuria"
 	"adventuria/pkg/helper"
+	"errors"
 )
 
 func WithBaseEvents(g adventuria.Game) adventuria.Game {
 	adventuria.GameEvent.On(adventuria.OnBeforeNextStepType, ChangeNextStepType)
 	adventuria.GameEvent.On(adventuria.OnAfterAction, ClearNextStepTypeEffects)
 	adventuria.GameEvent.On(adventuria.OnAfterAction, TeleportToRandomCellByIds)
-	adventuria.GameEvent.On(adventuria.OnBeforeNextStepType, ChangeCellType)
-	adventuria.GameEvent.On(adventuria.OnAfterMove, ClearChangeCellTypeEffects)
+	adventuria.GameEvent.On(adventuria.OnBeforeCurrentCell, ChangeCellById)
+	adventuria.GameEvent.On(adventuria.OnAfterMove, ClearChangeCellById)
 	return g
 }
 
@@ -68,18 +69,25 @@ func TeleportToRandomCellByIds(e adventuria.EventFields) error {
 	return nil
 }
 
-func ChangeCellType(e adventuria.EventFields) error {
+func ChangeCellById(e adventuria.EventFields) error {
 	effects := e.Effects(adventuria.EffectUseOnRollItem)
-	fields := e.Fields().(*adventuria.OnBeforeNextStepFields)
 
-	cellType := adventuria.CellType(effects.Effect(EffectChangeCellType).String())
-	if cellType != "" {
-		fields.CurrentCell.SetType(cellType)
+	cellId := effects.Effect(EffectChangeCellById).String()
+	if cellId == "" {
+		return nil
 	}
+
+	cell, ok := adventuria.GameCells.GetById(cellId)
+	if !ok {
+		return errors.New("ChangeCellById: cell not found")
+	}
+
+	fields := e.Fields().(*adventuria.OnBeforeCurrentCellFields)
+	fields.CurrentCell = cell
 
 	return nil
 }
 
-func ClearChangeCellTypeEffects(e adventuria.EventFields) error {
-	return e.User().Inventory.ApplyEffectsByTypes([]string{EffectChangeCellType})
+func ClearChangeCellById(e adventuria.EventFields) error {
+	return e.User().Inventory.ApplyEffectsByTypes([]string{EffectChangeCellById})
 }
