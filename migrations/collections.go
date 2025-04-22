@@ -1097,6 +1097,15 @@ func init() {
 					},
 					{
 						"hidden": false,
+						"id": "bool2323052248",
+						"name": "isActive",
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "bool"
+					},
+					{
+						"hidden": false,
 						"id": "number1361375778",
 						"max": null,
 						"min": 0,
