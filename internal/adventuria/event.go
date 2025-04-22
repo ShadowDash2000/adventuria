@@ -23,6 +23,7 @@ const (
 	OnBeforeNextStepType = "OnBeforeNextStepType"
 	OnAfterAction        = "OnAfterAction"
 	OnAfterMove          = "OnAfterMove"
+	OnBeforeCurrentCell  = "OnBeforeCurrentCell"
 )
 
 type Event interface {
@@ -145,4 +146,7 @@ type OnAfterMoveFields struct {
 	Action      Action
 	CurrentCell Cell
 	Laps        int
+}
+type OnBeforeCurrentCellFields struct {
+	CurrentCell Cell
 }

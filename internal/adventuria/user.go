@@ -109,12 +109,16 @@ func (u *User) SetIsInJail(b bool) {
 }
 
 func (u *User) CurrentCell() (Cell, bool) {
-	// TODO implement fake current cell
-
 	cellsPassed := u.CellsPassed()
 	currentCellNum := cellsPassed % GameCells.Count()
+	cell, ok := GameCells.GetByOrder(currentCellNum)
 
-	return GameCells.GetByOrder(currentCellNum)
+	onBeforeCurrentCellFields := OnBeforeCurrentCellFields{
+		CurrentCell: cell,
+	}
+	GameEvent.Go(OnBeforeCurrentCell, NewEventFields(u, onBeforeCurrentCellFields))
+
+	return onBeforeCurrentCellFields.CurrentCell, ok
 }
 
 func (u *User) Points() int {

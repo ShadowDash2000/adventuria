@@ -27,6 +27,10 @@ func (c *CellBase) ID() string {
 	return c.Id
 }
 
+func (c *CellBase) IsActive() bool {
+	return c.GetBool("isActive")
+}
+
 func (c *CellBase) Sort() int {
 	return c.GetInt("sort")
 }

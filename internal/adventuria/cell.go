@@ -18,6 +18,7 @@ const (
 type Cell interface {
 	core.RecordProxy
 	ID() string
+	IsActive() bool
 	Sort() int
 	Type() CellType
 	SetType(CellType)

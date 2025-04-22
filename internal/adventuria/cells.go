@@ -2,6 +2,7 @@ package adventuria
 
 import (
 	"adventuria/pkg/cache"
+	"adventuria/pkg/helper"
 	"github.com/pocketbase/pocketbase/core"
 	"slices"
 	"sort"
@@ -34,7 +35,6 @@ func (c *Cells) bindHooks() {
 		if err != nil {
 			return err
 		}
-		c.sort()
 		return e.Next()
 	})
 	GameApp.OnRecordAfterUpdateSuccess(TableCells).BindFunc(func(e *core.RecordEvent) error {
@@ -42,12 +42,10 @@ func (c *Cells) bindHooks() {
 		if err != nil {
 			return err
 		}
-		c.sort()
 		return e.Next()
 	})
 	GameApp.OnRecordAfterDeleteSuccess(TableCells).BindFunc(func(e *core.RecordEvent) error {
 		c.delete(e.Record)
-		c.sort()
 		return e.Next()
 	})
 }
@@ -86,6 +84,8 @@ func (c *Cells) add(record *core.Record) error {
 		c.cellsByCode.Set(code, cell)
 	}
 
+	c.sort()
+
 	return nil
 }
 
@@ -94,13 +94,19 @@ func (c *Cells) delete(record *core.Record) {
 	if code := record.GetString("code"); code != "" {
 		c.cellsByCode.Delete(code)
 	}
+
+	c.sort()
 }
 
 func (c *Cells) sort() {
 	c.mx.Lock()
 	defer c.mx.Unlock()
 
-	c.cellsOrder = c.cells.Keys()
+	// Exclude inactive cells from sorting.
+	c.cellsOrder = helper.FilterByField(c.cells.Keys(), c.getUnactiveCellsIds(), func(cellId string) string {
+		return cellId
+	})
+
 	sort.Slice(c.cellsOrder, func(i, j int) bool {
 		cell1, _ := c.cells.Get(c.cellsOrder[i])
 		cell2, _ := c.cells.Get(c.cellsOrder[j])
@@ -111,6 +117,16 @@ func (c *Cells) sort() {
 	for key, cellId := range c.cellsOrder {
 		c.cellsIdsOrder[cellId] = key
 	}
+}
+
+func (c *Cells) getUnactiveCellsIds() []string {
+	var res []string
+	for _, cell := range c.cells.GetAll() {
+		if !cell.IsActive() {
+			res = append(res, cell.ID())
+		}
+	}
+	return res
 }
 
 // GetByOrder
@@ -147,7 +163,7 @@ func (c *Cells) GetByCode(code string) (Cell, bool) {
 func (c *Cells) GetAllByType(t CellType) []Cell {
 	var res []Cell
 	for _, cell := range c.cells.GetAll() {
-		if cell.Type() == t {
+		if cell.IsActive() && cell.Type() == t {
 			res = append(res, cell)
 		}
 	}
@@ -157,7 +173,7 @@ func (c *Cells) GetAllByType(t CellType) []Cell {
 func (c *Cells) GetAllByTypes(t []CellType) []Cell {
 	var res []Cell
 	for _, cell := range c.cells.GetAll() {
-		if slices.Contains(t, cell.Type()) {
+		if cell.IsActive() && slices.Contains(t, cell.Type()) {
 			res = append(res, cell)
 		}
 	}
@@ -166,11 +182,15 @@ func (c *Cells) GetAllByTypes(t []CellType) []Cell {
 
 func (c *Cells) GetByType(t CellType) (Cell, bool) {
 	for _, cell := range c.cells.GetAll() {
-		if cell.Type() == t {
+		if cell.IsActive() && cell.Type() == t {
 			return cell, true
 		}
 	}
 	return nil, false
+}
+
+func (c *Cells) GetById(id string) (Cell, bool) {
+	return c.cells.Get(id)
 }
 
 func (c *Cells) Count() int {

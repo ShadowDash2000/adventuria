@@ -41,6 +41,7 @@ type Effect interface {
 	String() string
 	Slice() []string
 	ParseJSON()
+	UnmarshalJSONValue(any) error
 	AddInt(int)
 	AddBool(bool)
 	AddString(string)
@@ -143,6 +144,10 @@ func (e *EffectBase) Slice() []string {
 
 func (e *EffectBase) ParseJSON() {
 	e.UnmarshalJSONField("value", &e.value)
+}
+
+func (e *EffectBase) UnmarshalJSONValue(result any) error {
+	return e.UnmarshalJSONField("value", result)
 }
 
 func (e *EffectBase) AddInt(i int) {
