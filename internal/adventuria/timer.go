@@ -3,10 +3,11 @@ package adventuria
 import (
 	"database/sql"
 	"errors"
+	"time"
+
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/tools/types"
-	"time"
 )
 
 type Timer struct {
@@ -20,7 +21,7 @@ func NewBaseTimerFromRecord(record *core.Record) *Timer {
 }
 
 func NewTimer(userId string) (*Timer, error) {
-	record, err := GameApp.FindFirstRecordByFilter(
+	record, err := PocketBase.FindFirstRecordByFilter(
 		TableTimers,
 		"user.id = {:userId}",
 		dbx.Params{"userId": userId},
@@ -45,13 +46,13 @@ func NewTimer(userId string) (*Timer, error) {
 }
 
 func (t *Timer) bindHooks() {
-	GameApp.OnRecordAfterUpdateSuccess(TableTimers).BindFunc(func(e *core.RecordEvent) error {
+	PocketBase.OnRecordAfterUpdateSuccess(TableTimers).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.GetString("user") == t.UserId() {
 			t.SetProxyRecord(e.Record)
 		}
 		return e.Next()
 	})
-	GameApp.OnRecordAfterDeleteSuccess(TableTimers).BindFunc(func(e *core.RecordEvent) error {
+	PocketBase.OnRecordAfterDeleteSuccess(TableTimers).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == t.Id {
 			timersCollection, _ := GameCollections.Get(TableTimers)
 			t.SetProxyRecord(core.NewRecord(timersCollection))
@@ -71,7 +72,7 @@ func (t *Timer) Start() error {
 	t.SetIsActive(true)
 	t.SetStartTime(types.NowDateTime())
 
-	return GameApp.Save(t)
+	return PocketBase.Save(t)
 }
 
 func (t *Timer) Stop() error {
@@ -83,7 +84,7 @@ func (t *Timer) Stop() error {
 	timePassed := t.TimePassed() + time.Now().Sub(t.StartTime().Time())
 	t.SetTimePassed(timePassed)
 
-	return GameApp.Save(t)
+	return PocketBase.Save(t)
 }
 
 // GetTimeLeft returns time.Duration in seconds
@@ -141,7 +142,7 @@ func (t *Timer) SetStartTime(time types.DateTime) {
 
 func (t *Timer) AddSecondsTimeLimit(secs int) error {
 	t.SetTimeLimit(t.TimeLimit() + (time.Duration(secs) * time.Second))
-	return GameApp.Save(t)
+	return PocketBase.Save(t)
 }
 
 func CreateTimer(userId string, timeLimit int) (*Timer, error) {
@@ -156,7 +157,7 @@ func CreateTimer(userId string, timeLimit int) (*Timer, error) {
 	timer.Set("timeLimit", timeLimit)
 	timer.Set("timePassed", 0)
 	timer.Set("isActive", false)
-	err = GameApp.Save(timer)
+	err = PocketBase.Save(timer)
 	if err != nil {
 		return nil, err
 	}
@@ -165,7 +166,7 @@ func CreateTimer(userId string, timeLimit int) (*Timer, error) {
 }
 
 func ResetAllTimers(timeLimit int, limitExceedPenalty int) error {
-	records, err := GameApp.FindAllRecords(TableTimers)
+	records, err := PocketBase.FindAllRecords(TableTimers)
 	if err != nil {
 		return err
 	}
@@ -193,7 +194,7 @@ func ResetAllTimers(timeLimit int, limitExceedPenalty int) error {
 
 		timer.SetTimeLimit(newTimeLimit)
 		timer.SetTimePassed(0)
-		err = GameApp.Save(timer)
+		err = PocketBase.Save(timer)
 		if err != nil {
 			return err
 		}

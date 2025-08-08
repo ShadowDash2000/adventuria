@@ -1,9 +1,9 @@
 package adventuria
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
+
 	"github.com/pocketbase/pocketbase/core"
 )
 
@@ -62,24 +62,27 @@ func NewUser(userId string) (*User, error) {
 }
 
 func (u *User) bindHooks() {
-	GameApp.OnRecordAfterUpdateSuccess(TableUsers).BindFunc(func(e *core.RecordEvent) error {
+	PocketBase.OnRecordAfterUpdateSuccess(TableUsers).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == u.Id {
 			u.SetProxyRecord(e.Record)
-			u.Inventory.SetMaxSlots(u.MaxInventorySlots())
-			u.UnmarshalJSONField("stats", &u.Stats)
 		}
 		return e.Next()
 	})
 }
 
+func (u *User) SetProxyRecord(record *core.Record) {
+	u.BaseRecordProxy.SetProxyRecord(record)
+	u.Inventory.SetMaxSlots(u.MaxInventorySlots())
+	u.UnmarshalJSONField("stats", &u.Stats)
+}
+
 func (u *User) fetchUser(userId string) error {
-	user, err := GameApp.FindRecordById(TableUsers, userId)
+	user, err := PocketBase.FindRecordById(TableUsers, userId)
 	if err != nil {
 		return err
 	}
 
 	u.SetProxyRecord(user)
-	u.UnmarshalJSONField("stats", &u.Stats)
 
 	return nil
 }
@@ -162,10 +165,9 @@ func (u *User) SetItemWheelsCount(itemWheelsCount int) {
 }
 
 func (u *User) Save() error {
-	statsJson, _ := json.Marshal(u.Stats)
-	u.Set("stats", string(statsJson))
+	u.Set("stats", u.Stats)
 
-	return GameApp.Save(u)
+	return PocketBase.Save(u)
 }
 
 func (u *User) Move(steps int) (*OnAfterMoveFields, error) {

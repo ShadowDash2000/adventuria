@@ -3,9 +3,10 @@ package handlers
 import (
 	"adventuria/internal/adventuria"
 	"errors"
+	"net/http"
+
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/tools/filesystem"
-	"net/http"
 )
 
 type Handlers struct {

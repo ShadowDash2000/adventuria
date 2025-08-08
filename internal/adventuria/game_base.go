@@ -5,15 +5,19 @@ import (
 	"adventuria/pkg/collections"
 	"adventuria/pkg/helper"
 	"errors"
+	"time"
+
 	"github.com/pocketbase/dbx"
+	"github.com/pocketbase/pocketbase"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/tools/filesystem"
 	"github.com/pocketbase/pocketbase/tools/types"
-	"time"
+
+	_ "adventuria/migrations"
 )
 
 var (
-	GameApp         core.App
+	PocketBase      *pocketbase.PocketBase
 	GameCells       *Cells
 	GameItems       *Items
 	GameCollections *collections.Collections
@@ -22,22 +26,27 @@ var (
 )
 
 type BaseGame struct {
-	app   core.App
 	users *cache.MemoryCache[string, *User]
 }
 
-func New(app core.App) Game {
-	return &BaseGame{
-		app:   app,
+func New() Game {
+	PocketBase = pocketbase.New()
+	game := &BaseGame{
 		users: cache.NewMemoryCache[string, *User](0, true),
 	}
+
+	PocketBase.OnServe().BindFunc(func(se *core.ServeEvent) error {
+		game.Init()
+		return se.Next()
+	})
+
+	return game
 }
 
 func (g *BaseGame) Init() {
-	GameApp = g.app
 	GameCells = NewCells()
 	GameItems = NewItems()
-	GameCollections = collections.NewCollections(g.app)
+	GameCollections = collections.NewCollections(PocketBase)
 	GameSettings = NewSettings()
 	GameEvent = NewEvent()
 }
@@ -97,7 +106,7 @@ func (g *BaseGame) UpdateAction(actionId string, comment string, file *filesyste
 	}
 
 	record := &core.Record{}
-	err = GameApp.
+	err = PocketBase.
 		RecordQuery(actionsCollection).
 		AndWhere(
 			dbx.HashExp{

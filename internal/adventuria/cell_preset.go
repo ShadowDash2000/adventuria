@@ -3,6 +3,7 @@ package adventuria
 import (
 	"adventuria/pkg/helper"
 	"errors"
+
 	"github.com/pocketbase/dbx"
 )
 
@@ -49,7 +50,7 @@ func (c *CellPreset) Roll(_ *User) (*WheelRollResult, error) {
 		Collection: wheelItemsCol,
 	}
 
-	items, err := GameApp.FindRecordsByFilter(
+	items, err := PocketBase.FindRecordsByFilter(
 		TableWheelItems,
 		"presets.id = {:presetId}",
 		"",

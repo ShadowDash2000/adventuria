@@ -3,10 +3,11 @@ package adventuria
 import (
 	"database/sql"
 	"errors"
+	"time"
+
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/tools/hook"
 	"github.com/pocketbase/pocketbase/tools/types"
-	"time"
 )
 
 type Settings struct {
@@ -41,18 +42,18 @@ func DefaultSettings() (*core.Record, error) {
 }
 
 func (s *Settings) bindHooks() {
-	GameApp.OnRecordAfterCreateSuccess(TableSettings).BindFunc(func(e *core.RecordEvent) error {
+	PocketBase.OnRecordAfterCreateSuccess(TableSettings).BindFunc(func(e *core.RecordEvent) error {
 		s.SetProxyRecord(e.Record)
 		return e.Next()
 	})
-	GameApp.OnRecordAfterUpdateSuccess(TableSettings).BindFunc(func(e *core.RecordEvent) error {
+	PocketBase.OnRecordAfterUpdateSuccess(TableSettings).BindFunc(func(e *core.RecordEvent) error {
 		s.SetProxyRecord(e.Record)
 		return e.Next()
 	})
 }
 
 func (s *Settings) init() error {
-	record, err := GameApp.FindFirstRecordByFilter(
+	record, err := PocketBase.FindFirstRecordByFilter(
 		TableSettings,
 		"",
 	)
@@ -69,7 +70,7 @@ func (s *Settings) init() error {
 		}
 
 		s.SetProxyRecord(record)
-		err = GameApp.Save(s)
+		err = PocketBase.Save(s)
 		if err != nil {
 			return err
 		}
@@ -153,21 +154,21 @@ func (s *Settings) checkActionsBlock() func(*core.RequestEvent) error {
 }
 
 func (s *Settings) RegisterSettingsCron() {
-	GameApp.Cron().MustAdd("settings", "* * * * *", func() {
+	PocketBase.Cron().MustAdd("settings", "* * * * *", func() {
 		week := s.GetCurrentWeekNum()
 		if s.CurrentWeek() == week {
 			return
 		}
 
 		s.SetCurrentWeek(week)
-		err := GameApp.Save(s)
+		err := PocketBase.Save(s)
 		if err != nil {
-			GameApp.Logger().Error("save settings failed", "err", err)
+			PocketBase.Logger().Error("save settings failed", "err", err)
 		}
 
 		err = ResetAllTimers(s.TimerTimeLimit(), s.LimitExceedPenalty())
 		if err != nil {
-			GameApp.Logger().Error("failed to clear timers", "err", err)
+			PocketBase.Logger().Error("failed to clear timers", "err", err)
 		}
 	})
 }

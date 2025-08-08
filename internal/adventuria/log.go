@@ -2,6 +2,7 @@ package adventuria
 
 import (
 	"adventuria/pkg/collections"
+
 	"github.com/pocketbase/pocketbase/core"
 )
 

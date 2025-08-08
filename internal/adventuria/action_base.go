@@ -30,7 +30,7 @@ func NewActionFromRecord(record *core.Record) Action {
 }
 
 func (a *ActionBase) Save() error {
-	return GameApp.Save(a)
+	return PocketBase.Save(a)
 }
 
 func (a *ActionBase) UserId() string {
@@ -120,7 +120,7 @@ func NewLastUserAction(userId string) (Action, error) {
 }
 
 func (ua *UserAction) bindHooks() {
-	GameApp.OnRecordAfterCreateSuccess(TableActions).BindFunc(func(e *core.RecordEvent) error {
+	PocketBase.OnRecordAfterCreateSuccess(TableActions).BindFunc(func(e *core.RecordEvent) error {
 		userId := e.Record.GetString("user")
 		notAffectNextStep := e.Record.GetBool("notAffectNextStep")
 		if userId == ua.UserId() && !notAffectNextStep {
@@ -128,13 +128,13 @@ func (ua *UserAction) bindHooks() {
 		}
 		return e.Next()
 	})
-	GameApp.OnRecordAfterUpdateSuccess(TableActions).BindFunc(func(e *core.RecordEvent) error {
+	PocketBase.OnRecordAfterUpdateSuccess(TableActions).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == ua.Id {
 			ua.SetProxyRecord(e.Record)
 		}
 		return e.Next()
 	})
-	GameApp.OnRecordAfterDeleteSuccess(TableActions).BindFunc(func(e *core.RecordEvent) error {
+	PocketBase.OnRecordAfterDeleteSuccess(TableActions).BindFunc(func(e *core.RecordEvent) error {
 		userId := e.Record.GetString("user")
 		if userId == ua.UserId() {
 			ua.fetchLastUserAction(userId)
@@ -144,7 +144,7 @@ func (ua *UserAction) bindHooks() {
 }
 
 func (ua *UserAction) fetchLastUserAction(userId string) error {
-	actions, err := GameApp.FindRecordsByFilter(
+	actions, err := PocketBase.FindRecordsByFilter(
 		TableActions,
 		"user.id = {:userId} && notAffectNextStep = false",
 		"-created",

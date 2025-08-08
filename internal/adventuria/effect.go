@@ -2,8 +2,9 @@ package adventuria
 
 import (
 	"fmt"
-	"github.com/pocketbase/pocketbase/core"
 	"maps"
+
+	"github.com/pocketbase/pocketbase/core"
 )
 
 type Kind uint

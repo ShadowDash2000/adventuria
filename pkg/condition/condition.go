@@ -3,6 +3,7 @@ package condition
 import (
 	"encoding/json"
 	"errors"
+
 	"github.com/mitchellh/mapstructure"
 )
 

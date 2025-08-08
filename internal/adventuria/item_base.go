@@ -16,7 +16,7 @@ func NewBaseItemFromRecord(record *core.Record) Item {
 }
 
 func NewItemFromRecord(record *core.Record) (Item, error) {
-	errs := GameApp.ExpandRecord(record, []string{"effects"}, nil)
+	errs := PocketBase.ExpandRecord(record, []string{"effects"}, nil)
 	if errs != nil {
 		for _, err := range errs {
 			return nil, err
@@ -44,7 +44,7 @@ func NewItemFromRecord(record *core.Record) (Item, error) {
 }
 
 func (i *ItemBase) bindHooks() {
-	GameApp.OnRecordAfterUpdateSuccess(TableItems).BindFunc(func(e *core.RecordEvent) error {
+	PocketBase.OnRecordAfterUpdateSuccess(TableItems).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == i.Id {
 			i.SetProxyRecord(e.Record)
 		}

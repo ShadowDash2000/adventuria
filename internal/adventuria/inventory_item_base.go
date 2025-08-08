@@ -2,8 +2,9 @@ package adventuria
 
 import (
 	"errors"
-	"github.com/pocketbase/pocketbase/core"
 	"slices"
+
+	"github.com/pocketbase/pocketbase/core"
 )
 
 type InventoryItemBase struct {
@@ -128,12 +129,12 @@ func (ii *InventoryItemBase) ApplyEffects(effectsIds []string) error {
 	ii.AppendAppliedEffects(effectsIds)
 
 	if len(ii.AppliedEffects()) < ii.EffectsCount() {
-		err := GameApp.Save(ii)
+		err := PocketBase.Save(ii)
 		if err != nil {
 			return err
 		}
 	} else {
-		err := GameApp.Delete(ii)
+		err := PocketBase.Delete(ii)
 		if err != nil {
 			return err
 		}
@@ -164,7 +165,7 @@ func (ii *InventoryItemBase) Use() error {
 	}
 
 	ii.SetIsActive(true)
-	err := GameApp.Save(ii)
+	err := PocketBase.Save(ii)
 	if err != nil {
 		return err
 	}
@@ -180,7 +181,7 @@ func (ii *InventoryItemBase) Drop() error {
 		return errors.New("item isn't droppable")
 	}
 
-	err := GameApp.Delete(ii)
+	err := PocketBase.Delete(ii)
 	if err != nil {
 		return err
 	}

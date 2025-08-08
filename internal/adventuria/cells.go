@@ -3,10 +3,11 @@ package adventuria
 import (
 	"adventuria/pkg/cache"
 	"adventuria/pkg/helper"
-	"github.com/pocketbase/pocketbase/core"
 	"slices"
 	"sort"
 	"sync"
+
+	"github.com/pocketbase/pocketbase/core"
 )
 
 type Cells struct {
@@ -30,21 +31,21 @@ func NewCells() *Cells {
 }
 
 func (c *Cells) bindHooks() {
-	GameApp.OnRecordAfterCreateSuccess(TableCells).BindFunc(func(e *core.RecordEvent) error {
+	PocketBase.OnRecordAfterCreateSuccess(TableCells).BindFunc(func(e *core.RecordEvent) error {
 		err := c.add(e.Record)
 		if err != nil {
 			return err
 		}
 		return e.Next()
 	})
-	GameApp.OnRecordAfterUpdateSuccess(TableCells).BindFunc(func(e *core.RecordEvent) error {
+	PocketBase.OnRecordAfterUpdateSuccess(TableCells).BindFunc(func(e *core.RecordEvent) error {
 		err := c.add(e.Record)
 		if err != nil {
 			return err
 		}
 		return e.Next()
 	})
-	GameApp.OnRecordAfterDeleteSuccess(TableCells).BindFunc(func(e *core.RecordEvent) error {
+	PocketBase.OnRecordAfterDeleteSuccess(TableCells).BindFunc(func(e *core.RecordEvent) error {
 		c.delete(e.Record)
 		return e.Next()
 	})
@@ -54,7 +55,7 @@ func (c *Cells) fetch() error {
 	c.cells.Clear()
 	c.cellsByCode.Clear()
 
-	cells, err := GameApp.FindRecordsByFilter(
+	cells, err := PocketBase.FindRecordsByFilter(
 		TableCells,
 		"",
 		"sort",

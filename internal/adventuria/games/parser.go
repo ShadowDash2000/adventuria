@@ -3,6 +3,7 @@ package games
 import (
 	"adventuria/pkg/collections"
 	"fmt"
+
 	"github.com/bestnite/go-igdb"
 	"github.com/bestnite/go-igdb/endpoint"
 	pb "github.com/bestnite/go-igdb/proto"
@@ -19,7 +20,7 @@ type Parser struct {
 	client *igdb.Client
 }
 
-func NewParser(clientID, clientSecret, filter string, cols *collections.Collections, app core.App) *Parser {
+func NewGameParser(clientID, clientSecret, filter string, cols *collections.Collections, app core.App) *Parser {
 	p := &Parser{
 		client: igdb.New(clientID, clientSecret),
 		filter: filter,

@@ -2,6 +2,7 @@ package adventuria
 
 import (
 	"fmt"
+
 	"github.com/pocketbase/pocketbase/core"
 )
 

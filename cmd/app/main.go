@@ -6,35 +6,29 @@ import (
 	"adventuria/internal/adventuria/dlc/pack2"
 	"adventuria/internal/http/handlers/v1"
 	"adventuria/pkg/etag"
-	"github.com/pocketbase/pocketbase"
-	"github.com/pocketbase/pocketbase/apis"
-	"github.com/pocketbase/pocketbase/core"
 	"log"
 	"os"
 
-	_ "adventuria/migrations"
+	"github.com/pocketbase/pocketbase/apis"
+	"github.com/pocketbase/pocketbase/core"
 )
 
 func main() {
-	app := pocketbase.New()
-
-	game := adventuria.New(app)
+	game := adventuria.New()
 
 	handlers := handlers.New(game)
 
-	app.OnServe().BindFunc(func(se *core.ServeEvent) error {
-		game.Init()
-
+	adventuria.PocketBase.OnServe().BindFunc(func(se *core.ServeEvent) error {
 		game = pack1.WithItemPack1(game)
 		game = pack2.WithItemPack2(game)
 
 		// TODO include parser only after twitch auth is set
-		/*games.NewParser(
+		/*games.NewGameParser(
 			adventuria.GameSettings.TwitchClientID(),
 			adventuria.GameSettings.TwitchClientSecret(),
 			adventuria.GameSettings.IGDBParseSettings(),
 			adventuria.GameCollections,
-			adventuria.GameApp,
+			adventuria.PocketBase,
 		)*/
 
 		gs := se.Router.Group("")
@@ -77,7 +71,7 @@ func main() {
 		return se.Next()
 	})
 
-	if err := app.Start(); err != nil {
+	if err := adventuria.PocketBase.Start(); err != nil {
 		log.Fatal(err)
 	}
 }

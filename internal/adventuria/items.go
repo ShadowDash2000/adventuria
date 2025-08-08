@@ -2,6 +2,7 @@ package adventuria
 
 import (
 	"adventuria/pkg/cache"
+
 	"github.com/pocketbase/pocketbase/core"
 )
 
@@ -21,15 +22,15 @@ func NewItems() *Items {
 }
 
 func (i *Items) bindHooks() {
-	GameApp.OnRecordAfterCreateSuccess(TableItems).BindFunc(func(e *core.RecordEvent) error {
+	PocketBase.OnRecordAfterCreateSuccess(TableItems).BindFunc(func(e *core.RecordEvent) error {
 		i.add(e.Record)
 		return e.Next()
 	})
-	GameApp.OnRecordAfterUpdateSuccess(TableItems).BindFunc(func(e *core.RecordEvent) error {
+	PocketBase.OnRecordAfterUpdateSuccess(TableItems).BindFunc(func(e *core.RecordEvent) error {
 		i.add(e.Record)
 		return e.Next()
 	})
-	GameApp.OnRecordAfterDeleteSuccess(TableItems).BindFunc(func(e *core.RecordEvent) error {
+	PocketBase.OnRecordAfterDeleteSuccess(TableItems).BindFunc(func(e *core.RecordEvent) error {
 		i.delete(e.Record.Id)
 		return e.Next()
 	})
@@ -38,7 +39,7 @@ func (i *Items) bindHooks() {
 func (i *Items) fetch() error {
 	i.items.Clear()
 
-	items, err := GameApp.FindAllRecords(TableItems)
+	items, err := PocketBase.FindAllRecords(TableItems)
 	if err != nil {
 		return err
 	}

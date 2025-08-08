@@ -3,11 +3,12 @@ package adventuria
 import (
 	"adventuria/pkg/helper"
 	"errors"
-	"github.com/pocketbase/dbx"
-	"github.com/pocketbase/pocketbase/core"
 	"maps"
 	"slices"
 	"sort"
+
+	"github.com/pocketbase/dbx"
+	"github.com/pocketbase/pocketbase/core"
 )
 
 type InventoryBase struct {
@@ -33,19 +34,19 @@ func NewInventory(userId string, maxSlots int) (Inventory, error) {
 }
 
 func (i *InventoryBase) bindHooks() {
-	GameApp.OnRecordAfterCreateSuccess(TableInventory).BindFunc(func(e *core.RecordEvent) error {
+	PocketBase.OnRecordAfterCreateSuccess(TableInventory).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.GetString("user") == i.userId {
 			i.invItems[e.Record.Id], _ = NewInventoryItemFromRecord(e.Record)
 		}
 		return e.Next()
 	})
-	GameApp.OnRecordAfterUpdateSuccess(TableInventory).BindFunc(func(e *core.RecordEvent) error {
+	PocketBase.OnRecordAfterUpdateSuccess(TableInventory).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.GetString("user") == i.userId {
 			i.invItems[e.Record.Id].SetProxyRecord(e.Record)
 		}
 		return e.Next()
 	})
-	GameApp.OnRecordAfterDeleteSuccess(TableInventory).BindFunc(func(e *core.RecordEvent) error {
+	PocketBase.OnRecordAfterDeleteSuccess(TableInventory).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.GetString("user") == i.userId {
 			delete(i.invItems, e.Record.Id)
 		}
@@ -54,7 +55,7 @@ func (i *InventoryBase) bindHooks() {
 }
 
 func (i *InventoryBase) fetchInventory() error {
-	invItems, err := GameApp.FindRecordsByFilter(
+	invItems, err := PocketBase.FindRecordsByFilter(
 		TableInventory,
 		"user.id = {:userId}",
 		"-created",
@@ -109,7 +110,7 @@ func (i *InventoryBase) AddItem(item Item) error {
 	record.Set("user", i.userId)
 	record.Set("item", item.ID())
 	record.Set("isActive", item.IsActiveByDefault())
-	err = GameApp.Save(record)
+	err = PocketBase.Save(record)
 	if err != nil {
 		return err
 	}
@@ -267,7 +268,7 @@ func (i *InventoryBase) DropRandomItem() error {
 }
 
 func (i *InventoryBase) DropInventory() error {
-	for invItemId, _ := range i.invItems {
+	for invItemId := range i.invItems {
 		err := i.DropItem(invItemId)
 		if err != nil {
 			return err

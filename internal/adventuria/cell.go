@@ -1,8 +1,9 @@
 package adventuria
 
 import (
-	"github.com/pocketbase/pocketbase/core"
 	"maps"
+
+	"github.com/pocketbase/pocketbase/core"
 )
 
 type CellType string
