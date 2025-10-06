@@ -10,7 +10,7 @@ type CellBase struct {
 	core.BaseRecordProxy
 }
 
-func NewCellFromRecord(record *core.Record) (Cell, error) {
+func NewCellFromRecord(locator ServiceLocator, record *core.Record) (Cell, error) {
 	t := CellType(record.GetString("type"))
 
 	cellCreator, ok := CellsList[t]
@@ -18,7 +18,7 @@ func NewCellFromRecord(record *core.Record) (Cell, error) {
 		return nil, fmt.Errorf("unknown cell type: %s", t)
 	}
 
-	cell := cellCreator()
+	cell := cellCreator(locator)
 	cell.SetProxyRecord(record)
 
 	return cell, nil
@@ -80,34 +80,14 @@ func (c *CellBase) CantReroll() bool {
 	return c.GetBool("cantReroll")
 }
 
-func (c *CellBase) CantChooseAfterDrop() bool {
-	return c.GetBool("cantChooseAfterDrop")
-}
-
 func (c *CellBase) IsSafeDrop() bool {
 	return c.GetBool("isSafeDrop")
 }
 
-func (c *CellBase) NextStep(_ *User) string {
-	return ActionTypeRollDice
+func (c *CellBase) NextStep(_ User) string {
+	panic("implement me")
 }
 
-func (c *CellBase) OnCellReached(_ *User) error {
+func (c *CellBase) OnCellReached(_ User) error {
 	return nil
-}
-
-type CellTypeSourceGiver struct {
-	source []string
-}
-
-func NewCellTypeSourceGiver(source []string) EffectSourceGiver[CellType] {
-	return &CellTypeSourceGiver{source: source}
-}
-
-func (cg *CellTypeSourceGiver) Slice() []CellType {
-	var res []CellType
-	for _, cellType := range cg.source {
-		res = append(res, CellType(cellType))
-	}
-	return res
 }

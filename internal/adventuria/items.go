@@ -7,12 +7,14 @@ import (
 )
 
 type Items struct {
-	items *cache.MemoryCache[string, Item]
+	locator PocketBaseLocator
+	items   *cache.MemoryCache[string, ItemRecord]
 }
 
-func NewItems() *Items {
+func NewItems(locator PocketBaseLocator) *Items {
 	items := &Items{
-		items: cache.NewMemoryCache[string, Item](0, true),
+		locator: locator,
+		items:   cache.NewMemoryCache[string, ItemRecord](0, true),
 	}
 
 	items.fetch()
@@ -22,15 +24,15 @@ func NewItems() *Items {
 }
 
 func (i *Items) bindHooks() {
-	PocketBase.OnRecordAfterCreateSuccess(TableItems).BindFunc(func(e *core.RecordEvent) error {
+	i.locator.PocketBase().OnRecordAfterCreateSuccess(TableItems).BindFunc(func(e *core.RecordEvent) error {
 		i.add(e.Record)
 		return e.Next()
 	})
-	PocketBase.OnRecordAfterUpdateSuccess(TableItems).BindFunc(func(e *core.RecordEvent) error {
+	i.locator.PocketBase().OnRecordAfterUpdateSuccess(TableItems).BindFunc(func(e *core.RecordEvent) error {
 		i.add(e.Record)
 		return e.Next()
 	})
-	PocketBase.OnRecordAfterDeleteSuccess(TableItems).BindFunc(func(e *core.RecordEvent) error {
+	i.locator.PocketBase().OnRecordAfterDeleteSuccess(TableItems).BindFunc(func(e *core.RecordEvent) error {
 		i.delete(e.Record.Id)
 		return e.Next()
 	})
@@ -39,7 +41,7 @@ func (i *Items) bindHooks() {
 func (i *Items) fetch() error {
 	i.items.Clear()
 
-	items, err := PocketBase.FindAllRecords(TableItems)
+	items, err := i.locator.PocketBase().FindAllRecords(TableItems)
 	if err != nil {
 		return err
 	}
@@ -55,10 +57,7 @@ func (i *Items) fetch() error {
 }
 
 func (i *Items) add(record *core.Record) error {
-	item, err := NewItemFromRecord(record)
-	if err != nil {
-		return err
-	}
+	item := NewItemFromRecord(record)
 
 	i.items.Set(item.ID(), item)
 
@@ -69,16 +68,16 @@ func (i *Items) delete(id string) {
 	i.items.Delete(id)
 }
 
-func (i *Items) GetById(id string) (Item, bool) {
+func (i *Items) GetById(id string) (ItemRecord, bool) {
 	return i.items.Get(id)
 }
 
-func (i *Items) GetAll() map[string]Item {
+func (i *Items) GetAll() map[string]ItemRecord {
 	return i.items.GetAll()
 }
 
-func (i *Items) GetAllRollable() []Item {
-	var res []Item
+func (i *Items) GetAllRollable() []ItemRecord {
+	var res []ItemRecord
 	for _, item := range i.items.GetAll() {
 		if !item.IsRollable() {
 			continue

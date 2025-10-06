@@ -1,0 +1,20 @@
+package cells
+
+import "adventuria/internal/adventuria"
+
+type CellItem struct {
+	adventuria.CellBase
+}
+
+func NewCellItem() adventuria.CellCreator {
+	return func(_ adventuria.ServiceLocator) adventuria.Cell {
+		return &CellItem{
+			adventuria.CellBase{},
+		}
+	}
+}
+
+func (c *CellItem) OnCellReached(user adventuria.User) error {
+	user.SetItemWheelsCount(user.ItemWheelsCount() + 1)
+	return nil
+}

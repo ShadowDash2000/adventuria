@@ -12,10 +12,13 @@ import (
 
 type Settings struct {
 	core.BaseRecordProxy
+	locator SettingsLocator
 }
 
-func NewSettings() *Settings {
-	s := &Settings{}
+func NewSettings(locator SettingsLocator) *Settings {
+	s := &Settings{
+		locator: locator,
+	}
 
 	s.init()
 	s.bindHooks()
@@ -24,8 +27,8 @@ func NewSettings() *Settings {
 	return s
 }
 
-func DefaultSettings() (*core.Record, error) {
-	collection, err := GameCollections.Get(TableSettings)
+func DefaultSettings(locator PocketBaseLocator) (*core.Record, error) {
+	collection, err := locator.Collections().Get(TableSettings)
 	if err != nil {
 		return nil, err
 	}
@@ -42,18 +45,18 @@ func DefaultSettings() (*core.Record, error) {
 }
 
 func (s *Settings) bindHooks() {
-	PocketBase.OnRecordAfterCreateSuccess(TableSettings).BindFunc(func(e *core.RecordEvent) error {
+	s.locator.PocketBase().OnRecordAfterCreateSuccess(TableSettings).BindFunc(func(e *core.RecordEvent) error {
 		s.SetProxyRecord(e.Record)
 		return e.Next()
 	})
-	PocketBase.OnRecordAfterUpdateSuccess(TableSettings).BindFunc(func(e *core.RecordEvent) error {
+	s.locator.PocketBase().OnRecordAfterUpdateSuccess(TableSettings).BindFunc(func(e *core.RecordEvent) error {
 		s.SetProxyRecord(e.Record)
 		return e.Next()
 	})
 }
 
 func (s *Settings) init() error {
-	record, err := PocketBase.FindFirstRecordByFilter(
+	record, err := s.locator.PocketBase().FindFirstRecordByFilter(
 		TableSettings,
 		"",
 	)
@@ -64,13 +67,13 @@ func (s *Settings) init() error {
 	if record != nil {
 		s.SetProxyRecord(record)
 	} else {
-		record, err = DefaultSettings()
+		record, err = DefaultSettings(s.locator)
 		if err != nil {
 			return err
 		}
 
 		s.SetProxyRecord(record)
-		err = PocketBase.Save(s)
+		err = s.locator.PocketBase().Save(s)
 		if err != nil {
 			return err
 		}
@@ -154,21 +157,21 @@ func (s *Settings) checkActionsBlock() func(*core.RequestEvent) error {
 }
 
 func (s *Settings) RegisterSettingsCron() {
-	PocketBase.Cron().MustAdd("settings", "* * * * *", func() {
+	s.locator.PocketBase().Cron().MustAdd("settings", "* * * * *", func() {
 		week := s.GetCurrentWeekNum()
 		if s.CurrentWeek() == week {
 			return
 		}
 
 		s.SetCurrentWeek(week)
-		err := PocketBase.Save(s)
+		err := s.locator.PocketBase().Save(s)
 		if err != nil {
-			PocketBase.Logger().Error("save settings failed", "err", err)
+			s.locator.PocketBase().Logger().Error("save settings failed", "err", err)
 		}
 
-		err = ResetAllTimers(s.TimerTimeLimit(), s.LimitExceedPenalty())
+		err = ResetAllTimers(s.locator, s.TimerTimeLimit(), s.LimitExceedPenalty())
 		if err != nil {
-			PocketBase.Logger().Error("failed to clear timers", "err", err)
+			s.locator.PocketBase().Logger().Error("failed to clear timers", "err", err)
 		}
 	})
 }

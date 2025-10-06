@@ -1,44 +1,84 @@
 package adventuria
 
 import (
+	"errors"
+
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
 )
 
 type ActionBase struct {
 	core.BaseRecordProxy
+	locator ServiceLocator
+	user    User
 }
 
-func NewAction(userId string, actionType string) Action {
-	a := &ActionBase{}
+func NewActionFromType(locator ServiceLocator, user User, actionType string) (Action, error) {
+	actionCreator, ok := actionsList[actionType]
+	if !ok {
+		return nil, errors.New("unknown action type")
+	}
 
-	actionsCollection, _ := GameCollections.Get(TableActions)
+	action := actionCreator()
 
-	a.SetProxyRecord(core.NewRecord(actionsCollection))
-	a.setUserId(userId)
-	a.SetType(actionType)
+	actionsCollection, err := locator.Collections().Get(TableActions)
+	if err != nil {
+		return nil, err
+	}
 
-	return a
+	action.SetProxyRecord(core.NewRecord(actionsCollection))
+	action.setUser(user)
+	action.setLocator(locator)
+	action.SetType(actionType)
+
+	return action, nil
 }
 
-func NewActionFromRecord(record *core.Record) Action {
-	a := &ActionBase{}
+func NewActionFromRecord(locator ServiceLocator, record *core.Record) Action {
+	a := &ActionBase{
+		locator: locator,
+	}
 
 	a.SetProxyRecord(record)
 
 	return a
 }
 
+func (a *ActionBase) CanDo() bool {
+	panic("implement me")
+}
+
+func (a *ActionBase) Do(_ ActionRequest) (*ActionResult, error) {
+	panic("implement me")
+}
+
+func (a *ActionBase) setUser(user User) {
+	a.user = user
+	a.Set("user", user.ID())
+}
+
+func (a *ActionBase) setLocator(locator ServiceLocator) {
+	a.locator = locator
+}
+
 func (a *ActionBase) Save() error {
-	return PocketBase.Save(a)
+	return a.locator.PocketBase().Save(a)
+}
+
+func (a *ActionBase) SetType(t string) {
+	a.Set("type", t)
+}
+
+func (a *ActionBase) User() User {
+	return a.user
+}
+
+func (a *ActionBase) Locator() ServiceLocator {
+	return a.locator
 }
 
 func (a *ActionBase) UserId() string {
 	return a.GetString("user")
-}
-
-func (a *ActionBase) setUserId(userId string) {
-	a.Set("user", userId)
 }
 
 func (a *ActionBase) CellId() string {
@@ -67,10 +107,6 @@ func (a *ActionBase) SetValue(value any) {
 
 func (a *ActionBase) Type() string {
 	return a.GetString("type")
-}
-
-func (a *ActionBase) SetType(t string) {
-	a.Set("type", t)
 }
 
 func (a *ActionBase) SetNotAffectNextStep(b bool) {
@@ -105,9 +141,9 @@ type UserAction struct {
 	ActionBase
 }
 
-func NewLastUserAction(userId string) (Action, error) {
+func NewLastUserAction(locator ServiceLocator, userId string) (Action, error) {
 	a := &UserAction{
-		ActionBase: ActionBase{},
+		ActionBase: ActionBase{locator: locator},
 	}
 
 	err := a.fetchLastUserAction(userId)
@@ -120,7 +156,7 @@ func NewLastUserAction(userId string) (Action, error) {
 }
 
 func (ua *UserAction) bindHooks() {
-	PocketBase.OnRecordAfterCreateSuccess(TableActions).BindFunc(func(e *core.RecordEvent) error {
+	ua.locator.PocketBase().OnRecordAfterCreateSuccess(TableActions).BindFunc(func(e *core.RecordEvent) error {
 		userId := e.Record.GetString("user")
 		notAffectNextStep := e.Record.GetBool("notAffectNextStep")
 		if userId == ua.UserId() && !notAffectNextStep {
@@ -128,13 +164,13 @@ func (ua *UserAction) bindHooks() {
 		}
 		return e.Next()
 	})
-	PocketBase.OnRecordAfterUpdateSuccess(TableActions).BindFunc(func(e *core.RecordEvent) error {
+	ua.locator.PocketBase().OnRecordAfterUpdateSuccess(TableActions).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == ua.Id {
 			ua.SetProxyRecord(e.Record)
 		}
 		return e.Next()
 	})
-	PocketBase.OnRecordAfterDeleteSuccess(TableActions).BindFunc(func(e *core.RecordEvent) error {
+	ua.locator.PocketBase().OnRecordAfterDeleteSuccess(TableActions).BindFunc(func(e *core.RecordEvent) error {
 		userId := e.Record.GetString("user")
 		if userId == ua.UserId() {
 			ua.fetchLastUserAction(userId)
@@ -144,7 +180,7 @@ func (ua *UserAction) bindHooks() {
 }
 
 func (ua *UserAction) fetchLastUserAction(userId string) error {
-	actions, err := PocketBase.FindRecordsByFilter(
+	actions, err := ua.locator.PocketBase().FindRecordsByFilter(
 		TableActions,
 		"user.id = {:userId} && notAffectNextStep = false",
 		"-created",
@@ -159,9 +195,8 @@ func (ua *UserAction) fetchLastUserAction(userId string) error {
 	if len(actions) > 0 {
 		ua.SetProxyRecord(actions[0])
 	} else {
-		actionsCollection, _ := GameCollections.Get(TableActions)
+		actionsCollection, _ := ua.locator.Collections().Get(TableActions)
 		ua.SetProxyRecord(core.NewRecord(actionsCollection))
-		ua.setUserId(userId)
 	}
 
 	return nil

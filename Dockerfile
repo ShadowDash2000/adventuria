@@ -9,7 +9,7 @@ RUN go mod download
 RUN apk update \
     && apk upgrade
 
-RUN go build -a -installsuffix cgo -o ./adventuria cmd/app/main.go
+RUN go build -a -installsuffix cgo -o ./adventuria cmd/serve.go
 
 EXPOSE 8080
 

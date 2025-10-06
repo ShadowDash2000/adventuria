@@ -1,9 +1,15 @@
 # Adventuria
 
-## Roadmap to v2:
+Запуск:
 
-- Migrate frontend to React. You can check WIP here: [adventuria-react](https://github.com/ShadowDash2000/adventuria-react)
-- Add news
-- Add items that can be used on other players
-- Steam game list parsing
-- Twitch API to show which stream is live
+```
+go run cmd/serve.go serve
+```
+
+Запустить миграцию (после первого запуска):
+
+```
+go run cmd/migration.go migrate up
+```
+
+Frontend: https://github.com/ShadowDash2000/adventuria-react

@@ -1,6 +1,6 @@
 package adventuria
 
-type Item interface {
+type ItemRecord interface {
 	ID() string
 	Name() string
 	Icon() string
@@ -9,7 +9,16 @@ type Item interface {
 	CanDrop() bool
 	IsRollable() bool
 	Order() int
-	Effects() []Effect
+}
+
+type Item interface {
+	ItemRecord
+
+	Awake()
+	Sleep()
+
 	EffectsCount() int
-	EffectsByEvent(EffectUse) []Effect
+	AppliedEffectsCount() int
+	Use() error
+	Drop() error
 }

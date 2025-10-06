@@ -1243,15 +1243,6 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "bool2308337284",
-						"name": "cantChooseAfterDrop",
-						"presentable": false,
-						"required": false,
-						"system": false,
-						"type": "bool"
-					},
-					{
-						"hidden": false,
 						"id": "bool337669937",
 						"name": "isSafeDrop",
 						"presentable": false,

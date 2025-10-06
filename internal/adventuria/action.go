@@ -1,6 +1,8 @@
 package adventuria
 
 import (
+	"maps"
+
 	"github.com/pocketbase/pocketbase/core"
 )
 
@@ -16,6 +18,8 @@ const (
 type Action interface {
 	core.RecordProxy
 	Save() error
+	User() User
+	Locator() ServiceLocator
 	UserId() string
 	CellId() string
 	SetCell(string)
@@ -24,7 +28,6 @@ type Action interface {
 	Value() string
 	SetValue(value any)
 	Type() string
-	SetType(string)
 	SetNotAffectNextStep(bool)
 	CollectionRef() string
 	SetCollectionRef(string)
@@ -32,4 +35,35 @@ type Action interface {
 	SetDiceRoll(int)
 	ItemsUsed() []string
 	SetItemsUsed([]string)
+	SetType(string)
+
+	CanDo() bool
+	Do(ActionRequest) (*ActionResult, error)
+
+	setUser(user User)
+	setLocator(locator ServiceLocator)
+}
+
+type ActionRequest struct {
+	Comment string
+}
+
+type ActionResult struct {
+	Success bool        `json:"success"`
+	Data    interface{} `json:"data,omitempty"`
+	Error   string      `json:"error,omitempty"`
+}
+
+var actionsList = map[string]ActionCreator{}
+
+type ActionCreator func() Action
+
+func RegisterActions(actions map[string]ActionCreator) {
+	maps.Insert(actionsList, maps.All(actions))
+}
+
+func NewAction(a Action) ActionCreator {
+	return func() Action {
+		return a
+	}
 }

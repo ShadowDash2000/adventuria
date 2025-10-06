@@ -3,23 +3,22 @@ package adventuria
 import (
 	"adventuria/pkg/helper"
 	"errors"
-	"maps"
-	"slices"
-	"sort"
 
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
 )
 
 type InventoryBase struct {
-	userId   string
-	invItems map[string]InventoryItem
+	locator  ServiceLocator
+	user     User
+	items    map[string]Item
 	maxSlots int
 }
 
-func NewInventory(userId string, maxSlots int) (Inventory, error) {
+func NewInventory(locator ServiceLocator, user User, maxSlots int) (Inventory, error) {
 	i := &InventoryBase{
-		userId:   userId,
+		locator:  locator,
+		user:     user,
 		maxSlots: maxSlots,
 	}
 
@@ -34,42 +33,37 @@ func NewInventory(userId string, maxSlots int) (Inventory, error) {
 }
 
 func (i *InventoryBase) bindHooks() {
-	PocketBase.OnRecordAfterCreateSuccess(TableInventory).BindFunc(func(e *core.RecordEvent) error {
-		if e.Record.GetString("user") == i.userId {
-			i.invItems[e.Record.Id], _ = NewInventoryItemFromRecord(e.Record)
+	i.locator.PocketBase().OnRecordAfterCreateSuccess(TableInventory).BindFunc(func(e *core.RecordEvent) error {
+		if e.Record.GetString("user") == i.user.ID() {
+			i.items[e.Record.Id], _ = NewItemFromInventoryRecord(i.locator, i.user, e.Record)
 		}
 		return e.Next()
 	})
-	PocketBase.OnRecordAfterUpdateSuccess(TableInventory).BindFunc(func(e *core.RecordEvent) error {
-		if e.Record.GetString("user") == i.userId {
-			i.invItems[e.Record.Id].SetProxyRecord(e.Record)
-		}
-		return e.Next()
-	})
-	PocketBase.OnRecordAfterDeleteSuccess(TableInventory).BindFunc(func(e *core.RecordEvent) error {
-		if e.Record.GetString("user") == i.userId {
-			delete(i.invItems, e.Record.Id)
+	i.locator.PocketBase().OnRecordAfterDeleteSuccess(TableInventory).BindFunc(func(e *core.RecordEvent) error {
+		if item, ok := i.items[e.Record.Id]; ok {
+			item.Sleep()
+			delete(i.items, e.Record.Id)
 		}
 		return e.Next()
 	})
 }
 
 func (i *InventoryBase) fetchInventory() error {
-	invItems, err := PocketBase.FindRecordsByFilter(
+	invItems, err := i.locator.PocketBase().FindRecordsByFilter(
 		TableInventory,
 		"user.id = {:userId}",
 		"-created",
 		0,
 		0,
-		dbx.Params{"userId": i.userId},
+		dbx.Params{"userId": i.user.ID()},
 	)
 	if err != nil {
 		return err
 	}
 
-	i.invItems = make(map[string]InventoryItem)
+	i.items = make(map[string]Item)
 	for _, invItem := range invItems {
-		i.invItems[invItem.Id], err = NewInventoryItemFromRecord(invItem)
+		i.items[invItem.Id], err = NewItemFromInventoryRecord(i.locator, i.user, invItem)
 		if err != nil {
 			return err
 		}
@@ -88,7 +82,7 @@ func (i *InventoryBase) SetMaxSlots(maxSlots int) {
 
 func (i *InventoryBase) AvailableSlots() int {
 	usedSlots := 0
-	for _, item := range i.invItems {
+	for _, item := range i.items {
 		if item.IsUsingSlot() {
 			usedSlots++
 		}
@@ -100,17 +94,17 @@ func (i *InventoryBase) HasEmptySlots() bool {
 	return i.AvailableSlots() > 0
 }
 
-func (i *InventoryBase) AddItem(item Item) error {
-	inventoryCollection, err := GameCollections.Get(TableInventory)
+func (i *InventoryBase) AddItem(item ItemRecord) error {
+	inventoryCollection, err := i.locator.Collections().Get(TableInventory)
 	if err != nil {
 		return err
 	}
 
 	record := core.NewRecord(inventoryCollection)
-	record.Set("user", i.userId)
+	record.Set("user", i.user.ID())
 	record.Set("item", item.ID())
 	record.Set("isActive", item.IsActiveByDefault())
-	err = PocketBase.Save(record)
+	err = i.locator.PocketBase().Save(record)
 	if err != nil {
 		return err
 	}
@@ -119,7 +113,7 @@ func (i *InventoryBase) AddItem(item Item) error {
 }
 
 func (i *InventoryBase) AddItemById(itemId string) error {
-	item, ok := GameItems.GetById(itemId)
+	item, ok := i.locator.Items().GetById(itemId)
 	if !ok {
 		return errors.New("item not found")
 	}
@@ -137,10 +131,10 @@ func (i *InventoryBase) AddItemById(itemId string) error {
 }
 
 // MustAddItemById
-// Note: before an item added, checks if there is some empty slots.
+// Note: before an item added, checks if there are some empty slots.
 // If not, trys to drop a random item from inventory.
 func (i *InventoryBase) MustAddItemById(itemId string) error {
-	item, ok := GameItems.GetById(itemId)
+	item, ok := i.locator.Items().GetById(itemId)
 	if !ok {
 		return errors.New("item not found")
 	}
@@ -160,75 +154,8 @@ func (i *InventoryBase) MustAddItemById(itemId string) error {
 	return nil
 }
 
-func (i *InventoryBase) Effects(event EffectUse) (*Effects, map[string][]string, error) {
-	keys := slices.Collect(maps.Keys(i.invItems))
-	slices.Sort(keys)
-	sort.Slice(keys, func(k, j int) bool {
-		return i.invItems[keys[k]].Order() < i.invItems[keys[j]].Order()
-	})
-
-	effects := NewEffects()
-
-	invItemsEffectsIds := make(map[string][]string)
-	for _, invItemId := range keys {
-		invItem := i.invItems[invItemId]
-		itemEffects := invItem.EffectsByEvent(event)
-		if itemEffects == nil {
-			continue
-		}
-
-		var effectsIds []string
-		for _, effect := range itemEffects {
-			effects.Add(effect)
-
-			// TODO this shouldn't be here
-			//i.gc.Log.Add(i.userId, LogTypeItemEffectApplied, effect.Name())
-			effectsIds = append(effectsIds, effect.ID())
-		}
-
-		invItemsEffectsIds[invItemId] = effectsIds
-	}
-
-	return effects, invItemsEffectsIds, nil
-}
-
-func (i *InventoryBase) ApplyEffectsByEvent(event EffectUse) (*Effects, error) {
-	effects, invItemsEffectsIds, err := i.Effects(event)
-	if err != nil {
-		return nil, err
-	}
-
-	err = i.ApplyEffects(invItemsEffectsIds)
-
-	return effects, nil
-}
-
-func (i *InventoryBase) ApplyEffects(invItemsEffectsIds map[string][]string) error {
-	for invItemId, effectsIds := range invItemsEffectsIds {
-		invItem := i.invItems[invItemId]
-
-		err := invItem.ApplyEffects(effectsIds)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (i *InventoryBase) ApplyEffectsByTypes(types []string) error {
-	var effectsIds map[string][]string
-	for _, invItem := range i.invItems {
-		for _, effect := range invItem.EffectsByTypes(types) {
-			effectsIds[invItem.ID()] = append(effectsIds[invItem.ID()], effect.ID())
-		}
-	}
-
-	return i.ApplyEffects(effectsIds)
-}
-
 func (i *InventoryBase) UseItem(itemId string) error {
-	item, ok := i.invItems[itemId]
+	item, ok := i.items[itemId]
 	if !ok {
 		return errors.New("inventory item not found")
 	}
@@ -237,19 +164,19 @@ func (i *InventoryBase) UseItem(itemId string) error {
 }
 
 func (i *InventoryBase) DropItem(invItemId string) error {
-	invItem, ok := i.invItems[invItemId]
+	item, ok := i.items[invItemId]
 	if !ok {
 		return errors.New("inventory item not found")
 	}
 
-	return invItem.Drop()
+	return item.Drop()
 }
 
 // DropRandomItem
 // Note: removes random item that uses a slot and can be dropped
 func (i *InventoryBase) DropRandomItem() error {
-	var items []InventoryItem
-	for _, item := range i.invItems {
+	var items []Item
+	for _, item := range i.items {
 		if item.IsUsingSlot() && item.CanDrop() {
 			items = append(items, item)
 		}
@@ -268,15 +195,11 @@ func (i *InventoryBase) DropRandomItem() error {
 }
 
 func (i *InventoryBase) DropInventory() error {
-	for invItemId := range i.invItems {
+	for invItemId := range i.items {
 		err := i.DropItem(invItemId)
 		if err != nil {
 			return err
 		}
 	}
 	return nil
-}
-
-func (i *InventoryBase) Items() map[string]InventoryItem {
-	return i.invItems
 }

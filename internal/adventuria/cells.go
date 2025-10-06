@@ -11,6 +11,7 @@ import (
 )
 
 type Cells struct {
+	locator       ServiceLocator
 	cells         *cache.MemoryCache[string, Cell]
 	cellsByCode   *cache.MemoryCache[string, Cell]
 	cellsOrder    []string
@@ -18,8 +19,9 @@ type Cells struct {
 	mx            sync.Mutex
 }
 
-func NewCells() *Cells {
+func NewCells(locator ServiceLocator) *Cells {
 	cells := &Cells{
+		locator:     locator,
 		cells:       cache.NewMemoryCache[string, Cell](0, true),
 		cellsByCode: cache.NewMemoryCache[string, Cell](0, true),
 	}
@@ -31,21 +33,21 @@ func NewCells() *Cells {
 }
 
 func (c *Cells) bindHooks() {
-	PocketBase.OnRecordAfterCreateSuccess(TableCells).BindFunc(func(e *core.RecordEvent) error {
+	c.locator.PocketBase().OnRecordAfterCreateSuccess(TableCells).BindFunc(func(e *core.RecordEvent) error {
 		err := c.add(e.Record)
 		if err != nil {
 			return err
 		}
 		return e.Next()
 	})
-	PocketBase.OnRecordAfterUpdateSuccess(TableCells).BindFunc(func(e *core.RecordEvent) error {
+	c.locator.PocketBase().OnRecordAfterUpdateSuccess(TableCells).BindFunc(func(e *core.RecordEvent) error {
 		err := c.add(e.Record)
 		if err != nil {
 			return err
 		}
 		return e.Next()
 	})
-	PocketBase.OnRecordAfterDeleteSuccess(TableCells).BindFunc(func(e *core.RecordEvent) error {
+	c.locator.PocketBase().OnRecordAfterDeleteSuccess(TableCells).BindFunc(func(e *core.RecordEvent) error {
 		c.delete(e.Record)
 		return e.Next()
 	})
@@ -55,7 +57,7 @@ func (c *Cells) fetch() error {
 	c.cells.Clear()
 	c.cellsByCode.Clear()
 
-	cells, err := PocketBase.FindRecordsByFilter(
+	cells, err := c.locator.PocketBase().FindRecordsByFilter(
 		TableCells,
 		"",
 		"sort",
@@ -75,7 +77,7 @@ func (c *Cells) fetch() error {
 }
 
 func (c *Cells) add(record *core.Record) error {
-	cell, err := NewCellFromRecord(record)
+	cell, err := NewCellFromRecord(c.locator, record)
 	if err != nil {
 		return err
 	}
