@@ -10,14 +10,12 @@ import (
 
 type CellPreset struct {
 	adventuria.CellBase
-	locator adventuria.ServiceLocator
 }
 
 func NewCellPreset() adventuria.CellCreator {
-	return func(locator adventuria.ServiceLocator) adventuria.Cell {
+	return func() adventuria.Cell {
 		return &CellPreset{
 			CellBase: adventuria.CellBase{},
-			locator:  locator,
 		}
 	}
 }
@@ -46,7 +44,7 @@ func (c *CellPreset) Roll(_ adventuria.User) (*adventuria.WheelRollResult, error
 		return nil, errors.New("preset is not set")
 	}
 
-	wheelItemsCol, err := c.locator.Collections().Get(adventuria.TableWheelItems)
+	wheelItemsCol, err := adventuria.GameCollections.Get(adventuria.TableWheelItems)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +53,7 @@ func (c *CellPreset) Roll(_ adventuria.User) (*adventuria.WheelRollResult, error
 		Collection: wheelItemsCol,
 	}
 
-	items, err := c.locator.PocketBase().FindRecordsByFilter(
+	items, err := adventuria.PocketBase.FindRecordsByFilter(
 		adventuria.TableWheelItems,
 		"presets.id = {:presetId}",
 		"",

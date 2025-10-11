@@ -7,7 +7,7 @@ type CellGame struct {
 }
 
 func NewCellGame() adventuria.CellCreator {
-	return func(_ adventuria.ServiceLocator) adventuria.Cell {
+	return func() adventuria.Cell {
 		return &CellGame{
 			adventuria.CellBase{},
 		}

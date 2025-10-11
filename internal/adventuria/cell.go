@@ -31,7 +31,7 @@ type Cell interface {
 
 var CellsList = map[CellType]CellCreator{}
 
-type CellCreator func(ServiceLocator) Cell
+type CellCreator func() Cell
 
 func RegisterCells(cells map[CellType]CellCreator) {
 	maps.Insert(CellsList, maps.All(cells))

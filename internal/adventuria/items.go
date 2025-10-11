@@ -7,14 +7,12 @@ import (
 )
 
 type Items struct {
-	locator PocketBaseLocator
-	items   *cache.MemoryCache[string, ItemRecord]
+	items *cache.MemoryCache[string, ItemRecord]
 }
 
-func NewItems(locator PocketBaseLocator) *Items {
+func NewItems() *Items {
 	items := &Items{
-		locator: locator,
-		items:   cache.NewMemoryCache[string, ItemRecord](0, true),
+		items: cache.NewMemoryCache[string, ItemRecord](0, true),
 	}
 
 	items.fetch()
@@ -24,15 +22,15 @@ func NewItems(locator PocketBaseLocator) *Items {
 }
 
 func (i *Items) bindHooks() {
-	i.locator.PocketBase().OnRecordAfterCreateSuccess(TableItems).BindFunc(func(e *core.RecordEvent) error {
+	PocketBase.OnRecordAfterCreateSuccess(TableItems).BindFunc(func(e *core.RecordEvent) error {
 		i.add(e.Record)
 		return e.Next()
 	})
-	i.locator.PocketBase().OnRecordAfterUpdateSuccess(TableItems).BindFunc(func(e *core.RecordEvent) error {
+	PocketBase.OnRecordAfterUpdateSuccess(TableItems).BindFunc(func(e *core.RecordEvent) error {
 		i.add(e.Record)
 		return e.Next()
 	})
-	i.locator.PocketBase().OnRecordAfterDeleteSuccess(TableItems).BindFunc(func(e *core.RecordEvent) error {
+	PocketBase.OnRecordAfterDeleteSuccess(TableItems).BindFunc(func(e *core.RecordEvent) error {
 		i.delete(e.Record.Id)
 		return e.Next()
 	})
@@ -41,7 +39,7 @@ func (i *Items) bindHooks() {
 func (i *Items) fetch() error {
 	i.items.Clear()
 
-	items, err := i.locator.PocketBase().FindAllRecords(TableItems)
+	items, err := PocketBase.FindAllRecords(TableItems)
 	if err != nil {
 		return err
 	}

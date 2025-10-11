@@ -8,13 +8,12 @@ import (
 
 type ItemBase struct {
 	ItemRecordBase
-	locator       PocketBaseLocator
 	invItemRecord core.BaseRecordProxy
 	effects       []Effect
 }
 
-func NewItemFromInventoryRecord(locator PocketBaseLocator, user User, invItemRecord *core.Record) (Item, error) {
-	itemRecord, err := GetRecordById(locator, TableItems, invItemRecord.GetString("itemId"), []string{"effects"})
+func NewItemFromInventoryRecord(user User, invItemRecord *core.Record) (Item, error) {
+	itemRecord, err := GetRecordById(TableItems, invItemRecord.GetString("item"), []string{"effects"})
 	if err != nil {
 		return nil, err
 	}
@@ -30,7 +29,6 @@ func NewItemFromInventoryRecord(locator PocketBaseLocator, user User, invItemRec
 	}
 
 	item := &ItemBase{
-		locator: locator,
 		effects: effects,
 	}
 
@@ -52,7 +50,7 @@ func (i *ItemBase) Awake() {
 			i.addAppliedEffect(effect)
 
 			if i.AppliedEffectsCount() == i.EffectsCount() {
-				i.locator.PocketBase().Delete(i.invItemRecord)
+				PocketBase.Delete(i.invItemRecord)
 			}
 		})
 	}
@@ -65,13 +63,13 @@ func (i *ItemBase) Sleep() {
 }
 
 func (i *ItemBase) bindHooks() {
-	i.locator.PocketBase().OnRecordAfterUpdateSuccess(TableItems).BindFunc(func(e *core.RecordEvent) error {
+	PocketBase.OnRecordAfterUpdateSuccess(TableItems).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == i.itemRecord.Id {
 			i.itemRecord.SetProxyRecord(e.Record)
 		}
 		return e.Next()
 	})
-	i.locator.PocketBase().OnRecordAfterUpdateSuccess(TableInventory).BindFunc(func(e *core.RecordEvent) error {
+	PocketBase.OnRecordAfterUpdateSuccess(TableInventory).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == i.invItemRecord.Id {
 			i.invItemRecord.SetProxyRecord(e.Record)
 		}
@@ -116,7 +114,7 @@ func (i *ItemBase) Use() error {
 	}
 
 	i.SetIsActive(true)
-	return i.locator.PocketBase().Save(i.invItemRecord)
+	return PocketBase.Save(i.invItemRecord)
 }
 
 func (i *ItemBase) Drop() error {
@@ -124,5 +122,5 @@ func (i *ItemBase) Drop() error {
 		return nil
 	}
 
-	return i.locator.PocketBase().Delete(i.invItemRecord)
+	return PocketBase.Delete(i.invItemRecord)
 }

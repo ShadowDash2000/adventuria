@@ -27,7 +27,7 @@ func Route(game adventuria.Game, router *router.Router[*core.RequestEvent]) {
 	ga.GET("/timer/left", handlers.GetTimeLeftHandler)
 
 	gab := ga.Group("")
-	gab.Bind(game.Settings().CheckActionsBlock())
+	gab.Bind(adventuria.GameSettings.CheckActionsBlock())
 
 	gab.POST("/roll", handlers.RollHandler)
 

@@ -15,7 +15,7 @@ func (a *RollItemAction) CanDo() bool {
 }
 
 func (a *RollItemAction) Do(_ adventuria.ActionRequest) (*adventuria.ActionResult, error) {
-	itemsCol, err := a.Locator().Collections().Get(adventuria.TableItems)
+	itemsCol, err := adventuria.GameCollections.Get(adventuria.TableItems)
 	if err != nil {
 		return nil, err
 	}
@@ -24,7 +24,7 @@ func (a *RollItemAction) Do(_ adventuria.ActionRequest) (*adventuria.ActionResul
 		Collection: itemsCol,
 	}
 
-	items := a.Locator().Items().GetAllRollable()
+	items := adventuria.GameItems.GetAllRollable()
 	if len(items) == 0 {
 		return nil, errors.New("items not found")
 	}
@@ -38,7 +38,7 @@ func (a *RollItemAction) Do(_ adventuria.ActionRequest) (*adventuria.ActionResul
 
 	res.WinnerId = helper.RandomItemFromSlice(items).ID()
 
-	err = a.User().Inventory().MustAddItemById(res.WinnerId)
+	_, err = a.User().Inventory().MustAddItemById(res.WinnerId)
 	if err != nil {
 		return nil, err
 	}

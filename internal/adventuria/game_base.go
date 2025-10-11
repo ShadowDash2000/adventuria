@@ -13,12 +13,8 @@ import (
 )
 
 type BaseGame struct {
-	users       *cache.MemoryCache[string, User]
-	pb          *pocketbase.PocketBase
-	cells       *Cells
-	items       *Items
-	collections *collections.Collections
-	settings    *Settings
+	users *cache.MemoryCache[string, User]
+	pb    *pocketbase.PocketBase
 }
 
 func New() Game {
@@ -27,6 +23,7 @@ func New() Game {
 	}
 
 	game.pb = pocketbase.New()
+	PocketBase = game.pb
 
 	game.OnServe(func(se *core.ServeEvent) error {
 		game.Init()
@@ -44,31 +41,11 @@ func (g *BaseGame) Start() error {
 	return g.pb.Start()
 }
 
-func (g *BaseGame) PocketBase() *pocketbase.PocketBase {
-	return g.pb
-}
-
-func (g *BaseGame) Cells() *Cells {
-	return g.cells
-}
-
-func (g *BaseGame) Items() *Items {
-	return g.items
-}
-
-func (g *BaseGame) Collections() *collections.Collections {
-	return g.collections
-}
-
-func (g *BaseGame) Settings() *Settings {
-	return g.settings
-}
-
 func (g *BaseGame) Init() {
-	g.cells = NewCells(g)
-	g.items = NewItems(g)
-	g.collections = collections.NewCollections(g.pb)
-	g.settings = NewSettings(g)
+	GameCells = NewCells()
+	GameItems = NewItems()
+	GameCollections = collections.NewCollections(PocketBase)
+	GameSettings = NewSettings()
 }
 
 func (g *BaseGame) GetUser(userId string) (User, error) {
@@ -77,7 +54,7 @@ func (g *BaseGame) GetUser(userId string) (User, error) {
 		return user, nil
 	}
 
-	user, err := NewUser(g, userId)
+	user, err := NewUser(userId)
 	if err != nil {
 		return nil, err
 	}
@@ -86,28 +63,20 @@ func (g *BaseGame) GetUser(userId string) (User, error) {
 	return user, nil
 }
 
-func (g *BaseGame) afterAction(user User) error {
-	err := user.OnAfterAction().Trigger(&OnAfterActionEvent{})
-	if err != nil {
-		return err
+func (g *BaseGame) GetUserByName(name string) (User, error) {
+	for _, user := range g.users.GetAll() {
+		if name == user.Name() {
+			return user, nil
+		}
 	}
 
-	err = user.LastAction().Save()
+	user, err := NewUserFromName(name)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	err = user.save()
-	if err != nil {
-		return err
-	}
-
-	/*	_, err = user.Inventory().ApplyEffectsByEvent(event)
-		if err != nil {
-			return err
-		}*/
-
-	return nil
+	g.users.Set(user.ID(), user)
+	return user, nil
 }
 
 func (g *BaseGame) GetNextStepType(userId string) (string, error) {
@@ -125,7 +94,7 @@ func (g *BaseGame) DoAction(actionType, userId string, req ActionRequest) (*Acti
 		return nil, err
 	}
 
-	action, err := NewActionFromType(g, user, actionType)
+	action, err := NewActionFromType(user, actionType)
 	if err != nil {
 		return nil, err
 	}
@@ -158,7 +127,7 @@ func (g *BaseGame) DoAction(actionType, userId string, req ActionRequest) (*Acti
 }
 
 func (g *BaseGame) UpdateAction(actionId string, comment string, userId string) error {
-	actionsCollection, err := g.collections.Get(TableActions)
+	actionsCollection, err := GameCollections.Get(TableActions)
 	if err != nil {
 		return err
 	}
@@ -185,7 +154,7 @@ func (g *BaseGame) UpdateAction(actionId string, comment string, userId string) 
 		return err
 	}
 
-	action := NewActionFromRecord(g, record)
+	action := NewActionFromRecord(record)
 	action.SetComment(comment)
 
 	return action.Save()
@@ -219,7 +188,12 @@ func (g *BaseGame) UseItem(userId, itemId string) error {
 		return err
 	}
 
-	err = g.afterAction(user)
+	err = user.OnAfterAction().Trigger(&OnAfterActionEvent{})
+	if err != nil {
+		return err
+	}
+
+	err = user.save()
 	if err != nil {
 		return err
 	}
@@ -265,5 +239,5 @@ func (g *BaseGame) GetTimeLeft(userId string) (time.Duration, bool, types.DateTi
 		return 0, false, types.DateTime{}, err
 	}
 
-	return user.Timer().GetTimeLeft(), user.Timer().IsActive(), g.settings.NextTimerResetDate(), nil
+	return user.Timer().GetTimeLeft(), user.Timer().IsActive(), GameSettings.NextTimerResetDate(), nil
 }

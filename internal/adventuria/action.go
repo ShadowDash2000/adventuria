@@ -19,7 +19,6 @@ type Action interface {
 	core.RecordProxy
 	Save() error
 	User() User
-	Locator() ServiceLocator
 	UserId() string
 	CellId() string
 	SetCell(string)
@@ -41,7 +40,6 @@ type Action interface {
 	Do(ActionRequest) (*ActionResult, error)
 
 	setUser(user User)
-	setLocator(locator ServiceLocator)
 }
 
 type ActionRequest struct {

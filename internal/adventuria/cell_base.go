@@ -10,7 +10,7 @@ type CellBase struct {
 	core.BaseRecordProxy
 }
 
-func NewCellFromRecord(locator ServiceLocator, record *core.Record) (Cell, error) {
+func NewCellFromRecord(record *core.Record) (Cell, error) {
 	t := CellType(record.GetString("type"))
 
 	cellCreator, ok := CellsList[t]
@@ -18,7 +18,7 @@ func NewCellFromRecord(locator ServiceLocator, record *core.Record) (Cell, error
 		return nil, fmt.Errorf("unknown cell type: %s", t)
 	}
 
-	cell := cellCreator(locator)
+	cell := cellCreator()
 	cell.SetProxyRecord(record)
 
 	return cell, nil

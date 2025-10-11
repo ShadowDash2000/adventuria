@@ -12,17 +12,16 @@ import (
 
 type TimerBase struct {
 	core.BaseRecordProxy
-	locator SettingsLocator
 }
 
-func NewBaseTimerFromRecord(locator SettingsLocator, record *core.Record) Timer {
-	timer := &TimerBase{locator: locator}
+func NewBaseTimerFromRecord(record *core.Record) Timer {
+	timer := &TimerBase{}
 	timer.SetProxyRecord(record)
 	return timer
 }
 
-func NewTimer(locator SettingsLocator, userId string) (Timer, error) {
-	record, err := locator.PocketBase().FindFirstRecordByFilter(
+func NewTimer(userId string) (Timer, error) {
+	record, err := PocketBase.FindFirstRecordByFilter(
 		TableTimers,
 		"user.id = {:userId}",
 		dbx.Params{"userId": userId},
@@ -31,11 +30,11 @@ func NewTimer(locator SettingsLocator, userId string) (Timer, error) {
 		return nil, err
 	}
 
-	timer := &TimerBase{locator: locator}
+	timer := &TimerBase{}
 	if record != nil {
 		timer.SetProxyRecord(record)
 	} else {
-		timer, err = CreateTimer(locator, userId, locator.Settings().TimerTimeLimit())
+		timer, err = CreateTimer(userId, GameSettings.TimerTimeLimit())
 		if err != nil {
 			return nil, err
 		}
@@ -47,15 +46,15 @@ func NewTimer(locator SettingsLocator, userId string) (Timer, error) {
 }
 
 func (t *TimerBase) bindHooks() {
-	t.locator.PocketBase().OnRecordAfterUpdateSuccess(TableTimers).BindFunc(func(e *core.RecordEvent) error {
+	PocketBase.OnRecordAfterUpdateSuccess(TableTimers).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.GetString("user") == t.UserId() {
 			t.SetProxyRecord(e.Record)
 		}
 		return e.Next()
 	})
-	t.locator.PocketBase().OnRecordAfterDeleteSuccess(TableTimers).BindFunc(func(e *core.RecordEvent) error {
+	PocketBase.OnRecordAfterDeleteSuccess(TableTimers).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == t.Id {
-			timersCollection, _ := t.locator.Collections().Get(TableTimers)
+			timersCollection, _ := GameCollections.Get(TableTimers)
 			t.SetProxyRecord(core.NewRecord(timersCollection))
 		}
 		return e.Next()
@@ -73,7 +72,7 @@ func (t *TimerBase) Start() error {
 	t.SetIsActive(true)
 	t.SetStartTime(types.NowDateTime())
 
-	return t.locator.PocketBase().Save(t)
+	return PocketBase.Save(t)
 }
 
 func (t *TimerBase) Stop() error {
@@ -85,7 +84,7 @@ func (t *TimerBase) Stop() error {
 	timePassed := t.TimePassed() + time.Now().Sub(t.StartTime().Time())
 	t.SetTimePassed(timePassed)
 
-	return t.locator.PocketBase().Save(t)
+	return PocketBase.Save(t)
 }
 
 // GetTimeLeft returns time.Duration in seconds
@@ -143,26 +142,26 @@ func (t *TimerBase) SetStartTime(time types.DateTime) {
 
 func (t *TimerBase) AddSecondsTimeLimit(secs int) error {
 	t.SetTimeLimit(t.TimeLimit() + (time.Duration(secs) * time.Second))
-	return t.locator.PocketBase().Save(t)
+	return PocketBase.Save(t)
 }
 
 func (t *TimerBase) Save() error {
-	return t.locator.PocketBase().Save(t)
+	return PocketBase.Save(t)
 }
 
-func CreateTimer(locator SettingsLocator, userId string, timeLimit int) (*TimerBase, error) {
-	collection, err := locator.Collections().Get(TableTimers)
+func CreateTimer(userId string, timeLimit int) (*TimerBase, error) {
+	collection, err := GameCollections.Get(TableTimers)
 	if err != nil {
 		return nil, err
 	}
 
-	timer := &TimerBase{locator: locator}
+	timer := &TimerBase{}
 	timer.SetProxyRecord(core.NewRecord(collection))
 	timer.Set("user", userId)
 	timer.Set("timeLimit", timeLimit)
 	timer.Set("timePassed", 0)
 	timer.Set("isActive", false)
-	err = locator.PocketBase().Save(timer)
+	err = PocketBase.Save(timer)
 	if err != nil {
 		return nil, err
 	}
@@ -170,14 +169,14 @@ func CreateTimer(locator SettingsLocator, userId string, timeLimit int) (*TimerB
 	return timer, nil
 }
 
-func ResetAllTimers(locator SettingsLocator, timeLimit int, limitExceedPenalty int) error {
-	records, err := locator.PocketBase().FindAllRecords(TableTimers)
+func ResetAllTimers(timeLimit int, limitExceedPenalty int) error {
+	records, err := PocketBase.FindAllRecords(TableTimers)
 	if err != nil {
 		return err
 	}
 
 	for _, record := range records {
-		timer := NewBaseTimerFromRecord(locator, record)
+		timer := NewBaseTimerFromRecord(record)
 
 		timePassed := timer.TimePassed()
 		if timer.IsActive() {

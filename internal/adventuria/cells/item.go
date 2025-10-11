@@ -7,7 +7,7 @@ type CellItem struct {
 }
 
 func NewCellItem() adventuria.CellCreator {
-	return func(_ adventuria.ServiceLocator) adventuria.Cell {
+	return func() adventuria.Cell {
 		return &CellItem{
 			adventuria.CellBase{},
 		}

@@ -9,11 +9,10 @@ type CellBigWin struct {
 }
 
 func NewCellBigWin() adventuria.CellCreator {
-	return func(locator adventuria.ServiceLocator) adventuria.Cell {
+	return func() adventuria.Cell {
 		return &CellBigWin{
 			CellPreset: CellPreset{
 				CellBase: adventuria.CellBase{},
-				locator:  locator,
 			},
 		}
 	}

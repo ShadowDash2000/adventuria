@@ -37,7 +37,7 @@ func (a *DropAction) Do(req adventuria.ActionRequest) (*adventuria.ActionResult,
 	action.SetComment(req.Comment)
 
 	if !onBeforeDropEvent.IsSafeDrop && !currentCell.IsSafeDrop() {
-		a.User().SetPoints(a.User().Points() + a.Locator().Settings().PointsForDrop())
+		a.User().SetPoints(a.User().Points() + adventuria.GameSettings.PointsForDrop())
 		a.User().SetDropsInARow(a.User().DropsInARow() + 1)
 
 		if !a.User().IsSafeDrop() {

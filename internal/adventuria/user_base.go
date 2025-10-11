@@ -5,12 +5,12 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
 )
 
 type UserBase struct {
 	core.BaseRecordProxy
-	locator    ServiceLocator
 	lastAction Action
 	inventory  Inventory
 	timer      Timer
@@ -37,20 +37,19 @@ type UserBase struct {
 	onBeforeCurrentCell *event.Hook[*OnBeforeCurrentCellEvent]
 }
 
-func NewUser(locator ServiceLocator, userId string) (User, error) {
+func NewUser(userId string) (User, error) {
 	if userId == "" {
 		return nil, errors.New("empty user id")
 	}
 
 	var err error
-	timer, err := NewTimer(locator, userId)
+	timer, err := NewTimer(userId)
 	if err != nil {
 		return nil, err
 	}
 
 	u := &UserBase{
-		locator: locator,
-		timer:   timer,
+		timer: timer,
 	}
 
 	err = u.fetchUser(userId)
@@ -58,23 +57,42 @@ func NewUser(locator ServiceLocator, userId string) (User, error) {
 		return nil, err
 	}
 
-	u.lastAction, err = NewLastUserAction(u.locator, userId)
+	u.lastAction, err = NewLastUserAction(userId)
 	if err != nil {
 		return nil, err
 	}
 
-	u.inventory, err = NewInventory(u.locator, u, u.MaxInventorySlots())
+	u.inventory, err = NewInventory(u, u.MaxInventorySlots())
 	if err != nil {
 		return nil, err
 	}
 
 	u.bindHooks()
+	u.initHooks()
 
 	return u, nil
 }
 
+func NewUserFromName(name string) (User, error) {
+	record, err := PocketBase.FindRecordsByFilter(
+		TableUsers,
+		"name = {:name}",
+		"",
+		1,
+		0,
+		dbx.Params{
+			"name": name,
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return NewUser(record[0].Id)
+}
+
 func (u *UserBase) bindHooks() {
-	u.locator.PocketBase().OnRecordAfterUpdateSuccess(TableUsers).BindFunc(func(e *core.RecordEvent) error {
+	PocketBase.OnRecordAfterUpdateSuccess(TableUsers).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == u.Id {
 			u.SetProxyRecord(e.Record)
 		}
@@ -91,12 +109,11 @@ func (u *UserBase) bindHooks() {
 
 func (u *UserBase) SetProxyRecord(record *core.Record) {
 	u.BaseRecordProxy.SetProxyRecord(record)
-	u.inventory.SetMaxSlots(u.MaxInventorySlots())
 	u.UnmarshalJSONField("stats", &u.stats)
 }
 
 func (u *UserBase) fetchUser(userId string) error {
-	user, err := u.locator.PocketBase().FindRecordById(TableUsers, userId)
+	user, err := PocketBase.FindRecordById(TableUsers, userId)
 	if err != nil {
 		return err
 	}
@@ -110,6 +127,10 @@ func (u *UserBase) ID() string {
 	return u.Id
 }
 
+func (u *UserBase) Name() string {
+	return u.GetString("name")
+}
+
 func (u *UserBase) SetCantDrop(b bool) {
 	u.Set("cantDrop", b)
 }
@@ -119,7 +140,7 @@ func (u *UserBase) CanDrop() bool {
 }
 
 func (u *UserBase) IsSafeDrop() bool {
-	return u.DropsInARow() < u.locator.Settings().DropsToJail()
+	return u.DropsInARow() < GameSettings.DropsToJail()
 }
 
 func (u *UserBase) IsInJail() bool {
@@ -131,8 +152,8 @@ func (u *UserBase) SetIsInJail(b bool) {
 }
 
 func (u *UserBase) CurrentCell() (Cell, bool) {
-	currentCellNum := u.CellsPassed() % u.locator.Cells().Count()
-	cell, ok := u.locator.Cells().GetByOrder(currentCellNum)
+	currentCellNum := u.CellsPassed() % GameCells.Count()
+	cell, ok := GameCells.GetByOrder(currentCellNum)
 
 	return cell, ok
 }
@@ -180,13 +201,13 @@ func (u *UserBase) SetItemWheelsCount(itemWheelsCount int) {
 func (u *UserBase) save() error {
 	u.Set("stats", u.stats)
 
-	return u.locator.PocketBase().Save(u)
+	return PocketBase.Save(u)
 }
 
 func (u *UserBase) Move(steps int) (*OnAfterMoveEvent, error) {
 	cellsPassed := u.CellsPassed()
-	currentCellNum := (cellsPassed + steps) % u.locator.Cells().Count()
-	currentCell, _ := u.locator.Cells().GetByOrder(currentCellNum)
+	currentCellNum := (cellsPassed + steps) % GameCells.Count()
+	currentCell, _ := GameCells.GetByOrder(currentCellNum)
 
 	u.SetCellsPassed(cellsPassed + steps)
 
@@ -195,7 +216,7 @@ func (u *UserBase) Move(steps int) (*OnAfterMoveEvent, error) {
 		return nil, err
 	}
 
-	action, err := NewActionFromType(u.locator, u, ActionTypeRollDice)
+	action, err := NewActionFromType(u, ActionTypeRollDice)
 	if err != nil {
 		return nil, err
 	}
@@ -206,8 +227,8 @@ func (u *UserBase) Move(steps int) (*OnAfterMoveEvent, error) {
 		return nil, err
 	}
 
-	prevCellNum := cellsPassed % u.locator.Cells().Count()
-	lapsPassed := (prevCellNum + steps) / u.locator.Cells().Count()
+	prevCellNum := cellsPassed % GameCells.Count()
+	lapsPassed := (prevCellNum + steps) / GameCells.Count()
 	// Check if we're not moving backwards and passed new lap(-s)
 	if steps > 0 && lapsPassed > 0 {
 		err = u.OnNewLap().Trigger(&OnNewLapEvent{
@@ -234,12 +255,12 @@ func (u *UserBase) Move(steps int) (*OnAfterMoveEvent, error) {
 }
 
 func (u *UserBase) MoveToCellType(cellType CellType) error {
-	cellPos, ok := u.locator.Cells().GetOrderByType(cellType)
+	cellPos, ok := GameCells.GetOrderByType(cellType)
 	if !ok {
 		return errors.New("cell not found")
 	}
 
-	currentCellNum := u.CellsPassed() % u.locator.Cells().Count()
+	currentCellNum := u.CellsPassed() % GameCells.Count()
 
 	_, err := u.Move(cellPos - currentCellNum)
 	if err != nil {
@@ -250,12 +271,12 @@ func (u *UserBase) MoveToCellType(cellType CellType) error {
 }
 
 func (u *UserBase) MoveToCellId(cellId string) error {
-	cellPos, ok := u.locator.Cells().GetOrderById(cellId)
+	cellPos, ok := GameCells.GetOrderById(cellId)
 	if !ok {
 		return fmt.Errorf("cell %s not found", cellId)
 	}
 
-	currentCellNum := u.CellsPassed() % u.locator.Cells().Count()
+	currentCellNum := u.CellsPassed() % GameCells.Count()
 
 	_, err := u.Move(cellPos - currentCellNum)
 	if err != nil {
@@ -290,6 +311,28 @@ func (u *UserBase) Timer() Timer {
 
 func (u *UserBase) Stats() *Stats {
 	return u.stats
+}
+
+func (u *UserBase) initHooks() {
+	u.onAfterChooseGame = &event.Hook[*OnAfterChooseGameEvent]{}
+	u.onAfterReroll = &event.Hook[*OnAfterRerollEvent]{}
+	u.onBeforeDrop = &event.Hook[*OnBeforeDropEvent]{}
+	u.onAfterDrop = &event.Hook[*OnAfterDropEvent]{}
+	u.onAfterGoToJail = &event.Hook[*OnAfterGoToJailEvent]{}
+	u.onBeforeDone = &event.Hook[*OnBeforeDoneEvent]{}
+	u.onAfterDone = &event.Hook[*OnAfterDoneEvent]{}
+	u.onBeforeRoll = &event.Hook[*OnBeforeRollEvent]{}
+	u.onBeforeRollMove = &event.Hook[*OnBeforeRollMoveEvent]{}
+	u.onAfterRoll = &event.Hook[*OnAfterRollEvent]{}
+	u.onBeforeWheelRoll = &event.Hook[*OnBeforeWheelRollEvent]{}
+	u.onAfterWheelRoll = &event.Hook[*OnAfterWheelRollEvent]{}
+	u.onAfterItemRoll = &event.Hook[*OnAfterItemRollEvent]{}
+	u.onAfterItemUse = &event.Hook[*OnAfterItemUseEvent]{}
+	u.onNewLap = &event.Hook[*OnNewLapEvent]{}
+	u.onBeforeNextStep = &event.Hook[*OnBeforeNextStepEvent]{}
+	u.onAfterAction = &event.Hook[*OnAfterActionEvent]{}
+	u.onAfterMove = &event.Hook[*OnAfterMoveEvent]{}
+	u.onBeforeCurrentCell = &event.Hook[*OnBeforeCurrentCellEvent]{}
 }
 
 func (u *UserBase) OnAfterChooseGame() *event.Hook[*OnAfterChooseGameEvent] {

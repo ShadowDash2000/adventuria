@@ -7,7 +7,7 @@ type CellStart struct {
 }
 
 func NewCellStart() adventuria.CellCreator {
-	return func(_ adventuria.ServiceLocator) adventuria.Cell {
+	return func() adventuria.Cell {
 		return &CellStart{
 			adventuria.CellBase{},
 		}

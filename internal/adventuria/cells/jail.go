@@ -8,14 +8,12 @@ import (
 
 type CellJail struct {
 	adventuria.CellBase
-	locator adventuria.ServiceLocator
 }
 
 func NewCellJail() adventuria.CellCreator {
-	return func(locator adventuria.ServiceLocator) adventuria.Cell {
+	return func() adventuria.Cell {
 		return &CellJail{
 			CellBase: adventuria.CellBase{},
-			locator:  locator,
 		}
 	}
 }
@@ -43,7 +41,7 @@ func (c *CellJail) NextStep(user adventuria.User) string {
 }
 
 func (c *CellJail) Roll(_ adventuria.User) (*adventuria.WheelRollResult, error) {
-	cellsCol, err := c.locator.Collections().Get(adventuria.TableCells)
+	cellsCol, err := adventuria.GameCollections.Get(adventuria.TableCells)
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +50,7 @@ func (c *CellJail) Roll(_ adventuria.User) (*adventuria.WheelRollResult, error) 
 		Collection: cellsCol,
 	}
 
-	cells := c.locator.Cells().GetAllByType(CellTypeGame)
+	cells := adventuria.GameCells.GetAllByType(CellTypeGame)
 
 	if len(cells) == 0 {
 		return nil, errors.New("game cells not found")
@@ -75,7 +73,7 @@ func (c *CellJail) Roll(_ adventuria.User) (*adventuria.WheelRollResult, error) 
 
 func (c *CellJail) OnCellReached(user adventuria.User) error {
 	if user.LastAction().Type() == adventuria.ActionTypeDrop &&
-		user.DropsInARow() >= c.locator.Settings().DropsToJail() {
+		user.DropsInARow() >= adventuria.GameSettings.DropsToJail() {
 		user.SetIsInJail(true)
 	}
 	return nil

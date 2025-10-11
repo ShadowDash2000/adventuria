@@ -11,7 +11,6 @@ import (
 )
 
 type Cells struct {
-	locator       ServiceLocator
 	cells         *cache.MemoryCache[string, Cell]
 	cellsByCode   *cache.MemoryCache[string, Cell]
 	cellsOrder    []string
@@ -19,9 +18,8 @@ type Cells struct {
 	mx            sync.Mutex
 }
 
-func NewCells(locator ServiceLocator) *Cells {
+func NewCells() *Cells {
 	cells := &Cells{
-		locator:     locator,
 		cells:       cache.NewMemoryCache[string, Cell](0, true),
 		cellsByCode: cache.NewMemoryCache[string, Cell](0, true),
 	}
@@ -33,21 +31,21 @@ func NewCells(locator ServiceLocator) *Cells {
 }
 
 func (c *Cells) bindHooks() {
-	c.locator.PocketBase().OnRecordAfterCreateSuccess(TableCells).BindFunc(func(e *core.RecordEvent) error {
+	PocketBase.OnRecordAfterCreateSuccess(TableCells).BindFunc(func(e *core.RecordEvent) error {
 		err := c.add(e.Record)
 		if err != nil {
 			return err
 		}
 		return e.Next()
 	})
-	c.locator.PocketBase().OnRecordAfterUpdateSuccess(TableCells).BindFunc(func(e *core.RecordEvent) error {
+	PocketBase.OnRecordAfterUpdateSuccess(TableCells).BindFunc(func(e *core.RecordEvent) error {
 		err := c.add(e.Record)
 		if err != nil {
 			return err
 		}
 		return e.Next()
 	})
-	c.locator.PocketBase().OnRecordAfterDeleteSuccess(TableCells).BindFunc(func(e *core.RecordEvent) error {
+	PocketBase.OnRecordAfterDeleteSuccess(TableCells).BindFunc(func(e *core.RecordEvent) error {
 		c.delete(e.Record)
 		return e.Next()
 	})
@@ -57,7 +55,7 @@ func (c *Cells) fetch() error {
 	c.cells.Clear()
 	c.cellsByCode.Clear()
 
-	cells, err := c.locator.PocketBase().FindRecordsByFilter(
+	cells, err := PocketBase.FindRecordsByFilter(
 		TableCells,
 		"",
 		"sort",
@@ -77,7 +75,7 @@ func (c *Cells) fetch() error {
 }
 
 func (c *Cells) add(record *core.Record) error {
-	cell, err := NewCellFromRecord(c.locator, record)
+	cell, err := NewCellFromRecord(record)
 	if err != nil {
 		return err
 	}
@@ -135,6 +133,10 @@ func (c *Cells) getUnactiveCellsIds() []string {
 // GetByOrder
 // Note: cells order starts from 0
 func (c *Cells) GetByOrder(order int) (Cell, bool) {
+	if order < 0 || order >= len(c.cellsOrder) {
+		return nil, false
+	}
+
 	if cellId := c.cellsOrder[order]; cellId != "" {
 		return c.cells.Get(cellId)
 	}

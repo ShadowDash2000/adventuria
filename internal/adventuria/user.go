@@ -11,6 +11,7 @@ type User interface {
 	UserEvent
 
 	ID() string
+	Name() string
 	SetCantDrop(b bool)
 	CanDrop() bool
 	IsSafeDrop() bool

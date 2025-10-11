@@ -1,6 +1,7 @@
 package adventuria
 
 import (
+	"adventuria/pkg/collections"
 	"time"
 
 	"github.com/pocketbase/pocketbase/core"
@@ -8,13 +9,12 @@ import (
 )
 
 type Game interface {
-	ServiceLocator
-
 	OnServe(fn func(se *core.ServeEvent) error)
 	Start() error
 
 	Init()
 	GetUser(userId string) (User, error)
+	GetUserByName(name string) (User, error)
 	GetNextStepType(userId string) (string, error)
 	DoAction(actionType, userId string, req ActionRequest) (*ActionResult, error)
 	UpdateAction(actionId string, comment string, userId string) error
@@ -25,3 +25,11 @@ type Game interface {
 	StopTimer(userId string) error
 	GetTimeLeft(userId string) (time.Duration, bool, types.DateTime, error)
 }
+
+var (
+	PocketBase      core.App
+	GameCells       *Cells
+	GameItems       *Items
+	GameCollections *collections.Collections
+	GameSettings    *Settings
+)
