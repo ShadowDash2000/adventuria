@@ -22,81 +22,211 @@ func NewParserController() *ParserController {
 	}
 
 	return p
-
-	//adventuria.PocketBase.Cron().MustAdd("games_parser", "0 3 * * 0", p.ParseGames)
 }
 
 func (p *ParserController) Parse() {
-	p.parseCompanies()
-	p.parsePlatforms()
-	p.parseGames()
+	if err := p.parseCompanies(); err != nil {
+		adventuria.PocketBase.Logger().Error("Failed to parse companies", "error", err)
+		return
+	}
+	if err := p.parsePlatforms(); err != nil {
+		adventuria.PocketBase.Logger().Error("Failed to parse platforms", "error", err)
+		return
+	}
+	if err := p.parseGames(); err != nil {
+		adventuria.PocketBase.Logger().Error("Failed to parse games", "error", err)
+	}
 }
 
-func (p *ParserController) parseGames() {
+func (p *ParserController) parseGames() error {
 	ch, err := p.parser.ParseGames()
 	if err != nil {
-		// TODO error handling
+		return err
 	}
 
-	for games := range ch {
-		for _, game := range games {
-			// TODO save to PocketBase
-			_ = game
+	collection, err := adventuria.GameCollections.Get(adventuria.CollectionGames)
+	if err != nil {
+		return err
+	}
+
+	for gamesIGDB := range ch {
+		records := make([]games.UpdatableRecord, len(gamesIGDB))
+		for i, game := range gamesIGDB {
+			record := core.NewRecord(collection)
+
+			gameRecord := games.NewGameFromRecord(record)
+			gameRecord.SetIdDb(game.IdDb)
+			gameRecord.SetName(game.Name)
+			gameRecord.SetReleaseDate(game.ReleaseDate)
+			gameRecord.SetChecksum(game.Checksum)
+
+			platformIds, err := p.collectionReferenceToIds(game.Platforms)
+			if err != nil {
+				return err
+			}
+			gameRecord.SetPlatforms(platformIds)
+
+			companyIds, err := p.collectionReferenceToIds(game.Companies)
+			if err != nil {
+				return err
+			}
+			gameRecord.SetCompanies(companyIds)
+
+			records[i] = gameRecord
+		}
+
+		err = p.batchUpdate(records)
+		if err != nil {
+			return err
 		}
 	}
+
+	return nil
 }
 
-func (p *ParserController) parsePlatforms() {
+func (p *ParserController) parsePlatforms() error {
 	ch, err := p.parser.ParsePlatforms()
 	if err != nil {
-		// TODO error handling
+		return err
+	}
+
+	collection, err := adventuria.GameCollections.Get(adventuria.CollectionPlatforms)
+	if err != nil {
+		return err
 	}
 
 	for platforms := range ch {
-		for _, platform := range platforms {
-			// TODO save to PocketBase
-			_ = platform
+		records := make([]games.UpdatableRecord, len(platforms))
+		for i, platform := range platforms {
+			record := core.NewRecord(collection)
+
+			platformRecord := games.NewPlatformFromRecord(record)
+			platformRecord.SetIdDb(platform.IdDb)
+			platformRecord.SetName(platform.Name)
+			platformRecord.SetChecksum(platform.Checksum)
+
+			records[i] = platformRecord
+		}
+
+		err = p.batchUpdate(records)
+		if err != nil {
+			return err
 		}
 	}
+
+	return nil
 }
 
-func (p *ParserController) parseCompanies() {
+func (p *ParserController) parseCompanies() error {
 	ch, err := p.parser.ParseCompanies()
 	if err != nil {
-		// TODO error handling
+		return err
+	}
+
+	collection, err := adventuria.GameCollections.Get(adventuria.CollectionCompanies)
+	if err != nil {
+		return err
 	}
 
 	for companies := range ch {
-		for _, company := range companies {
-			// TODO save to PocketBase
-			_ = company
+		records := make([]games.UpdatableRecord, len(companies))
+		for i, company := range companies {
+			record := core.NewRecord(collection)
+
+			companyRecord := games.NewCompanyFromRecord(record)
+			companyRecord.SetIdDb(company.IdDb)
+			companyRecord.SetName(company.Name)
+			companyRecord.SetChecksum(company.Checksum)
+
+			records[i] = companyRecord
+		}
+
+		err = p.batchUpdate(records)
+		if err != nil {
+			return err
 		}
 	}
+
+	return nil
 }
 
-func (p *ParserController) platformsToIds(platformIdsDb []uint64) ([]string, error) {
-	col, err := adventuria.GameCollections.Get(adventuria.CollectionPlatforms)
+func (p *ParserController) batchUpdate(records []games.UpdatableRecord) error {
+	checksums, err := p.obtainChecksums(records)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	records := make([]*core.Record, len(platformIdsDb))
-	err = adventuria.PocketBase.
-		RecordQuery(col).
+	for _, record := range records {
+		if checksum, ok := checksums[int(record.IdDb())]; ok {
+			if checksum == record.Checksum() {
+				continue
+			}
+		}
+
+		err = adventuria.PocketBase.Save(record.ProxyRecord())
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (p *ParserController) obtainChecksums(updatables []games.UpdatableRecord) (map[int]string, error) {
+	if len(updatables) == 0 {
+		return nil, nil
+	}
+
+	idsDb := make([]any, len(updatables))
+	for i, updatable := range updatables {
+		idsDb[i] = int(updatable.IdDb())
+	}
+
+	var records []*core.Record
+	err := adventuria.PocketBase.
+		RecordQuery(updatables[0].ProxyRecord().Collection()).
 		Where(
-			dbx.Or(
-				dbx.HashExp{"igdb_id": platformIdsDb},
-			),
+			dbx.In("id_db", idsDb...),
 		).
 		All(&records)
 	if err != nil {
 		return nil, err
 	}
 
-	platformIds := make([]string, len(records))
-	for i, record := range records {
-		platformIds[i] = record.Id
+	checksums := make(map[int]string, len(records))
+	for _, record := range records {
+		checksums[record.GetInt("id_db")] = record.GetString("checksum")
 	}
 
-	return platformIds, nil
+	return checksums, nil
+}
+
+func (p *ParserController) collectionReferenceToIds(reference games.CollectionReference) ([]string, error) {
+	col, err := adventuria.GameCollections.Get(reference.Collection)
+	if err != nil {
+		return nil, err
+	}
+
+	idsDb := make([]any, len(reference.Ids))
+	for i, id := range reference.Ids {
+		idsDb[i] = int(id)
+	}
+
+	records := make([]*core.Record, len(idsDb))
+	err = adventuria.PocketBase.
+		RecordQuery(col).
+		Where(
+			dbx.In("id_db", idsDb...),
+		).
+		All(&records)
+	if err != nil {
+		return nil, err
+	}
+
+	ids := make([]string, len(records))
+	for i, record := range records {
+		ids[i] = record.Id
+	}
+
+	return ids, nil
 }

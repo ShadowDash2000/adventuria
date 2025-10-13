@@ -12,13 +12,11 @@ type Platform struct {
 
 type PlatformRecord interface {
 	core.RecordProxy
+	UpdatableRecord
 
 	ID() string
 	IdDb() uint64
-	SetIdDb(int)
+	SetIdDb(uint64)
 	Name() string
 	SetName(string)
-
-	Checksum() string
-	SetChecksum(string)
 }

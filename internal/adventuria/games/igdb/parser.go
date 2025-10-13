@@ -1,6 +1,7 @@
 package igdb
 
 import (
+	"adventuria/internal/adventuria"
 	"adventuria/internal/adventuria/games"
 	"fmt"
 
@@ -46,12 +47,12 @@ func (p *Parser) ParsePlatforms() (chan []games.Platform, error) {
 			}
 
 			res := make([]games.Platform, len(platforms))
-			for _, platform := range platforms {
-				res = append(res, games.Platform{
-					IdDb:     platform.Id,
-					Name:     platform.Name,
-					Checksum: platform.Checksum,
-				})
+			for i, platform := range platforms {
+				res[i] = games.Platform{
+					IdDb:     platform.GetId(),
+					Name:     platform.GetName(),
+					Checksum: platform.GetChecksum(),
+				}
 			}
 
 			offset += limit
@@ -83,12 +84,12 @@ func (p *Parser) ParseCompanies() (chan []games.Company, error) {
 			}
 
 			res := make([]games.Company, len(companies))
-			for _, company := range companies {
-				res = append(res, games.Company{
-					IdDb:     company.Id,
-					Name:     company.Name,
-					Checksum: company.Checksum,
-				})
+			for i, company := range companies {
+				res[i] = games.Company{
+					IdDb:     company.GetId(),
+					Name:     company.GetName(),
+					Checksum: company.GetChecksum(),
+				}
 			}
 
 			offset += limit
@@ -130,24 +131,37 @@ func (p *Parser) ParseGames() (chan []games.Game, error) {
 			}
 
 			res := make([]games.Game, len(gamesIgdb))
-			for _, game := range gamesIgdb {
-				releaseDate, err := types.ParseDateTime(game.FirstReleaseDate.AsTime())
+			for i, game := range gamesIgdb {
+				releaseDate, err := types.ParseDateTime(game.GetFirstReleaseDate().AsTime())
 				if err != nil {
 					return
 				}
 
-				platforms := make([]uint64, len(game.Platforms))
-				for _, platform := range game.Platforms {
-					platforms = append(platforms, platform.Id)
+				platformIds := make([]uint64, len(game.GetPlatforms()))
+				for i, platform := range game.GetPlatforms() {
+					platformIds[i] = platform.Id
 				}
 
-				res = append(res, games.Game{
-					IdDb:        game.Id,
-					Name:        game.Name,
+				companyIds := make([]uint64, len(game.GetInvolvedCompanies()))
+				for i, company := range game.GetInvolvedCompanies() {
+					companyIds[i] = company.Id
+				}
+
+				res[i] = games.Game{
+					IdDb:        game.GetId(),
+					Name:        game.GetName(),
 					ReleaseDate: releaseDate,
-					Platforms:   platforms,
-					Checksum:    game.Checksum,
-				})
+					Platforms: games.CollectionReference{
+						Ids:        platformIds,
+						Collection: adventuria.CollectionPlatforms,
+					},
+					Companies: games.CollectionReference{
+						Ids:        companyIds,
+						Collection: adventuria.CollectionCompanies,
+					},
+					Cover:    game.GetCover().GetUrl(),
+					Checksum: game.GetChecksum(),
+				}
 			}
 
 			offset += limit

@@ -1,8 +1,6 @@
 package games
 
-import (
-	"github.com/pocketbase/pocketbase/core"
-)
+import "github.com/pocketbase/pocketbase/core"
 
 type Company struct {
 	IdDb     uint64
@@ -12,13 +10,11 @@ type Company struct {
 
 type CompanyRecord interface {
 	core.RecordProxy
+	UpdatableRecord
 
 	ID() string
 	IdDb() uint64
-	SetIdDb(int)
+	SetIdDb(uint64)
 	Name() string
 	SetName(string)
-
-	Checksum() string
-	SetChecksum(string)
 }

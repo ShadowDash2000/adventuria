@@ -1993,96 +1993,6 @@ func init() {
 						"type": "text"
 					},
 					{
-						"hidden": false,
-						"id": "autodate2990389176",
-						"name": "created",
-						"onCreate": true,
-						"onUpdate": false,
-						"presentable": false,
-						"system": false,
-						"type": "autodate"
-					},
-					{
-						"hidden": true,
-						"id": "autodate3332085495",
-						"name": "updated",
-						"onCreate": true,
-						"onUpdate": true,
-						"presentable": false,
-						"system": false,
-						"type": "autodate"
-					},
-					{
-						"cascadeDelete": false,
-						"collectionId": "_pb_users_auth_",
-						"hidden": false,
-						"id": "relation2375276105",
-						"maxSelect": 1,
-						"minSelect": 0,
-						"name": "user",
-						"presentable": false,
-						"required": true,
-						"system": false,
-						"type": "relation"
-					},
-					{
-						"hidden": false,
-						"id": "select2363381545",
-						"maxSelect": 1,
-						"name": "type",
-						"presentable": false,
-						"required": true,
-						"system": false,
-						"type": "select",
-						"values": [
-							"itemUse",
-							"itemDrop",
-							"itemEffectApplied"
-						]
-					},
-					{
-						"autogeneratePattern": "",
-						"hidden": false,
-						"id": "text494360628",
-						"max": 0,
-						"min": 0,
-						"name": "value",
-						"pattern": "",
-						"presentable": false,
-						"primaryKey": false,
-						"required": false,
-						"system": false,
-						"type": "text"
-					}
-				],
-				"id": "pbc_3615662572",
-				"indexes": [],
-				"listRule": null,
-				"name": "logs",
-				"system": false,
-				"type": "base",
-				"updateRule": null,
-				"viewRule": null
-			},
-			{
-				"createRule": null,
-				"deleteRule": null,
-				"fields": [
-					{
-						"autogeneratePattern": "[a-z0-9]{15}",
-						"hidden": false,
-						"id": "text3208210256",
-						"max": 15,
-						"min": 15,
-						"name": "id",
-						"pattern": "^[a-z0-9]+$",
-						"presentable": false,
-						"primaryKey": true,
-						"required": true,
-						"system": true,
-						"type": "text"
-					},
-					{
 						"hidden": true,
 						"id": "autodate2990389176",
 						"name": "created",
@@ -2427,7 +2337,7 @@ func init() {
 						"id": "number4063107981",
 						"max": null,
 						"min": null,
-						"name": "igdb_id",
+						"name": "id_db",
 						"onlyInt": true,
 						"presentable": false,
 						"required": true,
@@ -2461,21 +2371,11 @@ func init() {
 						"required": true,
 						"system": false,
 						"type": "text"
-					},
-					{
-						"hidden": false,
-						"id": "json2918445923",
-						"maxSize": 0,
-						"name": "data",
-						"presentable": false,
-						"required": true,
-						"system": false,
-						"type": "json"
 					}
 				],
 				"id": "pbc_1025546041",
 				"indexes": [
-					"CREATE UNIQUE INDEX ` + "`" + `idx_zjPBSkDWUI` + "`" + ` ON ` + "`" + `platforms` + "`" + ` (\n  ` + "`" + `igdb_id` + "`" + `,\n  ` + "`" + `name` + "`" + `\n)"
+					"CREATE UNIQUE INDEX ` + "`" + `idx_zjPBSkDWUI` + "`" + ` ON ` + "`" + `platforms` + "`" + ` (\n  ` + "`" + `id_db` + "`" + `,\n  ` + "`" + `name` + "`" + `\n)"
 				],
 				"listRule": null,
 				"name": "platforms",
@@ -2527,7 +2427,7 @@ func init() {
 						"id": "number4063107981",
 						"max": null,
 						"min": null,
-						"name": "igdb_id",
+						"name": "id_db",
 						"onlyInt": true,
 						"presentable": false,
 						"required": true,
@@ -2553,7 +2453,7 @@ func init() {
 						"id": "date1985597558",
 						"max": "",
 						"min": "",
-						"name": "firstReleaseDate",
+						"name": "release_date",
 						"presentable": false,
 						"required": true,
 						"system": false,
@@ -2568,7 +2468,7 @@ func init() {
 						"minSelect": 0,
 						"name": "platforms",
 						"presentable": false,
-						"required": true,
+						"required": false,
 						"system": false,
 						"type": "relation"
 					},
@@ -2585,21 +2485,11 @@ func init() {
 						"required": true,
 						"system": false,
 						"type": "text"
-					},
-					{
-						"hidden": false,
-						"id": "json2918445923",
-						"maxSize": 0,
-						"name": "data",
-						"presentable": false,
-						"required": true,
-						"system": false,
-						"type": "json"
 					}
 				],
 				"id": "pbc_2224754354",
 				"indexes": [
-					"CREATE UNIQUE INDEX ` + "`" + `idx_GK1ojyUpY9` + "`" + ` ON ` + "`" + `games` + "`" + ` (\n  ` + "`" + `igdb_id` + "`" + `,\n  ` + "`" + `name` + "`" + `\n)"
+					"CREATE UNIQUE INDEX ` + "`" + `idx_GK1ojyUpY9` + "`" + ` ON ` + "`" + `games` + "`" + ` (\n  ` + "`" + `id_db` + "`" + `,\n  ` + "`" + `name` + "`" + `\n)"
 				],
 				"listRule": null,
 				"name": "games",
@@ -2651,7 +2541,7 @@ func init() {
 						"id": "number4063107981",
 						"max": null,
 						"min": null,
-						"name": "igdb_id",
+						"name": "id_db",
 						"onlyInt": true,
 						"presentable": false,
 						"required": true,
@@ -2685,21 +2575,11 @@ func init() {
 						"required": true,
 						"system": false,
 						"type": "text"
-					},
-					{
-						"hidden": false,
-						"id": "json2918445923",
-						"maxSize": 0,
-						"name": "data",
-						"presentable": false,
-						"required": true,
-						"system": false,
-						"type": "json"
 					}
 				],
 				"id": "pbc_2833628128",
 				"indexes": [
-					"CREATE UNIQUE INDEX ` + "`" + `idx_vbAmX65ekn` + "`" + ` ON ` + "`" + `companies` + "`" + ` (` + "`" + `igdb_id` + "`" + `)"
+					"CREATE UNIQUE INDEX ` + "`" + `idx_vbAmX65ekn` + "`" + ` ON ` + "`" + `companies` + "`" + ` (` + "`" + `id_db` + "`" + `)"
 				],
 				"listRule": null,
 				"name": "companies",
