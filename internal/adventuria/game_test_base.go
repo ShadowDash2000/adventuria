@@ -81,7 +81,7 @@ func (g *GameTest) createTestUsers() error {
 		{"user2", "1234567890", "test2@example.com", avatar, "#000000", 3},
 	}
 
-	usersCollection, err := GameCollections.Get(TableUsers)
+	usersCollection, err := GameCollections.Get(CollectionUsers)
 	if err != nil {
 		return err
 	}
@@ -115,7 +115,7 @@ func (g *GameTest) createTestCells() error {
 		{"game", "Cell 3 (game)", 30, 300},
 	}
 
-	cellsCollection, err := GameCollections.Get(TableCells)
+	cellsCollection, err := GameCollections.Get(CollectionCells)
 	if err != nil {
 		return err
 	}

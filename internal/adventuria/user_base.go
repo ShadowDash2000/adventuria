@@ -75,7 +75,7 @@ func NewUser(userId string) (User, error) {
 
 func NewUserFromName(name string) (User, error) {
 	record, err := PocketBase.FindRecordsByFilter(
-		TableUsers,
+		CollectionUsers,
 		"name = {:name}",
 		"",
 		1,
@@ -92,7 +92,7 @@ func NewUserFromName(name string) (User, error) {
 }
 
 func (u *UserBase) bindHooks() {
-	PocketBase.OnRecordAfterUpdateSuccess(TableUsers).BindFunc(func(e *core.RecordEvent) error {
+	PocketBase.OnRecordAfterUpdateSuccess(CollectionUsers).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == u.Id {
 			u.SetProxyRecord(e.Record)
 		}
@@ -113,7 +113,7 @@ func (u *UserBase) SetProxyRecord(record *core.Record) {
 }
 
 func (u *UserBase) fetchUser(userId string) error {
-	user, err := PocketBase.FindRecordById(TableUsers, userId)
+	user, err := PocketBase.FindRecordById(CollectionUsers, userId)
 	if err != nil {
 		return err
 	}

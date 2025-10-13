@@ -22,15 +22,15 @@ func NewItems() *Items {
 }
 
 func (i *Items) bindHooks() {
-	PocketBase.OnRecordAfterCreateSuccess(TableItems).BindFunc(func(e *core.RecordEvent) error {
+	PocketBase.OnRecordAfterCreateSuccess(CollectionItems).BindFunc(func(e *core.RecordEvent) error {
 		i.add(e.Record)
 		return e.Next()
 	})
-	PocketBase.OnRecordAfterUpdateSuccess(TableItems).BindFunc(func(e *core.RecordEvent) error {
+	PocketBase.OnRecordAfterUpdateSuccess(CollectionItems).BindFunc(func(e *core.RecordEvent) error {
 		i.add(e.Record)
 		return e.Next()
 	})
-	PocketBase.OnRecordAfterDeleteSuccess(TableItems).BindFunc(func(e *core.RecordEvent) error {
+	PocketBase.OnRecordAfterDeleteSuccess(CollectionItems).BindFunc(func(e *core.RecordEvent) error {
 		i.delete(e.Record.Id)
 		return e.Next()
 	})
@@ -39,7 +39,7 @@ func (i *Items) bindHooks() {
 func (i *Items) fetch() error {
 	i.items.Clear()
 
-	items, err := PocketBase.FindAllRecords(TableItems)
+	items, err := PocketBase.FindAllRecords(CollectionItems)
 	if err != nil {
 		return err
 	}

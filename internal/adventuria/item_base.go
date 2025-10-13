@@ -13,7 +13,7 @@ type ItemBase struct {
 }
 
 func NewItemFromInventoryRecord(user User, invItemRecord *core.Record) (Item, error) {
-	itemRecord, err := GetRecordById(TableItems, invItemRecord.GetString("item"), []string{"effects"})
+	itemRecord, err := GetRecordById(CollectionItems, invItemRecord.GetString("item"), []string{"effects"})
 	if err != nil {
 		return nil, err
 	}
@@ -63,13 +63,13 @@ func (i *ItemBase) Sleep() {
 }
 
 func (i *ItemBase) bindHooks() {
-	PocketBase.OnRecordAfterUpdateSuccess(TableItems).BindFunc(func(e *core.RecordEvent) error {
+	PocketBase.OnRecordAfterUpdateSuccess(CollectionItems).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == i.itemRecord.Id {
 			i.itemRecord.SetProxyRecord(e.Record)
 		}
 		return e.Next()
 	})
-	PocketBase.OnRecordAfterUpdateSuccess(TableInventory).BindFunc(func(e *core.RecordEvent) error {
+	PocketBase.OnRecordAfterUpdateSuccess(CollectionInventory).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == i.invItemRecord.Id {
 			i.invItemRecord.SetProxyRecord(e.Record)
 		}

@@ -31,7 +31,7 @@ func NewInventory(user User, maxSlots int) (Inventory, error) {
 }
 
 func (i *InventoryBase) bindHooks() {
-	PocketBase.OnRecordAfterCreateSuccess(TableInventory).BindFunc(func(e *core.RecordEvent) error {
+	PocketBase.OnRecordAfterCreateSuccess(CollectionInventory).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.GetString("user") == i.user.ID() {
 			item, err := NewItemFromInventoryRecord(i.user, e.Record)
 			if err != nil {
@@ -41,7 +41,7 @@ func (i *InventoryBase) bindHooks() {
 		}
 		return e.Next()
 	})
-	PocketBase.OnRecordAfterDeleteSuccess(TableInventory).BindFunc(func(e *core.RecordEvent) error {
+	PocketBase.OnRecordAfterDeleteSuccess(CollectionInventory).BindFunc(func(e *core.RecordEvent) error {
 		if item, ok := i.items[e.Record.Id]; ok {
 			item.Sleep()
 			delete(i.items, e.Record.Id)
@@ -52,7 +52,7 @@ func (i *InventoryBase) bindHooks() {
 
 func (i *InventoryBase) fetchInventory() error {
 	invItems, err := PocketBase.FindRecordsByFilter(
-		TableInventory,
+		CollectionInventory,
 		"user.id = {:userId}",
 		"-created",
 		0,
@@ -97,7 +97,7 @@ func (i *InventoryBase) HasEmptySlots() bool {
 }
 
 func (i *InventoryBase) AddItem(item ItemRecord) (string, error) {
-	inventoryCollection, err := GameCollections.Get(TableInventory)
+	inventoryCollection, err := GameCollections.Get(CollectionInventory)
 	if err != nil {
 		return "", err
 	}

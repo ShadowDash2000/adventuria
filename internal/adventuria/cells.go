@@ -31,21 +31,21 @@ func NewCells() *Cells {
 }
 
 func (c *Cells) bindHooks() {
-	PocketBase.OnRecordAfterCreateSuccess(TableCells).BindFunc(func(e *core.RecordEvent) error {
+	PocketBase.OnRecordAfterCreateSuccess(CollectionCells).BindFunc(func(e *core.RecordEvent) error {
 		err := c.add(e.Record)
 		if err != nil {
 			return err
 		}
 		return e.Next()
 	})
-	PocketBase.OnRecordAfterUpdateSuccess(TableCells).BindFunc(func(e *core.RecordEvent) error {
+	PocketBase.OnRecordAfterUpdateSuccess(CollectionCells).BindFunc(func(e *core.RecordEvent) error {
 		err := c.add(e.Record)
 		if err != nil {
 			return err
 		}
 		return e.Next()
 	})
-	PocketBase.OnRecordAfterDeleteSuccess(TableCells).BindFunc(func(e *core.RecordEvent) error {
+	PocketBase.OnRecordAfterDeleteSuccess(CollectionCells).BindFunc(func(e *core.RecordEvent) error {
 		c.delete(e.Record)
 		return e.Next()
 	})
@@ -56,7 +56,7 @@ func (c *Cells) fetch() error {
 	c.cellsByCode.Clear()
 
 	cells, err := PocketBase.FindRecordsByFilter(
-		TableCells,
+		CollectionCells,
 		"",
 		"sort",
 		0,

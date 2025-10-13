@@ -1,13 +1,17 @@
 package adventuria
 
 const (
-	TableUsers      = "users"
-	TableActions    = "actions"
-	TableCells      = "cells"
-	TableItems      = "items"
-	TableEffects    = "effects"
-	TableInventory  = "inventory"
-	TableWheelItems = "wheel_items"
-	TableTimers     = "timers"
-	TableSettings   = "settings"
+	CollectionUsers      = "users"
+	CollectionActions    = "actions"
+	CollectionCells      = "cells"
+	CollectionItems      = "items"
+	CollectionEffects    = "effects"
+	CollectionInventory  = "inventory"
+	CollectionWheelItems = "wheel_items"
+	CollectionTimers     = "timers"
+	CollectionSettings   = "settings"
+
+	CollectionGames     = "games"
+	CollectionCompanies = "companies"
+	CollectionPlatforms = "platforms"
 )

@@ -19,7 +19,7 @@ func (a *RollItemAction) NextAction() adventuria.ActionType {
 }
 
 func (a *RollItemAction) Do(_ adventuria.ActionRequest) (*adventuria.ActionResult, error) {
-	itemsCol, err := adventuria.GameCollections.Get(adventuria.TableItems)
+	itemsCol, err := adventuria.GameCollections.Get(adventuria.CollectionItems)
 	if err != nil {
 		return nil, err
 	}

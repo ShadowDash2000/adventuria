@@ -25,7 +25,7 @@ func NewSettings() *Settings {
 }
 
 func DefaultSettings() (*core.Record, error) {
-	collection, err := GameCollections.Get(TableSettings)
+	collection, err := GameCollections.Get(CollectionSettings)
 	if err != nil {
 		return nil, err
 	}
@@ -42,11 +42,11 @@ func DefaultSettings() (*core.Record, error) {
 }
 
 func (s *Settings) bindHooks() {
-	PocketBase.OnRecordAfterCreateSuccess(TableSettings).BindFunc(func(e *core.RecordEvent) error {
+	PocketBase.OnRecordAfterCreateSuccess(CollectionSettings).BindFunc(func(e *core.RecordEvent) error {
 		s.SetProxyRecord(e.Record)
 		return e.Next()
 	})
-	PocketBase.OnRecordAfterUpdateSuccess(TableSettings).BindFunc(func(e *core.RecordEvent) error {
+	PocketBase.OnRecordAfterUpdateSuccess(CollectionSettings).BindFunc(func(e *core.RecordEvent) error {
 		s.SetProxyRecord(e.Record)
 		return e.Next()
 	})
@@ -54,7 +54,7 @@ func (s *Settings) bindHooks() {
 
 func (s *Settings) init() error {
 	record, err := PocketBase.FindFirstRecordByFilter(
-		TableSettings,
+		CollectionSettings,
 		"",
 	)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {

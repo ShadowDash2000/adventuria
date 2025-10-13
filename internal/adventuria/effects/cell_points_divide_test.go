@@ -71,7 +71,7 @@ func TestCellPointsDivide(t *testing.T) {
 }
 
 func createCellPointsDivideItem() (*core.Record, error) {
-	collection, err := adventuria.GameCollections.Get(adventuria.TableItems)
+	collection, err := adventuria.GameCollections.Get(adventuria.CollectionItems)
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +100,7 @@ func createCellPointsDivideItem() (*core.Record, error) {
 }
 
 func createCellPointsDivideEffect() (*core.Record, error) {
-	collection, err := adventuria.GameCollections.Get(adventuria.TableEffects)
+	collection, err := adventuria.GameCollections.Get(adventuria.CollectionEffects)
 	if err != nil {
 		return nil, err
 	}

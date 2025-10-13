@@ -20,7 +20,7 @@ func NewActionFromType(user User, actionType ActionType) (Action, error) {
 
 	action := actionCreator()
 
-	actionsCollection, err := GameCollections.Get(TableActions)
+	actionsCollection, err := GameCollections.Get(CollectionActions)
 	if err != nil {
 		return nil, err
 	}
@@ -148,7 +148,7 @@ func NewLastUserAction(userId string) (Action, error) {
 }
 
 func (ua *UserAction) bindHooks() {
-	PocketBase.OnRecordAfterCreateSuccess(TableActions).BindFunc(func(e *core.RecordEvent) error {
+	PocketBase.OnRecordAfterCreateSuccess(CollectionActions).BindFunc(func(e *core.RecordEvent) error {
 		userId := e.Record.GetString("user")
 		notAffectNextStep := e.Record.GetBool("notAffectNextStep")
 		if userId == ua.UserId() && !notAffectNextStep {
@@ -156,13 +156,13 @@ func (ua *UserAction) bindHooks() {
 		}
 		return e.Next()
 	})
-	PocketBase.OnRecordAfterUpdateSuccess(TableActions).BindFunc(func(e *core.RecordEvent) error {
+	PocketBase.OnRecordAfterUpdateSuccess(CollectionActions).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == ua.Id {
 			ua.SetProxyRecord(e.Record)
 		}
 		return e.Next()
 	})
-	PocketBase.OnRecordAfterDeleteSuccess(TableActions).BindFunc(func(e *core.RecordEvent) error {
+	PocketBase.OnRecordAfterDeleteSuccess(CollectionActions).BindFunc(func(e *core.RecordEvent) error {
 		userId := e.Record.GetString("user")
 		if userId == ua.UserId() {
 			ua.fetchLastUserAction(userId)
@@ -173,7 +173,7 @@ func (ua *UserAction) bindHooks() {
 
 func (ua *UserAction) fetchLastUserAction(userId string) error {
 	actions, err := PocketBase.FindRecordsByFilter(
-		TableActions,
+		CollectionActions,
 		"user.id = {:userId} && notAffectNextStep = false",
 		"-created",
 		1,
@@ -187,7 +187,7 @@ func (ua *UserAction) fetchLastUserAction(userId string) error {
 	if len(actions) > 0 {
 		ua.SetProxyRecord(actions[0])
 	} else {
-		actionsCollection, _ := GameCollections.Get(TableActions)
+		actionsCollection, _ := GameCollections.Get(CollectionActions)
 		ua.SetProxyRecord(core.NewRecord(actionsCollection))
 	}
 

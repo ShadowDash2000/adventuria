@@ -22,7 +22,7 @@ func NewBaseTimerFromRecord(record *core.Record) Timer {
 
 func NewTimer(userId string) (Timer, error) {
 	record, err := PocketBase.FindFirstRecordByFilter(
-		TableTimers,
+		CollectionTimers,
 		"user.id = {:userId}",
 		dbx.Params{"userId": userId},
 	)
@@ -46,15 +46,15 @@ func NewTimer(userId string) (Timer, error) {
 }
 
 func (t *TimerBase) bindHooks() {
-	PocketBase.OnRecordAfterUpdateSuccess(TableTimers).BindFunc(func(e *core.RecordEvent) error {
+	PocketBase.OnRecordAfterUpdateSuccess(CollectionTimers).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.GetString("user") == t.UserId() {
 			t.SetProxyRecord(e.Record)
 		}
 		return e.Next()
 	})
-	PocketBase.OnRecordAfterDeleteSuccess(TableTimers).BindFunc(func(e *core.RecordEvent) error {
+	PocketBase.OnRecordAfterDeleteSuccess(CollectionTimers).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == t.Id {
-			timersCollection, _ := GameCollections.Get(TableTimers)
+			timersCollection, _ := GameCollections.Get(CollectionTimers)
 			t.SetProxyRecord(core.NewRecord(timersCollection))
 		}
 		return e.Next()
@@ -150,7 +150,7 @@ func (t *TimerBase) Save() error {
 }
 
 func CreateTimer(userId string, timeLimit int) (*TimerBase, error) {
-	collection, err := GameCollections.Get(TableTimers)
+	collection, err := GameCollections.Get(CollectionTimers)
 	if err != nil {
 		return nil, err
 	}
@@ -170,7 +170,7 @@ func CreateTimer(userId string, timeLimit int) (*TimerBase, error) {
 }
 
 func ResetAllTimers(timeLimit int, limitExceedPenalty int) error {
-	records, err := PocketBase.FindAllRecords(TableTimers)
+	records, err := PocketBase.FindAllRecords(CollectionTimers)
 	if err != nil {
 		return err
 	}

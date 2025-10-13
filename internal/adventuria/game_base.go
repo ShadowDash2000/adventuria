@@ -127,7 +127,7 @@ func (g *BaseGame) DoAction(actionType ActionType, userId string, req ActionRequ
 }
 
 func (g *BaseGame) UpdateAction(actionId string, comment string, userId string) error {
-	actionsCollection, err := GameCollections.Get(TableActions)
+	actionsCollection, err := GameCollections.Get(CollectionActions)
 	if err != nil {
 		return err
 	}

@@ -19,15 +19,6 @@ func main() {
 	cells.WithBaseCells()
 
 	game.OnServe(func(se *core.ServeEvent) error {
-		// TODO include parser only after twitch auth is set
-		/*games.NewGameParser(
-			adventuria.GameSettings.TwitchClientID(),
-			adventuria.GameSettings.TwitchClientSecret(),
-			adventuria.GameSettings.IGDBParseSettings(),
-			adventuria.GameCollections,
-			adventuria.PocketBase,
-		)*/
-
 		http.Route(game, se.Router)
 
 		return se.Next()
