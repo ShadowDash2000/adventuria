@@ -9,7 +9,17 @@ type RollDiceAction struct {
 }
 
 func (a *RollDiceAction) CanDo() bool {
-	return a.User().GetNextStepType() == adventuria.ActionTypeRollDice
+	switch a.User().LastAction().Type() {
+	case ActionTypeDone,
+		ActionTypeDrop:
+		return true
+	default:
+		return false
+	}
+}
+
+func (a *RollDiceAction) NextAction() adventuria.ActionType {
+	return ActionTypeRollWheel
 }
 
 func (a *RollDiceAction) Do(_ adventuria.ActionRequest) (*adventuria.ActionResult, error) {
@@ -36,6 +46,20 @@ func (a *RollDiceAction) Do(_ adventuria.ActionRequest) (*adventuria.ActionResul
 	}
 
 	onAfterMoveEvent, err := a.User().Move(onBeforeRollMoveEvent.N)
+	if err != nil {
+		return nil, err
+	}
+
+	action, err := adventuria.NewActionFromType(a.User(), ActionTypeRollDice)
+	if err != nil {
+		return nil, err
+	}
+	action.SetCell(onAfterMoveEvent.CurrentCell.ID())
+	action.SetValue(onAfterMoveEvent.Steps)
+	err = action.Save()
+	if err != nil {
+		return nil, err
+	}
 
 	onAfterRollEvent := &adventuria.OnAfterRollEvent{
 		Dices: onBeforeRollEvent.Dices,

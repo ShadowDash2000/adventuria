@@ -762,15 +762,6 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "bool3645399621",
-						"name": "cantDrop",
-						"presentable": false,
-						"required": false,
-						"system": false,
-						"type": "bool"
-					},
-					{
-						"hidden": false,
 						"id": "bool886364180",
 						"name": "isInJail",
 						"presentable": false,

@@ -10,7 +10,11 @@ type DoneAction struct {
 }
 
 func (a *DoneAction) CanDo() bool {
-	return a.User().GetNextStepType() == adventuria.ActionTypeChooseResult
+	return a.User().LastAction().Type() == ActionTypeRollWheel
+}
+
+func (a *DoneAction) NextAction() adventuria.ActionType {
+	return ActionTypeRollDice
 }
 
 func (a *DoneAction) Do(req adventuria.ActionRequest) (*adventuria.ActionResult, error) {
@@ -28,7 +32,7 @@ func (a *DoneAction) Do(req adventuria.ActionRequest) (*adventuria.ActionResult,
 	}
 
 	action := a.User().LastAction()
-	action.SetType(adventuria.ActionTypeDone)
+	action.SetType(ActionTypeDone)
 	action.SetComment(req.Comment)
 
 	cellPoints := currentCell.Points()
@@ -38,7 +42,6 @@ func (a *DoneAction) Do(req adventuria.ActionRequest) (*adventuria.ActionResult,
 
 	a.User().SetDropsInARow(0)
 	a.User().SetIsInJail(false)
-	a.User().SetCantDrop(false)
 	a.User().SetPoints(a.User().Points() + cellPoints)
 
 	onAfterDoneEvent := &adventuria.OnAfterDoneEvent{}

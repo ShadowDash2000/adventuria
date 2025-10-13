@@ -10,7 +10,18 @@ type RerollAction struct {
 }
 
 func (a *RerollAction) CanDo() bool {
-	return a.User().GetNextStepType() == adventuria.ActionTypeChooseResult
+	currentCell, ok := a.User().CurrentCell()
+	if ok {
+		if currentCell.CantReroll() {
+			return false
+		}
+	}
+
+	return a.User().LastAction().Type() == ActionTypeRollWheel
+}
+
+func (a *RerollAction) NextAction() adventuria.ActionType {
+	return ActionTypeRollWheel
 }
 
 func (a *RerollAction) Do(req adventuria.ActionRequest) (*adventuria.ActionResult, error) {
@@ -24,7 +35,7 @@ func (a *RerollAction) Do(req adventuria.ActionRequest) (*adventuria.ActionResul
 	}
 
 	action := a.User().LastAction()
-	action.SetType(adventuria.ActionTypeReroll)
+	action.SetType(ActionTypeReroll)
 	action.SetComment(req.Comment)
 
 	err := a.User().OnAfterReroll().Trigger(&adventuria.OnAfterRerollEvent{})

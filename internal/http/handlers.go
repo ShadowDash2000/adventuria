@@ -15,8 +15,8 @@ func New(g adventuria.Game) *Handlers {
 	return &Handlers{Game: g}
 }
 
-func (h *Handlers) GetNextStepTypeHandler(e *core.RequestEvent) error {
-	nextStepType, err := h.Game.GetNextStepType(e.Auth.Id)
+func (h *Handlers) NextActionTypeHandler(e *core.RequestEvent) error {
+	nextStepType, err := h.Game.NextActionType(e.Auth.Id)
 	if err != nil {
 		e.JSON(http.StatusInternalServerError, err.Error())
 		return nil
@@ -114,21 +114,6 @@ func (h *Handlers) DoneHandler(e *core.RequestEvent) error {
 	}
 
 	e.JSON(http.StatusOK, res)
-	return nil
-}
-
-func (h *Handlers) GetLastActionHandler(e *core.RequestEvent) error {
-	isInJail, action, err := h.Game.GetLastAction(e.Auth.Id)
-	if err != nil {
-		e.JSON(http.StatusInternalServerError, err.Error())
-		return err
-	}
-
-	e.JSON(http.StatusOK, map[string]interface{}{
-		"title":    action.Value(),
-		"isInJail": isInJail,
-	})
-
 	return nil
 }
 

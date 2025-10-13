@@ -20,25 +20,6 @@ func NewCellPreset() adventuria.CellCreator {
 	}
 }
 
-func (c *CellPreset) NextStep(user adventuria.User) string {
-	nextStepType := ""
-
-	switch user.LastAction().Type() {
-	case adventuria.ActionTypeRollDice,
-		adventuria.ActionTypeReroll:
-		nextStepType = adventuria.ActionTypeRollWheel
-	case adventuria.ActionTypeRollWheel:
-		nextStepType = adventuria.ActionTypeChooseResult
-	case adventuria.ActionTypeChooseResult,
-		adventuria.ActionTypeDrop:
-		nextStepType = adventuria.ActionTypeRollDice
-	default:
-		nextStepType = adventuria.ActionTypeRollWheel
-	}
-
-	return nextStepType
-}
-
 func (c *CellPreset) Roll(_ adventuria.User) (*adventuria.WheelRollResult, error) {
 	if c.Preset() == "" {
 		return nil, errors.New("preset is not set")

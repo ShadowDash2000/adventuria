@@ -31,8 +31,7 @@ func Route(game adventuria.Game, router *router.Router[*core.RequestEvent]) {
 
 	gab.POST("/roll", handlers.RollHandler)
 
-	gab.GET("/get-next-step-type", handlers.GetNextStepTypeHandler)
-	gab.GET("/get-last-action", handlers.GetLastActionHandler)
+	gab.GET("/next-action-type", handlers.NextActionTypeHandler)
 
 	gab.POST("/update-action", handlers.UpdateActionHandler)
 

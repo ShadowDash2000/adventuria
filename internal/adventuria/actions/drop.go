@@ -11,17 +11,28 @@ type DropAction struct {
 }
 
 func (a *DropAction) CanDo() bool {
-	return a.User().GetNextStepType() == adventuria.ActionTypeChooseResult
+	currentCell, ok := a.User().CurrentCell()
+	if ok {
+		if currentCell.CantDrop() {
+			return false
+		}
+	}
+
+	if a.User().IsInJail() {
+		return false
+	}
+
+	return a.User().LastAction().Type() == ActionTypeRollWheel
+}
+
+func (a *DropAction) NextAction() adventuria.ActionType {
+	return ActionTypeRollDice
 }
 
 func (a *DropAction) Do(req adventuria.ActionRequest) (*adventuria.ActionResult, error) {
 	currentCell, ok := a.User().CurrentCell()
 	if !ok {
 		return nil, errors.New("current cell not found")
-	}
-
-	if currentCell.CantDrop() || !a.User().CanDrop() {
-		return nil, errors.New("can't drop on this cell")
 	}
 
 	onBeforeDropEvent := &adventuria.OnBeforeDropEvent{
@@ -33,7 +44,7 @@ func (a *DropAction) Do(req adventuria.ActionRequest) (*adventuria.ActionResult,
 	}
 
 	action := a.User().LastAction()
-	action.SetType(adventuria.ActionTypeDrop)
+	action.SetType(ActionTypeDrop)
 	action.SetComment(req.Comment)
 
 	if !onBeforeDropEvent.IsSafeDrop && !currentCell.IsSafeDrop() {
@@ -41,7 +52,7 @@ func (a *DropAction) Do(req adventuria.ActionRequest) (*adventuria.ActionResult,
 		a.User().SetDropsInARow(a.User().DropsInARow() + 1)
 
 		if !a.User().IsSafeDrop() {
-			if err = a.moveToJail(); err != nil {
+			if err = a.goToJail(); err != nil {
 				return nil, err
 			}
 		}
@@ -57,11 +68,13 @@ func (a *DropAction) Do(req adventuria.ActionRequest) (*adventuria.ActionResult,
 	}, nil
 }
 
-func (a *DropAction) moveToJail() error {
+func (a *DropAction) goToJail() error {
 	err := a.User().MoveToCellType(cells.CellTypeJail)
 	if err != nil {
 		return err
 	}
+
+	a.User().SetIsInJail(true)
 
 	err = a.User().OnAfterGoToJail().Trigger(&adventuria.OnAfterGoToJailEvent{})
 	if err != nil {

@@ -72,7 +72,6 @@ type OnAfterActionEvent struct {
 type OnAfterMoveEvent struct {
 	event.Event
 	Steps       int
-	Action      Action
 	CurrentCell Cell
 	Laps        int
 }

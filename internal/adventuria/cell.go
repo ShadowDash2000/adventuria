@@ -25,7 +25,6 @@ type Cell interface {
 	CantDrop() bool
 	CantReroll() bool
 	IsSafeDrop() bool
-	NextStep(User) string
 	OnCellReached(User) error
 }
 

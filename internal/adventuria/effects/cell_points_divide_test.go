@@ -48,12 +48,12 @@ func TestCellPointsDivide(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err = game.DoAction(adventuria.ActionTypeRollWheel, user.ID(), adventuria.ActionRequest{})
+	_, err = game.DoAction(actions.ActionTypeRollWheel, user.ID(), adventuria.ActionRequest{})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = game.DoAction(adventuria.ActionTypeDone, user.ID(), adventuria.ActionRequest{})
+	_, err = game.DoAction(actions.ActionTypeDone, user.ID(), adventuria.ActionRequest{})
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -12,7 +12,7 @@ type ActionBase struct {
 	user User
 }
 
-func NewActionFromType(user User, actionType string) (Action, error) {
+func NewActionFromType(user User, actionType ActionType) (Action, error) {
 	actionCreator, ok := actionsList[actionType]
 	if !ok {
 		return nil, errors.New("unknown action type")
@@ -44,6 +44,10 @@ func (a *ActionBase) CanDo() bool {
 	panic("implement me")
 }
 
+func (a *ActionBase) NextAction() ActionType {
+	panic("implement me")
+}
+
 func (a *ActionBase) Do(_ ActionRequest) (*ActionResult, error) {
 	panic("implement me")
 }
@@ -55,10 +59,6 @@ func (a *ActionBase) setUser(user User) {
 
 func (a *ActionBase) Save() error {
 	return PocketBase.Save(a)
-}
-
-func (a *ActionBase) SetType(t string) {
-	a.Set("type", t)
 }
 
 func (a *ActionBase) User() User {
@@ -93,8 +93,12 @@ func (a *ActionBase) SetValue(value any) {
 	a.Set("value", value)
 }
 
-func (a *ActionBase) Type() string {
-	return a.GetString("type")
+func (a *ActionBase) Type() ActionType {
+	return ActionType(a.GetString("type"))
+}
+
+func (a *ActionBase) SetType(t ActionType) {
+	a.Set("type", string(t))
 }
 
 func (a *ActionBase) SetNotAffectNextStep(b bool) {

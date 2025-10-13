@@ -131,14 +131,6 @@ func (u *UserBase) Name() string {
 	return u.GetString("name")
 }
 
-func (u *UserBase) SetCantDrop(b bool) {
-	u.Set("cantDrop", b)
-}
-
-func (u *UserBase) CanDrop() bool {
-	return !u.GetBool("cantDrop") && !u.IsInJail()
-}
-
 func (u *UserBase) IsSafeDrop() bool {
 	return u.DropsInARow() < GameSettings.DropsToJail()
 }
@@ -216,17 +208,6 @@ func (u *UserBase) Move(steps int) (*OnAfterMoveEvent, error) {
 		return nil, err
 	}
 
-	action, err := NewActionFromType(u, ActionTypeRollDice)
-	if err != nil {
-		return nil, err
-	}
-	action.SetCell(currentCell.ID())
-	action.SetValue(steps)
-	err = action.Save()
-	if err != nil {
-		return nil, err
-	}
-
 	prevCellNum := cellsPassed % GameCells.Count()
 	lapsPassed := (prevCellNum + steps) / GameCells.Count()
 	// Check if we're not moving backwards and passed new lap(-s)
@@ -241,7 +222,6 @@ func (u *UserBase) Move(steps int) (*OnAfterMoveEvent, error) {
 
 	onAfterMoveEvent := &OnAfterMoveEvent{
 		Steps:       steps,
-		Action:      action,
 		CurrentCell: currentCell,
 		Laps:        lapsPassed,
 	}
@@ -286,15 +266,15 @@ func (u *UserBase) MoveToCellId(cellId string) error {
 	return nil
 }
 
-// GetNextStepType
+// NextAction
 // WHAT IS THE NEXT STEP OF THE OPERATION? 👽
-func (u *UserBase) GetNextStepType() string {
-	currentCell, ok := u.CurrentCell()
-	if !ok {
-		return ""
+func (u *UserBase) NextAction() ActionType {
+	if u.LastAction() == nil {
+		// TODO change hardcoded value
+		return "rollDice"
 	}
 
-	return currentCell.NextStep(u)
+	return u.LastAction().NextAction()
 }
 
 func (u *UserBase) Inventory() Inventory {

@@ -18,28 +18,6 @@ func NewCellJail() adventuria.CellCreator {
 	}
 }
 
-func (c *CellJail) NextStep(user adventuria.User) string {
-	nextStepType := ""
-
-	if user.IsInJail() {
-		switch user.LastAction().Type() {
-		case adventuria.ActionTypeRollDice,
-			adventuria.ActionTypeReroll:
-			nextStepType = adventuria.ActionTypeRollWheel
-		case adventuria.ActionTypeRollWheel:
-			nextStepType = adventuria.ActionTypeChooseResult
-		case adventuria.ActionTypeChooseResult:
-			nextStepType = adventuria.ActionTypeRollDice
-		default:
-			nextStepType = adventuria.ActionTypeRollWheel
-		}
-	} else {
-		nextStepType = adventuria.ActionTypeRollDice
-	}
-
-	return nextStepType
-}
-
 func (c *CellJail) Roll(_ adventuria.User) (*adventuria.WheelRollResult, error) {
 	cellsCol, err := adventuria.GameCollections.Get(adventuria.TableCells)
 	if err != nil {
@@ -71,10 +49,6 @@ func (c *CellJail) Roll(_ adventuria.User) (*adventuria.WheelRollResult, error) 
 	return res, nil
 }
 
-func (c *CellJail) OnCellReached(user adventuria.User) error {
-	if user.LastAction().Type() == adventuria.ActionTypeDrop &&
-		user.DropsInARow() >= adventuria.GameSettings.DropsToJail() {
-		user.SetIsInJail(true)
-	}
+func (c *CellJail) OnCellReached(_ adventuria.User) error {
 	return nil
 }

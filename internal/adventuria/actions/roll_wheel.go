@@ -10,7 +10,17 @@ type RollWheelAction struct {
 }
 
 func (a *RollWheelAction) CanDo() bool {
-	return a.User().GetNextStepType() == adventuria.ActionTypeRollWheel
+	switch a.User().NextAction() {
+	case ActionTypeRollDice,
+		ActionTypeReroll:
+		return true
+	default:
+		return false
+	}
+}
+
+func (a *RollWheelAction) NextAction() adventuria.ActionType {
+	return ActionTypeRollDice
 }
 
 func (a *RollWheelAction) Do(_ adventuria.ActionRequest) (*adventuria.ActionResult, error) {
@@ -33,7 +43,7 @@ func (a *RollWheelAction) Do(_ adventuria.ActionRequest) (*adventuria.ActionResu
 	}
 
 	action := a.User().LastAction()
-	action.SetType(adventuria.ActionTypeRollWheel)
+	action.SetType(ActionTypeRollWheel)
 	action.SetValue(res.WinnerId)
 	action.SetCollectionRef(res.Collection.Id)
 

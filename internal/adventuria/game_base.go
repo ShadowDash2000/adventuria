@@ -79,16 +79,16 @@ func (g *BaseGame) GetUserByName(name string) (User, error) {
 	return user, nil
 }
 
-func (g *BaseGame) GetNextStepType(userId string) (string, error) {
+func (g *BaseGame) NextActionType(userId string) (ActionType, error) {
 	user, err := g.GetUser(userId)
 	if err != nil {
 		return "", err
 	}
 
-	return user.GetNextStepType(), nil
+	return user.NextAction(), nil
 }
 
-func (g *BaseGame) DoAction(actionType, userId string, req ActionRequest) (*ActionResult, error) {
+func (g *BaseGame) DoAction(actionType ActionType, userId string, req ActionRequest) (*ActionResult, error) {
 	user, err := g.GetUser(userId)
 	if err != nil {
 		return nil, err
@@ -143,9 +143,10 @@ func (g *BaseGame) UpdateAction(actionId string, comment string, userId string) 
 		).
 		AndWhere(
 			dbx.Or(
-				dbx.HashExp{"type": ActionTypeDone},
-				dbx.HashExp{"type": ActionTypeDrop},
-				dbx.HashExp{"type": ActionTypeReroll},
+				// TODO get rid of hard coded types
+				dbx.HashExp{"type": "done"},
+				dbx.HashExp{"type": "drop"},
+				dbx.HashExp{"type": "reroll"},
 			),
 		).
 		Limit(1).
@@ -158,15 +159,6 @@ func (g *BaseGame) UpdateAction(actionId string, comment string, userId string) 
 	action.SetComment(comment)
 
 	return action.Save()
-}
-
-func (g *BaseGame) GetLastAction(userId string) (bool, Action, error) {
-	user, err := g.GetUser(userId)
-	if err != nil {
-		return false, nil, err
-	}
-
-	return user.CanDrop(), user.LastAction(), nil
 }
 
 func (g *BaseGame) UseItem(userId, itemId string) error {

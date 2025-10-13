@@ -84,10 +84,6 @@ func (c *CellBase) IsSafeDrop() bool {
 	return c.GetBool("isSafeDrop")
 }
 
-func (c *CellBase) NextStep(_ User) string {
-	panic("implement me")
-}
-
 func (c *CellBase) OnCellReached(_ User) error {
 	return nil
 }

@@ -17,22 +17,3 @@ func NewCellBigWin() adventuria.CellCreator {
 		}
 	}
 }
-
-func (c *CellBigWin) NextStep(user adventuria.User) string {
-	nextStepType := ""
-
-	switch user.LastAction().Type() {
-	case adventuria.ActionTypeRollDice,
-		adventuria.ActionTypeReroll:
-		nextStepType = adventuria.ActionTypeRollWheel
-	case adventuria.ActionTypeRollWheel:
-		nextStepType = adventuria.ActionTypeChooseResult
-	case adventuria.ActionTypeChooseResult,
-		adventuria.ActionTypeDrop:
-		nextStepType = adventuria.ActionTypeRollDice
-	default:
-		nextStepType = adventuria.ActionTypeRollWheel
-	}
-
-	return nextStepType
-}

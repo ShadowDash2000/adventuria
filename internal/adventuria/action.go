@@ -6,15 +6,6 @@ import (
 	"github.com/pocketbase/pocketbase/core"
 )
 
-const (
-	ActionTypeRollDice     = "rollDice"
-	ActionTypeDone         = "done"
-	ActionTypeReroll       = "reroll"
-	ActionTypeDrop         = "drop"
-	ActionTypeChooseResult = "chooseResult"
-	ActionTypeRollWheel    = "rollWheel"
-)
-
 type Action interface {
 	core.RecordProxy
 	Save() error
@@ -26,7 +17,8 @@ type Action interface {
 	SetComment(string)
 	Value() string
 	SetValue(value any)
-	Type() string
+	Type() ActionType
+	SetType(ActionType)
 	SetNotAffectNextStep(bool)
 	CollectionRef() string
 	SetCollectionRef(string)
@@ -34,13 +26,15 @@ type Action interface {
 	SetDiceRoll(int)
 	ItemsUsed() []string
 	SetItemsUsed([]string)
-	SetType(string)
 
 	CanDo() bool
+	NextAction() ActionType
 	Do(ActionRequest) (*ActionResult, error)
 
 	setUser(user User)
 }
+
+type ActionType string
 
 type ActionRequest struct {
 	Comment string
@@ -52,11 +46,11 @@ type ActionResult struct {
 	Error   string      `json:"error,omitempty"`
 }
 
-var actionsList = map[string]ActionCreator{}
+var actionsList = map[ActionType]ActionCreator{}
 
 type ActionCreator func() Action
 
-func RegisterActions(actions map[string]ActionCreator) {
+func RegisterActions(actions map[ActionType]ActionCreator) {
 	maps.Insert(actionsList, maps.All(actions))
 }
 

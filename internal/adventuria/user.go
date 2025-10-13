@@ -12,8 +12,6 @@ type User interface {
 
 	ID() string
 	Name() string
-	SetCantDrop(b bool)
-	CanDrop() bool
 	IsSafeDrop() bool
 	IsInJail() bool
 	SetIsInJail(b bool)
@@ -31,7 +29,7 @@ type User interface {
 	Move(steps int) (*OnAfterMoveEvent, error)
 	MoveToCellType(cellType CellType) error
 	MoveToCellId(cellId string) error
-	GetNextStepType() string
+	NextAction() ActionType
 	Inventory() Inventory
 	LastAction() Action
 	Timer() Timer
