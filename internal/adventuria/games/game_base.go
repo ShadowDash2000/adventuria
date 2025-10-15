@@ -59,6 +59,14 @@ func (c *GameRecordBase) SetCompanies(ids []string) {
 	c.Set("companies", ids)
 }
 
+func (c *GameRecordBase) SteamAppId() uint64 {
+	return uint64(c.GetInt("steam_app_id"))
+}
+
+func (c *GameRecordBase) SetSteamAppId(id uint64) {
+	c.Set("steam_app_id", int(id))
+}
+
 func (c *GameRecordBase) Cover() string {
 	return c.GetString("cover")
 }

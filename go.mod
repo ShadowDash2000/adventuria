@@ -3,6 +3,7 @@ module adventuria
 go 1.25.0
 
 require (
+	github.com/ShadowDash2000/steam-store-go v0.0.0-20251015040627-518b0fcdbd1c
 	github.com/bestnite/go-igdb v0.0.13
 	github.com/pocketbase/dbx v1.11.0
 	github.com/pocketbase/pocketbase v0.30.2
@@ -31,6 +32,7 @@ require (
 	github.com/go-sql-driver/mysql v1.8.1 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
 	github.com/golang-jwt/jwt/v5 v5.3.0 // indirect
+	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/gopacket v1.1.19 // indirect
 	github.com/google/pprof v0.0.0-20251007162407-5df77e3f7d1d // indirect
 	github.com/google/uuid v1.6.0 // indirect

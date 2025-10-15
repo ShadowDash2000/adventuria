@@ -19,7 +19,10 @@ func main() {
 	cells.WithBaseCells()
 
 	game.OnServe(func(se *core.ServeEvent) error {
-		/*parser := igdb.NewParserController()
+		/*parser, err := igdb.NewParserController()
+		if err != nil {
+			return err
+		}
 		adventuria.PocketBase.Cron().MustAdd("games_parser", "0 3 * * 0", parser.Parse)*/
 
 		http.Route(game, se.Router)

@@ -13,6 +13,7 @@ type Game struct {
 	ReleaseDate types.DateTime
 	Platforms   CollectionReference
 	Companies   CollectionReference
+	SteamAppId  uint64
 	Cover       string
 	Checksum    string
 }
@@ -32,6 +33,8 @@ type GameRecord interface {
 	SetPlatforms([]string)
 	Companies() []string
 	SetCompanies([]string)
+	SteamAppId() uint64
+	SetSteamAppId(uint64)
 	Cover() string
 	SetCover(string)
 }

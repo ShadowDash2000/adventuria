@@ -4,6 +4,9 @@ import (
 	"adventuria/internal/adventuria"
 	"adventuria/internal/adventuria/games"
 	"fmt"
+	"net/url"
+	"strconv"
+	"strings"
 
 	"github.com/bestnite/go-igdb"
 	"github.com/bestnite/go-igdb/endpoint"
@@ -37,10 +40,8 @@ func (p *Parser) ParsePlatforms() (chan []games.Platform, error) {
 	go func() {
 		defer close(ch)
 
-		offset := uint64(0)
-		limit := uint64(500)
-
-		for offset < count {
+		const limit = uint64(500)
+		for offset := uint64(0); offset < count; offset += limit {
 			platforms, err := p.client.Platforms.Paginated(0, limit)
 			if err != nil {
 				return
@@ -55,7 +56,6 @@ func (p *Parser) ParsePlatforms() (chan []games.Platform, error) {
 				}
 			}
 
-			offset += limit
 			ch <- res
 		}
 	}()
@@ -74,10 +74,8 @@ func (p *Parser) ParseCompanies() (chan []games.Company, error) {
 	go func() {
 		defer close(ch)
 
-		offset := uint64(0)
-		limit := uint64(500)
-
-		for offset < count {
+		const limit = uint64(500)
+		for offset := uint64(0); offset < count; offset += limit {
 			companies, err := p.client.Companies.Paginated(offset, limit)
 			if err != nil {
 				return
@@ -92,7 +90,6 @@ func (p *Parser) ParseCompanies() (chan []games.Company, error) {
 				}
 			}
 
-			offset += limit
 			ch <- res
 		}
 	}()
@@ -101,18 +98,9 @@ func (p *Parser) ParseCompanies() (chan []games.Company, error) {
 }
 
 func (p *Parser) ParseGames() (chan []games.Game, error) {
-	resp, err := p.client.Request(
-		"POST",
-		fmt.Sprintf("https://api.igdb.com/v4/%s/count.pb", endpoint.EPGames),
-		fmt.Sprintf("where %s;", p.filter),
-	)
+	count, err := p.gamesCount()
 	if err != nil {
 		return nil, err
-	}
-
-	var res pb.Count
-	if err = proto.Unmarshal(resp.Body(), &res); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal: %w", err)
 	}
 
 	ch := make(chan []games.Game)
@@ -120,12 +108,19 @@ func (p *Parser) ParseGames() (chan []games.Game, error) {
 	go func() {
 		defer close(ch)
 
-		count := uint64(res.Count)
-		offset := uint64(0)
-		limit := uint64(500)
+		websiteTypes, err := p.fetchWebsiteTypes()
+		if err != nil {
+			return
+		}
 
-		for offset < count {
+		const limit = uint64(500)
+		for offset := uint64(0); offset < count; offset += limit {
 			gamesIgdb, err := p.client.Games.Paginated(offset, limit)
+			if err != nil {
+				return
+			}
+
+			websites, err := p.fetchWebsites(gamesIgdb)
 			if err != nil {
 				return
 			}
@@ -147,6 +142,25 @@ func (p *Parser) ParseGames() (chan []games.Game, error) {
 					companyIds[i] = company.Id
 				}
 
+				steamAppId := uint64(0)
+				for _, website := range game.GetWebsites() {
+					websiteFull, ok := websites[website.GetId()]
+					if !ok {
+						continue
+					}
+
+					websiteType, ok := websiteTypes[websiteFull.GetType().GetId()]
+					if !ok {
+						continue
+					}
+
+					if websiteType.GetType() != "Steam" {
+						continue
+					}
+
+					steamAppId = p.parseSteamAppId(websiteFull.GetUrl())
+				}
+
 				res[i] = games.Game{
 					IdDb:        game.GetId(),
 					Name:        game.GetName(),
@@ -159,15 +173,93 @@ func (p *Parser) ParseGames() (chan []games.Game, error) {
 						Ids:        companyIds,
 						Collection: adventuria.CollectionCompanies,
 					},
-					Cover:    game.GetCover().GetUrl(),
-					Checksum: game.GetChecksum(),
+					SteamAppId: steamAppId,
+					Cover:      game.GetCover().GetUrl(),
+					Checksum:   game.GetChecksum(),
 				}
 			}
 
-			offset += limit
 			ch <- res
 		}
 	}()
 
 	return ch, nil
+}
+
+func (p *Parser) gamesCount() (uint64, error) {
+	resp, err := p.client.Request(
+		"POST",
+		fmt.Sprintf("https://api.igdb.com/v4/%s/count.pb", endpoint.EPGames),
+		fmt.Sprintf("where %s;", p.filter),
+	)
+	if err != nil {
+		return 0, err
+	}
+
+	var res pb.Count
+	if err = proto.Unmarshal(resp.Body(), &res); err != nil {
+		return 0, fmt.Errorf("failed to unmarshal: %w", err)
+	}
+
+	return uint64(res.Count), nil
+}
+
+func (p *Parser) fetchWebsites(games []*pb.Game) (map[uint64]*pb.Website, error) {
+	var websiteIds []uint64
+	for _, game := range games {
+		for _, website := range game.GetWebsites() {
+			websiteIds = append(websiteIds, website.GetId())
+		}
+	}
+
+	websites, err := p.client.Websites.GetByIDs(websiteIds)
+	if err != nil {
+		return nil, err
+	}
+
+	res := make(map[uint64]*pb.Website)
+	for _, website := range websites {
+		res[website.GetId()] = website
+	}
+
+	return res, err
+}
+
+func (p *Parser) fetchWebsiteTypes() (map[uint64]*pb.WebsiteType, error) {
+	count, err := p.client.WebsiteTypes.Count()
+	if err != nil {
+		return nil, err
+	}
+
+	websiteTypes, err := p.client.WebsiteTypes.Paginated(0, count)
+	if err != nil {
+		return nil, err
+	}
+
+	res := make(map[uint64]*pb.WebsiteType)
+	for _, websiteType := range websiteTypes {
+		res[websiteType.GetId()] = websiteType
+	}
+
+	return res, err
+}
+
+func (p *Parser) parseSteamAppId(rawUrl string) uint64 {
+	u, err := url.Parse(rawUrl)
+	if err != nil {
+		return 0
+	}
+
+	parts := strings.Split(strings.Trim(u.Path, "/"), "/")
+	if len(parts) < 2 || parts[0] != "app" {
+		return 0
+	}
+
+	idStr := parts[1]
+	appId, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil {
+		return 0
+	}
+
+	return appId
 }

@@ -10,7 +10,7 @@ import (
 	"github.com/pocketbase/pocketbase/tools/filesystem"
 )
 
-func TestCellPointsDivide(t *testing.T) {
+func Test_CellPointsDivide(t *testing.T) {
 	actions.WithBaseActions()
 	cells.WithBaseCells()
 	WithBaseEffects()

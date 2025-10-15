@@ -3,6 +3,8 @@ package igdb
 import (
 	"adventuria/internal/adventuria"
 	"adventuria/internal/adventuria/games"
+	"errors"
+	"os"
 
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
@@ -12,16 +14,25 @@ type ParserController struct {
 	parser games.Parser
 }
 
-func NewParserController() *ParserController {
-	p := &ParserController{
-		parser: NewParser(
-			adventuria.GameSettings.TwitchClientID(),
-			adventuria.GameSettings.TwitchClientSecret(),
-			adventuria.GameSettings.IGDBParseSettings(),
-		),
+func NewParserController() (*ParserController, error) {
+	twitchClientId, ok := os.LookupEnv("TWITCH_CLIENT_ID")
+	if !ok {
+		return nil, errors.New("IGDB: TWITCH_CLIENT_ID not found")
+	}
+	twitchClientSecret, ok := os.LookupEnv("TWITCH_CLIENT_SECRET")
+	if !ok {
+		return nil, errors.New("IGDB: TWITCH_CLIENT_SECRET not found")
+	}
+	igdbParseFilter, ok := os.LookupEnv("IGDB_PARSE_FILTER")
+	if !ok {
+		return nil, errors.New("IGDB: IGDB_PARSE_FILTER not found")
 	}
 
-	return p
+	p := &ParserController{
+		parser: NewParser(twitchClientId, twitchClientSecret, igdbParseFilter),
+	}
+
+	return p, nil
 }
 
 func (p *ParserController) Parse() {
@@ -58,6 +69,7 @@ func (p *ParserController) parseGames() error {
 			gameRecord.SetIdDb(game.IdDb)
 			gameRecord.SetName(game.Name)
 			gameRecord.SetReleaseDate(game.ReleaseDate)
+			gameRecord.SetSteamAppId(game.SteamAppId)
 			gameRecord.SetChecksum(game.Checksum)
 
 			platformIds, err := p.collectionReferenceToIds(game.Platforms)

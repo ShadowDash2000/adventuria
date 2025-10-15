@@ -1833,48 +1833,6 @@ func init() {
 						"required": false,
 						"system": false,
 						"type": "editor"
-					},
-					{
-						"autogeneratePattern": "",
-						"hidden": false,
-						"id": "text3051127011",
-						"max": 0,
-						"min": 0,
-						"name": "twitchClientId",
-						"pattern": "",
-						"presentable": false,
-						"primaryKey": false,
-						"required": false,
-						"system": false,
-						"type": "text"
-					},
-					{
-						"autogeneratePattern": "",
-						"hidden": false,
-						"id": "text1007952131",
-						"max": 0,
-						"min": 0,
-						"name": "twitchClientSecret",
-						"pattern": "",
-						"presentable": false,
-						"primaryKey": false,
-						"required": false,
-						"system": false,
-						"type": "text"
-					},
-					{
-						"autogeneratePattern": "",
-						"hidden": false,
-						"id": "text3562874678",
-						"max": 0,
-						"min": 0,
-						"name": "igdbParseSettings",
-						"pattern": "",
-						"presentable": false,
-						"primaryKey": false,
-						"required": false,
-						"system": false,
-						"type": "text"
 					}
 				],
 				"id": "pbc_2769025244",
@@ -2471,6 +2429,18 @@ func init() {
 						"required": false,
 						"system": false,
 						"type": "relation"
+					},
+					{
+						"hidden": false,
+						"id": "number1276789363",
+						"max": null,
+						"min": null,
+						"name": "steam_app_id",
+						"onlyInt": true,
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "number"
 					},
 					{
 						"autogeneratePattern": "",

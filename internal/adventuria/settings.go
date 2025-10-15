@@ -119,18 +119,6 @@ func (s *Settings) DropsToJail() int {
 	return s.GetInt("dropsToJail")
 }
 
-func (s *Settings) TwitchClientID() string {
-	return s.GetString("twitchClientId")
-}
-
-func (s *Settings) TwitchClientSecret() string {
-	return s.GetString("twitchClientSecret")
-}
-
-func (s *Settings) IGDBParseSettings() string {
-	return s.GetString("igdbParseSettings")
-}
-
 func (s *Settings) NextTimerResetDate() types.DateTime {
 	weeks := time.Duration(s.CurrentWeek()*7*24) * time.Hour
 	return s.EventDateStart().Add(weeks)
