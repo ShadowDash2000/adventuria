@@ -18,18 +18,18 @@ func NewCollections(app core.App) *Collections {
 	}
 }
 
-func (c *Collections) Get(name string) (*core.Collection, error) {
+func (c *Collections) Get(name string) *core.Collection {
 	if col, ok := c.cols.Get(name); ok {
-		return col, nil
+		return col
 	}
 
 	col, err := c.fetchCollection(name)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 
 	c.cols.Set(name, col)
-	return col, nil
+	return col
 }
 
 func (c *Collections) fetchCollection(name string) (*core.Collection, error) {

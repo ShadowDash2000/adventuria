@@ -5,12 +5,7 @@ import (
 )
 
 func GetRecordById(table, id string, expand []string) (*core.Record, error) {
-	collection, err := GameCollections.Get(table)
-	if err != nil {
-		return nil, err
-	}
-
-	record, err := PocketBase.FindRecordById(collection, id)
+	record, err := PocketBase.FindRecordById(GameCollections.Get(table), id)
 	if err != nil {
 		return nil, err
 	}
@@ -25,4 +20,34 @@ func GetRecordById(table, id string, expand []string) (*core.Record, error) {
 	}
 
 	return record, nil
+}
+
+func UpdateRecordsFromViewCollection(
+	records []*core.Record,
+	dstCollection *core.Collection,
+	primaryKey string,
+	fieldsToUpdate []string,
+) error {
+	var dstRecords []*core.Record
+	for _, record := range records {
+		dstRecord, err := PocketBase.FindRecordById(dstCollection, record.GetString(primaryKey))
+		if err != nil {
+			return err
+		}
+
+		for _, field := range fieldsToUpdate {
+			dstRecord.Set(field, record.Get(field))
+		}
+
+		dstRecords = append(dstRecords, dstRecord)
+	}
+
+	for _, dstRecord := range dstRecords {
+		err := PocketBase.Save(dstRecord)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

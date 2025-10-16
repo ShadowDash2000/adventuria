@@ -20,12 +20,7 @@ func NewActionFromType(user User, actionType ActionType) (Action, error) {
 
 	action := actionCreator()
 
-	actionsCollection, err := GameCollections.Get(CollectionActions)
-	if err != nil {
-		return nil, err
-	}
-
-	action.SetProxyRecord(core.NewRecord(actionsCollection))
+	action.SetProxyRecord(core.NewRecord(GameCollections.Get(CollectionActions)))
 	action.setUser(user)
 	action.SetType(actionType)
 
@@ -187,8 +182,7 @@ func (ua *UserAction) fetchLastUserAction(userId string) error {
 	if len(actions) > 0 {
 		ua.SetProxyRecord(actions[0])
 	} else {
-		actionsCollection, _ := GameCollections.Get(CollectionActions)
-		ua.SetProxyRecord(core.NewRecord(actionsCollection))
+		ua.SetProxyRecord(core.NewRecord(GameCollections.Get(CollectionActions)))
 	}
 
 	return nil

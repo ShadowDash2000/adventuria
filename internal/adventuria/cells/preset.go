@@ -25,13 +25,8 @@ func (c *CellPreset) Roll(_ adventuria.User) (*adventuria.WheelRollResult, error
 		return nil, errors.New("preset is not set")
 	}
 
-	wheelItemsCol, err := adventuria.GameCollections.Get(adventuria.CollectionWheelItems)
-	if err != nil {
-		return nil, err
-	}
-
 	res := &adventuria.WheelRollResult{
-		Collection: wheelItemsCol,
+		Collection: adventuria.GameCollections.Get(adventuria.CollectionWheelItems),
 	}
 
 	items, err := adventuria.PocketBase.FindRecordsByFilter(

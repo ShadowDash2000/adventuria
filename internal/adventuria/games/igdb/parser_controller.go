@@ -3,6 +3,7 @@ package igdb
 import (
 	"adventuria/internal/adventuria"
 	"adventuria/internal/adventuria/games"
+	"context"
 	"errors"
 	"os"
 
@@ -11,21 +12,21 @@ import (
 )
 
 type ParserController struct {
-	parser games.Parser
+	parser *Parser
 }
 
-func NewParserController() (*ParserController, error) {
+func New() (*ParserController, error) {
 	twitchClientId, ok := os.LookupEnv("TWITCH_CLIENT_ID")
 	if !ok {
-		return nil, errors.New("IGDB: TWITCH_CLIENT_ID not found")
+		return nil, errors.New("igdb: TWITCH_CLIENT_ID not found")
 	}
 	twitchClientSecret, ok := os.LookupEnv("TWITCH_CLIENT_SECRET")
 	if !ok {
-		return nil, errors.New("IGDB: TWITCH_CLIENT_SECRET not found")
+		return nil, errors.New("igdb: TWITCH_CLIENT_SECRET not found")
 	}
 	igdbParseFilter, ok := os.LookupEnv("IGDB_PARSE_FILTER")
 	if !ok {
-		return nil, errors.New("IGDB: IGDB_PARSE_FILTER not found")
+		return nil, errors.New("igdb: IGDB_PARSE_FILTER not found")
 	}
 
 	p := &ParserController{
@@ -36,40 +37,43 @@ func NewParserController() (*ParserController, error) {
 }
 
 func (p *ParserController) Parse() {
-	if err := p.parseCompanies(); err != nil {
+	ctx := context.Background()
+
+	if err := p.parseCompanies(ctx); err != nil {
 		adventuria.PocketBase.Logger().Error("Failed to parse companies", "error", err)
 		return
 	}
-	if err := p.parsePlatforms(); err != nil {
+	if err := p.parsePlatforms(ctx); err != nil {
 		adventuria.PocketBase.Logger().Error("Failed to parse platforms", "error", err)
 		return
 	}
-	if err := p.parseGames(); err != nil {
+	if err := p.parseGames(ctx); err != nil {
 		adventuria.PocketBase.Logger().Error("Failed to parse games", "error", err)
 	}
 }
 
-func (p *ParserController) parseGames() error {
-	ch, err := p.parser.ParseGames()
+func (p *ParserController) parseGames(ctx context.Context) error {
+	ch, err := p.parser.ParseGamesAll(ctx, 500)
 	if err != nil {
 		return err
 	}
 
-	collection, err := adventuria.GameCollections.Get(adventuria.CollectionGames)
-	if err != nil {
-		return err
-	}
+	for msg := range ch {
+		if msg.Err != nil {
+			return msg.Err
+		}
 
-	for gamesIGDB := range ch {
-		records := make([]games.UpdatableRecord, len(gamesIGDB))
-		for i, game := range gamesIGDB {
-			record := core.NewRecord(collection)
+		records := make([]games.UpdatableRecord, len(msg.Games))
+		for i, game := range msg.Games {
+			record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionGames))
 
 			gameRecord := games.NewGameFromRecord(record)
 			gameRecord.SetIdDb(game.IdDb)
 			gameRecord.SetName(game.Name)
 			gameRecord.SetReleaseDate(game.ReleaseDate)
 			gameRecord.SetSteamAppId(game.SteamAppId)
+			gameRecord.SetSteamAppPrice(-1)
+			gameRecord.SetCover(game.Cover)
 			gameRecord.SetChecksum(game.Checksum)
 
 			platformIds, err := p.collectionReferenceToIds(game.Platforms)
@@ -96,21 +100,20 @@ func (p *ParserController) parseGames() error {
 	return nil
 }
 
-func (p *ParserController) parsePlatforms() error {
-	ch, err := p.parser.ParsePlatforms()
+func (p *ParserController) parsePlatforms(ctx context.Context) error {
+	ch, err := p.parser.ParsePlatformsAll(ctx, 500)
 	if err != nil {
 		return err
 	}
 
-	collection, err := adventuria.GameCollections.Get(adventuria.CollectionPlatforms)
-	if err != nil {
-		return err
-	}
+	for msg := range ch {
+		if msg.Err != nil {
+			return msg.Err
+		}
 
-	for platforms := range ch {
-		records := make([]games.UpdatableRecord, len(platforms))
-		for i, platform := range platforms {
-			record := core.NewRecord(collection)
+		records := make([]games.UpdatableRecord, len(msg.Platforms))
+		for i, platform := range msg.Platforms {
+			record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionPlatforms))
 
 			platformRecord := games.NewPlatformFromRecord(record)
 			platformRecord.SetIdDb(platform.IdDb)
@@ -129,21 +132,20 @@ func (p *ParserController) parsePlatforms() error {
 	return nil
 }
 
-func (p *ParserController) parseCompanies() error {
-	ch, err := p.parser.ParseCompanies()
+func (p *ParserController) parseCompanies(ctx context.Context) error {
+	ch, err := p.parser.ParseCompaniesAll(ctx, 500)
 	if err != nil {
 		return err
 	}
 
-	collection, err := adventuria.GameCollections.Get(adventuria.CollectionCompanies)
-	if err != nil {
-		return err
-	}
+	for msg := range ch {
+		if msg.Err != nil {
+			return msg.Err
+		}
 
-	for companies := range ch {
-		records := make([]games.UpdatableRecord, len(companies))
-		for i, company := range companies {
-			record := core.NewRecord(collection)
+		records := make([]games.UpdatableRecord, len(msg.Companies))
+		for i, company := range msg.Companies {
+			record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionCompanies))
 
 			companyRecord := games.NewCompanyFromRecord(record)
 			companyRecord.SetIdDb(company.IdDb)
@@ -214,19 +216,14 @@ func (p *ParserController) obtainChecksums(updatables []games.UpdatableRecord) (
 }
 
 func (p *ParserController) collectionReferenceToIds(reference games.CollectionReference) ([]string, error) {
-	col, err := adventuria.GameCollections.Get(reference.Collection)
-	if err != nil {
-		return nil, err
-	}
-
 	idsDb := make([]any, len(reference.Ids))
 	for i, id := range reference.Ids {
 		idsDb[i] = int(id)
 	}
 
 	records := make([]*core.Record, len(idsDb))
-	err = adventuria.PocketBase.
-		RecordQuery(col).
+	err := adventuria.PocketBase.
+		RecordQuery(adventuria.GameCollections.Get(reference.Collection)).
 		Where(
 			dbx.In("id_db", idsDb...),
 		).

@@ -19,13 +19,8 @@ func (a *RollItemAction) NextAction() adventuria.ActionType {
 }
 
 func (a *RollItemAction) Do(_ adventuria.ActionRequest) (*adventuria.ActionResult, error) {
-	itemsCol, err := adventuria.GameCollections.Get(adventuria.CollectionItems)
-	if err != nil {
-		return nil, err
-	}
-
 	res := &adventuria.WheelRollResult{
-		Collection: itemsCol,
+		Collection: adventuria.GameCollections.Get(adventuria.CollectionItems),
 	}
 
 	items := adventuria.GameItems.GetAllRollable()
@@ -42,7 +37,7 @@ func (a *RollItemAction) Do(_ adventuria.ActionRequest) (*adventuria.ActionResul
 
 	res.WinnerId = helper.RandomItemFromSlice(items).ID()
 
-	_, err = a.User().Inventory().MustAddItemById(res.WinnerId)
+	_, err := a.User().Inventory().MustAddItemById(res.WinnerId)
 	if err != nil {
 		return nil, err
 	}

@@ -81,13 +81,8 @@ func (g *GameTest) createTestUsers() error {
 		{"user2", "1234567890", "test2@example.com", avatar, "#000000", 3},
 	}
 
-	usersCollection, err := GameCollections.Get(CollectionUsers)
-	if err != nil {
-		return err
-	}
-
 	for _, user := range users {
-		record := core.NewRecord(usersCollection)
+		record := core.NewRecord(GameCollections.Get(CollectionUsers))
 		record.Set("name", user.name)
 		record.Set("password", user.password)
 		record.Set("email", user.email)
@@ -115,19 +110,14 @@ func (g *GameTest) createTestCells() error {
 		{"game", "Cell 3 (game)", 30, 300},
 	}
 
-	cellsCollection, err := GameCollections.Get(CollectionCells)
-	if err != nil {
-		return err
-	}
-
 	for _, cell := range cells {
-		record := core.NewRecord(cellsCollection)
+		record := core.NewRecord(GameCollections.Get(CollectionCells))
 		record.Set("isActive", true)
 		record.Set("type", cell.cellType)
 		record.Set("name", cell.name)
 		record.Set("points", cell.points)
 		record.Set("sort", cell.sort)
-		err = g.pb.Save(record)
+		err := g.pb.Save(record)
 		if err != nil {
 			return err
 		}

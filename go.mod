@@ -3,10 +3,11 @@ module adventuria
 go 1.25.0
 
 require (
-	github.com/ShadowDash2000/steam-store-go v0.0.0-20251015040627-518b0fcdbd1c
+	github.com/ShadowDash2000/steam-store-go v0.0.4
 	github.com/bestnite/go-igdb v0.0.13
+	github.com/joho/godotenv v1.5.1
 	github.com/pocketbase/dbx v1.11.0
-	github.com/pocketbase/pocketbase v0.30.2
+	github.com/pocketbase/pocketbase v0.30.3
 	google.golang.org/protobuf v1.36.10
 )
 
@@ -46,7 +47,7 @@ require (
 	github.com/quic-go/qpack v0.5.1 // indirect
 	github.com/quic-go/quic-go v0.55.0 // indirect
 	github.com/refraction-networking/uquic v0.0.6 // indirect
-	github.com/refraction-networking/utls v1.8.0 // indirect
+	github.com/refraction-networking/utls v1.8.1 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/spf13/cast v1.10.0 // indirect
 	github.com/spf13/cobra v1.10.1 // indirect

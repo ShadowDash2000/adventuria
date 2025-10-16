@@ -97,16 +97,11 @@ func (i *InventoryBase) HasEmptySlots() bool {
 }
 
 func (i *InventoryBase) AddItem(item ItemRecord) (string, error) {
-	inventoryCollection, err := GameCollections.Get(CollectionInventory)
-	if err != nil {
-		return "", err
-	}
-
-	record := core.NewRecord(inventoryCollection)
+	record := core.NewRecord(GameCollections.Get(CollectionInventory))
 	record.Set("user", i.user.ID())
 	record.Set("item", item.ID())
 	record.Set("isActive", item.IsActiveByDefault())
-	err = PocketBase.Save(record)
+	err := PocketBase.Save(record)
 	if err != nil {
 		return "", err
 	}

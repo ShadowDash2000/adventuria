@@ -54,8 +54,7 @@ func (t *TimerBase) bindHooks() {
 	})
 	PocketBase.OnRecordAfterDeleteSuccess(CollectionTimers).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == t.Id {
-			timersCollection, _ := GameCollections.Get(CollectionTimers)
-			t.SetProxyRecord(core.NewRecord(timersCollection))
+			t.SetProxyRecord(core.NewRecord(GameCollections.Get(CollectionTimers)))
 		}
 		return e.Next()
 	})
@@ -150,18 +149,13 @@ func (t *TimerBase) Save() error {
 }
 
 func CreateTimer(userId string, timeLimit int) (*TimerBase, error) {
-	collection, err := GameCollections.Get(CollectionTimers)
-	if err != nil {
-		return nil, err
-	}
-
 	timer := &TimerBase{}
-	timer.SetProxyRecord(core.NewRecord(collection))
+	timer.SetProxyRecord(core.NewRecord(GameCollections.Get(CollectionTimers)))
 	timer.Set("user", userId)
 	timer.Set("timeLimit", timeLimit)
 	timer.Set("timePassed", 0)
 	timer.Set("isActive", false)
-	err = PocketBase.Save(timer)
+	err := PocketBase.Save(timer)
 	if err != nil {
 		return nil, err
 	}

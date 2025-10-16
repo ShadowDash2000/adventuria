@@ -14,4 +14,7 @@ const (
 	CollectionGames     = "games"
 	CollectionCompanies = "companies"
 	CollectionPlatforms = "platforms"
+	CollectionGenres    = "genres"
+
+	ViewCollectionPcGamesWithoutPrice = "pc_games_without_price"
 )

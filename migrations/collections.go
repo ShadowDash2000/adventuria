@@ -2443,6 +2443,41 @@ func init() {
 						"type": "number"
 					},
 					{
+						"hidden": false,
+						"id": "number3126295302",
+						"max": null,
+						"min": null,
+						"name": "steam_app_price",
+						"onlyInt": true,
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "number"
+					},
+					{
+						"hidden": false,
+						"id": "number1853072295",
+						"max": null,
+						"min": null,
+						"name": "campaign_time",
+						"onlyInt": true,
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "number"
+					},
+					{
+						"exceptDomains": null,
+						"hidden": false,
+						"id": "url2366146245",
+						"name": "cover",
+						"onlyDomains": null,
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "url"
+					},
+					{
 						"autogeneratePattern": "",
 						"hidden": false,
 						"id": "text3731873690",
@@ -2553,6 +2588,135 @@ func init() {
 				],
 				"listRule": null,
 				"name": "companies",
+				"system": false,
+				"type": "base",
+				"updateRule": null,
+				"viewRule": null
+			},
+			{
+				"createRule": null,
+				"deleteRule": null,
+				"fields": [
+					{
+						"autogeneratePattern": "",
+						"hidden": false,
+						"id": "text3208210256",
+						"max": 0,
+						"min": 0,
+						"name": "id",
+						"pattern": "^[a-z0-9]+$",
+						"presentable": false,
+						"primaryKey": true,
+						"required": true,
+						"system": true,
+						"type": "text"
+					},
+					{
+						"hidden": false,
+						"id": "_clone_x4jF",
+						"max": null,
+						"min": null,
+						"name": "steam_app_id",
+						"onlyInt": true,
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "number"
+					},
+					{
+						"hidden": false,
+						"id": "_clone_dvuK",
+						"max": null,
+						"min": null,
+						"name": "steam_app_price",
+						"onlyInt": true,
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "number"
+					}
+				],
+				"id": "pbc_4103053455",
+				"indexes": [],
+				"listRule": null,
+				"name": "pc_games_without_price",
+				"system": false,
+				"type": "view",
+				"updateRule": null,
+				"viewQuery": "SELECT\n  g.id,\n  g.steam_app_id,\n  g.steam_app_price\nFROM games g\nJOIN json_each(g.platforms) AS je\nJOIN platforms p ON p.id = je.value\nWHERE p.id_db = 6 AND g.steam_app_id > 0 AND g.steam_app_price = -1",
+				"viewRule": null
+			},
+			{
+				"createRule": null,
+				"deleteRule": null,
+				"fields": [
+					{
+						"autogeneratePattern": "[a-z0-9]{15}",
+						"hidden": false,
+						"id": "text3208210256",
+						"max": 15,
+						"min": 15,
+						"name": "id",
+						"pattern": "^[a-z0-9]+$",
+						"presentable": false,
+						"primaryKey": true,
+						"required": true,
+						"system": true,
+						"type": "text"
+					},
+					{
+						"hidden": false,
+						"id": "autodate2990389176",
+						"name": "created",
+						"onCreate": true,
+						"onUpdate": false,
+						"presentable": false,
+						"system": false,
+						"type": "autodate"
+					},
+					{
+						"hidden": false,
+						"id": "autodate3332085495",
+						"name": "updated",
+						"onCreate": true,
+						"onUpdate": true,
+						"presentable": false,
+						"system": false,
+						"type": "autodate"
+					},
+					{
+						"hidden": false,
+						"id": "number596198703",
+						"max": null,
+						"min": null,
+						"name": "id_db",
+						"onlyInt": true,
+						"presentable": false,
+						"required": true,
+						"system": false,
+						"type": "number"
+					},
+					{
+						"autogeneratePattern": "",
+						"hidden": false,
+						"id": "text1579384326",
+						"max": 0,
+						"min": 0,
+						"name": "name",
+						"pattern": "",
+						"presentable": false,
+						"primaryKey": false,
+						"required": true,
+						"system": false,
+						"type": "text"
+					}
+				],
+				"id": "pbc_2683869272",
+				"indexes": [
+					"CREATE UNIQUE INDEX ` + "`" + `idx_ZAHaMijIkp` + "`" + ` ON ` + "`" + `genres` + "`" + ` (` + "`" + `id_db` + "`" + `)"
+				],
+				"listRule": null,
+				"name": "genres",
 				"system": false,
 				"type": "base",
 				"updateRule": null,

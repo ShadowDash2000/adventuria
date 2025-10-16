@@ -25,12 +25,7 @@ func NewSettings() *Settings {
 }
 
 func DefaultSettings() (*core.Record, error) {
-	collection, err := GameCollections.Get(CollectionSettings)
-	if err != nil {
-		return nil, err
-	}
-
-	record := core.NewRecord(collection)
+	record := core.NewRecord(GameCollections.Get(CollectionSettings))
 	record.Set("eventDateStart", types.NowDateTime())
 	record.Set("currentWeek", 0)
 	record.Set("timerTimeLimit", 14400)

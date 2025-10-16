@@ -71,11 +71,6 @@ func Test_CellPointsDivide(t *testing.T) {
 }
 
 func createCellPointsDivideItem() (*core.Record, error) {
-	collection, err := adventuria.GameCollections.Get(adventuria.CollectionItems)
-	if err != nil {
-		return nil, err
-	}
-
 	effectRecord, err := createCellPointsDivideEffect()
 	if err != nil {
 		return nil, err
@@ -86,7 +81,7 @@ func createCellPointsDivideItem() (*core.Record, error) {
 		return nil, err
 	}
 
-	record := core.NewRecord(collection)
+	record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionItems))
 	record.Set("name", "Cell Points Divide")
 	record.Set("effects", []string{effectRecord.Id})
 	record.Set("icon", icon)
@@ -100,16 +95,11 @@ func createCellPointsDivideItem() (*core.Record, error) {
 }
 
 func createCellPointsDivideEffect() (*core.Record, error) {
-	collection, err := adventuria.GameCollections.Get(adventuria.CollectionEffects)
-	if err != nil {
-		return nil, err
-	}
-
-	record := core.NewRecord(collection)
+	record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionEffects))
 	record.Set("name", "Cell Points Divide")
 	record.Set("type", "cellPointsDivide")
 	record.Set("value", 2)
-	err = adventuria.PocketBase.Save(record)
+	err := adventuria.PocketBase.Save(record)
 	if err != nil {
 		return nil, err
 	}

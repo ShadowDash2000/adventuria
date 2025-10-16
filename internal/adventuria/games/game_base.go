@@ -67,6 +67,22 @@ func (c *GameRecordBase) SetSteamAppId(id uint64) {
 	c.Set("steam_app_id", int(id))
 }
 
+func (c *GameRecordBase) SteamAppPrice() int {
+	return c.GetInt("steam_app_price")
+}
+
+func (c *GameRecordBase) SetSteamAppPrice(price int) {
+	c.Set("steam_app_price", price)
+}
+
+func (c *GameRecordBase) CampaignTime() int {
+	return c.GetInt("campaign_time")
+}
+
+func (c *GameRecordBase) SetCampaignTime(time int) {
+	c.Set("campaign_time", time)
+}
+
 func (c *GameRecordBase) Cover() string {
 	return c.GetString("cover")
 }

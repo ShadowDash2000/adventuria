@@ -19,13 +19,8 @@ func NewCellJail() adventuria.CellCreator {
 }
 
 func (c *CellJail) Roll(_ adventuria.User) (*adventuria.WheelRollResult, error) {
-	cellsCol, err := adventuria.GameCollections.Get(adventuria.CollectionCells)
-	if err != nil {
-		return nil, err
-	}
-
 	res := &adventuria.WheelRollResult{
-		Collection: cellsCol,
+		Collection: adventuria.GameCollections.Get(adventuria.CollectionCells),
 	}
 
 	cells := adventuria.GameCells.GetAllByType(CellTypeGame)
