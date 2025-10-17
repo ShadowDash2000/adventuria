@@ -170,6 +170,11 @@ func (p *Parser) ParseGames(ctx context.Context, count, limit uint64) (chan Pars
 					ch <- ParseGamesMessage{Err: err}
 					return
 				}
+				companies, err := p.fetchInvolvedCompanies(gamesIgdb)
+				if err != nil {
+					ch <- ParseGamesMessage{Err: err}
+					return
+				}
 
 				res := ParseGamesMessage{Games: make([]games.Game, len(gamesIgdb))}
 				for i, game := range gamesIgdb {
@@ -181,12 +186,30 @@ func (p *Parser) ParseGames(ctx context.Context, count, limit uint64) (chan Pars
 
 					platformIds := make([]uint64, len(game.GetPlatforms()))
 					for i, platform := range game.GetPlatforms() {
-						platformIds[i] = platform.Id
+						platformIds[i] = platform.GetId()
 					}
 
-					companyIds := make([]uint64, len(game.GetInvolvedCompanies()))
-					for i, company := range game.GetInvolvedCompanies() {
-						companyIds[i] = company.Id
+					var developersIds []uint64
+					var publishersIds []uint64
+					for _, involvedCompany := range game.GetInvolvedCompanies() {
+						company, ok := companies[involvedCompany.GetId()]
+						if !ok {
+							continue
+						}
+
+						if company.GetDeveloper() {
+							developersIds = append(developersIds, company.GetId())
+							continue
+						}
+						if company.GetPublisher() {
+							publishersIds = append(publishersIds, company.GetId())
+							continue
+						}
+					}
+
+					genreIds := make([]uint64, len(game.GetGenres()))
+					for i, genre := range game.GetGenres() {
+						genreIds[i] = genre.GetId()
 					}
 
 					res.Games[i] = games.Game{
@@ -197,9 +220,17 @@ func (p *Parser) ParseGames(ctx context.Context, count, limit uint64) (chan Pars
 							Ids:        platformIds,
 							Collection: adventuria.CollectionPlatforms,
 						},
-						Companies: games.CollectionReference{
-							Ids:        companyIds,
+						Developers: games.CollectionReference{
+							Ids:        developersIds,
 							Collection: adventuria.CollectionCompanies,
+						},
+						Publishers: games.CollectionReference{
+							Ids:        publishersIds,
+							Collection: adventuria.CollectionCompanies,
+						},
+						Genres: games.CollectionReference{
+							Ids:        genreIds,
+							Collection: adventuria.CollectionGenres,
 						},
 						SteamAppId: steamAppIds[game.GetId()],
 						Cover:      covers[game.GetId()],
@@ -334,4 +365,73 @@ func (p *Parser) fetchCovers(games []*pb.Game) (map[uint64]string, error) {
 	}
 
 	return res, nil
+}
+
+func (p *Parser) fetchInvolvedCompanies(games []*pb.Game) (map[uint64]*pb.InvolvedCompany, error) {
+	var companyIds []uint64
+	for _, game := range games {
+		for _, company := range game.GetInvolvedCompanies() {
+			companyIds = append(companyIds, company.GetId())
+		}
+	}
+
+	companies, err := p.client.InvolvedCompanies.GetByIDs(companyIds)
+	if err != nil {
+		return nil, err
+	}
+
+	res := make(map[uint64]*pb.InvolvedCompany)
+	for _, company := range companies {
+		res[company.GetId()] = company
+	}
+
+	return res, nil
+}
+
+type ParseGenresMessage struct {
+	Genres []games.Genre
+	Err    error
+}
+
+func (p *Parser) ParseGenresAll(ctx context.Context, limit uint64) (chan ParseGenresMessage, error) {
+	count, err := p.client.Genres.Count()
+	if err != nil {
+		return nil, err
+	}
+
+	return p.ParseGenres(ctx, count, limit)
+}
+
+func (p *Parser) ParseGenres(ctx context.Context, count, limit uint64) (chan ParseGenresMessage, error) {
+	ch := make(chan ParseGenresMessage)
+
+	go func() {
+		defer close(ch)
+
+		for offset := uint64(0); offset < count; offset += limit {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				genres, err := p.client.Genres.Paginated(offset, limit)
+				if err != nil {
+					ch <- ParseGenresMessage{Err: err}
+					return
+				}
+
+				res := ParseGenresMessage{Genres: make([]games.Genre, len(genres))}
+				for i, genre := range genres {
+					res.Genres[i] = games.Genre{
+						IdDb:     genre.GetId(),
+						Name:     genre.GetName(),
+						Checksum: strconv.FormatUint(genre.GetId(), 10),
+					}
+				}
+
+				ch <- res
+			}
+		}
+	}()
+
+	return ch, nil
 }

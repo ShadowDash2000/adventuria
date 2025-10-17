@@ -12,7 +12,9 @@ type Game struct {
 	Name        string
 	ReleaseDate types.DateTime
 	Platforms   CollectionReference
-	Companies   CollectionReference
+	Developers  CollectionReference
+	Publishers  CollectionReference
+	Genres      CollectionReference
 	SteamAppId  uint64
 	Cover       string
 	Checksum    string
@@ -31,8 +33,14 @@ type GameRecord interface {
 	SetReleaseDate(types.DateTime)
 	Platforms() []string
 	SetPlatforms([]string)
-	Companies() []string
-	SetCompanies([]string)
+	Developers() []string
+	SetDevelopers([]string)
+	Publishers() []string
+	SetPublishers([]string)
+	Genres() []string
+	SetGenres([]string)
+	Tags() []string
+	SetTags([]string)
 	SteamAppId() uint64
 	SetSteamAppId(uint64)
 	SteamAppPrice() int

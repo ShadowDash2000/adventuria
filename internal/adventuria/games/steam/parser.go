@@ -1,7 +1,6 @@
 package steam
 
 import (
-	"adventuria/internal/adventuria/games"
 	"context"
 
 	steamstore "github.com/ShadowDash2000/steam-store-go"
@@ -19,15 +18,19 @@ func NewParser(apiKey string) *Parser {
 	}
 }
 
-func (p *Parser) ParsePrices(ctx context.Context, games []games.GameRecord) error {
-	for _, game := range games {
-		appDetail, err := p.client.GetSteamSpyAppDetails(ctx, uint(game.SteamAppId()))
-		if err != nil {
-			return err
-		}
+type AppDetail struct {
+	Price uint
+	Tags  map[string]uint
+}
 
-		game.SetSteamAppPrice(int(appDetail.Price))
+func (p *Parser) ParseAppDetails(ctx context.Context, appId uint) (*AppDetail, error) {
+	appDetail, err := p.client.GetSteamSpyAppDetails(ctx, appId)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	return &AppDetail{
+		Price: uint(appDetail.Price),
+		Tags:  appDetail.Tags,
+	}, nil
 }

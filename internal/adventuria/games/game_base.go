@@ -15,86 +15,110 @@ func NewGameFromRecord(record *core.Record) GameRecord {
 	return g
 }
 
-func (c *GameRecordBase) ID() string {
-	return c.Id
+func (g *GameRecordBase) ID() string {
+	return g.Id
 }
 
-func (c *GameRecordBase) IdDb() uint64 {
-	return uint64(c.GetInt("id_db"))
+func (g *GameRecordBase) IdDb() uint64 {
+	return uint64(g.GetInt("id_db"))
 }
 
-func (c *GameRecordBase) SetIdDb(id uint64) {
-	c.Set("id_db", int(id))
+func (g *GameRecordBase) SetIdDb(id uint64) {
+	g.Set("id_db", int(id))
 }
 
-func (c *GameRecordBase) Name() string {
-	return c.GetString("name")
+func (g *GameRecordBase) Name() string {
+	return g.GetString("name")
 }
 
-func (c *GameRecordBase) SetName(name string) {
-	c.Set("name", name)
+func (g *GameRecordBase) SetName(name string) {
+	g.Set("name", name)
 }
 
-func (c *GameRecordBase) ReleaseDate() types.DateTime {
-	return c.GetDateTime("releaseDate")
+func (g *GameRecordBase) ReleaseDate() types.DateTime {
+	return g.GetDateTime("releaseDate")
 }
 
-func (c *GameRecordBase) SetReleaseDate(date types.DateTime) {
-	c.Set("release_date", date)
+func (g *GameRecordBase) SetReleaseDate(date types.DateTime) {
+	g.Set("release_date", date)
 }
 
-func (c *GameRecordBase) Platforms() []string {
-	return c.GetStringSlice("platforms")
+func (g *GameRecordBase) Platforms() []string {
+	return g.GetStringSlice("platforms")
 }
 
-func (c *GameRecordBase) SetPlatforms(ids []string) {
-	c.Set("platforms", ids)
+func (g *GameRecordBase) SetPlatforms(ids []string) {
+	g.Set("platforms", ids)
 }
 
-func (c *GameRecordBase) Companies() []string {
-	return c.GetStringSlice("companies")
+func (g *GameRecordBase) Developers() []string {
+	return g.GetStringSlice("developers")
 }
 
-func (c *GameRecordBase) SetCompanies(ids []string) {
-	c.Set("companies", ids)
+func (g *GameRecordBase) SetDevelopers(ids []string) {
+	g.Set("developers", ids)
 }
 
-func (c *GameRecordBase) SteamAppId() uint64 {
-	return uint64(c.GetInt("steam_app_id"))
+func (g *GameRecordBase) Publishers() []string {
+	return g.GetStringSlice("publishers")
 }
 
-func (c *GameRecordBase) SetSteamAppId(id uint64) {
-	c.Set("steam_app_id", int(id))
+func (g *GameRecordBase) SetPublishers(ids []string) {
+	g.Set("publishers", ids)
 }
 
-func (c *GameRecordBase) SteamAppPrice() int {
-	return c.GetInt("steam_app_price")
+func (g *GameRecordBase) Genres() []string {
+	return g.GetStringSlice("genres")
 }
 
-func (c *GameRecordBase) SetSteamAppPrice(price int) {
-	c.Set("steam_app_price", price)
+func (g *GameRecordBase) SetGenres(ids []string) {
+	g.Set("genres", ids)
 }
 
-func (c *GameRecordBase) CampaignTime() int {
-	return c.GetInt("campaign_time")
+func (g *GameRecordBase) Tags() []string {
+	return g.GetStringSlice("tags")
 }
 
-func (c *GameRecordBase) SetCampaignTime(time int) {
-	c.Set("campaign_time", time)
+func (g *GameRecordBase) SetTags(ids []string) {
+	g.Set("tags", ids)
 }
 
-func (c *GameRecordBase) Cover() string {
-	return c.GetString("cover")
+func (g *GameRecordBase) SteamAppId() uint64 {
+	return uint64(g.GetInt("steam_app_id"))
 }
 
-func (c *GameRecordBase) SetCover(url string) {
-	c.Set("cover", url)
+func (g *GameRecordBase) SetSteamAppId(id uint64) {
+	g.Set("steam_app_id", int(id))
 }
 
-func (c *GameRecordBase) Checksum() string {
-	return c.GetString("checksum")
+func (g *GameRecordBase) SteamAppPrice() int {
+	return g.GetInt("steam_app_price")
 }
 
-func (c *GameRecordBase) SetChecksum(checksum string) {
-	c.Set("checksum", checksum)
+func (g *GameRecordBase) SetSteamAppPrice(price int) {
+	g.Set("steam_app_price", price)
+}
+
+func (g *GameRecordBase) CampaignTime() int {
+	return g.GetInt("campaign_time")
+}
+
+func (g *GameRecordBase) SetCampaignTime(time int) {
+	g.Set("campaign_time", time)
+}
+
+func (g *GameRecordBase) Cover() string {
+	return g.GetString("cover")
+}
+
+func (g *GameRecordBase) SetCover(url string) {
+	g.Set("cover", url)
+}
+
+func (g *GameRecordBase) Checksum() string {
+	return g.GetString("checksum")
+}
+
+func (g *GameRecordBase) SetChecksum(checksum string) {
+	g.Set("checksum", checksum)
 }

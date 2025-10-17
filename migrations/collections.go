@@ -2431,6 +2431,58 @@ func init() {
 						"type": "relation"
 					},
 					{
+						"cascadeDelete": false,
+						"collectionId": "pbc_2833628128",
+						"hidden": false,
+						"id": "relation196169434",
+						"maxSelect": 999,
+						"minSelect": 0,
+						"name": "developers",
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "relation"
+					},
+					{
+						"cascadeDelete": false,
+						"collectionId": "pbc_2833628128",
+						"hidden": false,
+						"id": "relation2217591675",
+						"maxSelect": 999,
+						"minSelect": 0,
+						"name": "publishers",
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "relation"
+					},
+					{
+						"cascadeDelete": false,
+						"collectionId": "pbc_2683869272",
+						"hidden": false,
+						"id": "relation2834031894",
+						"maxSelect": 999,
+						"minSelect": 0,
+						"name": "genres",
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "relation"
+					},
+					{
+						"cascadeDelete": false,
+						"collectionId": "pbc_1219621782",
+						"hidden": false,
+						"id": "relation1874629670",
+						"maxSelect": 999,
+						"minSelect": 0,
+						"name": "tags",
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "relation"
+					},
+					{
 						"hidden": false,
 						"id": "number1276789363",
 						"max": null,
@@ -2709,6 +2761,20 @@ func init() {
 						"required": true,
 						"system": false,
 						"type": "text"
+					},
+					{
+						"autogeneratePattern": "",
+						"hidden": false,
+						"id": "text3731873690",
+						"max": 0,
+						"min": 0,
+						"name": "checksum",
+						"pattern": "",
+						"presentable": false,
+						"primaryKey": false,
+						"required": true,
+						"system": false,
+						"type": "text"
 					}
 				],
 				"id": "pbc_2683869272",
@@ -2717,6 +2783,96 @@ func init() {
 				],
 				"listRule": null,
 				"name": "genres",
+				"system": false,
+				"type": "base",
+				"updateRule": null,
+				"viewRule": null
+			},
+			{
+				"createRule": null,
+				"deleteRule": null,
+				"fields": [
+					{
+						"autogeneratePattern": "[a-z0-9]{15}",
+						"hidden": false,
+						"id": "text3208210256",
+						"max": 15,
+						"min": 15,
+						"name": "id",
+						"pattern": "^[a-z0-9]+$",
+						"presentable": false,
+						"primaryKey": true,
+						"required": true,
+						"system": true,
+						"type": "text"
+					},
+					{
+						"hidden": false,
+						"id": "autodate2990389176",
+						"name": "created",
+						"onCreate": true,
+						"onUpdate": false,
+						"presentable": false,
+						"system": false,
+						"type": "autodate"
+					},
+					{
+						"hidden": false,
+						"id": "autodate3332085495",
+						"name": "updated",
+						"onCreate": true,
+						"onUpdate": true,
+						"presentable": false,
+						"system": false,
+						"type": "autodate"
+					},
+					{
+						"hidden": false,
+						"id": "number596198703",
+						"max": null,
+						"min": null,
+						"name": "id_db",
+						"onlyInt": true,
+						"presentable": false,
+						"required": true,
+						"system": false,
+						"type": "number"
+					},
+					{
+						"autogeneratePattern": "",
+						"hidden": false,
+						"id": "text1579384326",
+						"max": 0,
+						"min": 0,
+						"name": "name",
+						"pattern": "",
+						"presentable": false,
+						"primaryKey": false,
+						"required": true,
+						"system": false,
+						"type": "text"
+					},
+					{
+						"autogeneratePattern": "",
+						"hidden": false,
+						"id": "text3731873690",
+						"max": 0,
+						"min": 0,
+						"name": "checksum",
+						"pattern": "",
+						"presentable": false,
+						"primaryKey": false,
+						"required": true,
+						"system": false,
+						"type": "text"
+					}
+				],
+				"id": "pbc_1219621782",
+				"indexes": [
+					"CREATE UNIQUE INDEX ` + "`" + `idx_GcaAaPS94H` + "`" + ` ON ` + "`" + `tags` + "`" + ` (` + "`" + `id_db` + "`" + `)"
+				],
+				"listRule": null,
+				"name": "tags",
 				"system": false,
 				"type": "base",
 				"updateRule": null,

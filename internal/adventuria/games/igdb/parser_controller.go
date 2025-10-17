@@ -47,6 +47,10 @@ func (p *ParserController) Parse() {
 		adventuria.PocketBase.Logger().Error("Failed to parse platforms", "error", err)
 		return
 	}
+	if err := p.parseGenres(ctx); err != nil {
+		adventuria.PocketBase.Logger().Error("Failed to parse genres", "error", err)
+		return
+	}
 	if err := p.parseGames(ctx); err != nil {
 		adventuria.PocketBase.Logger().Error("Failed to parse games", "error", err)
 	}
@@ -82,11 +86,23 @@ func (p *ParserController) parseGames(ctx context.Context) error {
 			}
 			gameRecord.SetPlatforms(platformIds)
 
-			companyIds, err := p.collectionReferenceToIds(game.Companies)
+			developerIds, err := p.collectionReferenceToIds(game.Developers)
 			if err != nil {
 				return err
 			}
-			gameRecord.SetCompanies(companyIds)
+			gameRecord.SetDevelopers(developerIds)
+
+			publisherIds, err := p.collectionReferenceToIds(game.Publishers)
+			if err != nil {
+				return err
+			}
+			gameRecord.SetPublishers(publisherIds)
+
+			genreIds, err := p.collectionReferenceToIds(game.Genres)
+			if err != nil {
+				return err
+			}
+			gameRecord.SetGenres(genreIds)
 
 			records[i] = gameRecord
 		}
@@ -153,6 +169,38 @@ func (p *ParserController) parseCompanies(ctx context.Context) error {
 			companyRecord.SetChecksum(company.Checksum)
 
 			records[i] = companyRecord
+		}
+
+		err = p.batchUpdate(records)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (p *ParserController) parseGenres(ctx context.Context) error {
+	ch, err := p.parser.ParseGenresAll(ctx, 500)
+	if err != nil {
+		return err
+	}
+
+	for msg := range ch {
+		if msg.Err != nil {
+			return msg.Err
+		}
+
+		records := make([]games.UpdatableRecord, len(msg.Genres))
+		for i, genre := range msg.Genres {
+			record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionGenres))
+
+			genreRecord := games.NewGenreFromRecord(record)
+			genreRecord.SetIdDb(genre.IdDb)
+			genreRecord.SetName(genre.Name)
+			genreRecord.SetChecksum(genre.Checksum)
+
+			records[i] = genreRecord
 		}
 
 		err = p.batchUpdate(records)
