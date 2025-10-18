@@ -99,11 +99,11 @@ func (g *GameRecordBase) SetSteamAppPrice(price int) {
 	g.Set("steam_app_price", price)
 }
 
-func (g *GameRecordBase) CampaignTime() int {
-	return g.GetInt("campaign_time")
+func (g *GameRecordBase) CampaignTime() float64 {
+	return g.GetFloat("campaign_time")
 }
 
-func (g *GameRecordBase) SetCampaignTime(time int) {
+func (g *GameRecordBase) SetCampaignTime(time float64) {
 	g.Set("campaign_time", time)
 }
 

@@ -45,8 +45,8 @@ type GameRecord interface {
 	SetSteamAppId(uint64)
 	SteamAppPrice() int
 	SetSteamAppPrice(int)
-	CampaignTime() int
-	SetCampaignTime(int)
+	CampaignTime() float64
+	SetCampaignTime(float64)
 	Cover() string
 	SetCover(string)
 }

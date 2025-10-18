@@ -66,7 +66,7 @@ func (p *Parser) ParsePlatforms(ctx context.Context, count, limit uint64) (chan 
 					res.Platforms[i] = games.Platform{
 						IdDb:     platform.GetId(),
 						Name:     platform.GetName(),
-						Checksum: strconv.FormatUint(platform.GetId(), 10),
+						Checksum: platform.GetChecksum(),
 					}
 				}
 
@@ -114,7 +114,7 @@ func (p *Parser) ParseCompanies(ctx context.Context, count, limit uint64) (chan 
 					res.Companies[i] = games.Company{
 						IdDb:     company.GetId(),
 						Name:     company.GetName(),
-						Checksum: strconv.FormatUint(company.GetId(), 10),
+						Checksum: company.GetChecksum(),
 					}
 				}
 
@@ -424,7 +424,7 @@ func (p *Parser) ParseGenres(ctx context.Context, count, limit uint64) (chan Par
 					res.Genres[i] = games.Genre{
 						IdDb:     genre.GetId(),
 						Name:     genre.GetName(),
-						Checksum: strconv.FormatUint(genre.GetId(), 10),
+						Checksum: genre.Checksum,
 					}
 				}
 

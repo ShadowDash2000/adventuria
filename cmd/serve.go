@@ -5,6 +5,7 @@ import (
 	"adventuria/internal/adventuria/actions"
 	"adventuria/internal/adventuria/cells"
 	"adventuria/internal/adventuria/effects"
+	"adventuria/internal/adventuria/games/hltb"
 	"adventuria/internal/adventuria/games/igdb"
 	"adventuria/internal/adventuria/games/steam"
 	"adventuria/internal/http"
@@ -35,6 +36,12 @@ func main() {
 			return err
 		}
 		adventuria.PocketBase.Cron().MustAdd("steam_prices_parser", "0 0 1 * *", steamParser.Parse)
+
+		hltbParser, err := hltb.New()
+		if err != nil {
+			return err
+		}
+		adventuria.PocketBase.Cron().MustAdd("hltb_parser", "0 0 1 * *", hltbParser.Parse)
 
 		http.Route(game, se.Router)
 

@@ -39,25 +39,25 @@ func New() (*ParserController, error) {
 func (p *ParserController) Parse() {
 	ctx := context.Background()
 
-	if err := p.parseCompanies(ctx); err != nil {
+	if err := p.parseCompanies(ctx, 500); err != nil {
 		adventuria.PocketBase.Logger().Error("Failed to parse companies", "error", err)
 		return
 	}
-	if err := p.parsePlatforms(ctx); err != nil {
+	if err := p.parsePlatforms(ctx, 500); err != nil {
 		adventuria.PocketBase.Logger().Error("Failed to parse platforms", "error", err)
 		return
 	}
-	if err := p.parseGenres(ctx); err != nil {
+	if err := p.parseGenres(ctx, 500); err != nil {
 		adventuria.PocketBase.Logger().Error("Failed to parse genres", "error", err)
 		return
 	}
-	if err := p.parseGames(ctx); err != nil {
+	if err := p.parseGames(ctx, 500); err != nil {
 		adventuria.PocketBase.Logger().Error("Failed to parse games", "error", err)
 	}
 }
 
-func (p *ParserController) parseGames(ctx context.Context) error {
-	ch, err := p.parser.ParseGamesAll(ctx, 500)
+func (p *ParserController) parseGames(ctx context.Context, limit uint64) error {
+	ch, err := p.parser.ParseGames(ctx, 100, limit)
 	if err != nil {
 		return err
 	}
@@ -77,6 +77,7 @@ func (p *ParserController) parseGames(ctx context.Context) error {
 			gameRecord.SetReleaseDate(game.ReleaseDate)
 			gameRecord.SetSteamAppId(game.SteamAppId)
 			gameRecord.SetSteamAppPrice(-1)
+			gameRecord.SetCampaignTime(-1)
 			gameRecord.SetCover(game.Cover)
 			gameRecord.SetChecksum(game.Checksum)
 
@@ -116,8 +117,8 @@ func (p *ParserController) parseGames(ctx context.Context) error {
 	return nil
 }
 
-func (p *ParserController) parsePlatforms(ctx context.Context) error {
-	ch, err := p.parser.ParsePlatformsAll(ctx, 500)
+func (p *ParserController) parsePlatforms(ctx context.Context, limit uint64) error {
+	ch, err := p.parser.ParsePlatformsAll(ctx, limit)
 	if err != nil {
 		return err
 	}
@@ -148,8 +149,8 @@ func (p *ParserController) parsePlatforms(ctx context.Context) error {
 	return nil
 }
 
-func (p *ParserController) parseCompanies(ctx context.Context) error {
-	ch, err := p.parser.ParseCompaniesAll(ctx, 500)
+func (p *ParserController) parseCompanies(ctx context.Context, limit uint64) error {
+	ch, err := p.parser.ParseCompanies(ctx, 100, limit)
 	if err != nil {
 		return err
 	}
@@ -180,8 +181,8 @@ func (p *ParserController) parseCompanies(ctx context.Context) error {
 	return nil
 }
 
-func (p *ParserController) parseGenres(ctx context.Context) error {
-	ch, err := p.parser.ParseGenresAll(ctx, 500)
+func (p *ParserController) parseGenres(ctx context.Context, limit uint64) error {
+	ch, err := p.parser.ParseGenresAll(ctx, limit)
 	if err != nil {
 		return err
 	}
@@ -219,10 +220,24 @@ func (p *ParserController) batchUpdate(records []games.UpdatableRecord) error {
 	}
 
 	for _, record := range records {
-		if checksum, ok := checksums[int(record.IdDb())]; ok {
-			if checksum == record.Checksum() {
+		if extRecord, ok := checksums[record.IdDb()]; ok {
+			if extRecord.GetString("checksum") == record.Checksum() {
 				continue
 			}
+
+			data := record.ProxyRecord().FieldsData()
+			baseFields := []string{"id", "created", "updated"}
+			for _, field := range baseFields {
+				delete(data, field)
+			}
+
+			extRecord.Load(data)
+
+			err = adventuria.PocketBase.Save(extRecord)
+			if err != nil {
+				return err
+			}
+			continue
 		}
 
 		err = adventuria.PocketBase.Save(record.ProxyRecord())
@@ -234,7 +249,7 @@ func (p *ParserController) batchUpdate(records []games.UpdatableRecord) error {
 	return nil
 }
 
-func (p *ParserController) obtainChecksums(updatables []games.UpdatableRecord) (map[int]string, error) {
+func (p *ParserController) obtainChecksums(updatables []games.UpdatableRecord) (map[uint64]*core.Record, error) {
 	if len(updatables) == 0 {
 		return nil, nil
 	}
@@ -255,9 +270,9 @@ func (p *ParserController) obtainChecksums(updatables []games.UpdatableRecord) (
 		return nil, err
 	}
 
-	checksums := make(map[int]string, len(records))
+	checksums := make(map[uint64]*core.Record, len(records))
 	for _, record := range records {
-		checksums[record.GetInt("id_db")] = record.GetString("checksum")
+		checksums[uint64(record.GetInt("id_db"))] = record
 	}
 
 	return checksums, nil

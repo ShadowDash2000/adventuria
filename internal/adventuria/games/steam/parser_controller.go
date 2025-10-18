@@ -30,18 +30,25 @@ func New() (*ParserController, error) {
 }
 
 func (p *ParserController) Parse() {
+	ctx := context.Background()
+
+	if err := p.parsePricesAndTags(ctx, 100); err != nil {
+		adventuria.PocketBase.Logger().Error("Failed to parse prices and tags", "error", err)
+		return
+	}
+}
+
+func (p *ParserController) parsePricesAndTags(ctx context.Context, limit int) error {
 	tags, err := p.getTags()
 	if err != nil {
-		adventuria.PocketBase.Logger().Error("Failed to get tags", "error", err)
-		return
+		return err
 	}
 	p.tags = tags
 
 	for {
-		gameRecords, err := p.getSteamAppsWithoutPrice(100)
+		gameRecords, err := p.getSteamAppsWithoutPrice(limit)
 		if err != nil {
-			adventuria.PocketBase.Logger().Error("Failed to get games", "error", err)
-			return
+			return err
 		}
 
 		if len(gameRecords) == 0 {
@@ -50,10 +57,9 @@ func (p *ParserController) Parse() {
 
 		tagsTmp := make(map[string]map[string]uint)
 		for _, game := range gameRecords {
-			appDetails, err := p.parser.ParseAppDetails(context.Background(), uint(game.SteamAppId()))
+			appDetails, err := p.parser.ParseAppDetails(ctx, uint(game.SteamAppId()))
 			if err != nil {
-				adventuria.PocketBase.Logger().Error("Failed to parse app details", "error", err)
-				return
+				return err
 			}
 
 			game.SetSteamAppPrice(int(appDetails.Price))
@@ -76,8 +82,7 @@ func (p *ParserController) Parse() {
 
 		err = p.updateUnknowTags()
 		if err != nil {
-			adventuria.PocketBase.Logger().Error("Failed to update unknow tags", "error", err)
-			return
+			return err
 		}
 
 		for _, game := range gameRecords {
@@ -88,13 +93,14 @@ func (p *ParserController) Parse() {
 
 			err = adventuria.PocketBase.Save(game.ProxyRecord())
 			if err != nil {
-				adventuria.PocketBase.Logger().Error("Failed to save game", "error", err)
-				return
+				return err
 			}
 		}
 	}
 
 	maps.Clear(p.tags)
+
+	return nil
 }
 
 func (p *ParserController) updateUnknowTags() error {
