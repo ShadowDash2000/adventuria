@@ -966,32 +966,17 @@ func init() {
 						"type": "text"
 					},
 					{
-						"autogeneratePattern": "",
+						"cascadeDelete": false,
+						"collectionId": "pbc_2224754354",
 						"hidden": false,
-						"id": "text590033292",
-						"max": 0,
-						"min": 0,
-						"name": "value",
-						"pattern": "",
+						"id": "relation590033292",
+						"maxSelect": 1,
+						"minSelect": 0,
+						"name": "game",
 						"presentable": false,
-						"primaryKey": false,
 						"required": false,
 						"system": false,
-						"type": "text"
-					},
-					{
-						"autogeneratePattern": "",
-						"hidden": false,
-						"id": "text455797646",
-						"max": 0,
-						"min": 0,
-						"name": "collectionRef",
-						"pattern": "^[a-zA-Z0-9]+$",
-						"presentable": false,
-						"primaryKey": false,
-						"required": false,
-						"system": false,
-						"type": "text"
+						"type": "relation"
 					},
 					{
 						"convertURLs": false,
@@ -1037,6 +1022,18 @@ func init() {
 						"required": false,
 						"system": false,
 						"type": "relation"
+					},
+					{
+						"hidden": false,
+						"id": "number1149756166",
+						"max": null,
+						"min": null,
+						"name": "seed",
+						"onlyInt": true,
+						"presentable": false,
+						"required": true,
+						"system": false,
+						"type": "number"
 					}
 				],
 				"id": "pbc_2484833797",

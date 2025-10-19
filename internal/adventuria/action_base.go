@@ -85,12 +85,12 @@ func (a *ActionBase) SetComment(comment string) {
 	a.Set("comment", comment)
 }
 
-func (a *ActionBase) Value() string {
-	return a.GetString("value")
+func (a *ActionBase) Game() string {
+	return a.GetString("game")
 }
 
-func (a *ActionBase) SetValue(value any) {
-	a.Set("value", value)
+func (a *ActionBase) SetGame(id string) {
+	a.Set("game", id)
 }
 
 func (a *ActionBase) Type() ActionType {
@@ -103,14 +103,6 @@ func (a *ActionBase) SetType(t ActionType) {
 
 func (a *ActionBase) SetNotAffectNextStep(b bool) {
 	a.Set("notAffectNextStep", b)
-}
-
-func (a *ActionBase) CollectionRef() string {
-	return a.GetString("collectionRef")
-}
-
-func (a *ActionBase) SetCollectionRef(collectionRef string) {
-	a.Set("collectionRef", collectionRef)
 }
 
 func (a *ActionBase) DiceRoll() int {
@@ -127,6 +119,14 @@ func (a *ActionBase) ItemsUsed() []string {
 
 func (a *ActionBase) SetItemsUsed(items []string) {
 	a.Set("itemsUsed", items)
+}
+
+func (a *ActionBase) Seed() int {
+	return a.GetInt("seed")
+}
+
+func (a *ActionBase) SetSeed(seed int) {
+	a.Set("seed", seed)
 }
 
 type UserAction struct {

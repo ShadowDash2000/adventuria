@@ -2,6 +2,7 @@ package actions
 
 import (
 	"adventuria/internal/adventuria"
+	"math/rand/v2"
 )
 
 type RollDiceAction struct {
@@ -62,7 +63,8 @@ func (a *RollDiceAction) Do(_ adventuria.ActionRequest) (*adventuria.ActionResul
 		return nil, err
 	}
 	action.SetCell(onAfterMoveEvent.CurrentCell.ID())
-	action.SetValue(onAfterMoveEvent.Steps)
+	action.SetDiceRoll(onAfterMoveEvent.Steps)
+	action.SetSeed(rand.Int())
 	err = action.Save()
 	if err != nil {
 		return nil, err

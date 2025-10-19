@@ -4,24 +4,40 @@ import (
 	"adventuria/internal/adventuria"
 	"adventuria/internal/adventuria/games"
 	"adventuria/pkg/helper"
+	"fmt"
 
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
 )
 
 type CellGame struct {
-	adventuria.CellBase
+	adventuria.CellWheel
 }
 
 func NewCellGame() adventuria.CellCreator {
 	return func() adventuria.Cell {
 		return &CellGame{
-			adventuria.CellBase{},
+			&adventuria.CellWheelBase{
+				CellBase: adventuria.CellBase{},
+			},
 		}
 	}
 }
 
-func (c *CellGame) Roll(_ adventuria.User) (*adventuria.WheelRollResult, error) {
+func (c *CellGame) Roll(user adventuria.User) (*adventuria.WheelRollResult, error) {
+	res := &adventuria.WheelRollResult{}
+
+	wheelItems, err := c.GetItems(user)
+	if err != nil {
+		return nil, err
+	}
+
+	res.WinnerId = helper.RandomItemFromSlice(wheelItems).Id
+
+	return res, nil
+}
+
+func (c *CellGame) GetItems(user adventuria.User) ([]*adventuria.WheelItem, error) {
 	var filter adventuria.GameFilterRecord
 
 	if c.Filter() != "" {
@@ -36,10 +52,9 @@ func (c *CellGame) Roll(_ adventuria.User) (*adventuria.WheelRollResult, error) 
 		filter = adventuria.NewGameFilterFromRecord(filterRecord)
 	}
 
-	res := &adventuria.WheelRollResult{}
 	q := adventuria.PocketBase.RecordQuery(adventuria.GameCollections.Get(adventuria.CollectionGames)).
 		Limit(20).
-		OrderBy("random()")
+		OrderBy(fmt.Sprintf("sin(id + %d)", user.LastAction().Seed()))
 
 	if filter != nil {
 		q = c.setFilters(filter, q)
@@ -52,6 +67,7 @@ func (c *CellGame) Roll(_ adventuria.User) (*adventuria.WheelRollResult, error) 
 	}
 
 	gameRecords := make([]games.GameRecord, len(records))
+	var res []*adventuria.WheelItem
 	for i, record := range records {
 		gameRecords[i] = games.NewGameFromRecord(record)
 		wheelItem := &adventuria.WheelItem{
@@ -59,10 +75,8 @@ func (c *CellGame) Roll(_ adventuria.User) (*adventuria.WheelRollResult, error) 
 			Name: gameRecords[i].Name(),
 			Icon: gameRecords[i].Cover(),
 		}
-		res.FillerItems = append(res.FillerItems, wheelItem)
+		res = append(res, wheelItem)
 	}
-
-	res.WinnerId = helper.RandomItemFromSlice(gameRecords).ID()
 
 	return res, nil
 }

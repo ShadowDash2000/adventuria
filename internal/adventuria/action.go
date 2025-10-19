@@ -17,17 +17,17 @@ type Action interface {
 	SetCell(string)
 	Comment() string
 	SetComment(string)
-	Value() string
-	SetValue(value any)
+	Game() string
+	SetGame(string)
 	Type() ActionType
 	SetType(ActionType)
 	SetNotAffectNextStep(bool)
-	CollectionRef() string
-	SetCollectionRef(string)
 	DiceRoll() int
 	SetDiceRoll(int)
 	ItemsUsed() []string
 	SetItemsUsed([]string)
+	Seed() int
+	SetSeed(int)
 
 	CanDo() bool
 	NextAction() ActionType
