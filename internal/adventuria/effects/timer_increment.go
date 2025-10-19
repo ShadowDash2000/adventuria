@@ -2,6 +2,7 @@ package effects
 
 import (
 	"adventuria/internal/adventuria"
+	"strconv"
 )
 
 type TimerIncrementEffect struct {
@@ -23,4 +24,11 @@ func (ef *TimerIncrementEffect) Subscribe(callback adventuria.EffectCallback) {
 			return e.Next()
 		}),
 	)
+}
+
+func (ef *TimerIncrementEffect) Verify(value string) error {
+	if _, err := strconv.Atoi(value); err != nil {
+		return err
+	}
+	return nil
 }

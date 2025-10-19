@@ -95,6 +95,7 @@ func (g *GameTest) createTestUsers() error {
 		record.Set("avatar", user.avatar)
 		record.Set("color", user.color)
 		record.Set("maxInventorySlots", user.maxInventorySlots)
+		record.Set("stats", "{}")
 		err = g.pb.Save(record)
 		if err != nil {
 			return err

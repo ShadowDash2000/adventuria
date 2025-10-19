@@ -9,7 +9,7 @@ func WithBaseEffects() {
 		"diceMultiplier":              adventuria.NewEffect(&DiceMultiplierEffect{}),
 		"diceIncrement":               adventuria.NewEffect(&DiceIncrementEffect{}),
 		"changeDices":                 nil,
-		"isSafeDrop":                  adventuria.NewEffect(&SafeDropEffect{}),
+		"safeDrop":                    adventuria.NewEffect(&SafeDropEffect{}),
 		"timerIncrement":              adventuria.NewEffect(&TimerIncrementEffect{}),
 		"rollReverse":                 adventuria.NewEffect(&RollReverseEffect{}),
 		"dropInventory":               adventuria.NewEffect(&DropInventoryEffect{}),
@@ -19,6 +19,8 @@ func WithBaseEffects() {
 	})
 
 	adventuria.RegisterPersistentEffects(map[string]adventuria.PersistentEffectCreator{
-		"stats": adventuria.NewPersistentEffect(&StatsEffect{}),
+		"stats":                 adventuria.NewPersistentEffect(&StatsEffect{}),
+		"give_wheel_on_done":    adventuria.NewPersistentEffect(&GiveWheelOnDoneEffect{}),
+		"give_wheel_on_new_lap": adventuria.NewPersistentEffect(&GiveWheelOnNewLapEffect{}),
 	})
 }

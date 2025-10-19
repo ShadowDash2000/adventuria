@@ -2,6 +2,7 @@ package effects
 
 import (
 	"adventuria/internal/adventuria"
+	"strconv"
 )
 
 type DiceMultiplierEffect struct {
@@ -20,4 +21,11 @@ func (ef *DiceMultiplierEffect) Subscribe(callback adventuria.EffectCallback) {
 			return e.Next()
 		}),
 	)
+}
+
+func (ef *DiceMultiplierEffect) Verify(value string) error {
+	if _, err := strconv.Atoi(value); err != nil {
+		return err
+	}
+	return nil
 }

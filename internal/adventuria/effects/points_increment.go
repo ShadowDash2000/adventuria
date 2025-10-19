@@ -2,6 +2,7 @@ package effects
 
 import (
 	"adventuria/internal/adventuria"
+	"strconv"
 )
 
 type PointsIncrementEffect struct {
@@ -20,4 +21,11 @@ func (ef *PointsIncrementEffect) Subscribe(callback adventuria.EffectCallback) {
 			return e.Next()
 		}),
 	)
+}
+
+func (ef *PointsIncrementEffect) Verify(value string) error {
+	if _, err := strconv.Atoi(value); err != nil {
+		return err
+	}
+	return nil
 }

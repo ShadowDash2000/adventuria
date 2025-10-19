@@ -11,7 +11,8 @@ type RollDiceAction struct {
 func (a *RollDiceAction) CanDo() bool {
 	switch a.User().LastAction().Type() {
 	case ActionTypeDone,
-		ActionTypeDrop:
+		ActionTypeDrop,
+		"none":
 		return true
 	default:
 		return false
@@ -20,6 +21,12 @@ func (a *RollDiceAction) CanDo() bool {
 
 func (a *RollDiceAction) NextAction() adventuria.ActionType {
 	return ActionTypeRollWheel
+}
+
+type RollDiceResult struct {
+	Roll        int             `json:"roll"`
+	DiceRolls   []int           `json:"dice_roll"`
+	CurrentCell adventuria.Cell `json:"current_cell"`
 }
 
 func (a *RollDiceAction) Do(_ adventuria.ActionRequest) (*adventuria.ActionResult, error) {
@@ -72,10 +79,10 @@ func (a *RollDiceAction) Do(_ adventuria.ActionRequest) (*adventuria.ActionResul
 
 	return &adventuria.ActionResult{
 		Success: true,
-		Data: map[string]interface{}{
-			"roll":         onBeforeRollMoveEvent.N,
-			"dice_roll":    diceRolls,
-			"current_cell": onAfterMoveEvent.CurrentCell,
+		Data: RollDiceResult{
+			Roll:        onBeforeRollMoveEvent.N,
+			DiceRolls:   diceRolls,
+			CurrentCell: onAfterMoveEvent.CurrentCell,
 		},
 	}, nil
 }

@@ -19,3 +19,7 @@ func (ef *SafeDropEffect) Subscribe(callback adventuria.EffectCallback) {
 		}),
 	)
 }
+
+func (ef *SafeDropEffect) Verify(_ string) error {
+	return nil
+}

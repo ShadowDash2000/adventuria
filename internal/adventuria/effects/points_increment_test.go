@@ -10,7 +10,7 @@ import (
 	"github.com/pocketbase/pocketbase/tools/filesystem"
 )
 
-func Test_CellPointsDivide(t *testing.T) {
+func Test_PointsIncrement(t *testing.T) {
 	actions.WithBaseActions()
 	cells.WithBaseCells()
 	WithBaseEffects()
@@ -20,7 +20,7 @@ func Test_CellPointsDivide(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	item, err := createCellPointsDivideItem()
+	item, err := createPointsIncrementItem()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -29,9 +29,6 @@ func Test_CellPointsDivide(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	const points = 100
-	user.SetPoints(points)
 
 	invItemId, err := user.Inventory().AddItemById(item.Id)
 	if err != nil {
@@ -43,38 +40,14 @@ func Test_CellPointsDivide(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err = user.Move(1)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	cell, ok := user.CurrentCell()
-	if !ok {
-		t.Fatal("Test_CellPointsDivide(): Current cell not found")
-	}
-
-	user.LastAction().SetCell(cell.ID())
-
-	_, err = game.DoAction(actions.ActionTypeRollWheel, user.ID(), adventuria.ActionRequest{})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	_, err = game.DoAction(actions.ActionTypeDone, user.ID(), adventuria.ActionRequest{})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	t.Log("Test_CellPointsDivide(): Points:", user.Points())
-
-	wantPoints := points + cell.Points()/2
+	wantPoints := 2
 	if user.Points() != wantPoints {
-		t.Fatalf("Test_CellPointsDivide(): Points not divided, want = %d, got = %d", wantPoints, user.Points())
+		t.Fatalf("Test_PointsIncrement(): Points = %d, want = %d", user.Points(), wantPoints)
 	}
 }
 
-func createCellPointsDivideItem() (*core.Record, error) {
-	effectRecord, err := createCellPointsDivideEffect()
+func createPointsIncrementItem() (*core.Record, error) {
+	effectRecord, err := createPointsIncrementEffect()
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +58,7 @@ func createCellPointsDivideItem() (*core.Record, error) {
 	}
 
 	record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionItems))
-	record.Set("name", "Cell Points Divide")
+	record.Set("name", "Points Increment")
 	record.Set("effects", []string{effectRecord.Id})
 	record.Set("icon", icon)
 	record.Set("order", 1)
@@ -99,10 +72,10 @@ func createCellPointsDivideItem() (*core.Record, error) {
 	return record, nil
 }
 
-func createCellPointsDivideEffect() (*core.Record, error) {
+func createPointsIncrementEffect() (*core.Record, error) {
 	record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionEffects))
-	record.Set("name", "Cell Points Divide")
-	record.Set("type", "cellPointsDivide")
+	record.Set("name", "Points Increment")
+	record.Set("type", "pointsIncrement")
 	record.Set("value", 2)
 	err := adventuria.PocketBase.Save(record)
 	if err != nil {

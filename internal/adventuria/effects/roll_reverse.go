@@ -19,3 +19,7 @@ func (ef *RollReverseEffect) Subscribe(callback adventuria.EffectCallback) {
 		}),
 	)
 }
+
+func (ef *RollReverseEffect) Verify(_ string) error {
+	return nil
+}

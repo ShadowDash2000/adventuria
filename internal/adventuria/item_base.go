@@ -35,7 +35,10 @@ func NewItemFromInventoryRecord(user User, invItemRecord *core.Record) (Item, er
 	item.invItemRecord.SetProxyRecord(invItemRecord)
 	item.itemRecord.SetProxyRecord(itemRecord)
 	item.bindHooks()
-	item.Awake()
+
+	if item.IsActive() {
+		item.Awake()
+	}
 
 	return item, nil
 }
@@ -48,6 +51,7 @@ func (i *ItemBase) Awake() {
 
 		effect.Subscribe(func() {
 			i.addAppliedEffect(effect)
+			effect.Unsubscribe()
 
 			if i.AppliedEffectsCount() == i.EffectsCount() {
 				PocketBase.Delete(i.invItemRecord)
@@ -86,6 +90,12 @@ func (i *ItemBase) IsActive() bool {
 }
 
 func (i *ItemBase) SetIsActive(b bool) {
+	if b && !i.IsActive() {
+		i.Awake()
+	} else if !b && i.IsActive() {
+		i.Sleep()
+	}
+
 	i.invItemRecord.Set("isActive", b)
 }
 
@@ -122,5 +132,5 @@ func (i *ItemBase) Drop() error {
 		return nil
 	}
 
-	return PocketBase.Delete(i.invItemRecord)
+	return PocketBase.Delete(i.invItemRecord.ProxyRecord())
 }

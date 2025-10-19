@@ -50,6 +50,7 @@ func NewUser(userId string) (User, error) {
 
 	u := &UserBase{
 		timer: timer,
+		stats: &Stats{},
 	}
 
 	err = u.fetchUser(userId)
@@ -67,8 +68,8 @@ func NewUser(userId string) (User, error) {
 		return nil, err
 	}
 
-	u.bindHooks()
 	u.initHooks()
+	u.bindHooks()
 
 	return u, nil
 }
@@ -198,8 +199,20 @@ func (u *UserBase) save() error {
 
 func (u *UserBase) Move(steps int) (*OnAfterMoveEvent, error) {
 	cellsPassed := u.CellsPassed()
-	currentCellNum := (cellsPassed + steps) % GameCells.Count()
-	currentCell, _ := GameCells.GetByOrder(currentCellNum)
+	prevCellNum := cellsPassed % GameCells.Count()
+	lapsPassed := (prevCellNum + steps) / GameCells.Count()
+
+	currentCellNum := 0
+	if prevCellNum+steps < 0 {
+		currentCellNum = (GameCells.Count() * (lapsPassed*-1 + 1)) - (prevCellNum - steps)
+	} else {
+		currentCellNum = (cellsPassed + steps) % GameCells.Count()
+	}
+
+	currentCell, ok := GameCells.GetByOrder(currentCellNum)
+	if !ok {
+		return nil, errors.New("Move(): cell not found")
+	}
 
 	u.SetCellsPassed(cellsPassed + steps)
 
@@ -208,8 +221,6 @@ func (u *UserBase) Move(steps int) (*OnAfterMoveEvent, error) {
 		return nil, err
 	}
 
-	prevCellNum := cellsPassed % GameCells.Count()
-	lapsPassed := (prevCellNum + steps) / GameCells.Count()
 	// Check if we're not moving backwards and passed new lap(-s)
 	if steps > 0 && lapsPassed > 0 {
 		err = u.OnNewLap().Trigger(&OnNewLapEvent{

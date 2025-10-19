@@ -10,7 +10,7 @@ import (
 	"github.com/pocketbase/pocketbase/tools/filesystem"
 )
 
-func Test_CellPointsDivide(t *testing.T) {
+func Test_JailEscape(t *testing.T) {
 	actions.WithBaseActions()
 	cells.WithBaseCells()
 	WithBaseEffects()
@@ -20,7 +20,7 @@ func Test_CellPointsDivide(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	item, err := createCellPointsDivideItem()
+	item, err := createJailEscapeItem()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -30,51 +30,25 @@ func Test_CellPointsDivide(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	const points = 100
-	user.SetPoints(points)
-
 	invItemId, err := user.Inventory().AddItemById(item.Id)
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	user.SetIsInJail(true)
 
 	err = game.UseItem(user.ID(), invItemId)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = user.Move(1)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	cell, ok := user.CurrentCell()
-	if !ok {
-		t.Fatal("Test_CellPointsDivide(): Current cell not found")
-	}
-
-	user.LastAction().SetCell(cell.ID())
-
-	_, err = game.DoAction(actions.ActionTypeRollWheel, user.ID(), adventuria.ActionRequest{})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	_, err = game.DoAction(actions.ActionTypeDone, user.ID(), adventuria.ActionRequest{})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	t.Log("Test_CellPointsDivide(): Points:", user.Points())
-
-	wantPoints := points + cell.Points()/2
-	if user.Points() != wantPoints {
-		t.Fatalf("Test_CellPointsDivide(): Points not divided, want = %d, got = %d", wantPoints, user.Points())
+	if user.IsInJail() {
+		t.Fatalf("Test_JailEscape(): User is in jail, expected not in jail")
 	}
 }
 
-func createCellPointsDivideItem() (*core.Record, error) {
-	effectRecord, err := createCellPointsDivideEffect()
+func createJailEscapeItem() (*core.Record, error) {
+	effectRecord, err := createJailEscapeEffect()
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +59,7 @@ func createCellPointsDivideItem() (*core.Record, error) {
 	}
 
 	record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionItems))
-	record.Set("name", "Cell Points Divide")
+	record.Set("name", "Jail Escape")
 	record.Set("effects", []string{effectRecord.Id})
 	record.Set("icon", icon)
 	record.Set("order", 1)
@@ -99,11 +73,10 @@ func createCellPointsDivideItem() (*core.Record, error) {
 	return record, nil
 }
 
-func createCellPointsDivideEffect() (*core.Record, error) {
+func createJailEscapeEffect() (*core.Record, error) {
 	record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionEffects))
-	record.Set("name", "Cell Points Divide")
-	record.Set("type", "cellPointsDivide")
-	record.Set("value", 2)
+	record.Set("name", "Jail Escape")
+	record.Set("type", "jailEscape")
 	err := adventuria.PocketBase.Save(record)
 	if err != nil {
 		return nil, err

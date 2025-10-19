@@ -22,3 +22,7 @@ func (ef *DropInventoryEffect) Subscribe(callback adventuria.EffectCallback) {
 		}),
 	)
 }
+
+func (ef *DropInventoryEffect) Verify(_ string) error {
+	return nil
+}

@@ -20,3 +20,7 @@ func (ef *JailEscapeEffect) Subscribe(callback adventuria.EffectCallback) {
 		}),
 	)
 }
+
+func (ef *JailEscapeEffect) Verify(_ string) error {
+	return nil
+}
