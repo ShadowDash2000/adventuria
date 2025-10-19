@@ -17,4 +17,8 @@ func WithBaseEffects() {
 		"teleportToRandomCellByTypes": nil,
 		"teleportToRandomCellByIds":   adventuria.NewEffect(&TeleportToRandomCellByIdEffect{}),
 	})
+
+	adventuria.RegisterPersistentEffects(map[string]adventuria.PersistentEffectCreator{
+		"stats": adventuria.NewPersistentEffect(&StatsEffect{}),
+	})
 }

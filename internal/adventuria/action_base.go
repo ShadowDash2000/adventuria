@@ -1,6 +1,7 @@
 package adventuria
 
 import (
+	"database/sql"
 	"errors"
 
 	"github.com/pocketbase/dbx"
@@ -50,6 +51,10 @@ func (a *ActionBase) Do(_ ActionRequest) (*ActionResult, error) {
 func (a *ActionBase) setUser(user User) {
 	a.user = user
 	a.Set("user", user.ID())
+}
+
+func (a *ActionBase) ID() string {
+	return a.Id
 }
 
 func (a *ActionBase) Save() error {
@@ -128,62 +133,84 @@ type UserAction struct {
 	ActionBase
 }
 
-func NewLastUserAction(userId string) (Action, error) {
-	a := &UserAction{
-		ActionBase: ActionBase{},
-	}
-
-	err := a.fetchLastUserAction(userId)
+func NewLastUserAction(user User) (Action, error) {
+	a, err := getLastUserAction(user)
 	if err != nil {
 		return nil, err
 	}
-	a.bindHooks()
+	actionBindHooks(a)
 
 	return a, nil
 }
 
-func (ua *UserAction) bindHooks() {
+func actionBindHooks(action Action) {
 	PocketBase.OnRecordAfterCreateSuccess(CollectionActions).BindFunc(func(e *core.RecordEvent) error {
 		userId := e.Record.GetString("user")
-		notAffectNextStep := e.Record.GetBool("notAffectNextStep")
-		if userId == ua.UserId() && !notAffectNextStep {
-			ua.SetProxyRecord(e.Record)
+		if userId == action.UserId() {
+			action.SetProxyRecord(e.Record)
 		}
 		return e.Next()
 	})
 	PocketBase.OnRecordAfterUpdateSuccess(CollectionActions).BindFunc(func(e *core.RecordEvent) error {
-		if e.Record.Id == ua.Id {
-			ua.SetProxyRecord(e.Record)
+		if e.Record.Id == action.ID() {
+			action.SetProxyRecord(e.Record)
 		}
 		return e.Next()
 	})
 	PocketBase.OnRecordAfterDeleteSuccess(CollectionActions).BindFunc(func(e *core.RecordEvent) error {
 		userId := e.Record.GetString("user")
-		if userId == ua.UserId() {
-			ua.fetchLastUserAction(userId)
+		if userId == action.UserId() {
+			a, err := getLastUserAction(action.User())
+			if err != nil {
+				return err
+			}
+
+			action = a
 		}
 		return e.Next()
 	})
 }
 
-func (ua *UserAction) fetchLastUserAction(userId string) error {
+func getLastUserAction(user User) (Action, error) {
+	record, err := fetchLastUserAction(user.ID())
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return nil, err
+	}
+
+	var a Action
+	if errors.Is(err, sql.ErrNoRows) {
+		a, err = NewActionFromType(user, "none")
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		a, err = NewActionFromType(user, ActionType(record.GetString("type")))
+		if err != nil {
+			return nil, err
+		}
+
+		a.SetProxyRecord(record)
+	}
+
+	return a, nil
+}
+
+func fetchLastUserAction(userId string) (*core.Record, error) {
 	actions, err := PocketBase.FindRecordsByFilter(
 		CollectionActions,
-		"user.id = {:userId} && notAffectNextStep = false",
+		"user.id = {:userId}",
 		"-created",
 		1,
 		0,
 		dbx.Params{"userId": userId},
 	)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	if len(actions) > 0 {
-		ua.SetProxyRecord(actions[0])
-	} else {
-		ua.SetProxyRecord(core.NewRecord(GameCollections.Get(CollectionActions)))
+	if len(actions) == 0 {
+		return nil, sql.ErrNoRows
 	}
 
-	return nil
+	return actions[0], nil
 }

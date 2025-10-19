@@ -3,6 +3,7 @@ package adventuria
 import (
 	"adventuria/pkg/helper"
 	"errors"
+	"fmt"
 
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
@@ -35,6 +36,7 @@ func (i *InventoryBase) bindHooks() {
 		if e.Record.GetString("user") == i.user.ID() {
 			item, err := NewItemFromInventoryRecord(i.user, e.Record)
 			if err != nil {
+				fmt.Println(err)
 				return err
 			}
 			i.items[e.Record.Id] = item

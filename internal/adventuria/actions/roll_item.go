@@ -19,9 +19,7 @@ func (a *RollItemAction) NextAction() adventuria.ActionType {
 }
 
 func (a *RollItemAction) Do(_ adventuria.ActionRequest) (*adventuria.ActionResult, error) {
-	res := &adventuria.WheelRollResult{
-		Collection: adventuria.GameCollections.Get(adventuria.CollectionItems),
-	}
+	res := &adventuria.WheelRollResult{}
 
 	items := adventuria.GameItems.GetAllRollable()
 	if len(items) == 0 {
@@ -30,6 +28,7 @@ func (a *RollItemAction) Do(_ adventuria.ActionRequest) (*adventuria.ActionResul
 
 	for _, item := range items {
 		res.FillerItems = append(res.FillerItems, &adventuria.WheelItem{
+			Id:   item.ID(),
 			Name: item.Name(),
 			Icon: item.Icon(),
 		})

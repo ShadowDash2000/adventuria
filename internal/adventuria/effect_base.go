@@ -2,6 +2,7 @@ package adventuria
 
 import (
 	"adventuria/pkg/event"
+	"errors"
 	"fmt"
 
 	"github.com/pocketbase/pocketbase/core"
@@ -68,19 +69,25 @@ func (e *EffectBase) Unsubscribe() {
 	}
 }
 
+func (e *EffectBase) Verify(_ string) error {
+	return errors.New("effect verifier is not implemented")
+}
+
 type PersistentEffectBase struct {
 	core.BaseRecordProxy
 	user          User
 	unsubscribers []event.Unsubscribe
 }
 
-func NewPersistentEffect() PersistentEffectCreator {
+func NewPersistentEffect(e PersistentEffect) PersistentEffectCreator {
 	return func(user User) PersistentEffect {
-		e := &PersistentEffectBase{
-			user: user,
-		}
+		e.setUser(user)
 		return e
 	}
+}
+
+func (e *PersistentEffectBase) setUser(user User) {
+	e.user = user
 }
 
 func (e *PersistentEffectBase) User() User {

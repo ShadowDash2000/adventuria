@@ -44,8 +44,8 @@ func (c *CellBase) SetType(t CellType) {
 	c.Set("type", t)
 }
 
-func (c *CellBase) Preset() string {
-	return c.GetString("preset")
+func (c *CellBase) Filter() string {
+	return c.GetString("filter")
 }
 
 func (c *CellBase) AudioPresets() []string {

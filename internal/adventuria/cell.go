@@ -15,7 +15,7 @@ type Cell interface {
 	Sort() int
 	Type() CellType
 	SetType(CellType)
-	Preset() string
+	Filter() string
 	AudioPresets() []string
 	Icon() string
 	Name() string

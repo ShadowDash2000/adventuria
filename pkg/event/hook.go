@@ -62,10 +62,12 @@ func (h *Hook[T]) Trigger(event T, oneOffHandlerFuncs ...func(T) error) error {
 
 	for i := len(handlers) - 1; i >= 0; i-- {
 		handler := handlers[i]
+		old := event.nextFunc()
 		event.setNextFunc(func() error {
 			if handler.once && handler.id != "" {
 				onceIds = append(onceIds, handler.id)
 			}
+			event.setNextFunc(old)
 			return handler.Func(event)
 		})
 

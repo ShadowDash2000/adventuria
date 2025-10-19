@@ -45,7 +45,6 @@ func (a *RollWheelAction) Do(_ adventuria.ActionRequest) (*adventuria.ActionResu
 	action := a.User().LastAction()
 	action.SetType(ActionTypeRollWheel)
 	action.SetValue(res.WinnerId)
-	action.SetCollectionRef(res.Collection.Id)
 
 	onAfterWheelRollEvent := &adventuria.OnAfterWheelRollEvent{
 		ItemId: res.WinnerId,

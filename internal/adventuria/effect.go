@@ -17,9 +17,11 @@ type Effect interface {
 	Subscribe(EffectCallback)
 	PoolUnsubscribers(...event.Unsubscribe)
 	Unsubscribe()
+	Verify(string) error
 }
 
 type PersistentEffect interface {
+	setUser(User)
 	User() User
 	Subscribe()
 	PoolUnsubscribers(...event.Unsubscribe)

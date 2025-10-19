@@ -4,10 +4,12 @@ import (
 	"adventuria/pkg/cache"
 	_ "embed"
 	"os"
+	"strconv"
 
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/tests"
 	"github.com/pocketbase/pocketbase/tools/filesystem"
+	"github.com/pocketbase/pocketbase/tools/types"
 
 	_ "adventuria/migrations"
 )
@@ -48,6 +50,10 @@ func NewTestGame() (Game, error) {
 		return nil, err
 	}
 	err = game.createTestCells()
+	if err != nil {
+		return nil, err
+	}
+	err = game.createTestGames()
 	if err != nil {
 		return nil, err
 	}
@@ -117,6 +123,55 @@ func (g *GameTest) createTestCells() error {
 		record.Set("name", cell.name)
 		record.Set("points", cell.points)
 		record.Set("sort", cell.sort)
+		err := g.pb.Save(record)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (g *GameTest) createTestGames() error {
+	games := []struct {
+		idDb          uint64
+		name          string
+		releaseDate   types.DateTime
+		platforms     []string
+		developers    []string
+		publishers    []string
+		genres        []string
+		tags          []string
+		steamAppId    uint64
+		steamAppPrice int
+		campaignTime  float64
+	}{
+		{idDb: 1, name: "Half-Life", releaseDate: types.NowDateTime(), steamAppId: 1001, steamAppPrice: 1234, campaignTime: 10},
+		{idDb: 2, name: "Portal", releaseDate: types.NowDateTime(), steamAppId: 1002, steamAppPrice: 999, campaignTime: 4},
+		{idDb: 3, name: "Team Fortress 2", releaseDate: types.NowDateTime(), steamAppId: 1003, steamAppPrice: 0, campaignTime: 0},
+		{idDb: 4, name: "Left 4 Dead", releaseDate: types.NowDateTime(), steamAppId: 1004, steamAppPrice: 1499, campaignTime: 6},
+		{idDb: 5, name: "Counter-Strike", releaseDate: types.NowDateTime(), steamAppId: 1005, steamAppPrice: 1499, campaignTime: 0},
+		{idDb: 6, name: "Dota 2", releaseDate: types.NowDateTime(), steamAppId: 1006, steamAppPrice: 0, campaignTime: 0},
+		{idDb: 7, name: "Portal 2", releaseDate: types.NowDateTime(), steamAppId: 1007, steamAppPrice: 1999, campaignTime: 8},
+		{idDb: 8, name: "Half-Life 2", releaseDate: types.NowDateTime(), steamAppId: 1008, steamAppPrice: 1999, campaignTime: 15},
+		{idDb: 9, name: "Left 4 Dead 2", releaseDate: types.NowDateTime(), steamAppId: 1009, steamAppPrice: 1999, campaignTime: 7},
+		{idDb: 10, name: "Counter-Strike 2", releaseDate: types.NowDateTime(), steamAppId: 1010, steamAppPrice: 0, campaignTime: 0},
+	}
+
+	for i, game := range games {
+		record := core.NewRecord(GameCollections.Get(CollectionGames))
+		record.Set("id_db", game.idDb)
+		record.Set("name", game.name)
+		record.Set("release_date", game.releaseDate)
+		record.Set("platforms", game.platforms)
+		record.Set("developers", game.developers)
+		record.Set("publishers", game.publishers)
+		record.Set("genres", game.genres)
+		record.Set("tags", game.tags)
+		record.Set("steam_app_id", game.steamAppId)
+		record.Set("steam_app_price", game.steamAppPrice)
+		record.Set("campaign_time", game.campaignTime)
+		record.Set("checksum", strconv.Itoa(i))
 		err := g.pb.Save(record)
 		if err != nil {
 			return err

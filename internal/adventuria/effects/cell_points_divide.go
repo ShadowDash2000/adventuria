@@ -2,6 +2,7 @@ package effects
 
 import (
 	"adventuria/internal/adventuria"
+	"strconv"
 )
 
 type CellPointsDivideEffect struct {
@@ -20,4 +21,11 @@ func (ef *CellPointsDivideEffect) Subscribe(callback adventuria.EffectCallback) 
 			return e.Next()
 		}),
 	)
+}
+
+func (ef *CellPointsDivideEffect) Verify(value string) error {
+	if _, err := strconv.Atoi(value); err != nil {
+		return err
+	}
+	return nil
 }

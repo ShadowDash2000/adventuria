@@ -57,7 +57,7 @@ func NewUser(userId string) (User, error) {
 		return nil, err
 	}
 
-	u.lastAction, err = NewLastUserAction(userId)
+	u.lastAction, err = NewLastUserAction(u)
 	if err != nil {
 		return nil, err
 	}

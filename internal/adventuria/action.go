@@ -8,6 +8,8 @@ import (
 
 type Action interface {
 	core.RecordProxy
+
+	ID() string
 	Save() error
 	User() User
 	UserId() string
@@ -46,7 +48,9 @@ type ActionResult struct {
 	Error   string      `json:"error,omitempty"`
 }
 
-var actionsList = map[ActionType]ActionCreator{}
+var actionsList = map[ActionType]ActionCreator{
+	"none": NewAction(&NoneAction{}),
+}
 
 type ActionCreator func() Action
 

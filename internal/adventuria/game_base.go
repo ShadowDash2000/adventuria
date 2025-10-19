@@ -15,6 +15,7 @@ import (
 type BaseGame struct {
 	users *cache.MemoryCache[string, User]
 	pb    *pocketbase.PocketBase
+	ef    *EffectVerifier
 }
 
 func New() Game {
@@ -46,6 +47,8 @@ func (g *BaseGame) Init() {
 	GameItems = NewItems()
 	GameCollections = collections.NewCollections(PocketBase)
 	GameSettings = NewSettings()
+
+	g.ef = NewEffectVerifier()
 }
 
 func (g *BaseGame) GetUser(userId string) (User, error) {
