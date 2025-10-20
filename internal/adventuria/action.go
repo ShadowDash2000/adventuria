@@ -26,11 +26,12 @@ type Action interface {
 	SetDiceRoll(int)
 	ItemsUsed() []string
 	SetItemsUsed([]string)
-	Seed() int
-	SetSeed(int)
+	ItemsList() ([]string, error)
+	SetItemsList([]string)
+	CanMove() bool
+	SetCanMove(bool)
 
 	CanDo() bool
-	NextAction() ActionType
 	Do(ActionRequest) (*ActionResult, error)
 
 	setUser(user User)

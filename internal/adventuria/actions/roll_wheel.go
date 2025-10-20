@@ -10,17 +10,16 @@ type RollWheelAction struct {
 }
 
 func (a *RollWheelAction) CanDo() bool {
-	switch a.User().NextAction() {
-	case ActionTypeRollDice,
-		ActionTypeReroll:
-		return true
-	default:
+	currentCell, ok := a.User().CurrentCell()
+	if !ok {
 		return false
 	}
-}
 
-func (a *RollWheelAction) NextAction() adventuria.ActionType {
-	return ActionTypeRollDice
+	if _, ok = currentCell.(adventuria.CellWheel); !ok {
+		return false
+	}
+
+	return !a.User().LastAction().CanMove()
 }
 
 func (a *RollWheelAction) Do(_ adventuria.ActionRequest) (*adventuria.ActionResult, error) {

@@ -14,10 +14,6 @@ func (a *RollItemAction) CanDo() bool {
 	return a.User().ItemWheelsCount() > 0
 }
 
-func (a *RollItemAction) NextAction() adventuria.ActionType {
-	return ""
-}
-
 func (a *RollItemAction) Do(_ adventuria.ActionRequest) (*adventuria.ActionResult, error) {
 	res := &adventuria.WheelRollResult{}
 

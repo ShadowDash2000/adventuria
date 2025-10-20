@@ -13,10 +13,6 @@ func (a *DoneAction) CanDo() bool {
 	return a.User().LastAction().Type() == ActionTypeRollWheel
 }
 
-func (a *DoneAction) NextAction() adventuria.ActionType {
-	return ActionTypeRollDice
-}
-
 func (a *DoneAction) Do(req adventuria.ActionRequest) (*adventuria.ActionResult, error) {
 	currentCell, ok := a.User().CurrentCell()
 	if !ok {
@@ -34,6 +30,7 @@ func (a *DoneAction) Do(req adventuria.ActionRequest) (*adventuria.ActionResult,
 	action := a.User().LastAction()
 	action.SetType(ActionTypeDone)
 	action.SetComment(req.Comment)
+	action.SetCanMove(true)
 
 	cellPoints := currentCell.Points()
 	if onBeforeDoneEvent.CellPointsDivide != 0 {

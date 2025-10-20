@@ -19,7 +19,3 @@ func NewCellJail() adventuria.CellCreator {
 		}
 	}
 }
-
-func (c *CellJail) OnCellReached(_ adventuria.User) error {
-	return nil
-}

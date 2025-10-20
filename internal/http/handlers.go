@@ -15,20 +15,6 @@ func New(g adventuria.Game) *Handlers {
 	return &Handlers{Game: g}
 }
 
-func (h *Handlers) NextActionTypeHandler(e *core.RequestEvent) error {
-	nextStepType, err := h.Game.NextActionType(e.Auth.Id)
-	if err != nil {
-		e.JSON(http.StatusInternalServerError, err.Error())
-		return nil
-	}
-
-	e.JSON(http.StatusOK, map[string]interface{}{
-		"nextStepType": nextStepType,
-	})
-
-	return nil
-}
-
 func (h *Handlers) UpdateActionHandler(e *core.RequestEvent) error {
 	data := struct {
 		ActionID string `form:"actionId"`

@@ -215,6 +215,7 @@ func (u *UserBase) Move(steps int) (*OnAfterMoveEvent, error) {
 	}
 
 	u.SetCellsPassed(cellsPassed + steps)
+	u.LastAction().SetCanMove(false)
 
 	err := currentCell.OnCellReached(u)
 	if err != nil {
@@ -275,17 +276,6 @@ func (u *UserBase) MoveToCellId(cellId string) error {
 	}
 
 	return nil
-}
-
-// NextAction
-// WHAT IS THE NEXT STEP OF THE OPERATION? 👽
-func (u *UserBase) NextAction() ActionType {
-	if u.LastAction() == nil {
-		// TODO change hardcoded value
-		return "rollDice"
-	}
-
-	return u.LastAction().NextAction()
 }
 
 func (u *UserBase) Inventory() Inventory {

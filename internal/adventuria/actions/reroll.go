@@ -20,10 +20,6 @@ func (a *RerollAction) CanDo() bool {
 	return a.User().LastAction().Type() == ActionTypeRollWheel
 }
 
-func (a *RerollAction) NextAction() adventuria.ActionType {
-	return ActionTypeRollWheel
-}
-
 func (a *RerollAction) Do(req adventuria.ActionRequest) (*adventuria.ActionResult, error) {
 	currentCell, ok := a.User().CurrentCell()
 	if !ok {

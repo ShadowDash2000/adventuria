@@ -7,6 +7,7 @@ const (
 	CellTypeStart adventuria.CellType = "start"
 	CellTypeJail  adventuria.CellType = "jail"
 	CellTypeItem  adventuria.CellType = "item"
+	CellTypeShop  adventuria.CellType = "shop"
 )
 
 func WithBaseCells() {
@@ -15,5 +16,6 @@ func WithBaseCells() {
 		CellTypeStart: NewCellStart(),
 		CellTypeJail:  NewCellJail(),
 		CellTypeItem:  NewCellItem(),
+		CellTypeShop:  NewCellShop(),
 	})
 }

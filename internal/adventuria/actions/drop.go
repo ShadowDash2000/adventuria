@@ -25,10 +25,6 @@ func (a *DropAction) CanDo() bool {
 	return a.User().LastAction().Type() == ActionTypeRollWheel
 }
 
-func (a *DropAction) NextAction() adventuria.ActionType {
-	return ActionTypeRollDice
-}
-
 func (a *DropAction) Do(req adventuria.ActionRequest) (*adventuria.ActionResult, error) {
 	currentCell, ok := a.User().CurrentCell()
 	if !ok {
@@ -55,6 +51,8 @@ func (a *DropAction) Do(req adventuria.ActionRequest) (*adventuria.ActionResult,
 			if err = a.goToJail(); err != nil {
 				return nil, err
 			}
+		} else {
+			action.SetCanMove(true)
 		}
 	}
 

@@ -40,10 +40,6 @@ func (a *ActionBase) CanDo() bool {
 	panic("implement me")
 }
 
-func (a *ActionBase) NextAction() ActionType {
-	panic("implement me")
-}
-
 func (a *ActionBase) Do(_ ActionRequest) (*ActionResult, error) {
 	panic("implement me")
 }
@@ -121,12 +117,21 @@ func (a *ActionBase) SetItemsUsed(items []string) {
 	a.Set("itemsUsed", items)
 }
 
-func (a *ActionBase) Seed() int {
-	return a.GetInt("seed")
+func (a *ActionBase) ItemsList() ([]string, error) {
+	var items []string
+	return items, a.UnmarshalJSONField("items_list", &items)
 }
 
-func (a *ActionBase) SetSeed(seed int) {
-	a.Set("seed", seed)
+func (a *ActionBase) SetItemsList(items []string) {
+	a.Set("items_list", items)
+}
+
+func (a *ActionBase) CanMove() bool {
+	return a.GetBool("can_move")
+}
+
+func (a *ActionBase) SetCanMove(b bool) {
+	a.Set("can_move", b)
 }
 
 type UserAction struct {
@@ -183,6 +188,7 @@ func getLastUserAction(user User) (Action, error) {
 		if err != nil {
 			return nil, err
 		}
+		a.SetCanMove(true)
 	} else {
 		a, err = NewActionFromType(user, ActionType(record.GetString("type")))
 		if err != nil {

@@ -47,6 +47,7 @@ func Test_RollReverse(t *testing.T) {
 
 	user.LastAction().SetCell(cell.ID())
 
+	// TODO in some cases new cell still unreached
 	res, err := game.DoAction(actions.ActionTypeRollDice, user.ID(), adventuria.ActionRequest{})
 	if err != nil {
 		t.Fatal(err)

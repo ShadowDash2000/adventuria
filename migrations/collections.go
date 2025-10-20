@@ -1025,15 +1025,22 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "number1149756166",
-						"max": null,
-						"min": null,
-						"name": "seed",
-						"onlyInt": true,
+						"id": "json1126454942",
+						"maxSize": 0,
+						"name": "items_list",
 						"presentable": false,
-						"required": true,
+						"required": false,
 						"system": false,
-						"type": "number"
+						"type": "json"
+					},
+					{
+						"hidden": false,
+						"id": "bool1346429236",
+						"name": "can_move",
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "bool"
 					}
 				],
 				"id": "pbc_2484833797",

@@ -2,7 +2,6 @@ package actions
 
 import (
 	"adventuria/internal/adventuria"
-	"math/rand/v2"
 )
 
 type RollDiceAction struct {
@@ -10,18 +9,7 @@ type RollDiceAction struct {
 }
 
 func (a *RollDiceAction) CanDo() bool {
-	switch a.User().LastAction().Type() {
-	case ActionTypeDone,
-		ActionTypeDrop,
-		"none":
-		return true
-	default:
-		return false
-	}
-}
-
-func (a *RollDiceAction) NextAction() adventuria.ActionType {
-	return ActionTypeRollWheel
+	return a.User().LastAction().CanMove()
 }
 
 type RollDiceResult struct {
@@ -64,7 +52,6 @@ func (a *RollDiceAction) Do(_ adventuria.ActionRequest) (*adventuria.ActionResul
 	}
 	action.SetCell(onAfterMoveEvent.CurrentCell.ID())
 	action.SetDiceRoll(onAfterMoveEvent.Steps)
-	action.SetSeed(rand.Int())
 	err = action.Save()
 	if err != nil {
 		return nil, err

@@ -3,7 +3,6 @@ package adventuria
 type CellWheel interface {
 	Cell
 	Roll(User) (*WheelRollResult, error)
-	GetItems(User) ([]*WheelItem, error)
 }
 
 type WheelRollResult struct {
@@ -22,9 +21,5 @@ type CellWheelBase struct {
 }
 
 func (c *CellWheelBase) Roll(_ User) (*WheelRollResult, error) {
-	panic("implement me")
-}
-
-func (c *CellWheelBase) GetItems(_ User) ([]*WheelItem, error) {
 	panic("implement me")
 }

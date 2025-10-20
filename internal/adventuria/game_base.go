@@ -82,15 +82,6 @@ func (g *BaseGame) GetUserByName(name string) (User, error) {
 	return user, nil
 }
 
-func (g *BaseGame) NextActionType(userId string) (ActionType, error) {
-	user, err := g.GetUser(userId)
-	if err != nil {
-		return "", err
-	}
-
-	return user.NextAction(), nil
-}
-
 func (g *BaseGame) DoAction(actionType ActionType, userId string, req ActionRequest) (*ActionResult, error) {
 	user, err := g.GetUser(userId)
 	if err != nil {
@@ -230,4 +221,23 @@ func (g *BaseGame) GetTimeLeft(userId string) (time.Duration, bool, types.DateTi
 	}
 
 	return user.Timer().GetTimeLeft(), user.Timer().IsActive(), GameSettings.NextTimerResetDate(), nil
+}
+
+func (g *BaseGame) GetAvailableActions(userId string) ([]ActionType, error) {
+	user, err := g.GetUser(userId)
+	if err != nil {
+		return nil, err
+	}
+
+	var actions []ActionType
+	for _, actionCreator := range actionsList {
+		action := actionCreator()
+		action.setUser(user)
+
+		if action.CanDo() {
+			actions = append(actions, action.Type())
+		}
+	}
+
+	return actions, nil
 }

@@ -15,7 +15,6 @@ type Game interface {
 	Init()
 	GetUser(userId string) (User, error)
 	GetUserByName(name string) (User, error)
-	NextActionType(userId string) (ActionType, error)
 	DoAction(actionType ActionType, userId string, req ActionRequest) (*ActionResult, error)
 	UpdateAction(actionId string, comment string, userId string) error
 	UseItem(userId, itemId string) error

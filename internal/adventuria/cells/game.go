@@ -2,9 +2,7 @@ package cells
 
 import (
 	"adventuria/internal/adventuria"
-	"adventuria/internal/adventuria/games"
 	"adventuria/pkg/helper"
-	"fmt"
 
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
@@ -27,17 +25,17 @@ func NewCellGame() adventuria.CellCreator {
 func (c *CellGame) Roll(user adventuria.User) (*adventuria.WheelRollResult, error) {
 	res := &adventuria.WheelRollResult{}
 
-	wheelItems, err := c.GetItems(user)
+	items, err := user.LastAction().ItemsList()
 	if err != nil {
 		return nil, err
 	}
 
-	res.WinnerId = helper.RandomItemFromSlice(wheelItems).Id
+	res.WinnerId = helper.RandomItemFromSlice(items)
 
 	return res, nil
 }
 
-func (c *CellGame) GetItems(user adventuria.User) ([]*adventuria.WheelItem, error) {
+func (c *CellGame) OnCellReached(user adventuria.User) error {
 	var filter adventuria.GameFilterRecord
 
 	if c.Filter() != "" {
@@ -46,7 +44,7 @@ func (c *CellGame) GetItems(user adventuria.User) ([]*adventuria.WheelItem, erro
 			c.Filter(),
 		)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		filter = adventuria.NewGameFilterFromRecord(filterRecord)
@@ -54,7 +52,7 @@ func (c *CellGame) GetItems(user adventuria.User) ([]*adventuria.WheelItem, erro
 
 	q := adventuria.PocketBase.RecordQuery(adventuria.GameCollections.Get(adventuria.CollectionGames)).
 		Limit(20).
-		OrderBy(fmt.Sprintf("sin(id + %d)", user.LastAction().Seed()))
+		OrderBy("random()")
 
 	if filter != nil {
 		q = c.setFilters(filter, q)
@@ -63,22 +61,17 @@ func (c *CellGame) GetItems(user adventuria.User) ([]*adventuria.WheelItem, erro
 	var records []*core.Record
 	err := q.All(&records)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	gameRecords := make([]games.GameRecord, len(records))
-	var res []*adventuria.WheelItem
+	res := make([]string, len(records))
 	for i, record := range records {
-		gameRecords[i] = games.NewGameFromRecord(record)
-		wheelItem := &adventuria.WheelItem{
-			Id:   gameRecords[i].ID(),
-			Name: gameRecords[i].Name(),
-			Icon: gameRecords[i].Cover(),
-		}
-		res = append(res, wheelItem)
+		res[i] = record.Id
 	}
 
-	return res, nil
+	user.LastAction().SetItemsList(res)
+
+	return nil
 }
 
 func (c *CellGame) setFilters(filter adventuria.GameFilterRecord, q *dbx.SelectQuery) *dbx.SelectQuery {

@@ -47,10 +47,15 @@ func Test_SafeDrop(t *testing.T) {
 
 	cell, ok := user.CurrentCell()
 	if !ok {
-		t.Fatal("Test_DiceIncrement(): Current cell not found")
+		t.Fatal("Test_SafeDrop(): Current cell not found")
 	}
 
 	user.LastAction().SetCell(cell.ID())
+
+	err = user.LastAction().Save()
+	if err != nil {
+		t.Fatalf("Test_SafeDrop(): Error saving action: %s", err)
+	}
 
 	_, err = game.DoAction(actions.ActionTypeRollWheel, user.ID(), adventuria.ActionRequest{})
 	if err != nil {
@@ -64,7 +69,7 @@ func Test_SafeDrop(t *testing.T) {
 
 	wantDropsInARow := 0
 	if user.DropsInARow() != wantDropsInARow {
-		t.Fatalf("Test_DiceIncrement(): Drops in a row is %d, expected %d", user.DropsInARow(), wantDropsInARow)
+		t.Fatalf("Test_SafeDrop(): Drops in a row is %d, expected %d", user.DropsInARow(), wantDropsInARow)
 	}
 }
 

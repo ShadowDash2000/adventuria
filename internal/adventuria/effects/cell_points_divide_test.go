@@ -55,6 +55,11 @@ func Test_CellPointsDivide(t *testing.T) {
 
 	user.LastAction().SetCell(cell.ID())
 
+	err = user.LastAction().Save()
+	if err != nil {
+		t.Fatalf("Test_CellPointsDivide(): Error saving action: %s", err)
+	}
+
 	_, err = game.DoAction(actions.ActionTypeRollWheel, user.ID(), adventuria.ActionRequest{})
 	if err != nil {
 		t.Fatal(err)
