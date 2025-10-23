@@ -9,7 +9,7 @@ import (
 )
 
 type ActionBase struct {
-	core.BaseRecordProxy
+	t    ActionType
 	user User
 }
 
@@ -20,20 +20,17 @@ func NewActionFromType(user User, actionType ActionType) (Action, error) {
 	}
 
 	action := actionCreator()
-
-	action.SetProxyRecord(core.NewRecord(GameCollections.Get(CollectionActions)))
 	action.setUser(user)
-	action.SetType(actionType)
 
 	return action, nil
 }
 
-func NewActionFromRecord(record *core.Record) Action {
-	a := &ActionBase{}
+func (a *ActionBase) User() User {
+	return a.user
+}
 
-	a.SetProxyRecord(record)
-
-	return a
+func (a *ActionBase) Type() ActionType {
+	return a.t
 }
 
 func (a *ActionBase) CanDo() bool {
@@ -44,102 +41,127 @@ func (a *ActionBase) Do(_ ActionRequest) (*ActionResult, error) {
 	panic("implement me")
 }
 
-func (a *ActionBase) setUser(user User) {
-	a.user = user
-	a.Set("user", user.ID())
+func (a *ActionBase) setType(t ActionType) {
+	a.t = t
 }
 
-func (a *ActionBase) ID() string {
+func (a *ActionBase) setUser(user User) {
+	a.user = user
+}
+
+type ActionRecordBase struct {
+	core.BaseRecordProxy
+}
+
+func NewActionRecordFromType(actionType ActionType) (ActionRecord, error) {
+	_, ok := actionsList[actionType]
+	if !ok {
+		return nil, errors.New("unknown action type")
+	}
+
+	actionRecord := &ActionRecordBase{}
+	actionRecord.SetProxyRecord(core.NewRecord(GameCollections.Get(CollectionActions)))
+	actionRecord.SetType(actionType)
+
+	return actionRecord, nil
+}
+
+// TODO: remove unused
+func NewActionFromRecord(record *core.Record) ActionRecord {
+	a := &ActionRecordBase{}
+
+	a.SetProxyRecord(record)
+
+	return a
+}
+
+func (a *ActionRecordBase) ID() string {
 	return a.Id
 }
 
-func (a *ActionBase) Save() error {
+func (a *ActionRecordBase) Save() error {
 	return PocketBase.Save(a)
 }
 
-func (a *ActionBase) User() User {
-	return a.user
-}
-
-func (a *ActionBase) UserId() string {
+func (a *ActionRecordBase) User() string {
 	return a.GetString("user")
 }
 
-func (a *ActionBase) CellId() string {
+func (a *ActionRecordBase) SetUser(id string) {
+	a.Set("user", id)
+}
+
+func (a *ActionRecordBase) CellId() string {
 	return a.GetString("cell")
 }
 
-func (a *ActionBase) SetCell(cellId string) {
+func (a *ActionRecordBase) SetCell(cellId string) {
 	a.Set("cell", cellId)
 }
 
-func (a *ActionBase) Comment() string {
+func (a *ActionRecordBase) Comment() string {
 	return a.GetString("comment")
 }
 
-func (a *ActionBase) SetComment(comment string) {
+func (a *ActionRecordBase) SetComment(comment string) {
 	a.Set("comment", comment)
 }
 
-func (a *ActionBase) Game() string {
+func (a *ActionRecordBase) Game() string {
 	return a.GetString("game")
 }
 
-func (a *ActionBase) SetGame(id string) {
+func (a *ActionRecordBase) SetGame(id string) {
 	a.Set("game", id)
 }
 
-func (a *ActionBase) Type() ActionType {
+func (a *ActionRecordBase) Type() ActionType {
 	return ActionType(a.GetString("type"))
 }
 
-func (a *ActionBase) SetType(t ActionType) {
+func (a *ActionRecordBase) SetType(t ActionType) {
 	a.Set("type", string(t))
 }
 
-func (a *ActionBase) SetNotAffectNextStep(b bool) {
+func (a *ActionRecordBase) SetNotAffectNextStep(b bool) {
 	a.Set("notAffectNextStep", b)
 }
 
-func (a *ActionBase) DiceRoll() int {
+func (a *ActionRecordBase) DiceRoll() int {
 	return a.GetInt("diceRoll")
 }
 
-func (a *ActionBase) SetDiceRoll(roll int) {
+func (a *ActionRecordBase) SetDiceRoll(roll int) {
 	a.Set("diceRoll", roll)
 }
 
-func (a *ActionBase) ItemsUsed() []string {
+func (a *ActionRecordBase) ItemsUsed() []string {
 	return a.GetStringSlice("itemsUsed")
 }
 
-func (a *ActionBase) SetItemsUsed(items []string) {
+func (a *ActionRecordBase) SetItemsUsed(items []string) {
 	a.Set("itemsUsed", items)
 }
 
-func (a *ActionBase) ItemsList() ([]string, error) {
+func (a *ActionRecordBase) ItemsList() ([]string, error) {
 	var items []string
 	return items, a.UnmarshalJSONField("items_list", &items)
 }
 
-func (a *ActionBase) SetItemsList(items []string) {
+func (a *ActionRecordBase) SetItemsList(items []string) {
 	a.Set("items_list", items)
 }
 
-func (a *ActionBase) CanMove() bool {
+func (a *ActionRecordBase) CanMove() bool {
 	return a.GetBool("can_move")
 }
 
-func (a *ActionBase) SetCanMove(b bool) {
+func (a *ActionRecordBase) SetCanMove(b bool) {
 	a.Set("can_move", b)
 }
 
-type UserAction struct {
-	ActionBase
-}
-
-func NewLastUserAction(user User) (Action, error) {
-	a, err := getLastUserAction(user)
+func NewLastUserAction(userId string) (ActionRecord, error) {
+	a, err := getLastUserAction(userId)
 	if err != nil {
 		return nil, err
 	}
@@ -148,55 +170,90 @@ func NewLastUserAction(user User) (Action, error) {
 	return a, nil
 }
 
-func actionBindHooks(action Action) {
+func actionBindHooks(action ActionRecord) {
 	PocketBase.OnRecordAfterCreateSuccess(CollectionActions).BindFunc(func(e *core.RecordEvent) error {
 		userId := e.Record.GetString("user")
-		if userId == action.UserId() {
-			action.SetProxyRecord(e.Record)
+		if userId != action.User() {
+			return e.Next()
 		}
+
+		actionType := ActionType(e.Record.GetString("type"))
+		if actionType == action.Type() {
+			action.SetProxyRecord(e.Record)
+			return e.Next()
+		}
+
+		a, err := NewActionRecordFromType(actionType)
+		if err != nil {
+			return err
+		}
+
+		action = a
+		action.SetProxyRecord(e.Record)
+
 		return e.Next()
 	})
 	PocketBase.OnRecordAfterUpdateSuccess(CollectionActions).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == action.ID() {
-			action.SetProxyRecord(e.Record)
+			return e.Next()
 		}
+
+		actionType := ActionType(e.Record.GetString("type"))
+		if actionType == action.Type() {
+			action.SetProxyRecord(e.Record)
+			return e.Next()
+		}
+
+		a, err := NewActionRecordFromType(actionType)
+		if err != nil {
+			return err
+		}
+
+		action = a
+		action.SetProxyRecord(e.Record)
+
 		return e.Next()
 	})
 	PocketBase.OnRecordAfterDeleteSuccess(CollectionActions).BindFunc(func(e *core.RecordEvent) error {
 		userId := e.Record.GetString("user")
-		if userId == action.UserId() {
-			a, err := getLastUserAction(action.User())
-			if err != nil {
-				return err
-			}
-
-			action = a
+		if userId != action.User() {
+			return e.Next()
 		}
+
+		a, err := getLastUserAction(action.User())
+		if err != nil {
+			return err
+		}
+
+		action = a
+
 		return e.Next()
 	})
 }
 
-func getLastUserAction(user User) (Action, error) {
-	record, err := fetchLastUserAction(user.ID())
+func getLastUserAction(userId string) (ActionRecord, error) {
+	record, err := fetchLastUserAction(userId)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return nil, err
 	}
 
-	var a Action
+	var a ActionRecord
 	if errors.Is(err, sql.ErrNoRows) {
-		a, err = NewActionFromType(user, "none")
+		a, err = NewActionRecordFromType(ActionTypeNone)
 		if err != nil {
 			return nil, err
 		}
 		a.SetCanMove(true)
 	} else {
-		a, err = NewActionFromType(user, ActionType(record.GetString("type")))
+		a, err = NewActionRecordFromType(ActionType(record.GetString("type")))
 		if err != nil {
 			return nil, err
 		}
 
 		a.SetProxyRecord(record)
 	}
+
+	a.SetUser(userId)
 
 	return a, nil
 }

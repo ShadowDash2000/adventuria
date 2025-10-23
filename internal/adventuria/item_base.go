@@ -54,7 +54,7 @@ func (i *ItemBase) Awake() {
 			effect.Unsubscribe()
 
 			if i.AppliedEffectsCount() == i.EffectsCount() {
-				PocketBase.Delete(i.invItemRecord)
+				PocketBase.Delete(i.invItemRecord.ProxyRecord())
 			}
 		})
 	}

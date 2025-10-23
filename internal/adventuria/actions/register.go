@@ -12,12 +12,12 @@ const (
 )
 
 func WithBaseActions() {
-	adventuria.RegisterActions(map[adventuria.ActionType]adventuria.ActionCreator{
-		ActionTypeRollDice:  adventuria.NewAction(&RollDiceAction{}),
-		ActionTypeDone:      adventuria.NewAction(&DoneAction{}),
-		ActionTypeReroll:    adventuria.NewAction(&RerollAction{}),
-		ActionTypeDrop:      adventuria.NewAction(&DropAction{}),
-		ActionTypeRollWheel: adventuria.NewAction(&RollWheelAction{}),
-		ActionTypeRollItem:  adventuria.NewAction(&RollItemAction{}),
+	adventuria.RegisterActions([]adventuria.ActionCreator{
+		adventuria.NewAction(ActionTypeRollDice, &RollDiceAction{}),
+		adventuria.NewAction(ActionTypeDone, &DoneAction{}),
+		adventuria.NewAction(ActionTypeReroll, &RerollAction{}),
+		adventuria.NewAction(ActionTypeDrop, &DropAction{}),
+		adventuria.NewAction(ActionTypeRollWheel, &RollWheelAction{}),
+		adventuria.NewAction(ActionTypeRollItem, &RollItemAction{}),
 	})
 }

@@ -30,16 +30,6 @@ func Test_RollReverse(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	invItemId, err := user.Inventory().AddItemById(item.Id)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	err = game.UseItem(user.ID(), invItemId)
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	cell, ok := user.CurrentCell()
 	if !ok {
 		t.Fatal("Test_RollReverse(): Current cell not found")
@@ -47,27 +37,38 @@ func Test_RollReverse(t *testing.T) {
 
 	user.LastAction().SetCell(cell.ID())
 
-	// TODO in some cases new cell still unreached
-	res, err := game.DoAction(actions.ActionTypeRollDice, user.ID(), adventuria.ActionRequest{})
-	if err != nil {
-		t.Fatal(err)
-	}
+	for i := 0; i < 100; i++ {
+		invItemId, err := user.Inventory().AddItemById(item.Id)
+		if err != nil {
+			t.Fatal(err)
+		}
 
-	rollDiceRes, ok := res.Data.(actions.RollDiceResult)
-	if !ok {
-		t.Fatal("Test_RollReverse(): Result data is not RollDiceResult")
-	}
+		err = game.UseItem(user.ID(), invItemId)
+		if err != nil {
+			t.Fatal(err)
+		}
 
-	t.Log("Test_RollReverse(): Roll dice result:", rollDiceRes)
+		res, err := game.DoAction(actions.ActionTypeRollDice, user.ID(), adventuria.ActionRequest{})
+		if err != nil {
+			t.Fatalf("Test_RollReverse(): Error rolling dice: %s", err)
+		}
 
-	dicesSum := 0
-	for _, n := range rollDiceRes.DiceRolls {
-		dicesSum += n
-	}
+		rollDiceRes, ok := res.Data.(actions.RollDiceResult)
+		if !ok {
+			t.Fatal("Test_RollReverse(): Result data is not RollDiceResult")
+		}
 
-	wantRoll := dicesSum * -1
-	if wantRoll != rollDiceRes.Roll {
-		t.Fatalf("Test_DiceIncrement(): Roll not incremented, want = %d, got = %d", wantRoll, rollDiceRes.Roll)
+		dicesSum := 0
+		for _, n := range rollDiceRes.DiceRolls {
+			dicesSum += n
+		}
+
+		wantRoll := dicesSum * -1
+		if wantRoll != rollDiceRes.Roll {
+			t.Fatalf("Test_RollReverse(): Roll not reversed, want = %d, got = %d", wantRoll, rollDiceRes.Roll)
+		}
+
+		user.LastAction().SetCanMove(true)
 	}
 }
 

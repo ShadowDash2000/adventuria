@@ -11,7 +11,7 @@ import (
 
 type UserBase struct {
 	core.BaseRecordProxy
-	lastAction Action
+	lastAction ActionRecord
 	inventory  Inventory
 	timer      Timer
 	stats      *Stats
@@ -58,7 +58,7 @@ func NewUser(userId string) (User, error) {
 		return nil, err
 	}
 
-	u.lastAction, err = NewLastUserAction(u)
+	u.lastAction, err = NewLastUserAction(u.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -199,19 +199,25 @@ func (u *UserBase) save() error {
 
 func (u *UserBase) Move(steps int) (*OnAfterMoveEvent, error) {
 	cellsPassed := u.CellsPassed()
-	prevCellNum := cellsPassed % GameCells.Count()
-	lapsPassed := (prevCellNum + steps) / GameCells.Count()
+	cellsCount := GameCells.Count()
 
-	currentCellNum := 0
-	if prevCellNum+steps < 0 {
-		currentCellNum = (GameCells.Count() * (lapsPassed*-1 + 1)) - (prevCellNum - steps)
-	} else {
-		currentCellNum = (cellsPassed + steps) % GameCells.Count()
+	// normalized mod (0..n-1)
+	mod := func(a, m int) int {
+		return ((a % m) + m) % m
 	}
+	// floor division
+	floorDiv := func(a, m int) int {
+		r := mod(a, m)
+		return (a - r) / m
+	}
+
+	totalSteps := cellsPassed + steps
+	currentCellNum := mod(totalSteps, cellsCount)
+	lapsPassed := floorDiv(totalSteps, cellsCount) - floorDiv(cellsPassed, cellsCount)
 
 	currentCell, ok := GameCells.GetByOrder(currentCellNum)
 	if !ok {
-		return nil, errors.New("Move(): cell not found")
+		return nil, fmt.Errorf("Move(): cell with num = %d not found, steps = %d", currentCellNum, steps)
 	}
 
 	u.SetCellsPassed(cellsPassed + steps)
@@ -282,7 +288,7 @@ func (u *UserBase) Inventory() Inventory {
 	return u.inventory
 }
 
-func (u *UserBase) LastAction() Action {
+func (u *UserBase) LastAction() ActionRecord {
 	return u.lastAction
 }
 

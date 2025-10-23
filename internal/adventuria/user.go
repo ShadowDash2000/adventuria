@@ -30,7 +30,7 @@ type User interface {
 	MoveToCellType(cellType CellType) error
 	MoveToCellId(cellId string) error
 	Inventory() Inventory
-	LastAction() Action
+	LastAction() ActionRecord
 	Timer() Timer
 	Stats() *Stats
 

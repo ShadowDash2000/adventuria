@@ -120,6 +120,7 @@ func (g *BaseGame) DoAction(actionType ActionType, userId string, req ActionRequ
 	return res, nil
 }
 
+// TODO: reimplement, method expired
 func (g *BaseGame) UpdateAction(actionId string, comment string, userId string) error {
 	record := &core.Record{}
 	err := g.pb.
@@ -230,9 +231,8 @@ func (g *BaseGame) GetAvailableActions(userId string) ([]ActionType, error) {
 	}
 
 	var actions []ActionType
-	for _, actionCreator := range actionsList {
-		action := actionCreator()
-		action.setUser(user)
+	for t, _ := range actionsList {
+		action, _ := NewActionFromType(user, t)
 
 		if action.CanDo() {
 			actions = append(actions, action.Type())

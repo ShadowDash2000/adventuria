@@ -1,18 +1,26 @@
 package adventuria
 
 import (
-	"maps"
-
 	"github.com/pocketbase/pocketbase/core"
 )
 
 type Action interface {
+	User() User
+	Type() ActionType
+	CanDo() bool
+	Do(ActionRequest) (*ActionResult, error)
+
+	setType(ActionType)
+	setUser(User)
+}
+
+type ActionRecord interface {
 	core.RecordProxy
 
 	ID() string
 	Save() error
-	User() User
-	UserId() string
+	User() string
+	SetUser(string)
 	CellId() string
 	SetCell(string)
 	Comment() string
@@ -30,14 +38,11 @@ type Action interface {
 	SetItemsList([]string)
 	CanMove() bool
 	SetCanMove(bool)
-
-	CanDo() bool
-	Do(ActionRequest) (*ActionResult, error)
-
-	setUser(user User)
 }
 
 type ActionType string
+
+const ActionTypeNone ActionType = "none"
 
 type ActionRequest struct {
 	Comment string
@@ -50,17 +55,21 @@ type ActionResult struct {
 }
 
 var actionsList = map[ActionType]ActionCreator{
-	"none": NewAction(&NoneAction{}),
+	ActionTypeNone: NewAction(ActionTypeNone, &NoneAction{}),
 }
 
 type ActionCreator func() Action
 
-func RegisterActions(actions map[ActionType]ActionCreator) {
-	maps.Insert(actionsList, maps.All(actions))
+func RegisterActions(actions []ActionCreator) {
+	for _, actionCreator := range actions {
+		action := actionCreator()
+		actionsList[action.Type()] = actionCreator
+	}
 }
 
-func NewAction(a Action) ActionCreator {
+func NewAction(t ActionType, a Action) ActionCreator {
 	return func() Action {
+		a.setType(t)
 		return a
 	}
 }
