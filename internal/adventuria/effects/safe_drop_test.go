@@ -45,13 +45,6 @@ func Test_SafeDrop(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	cell, ok := user.CurrentCell()
-	if !ok {
-		t.Fatal("Test_SafeDrop(): Current cell not found")
-	}
-
-	user.LastAction().SetCell(cell.ID())
-
 	err = user.LastAction().Save()
 	if err != nil {
 		t.Fatalf("Test_SafeDrop(): Error saving action: %s", err)

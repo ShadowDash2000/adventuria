@@ -27,13 +27,6 @@ func Test_Reroll(t *testing.T) {
 		t.Fatalf("Test_Reroll(): Error moving: %s", err)
 	}
 
-	cell, ok := user.CurrentCell()
-	if !ok {
-		t.Fatal("Test_Reroll(): Current cell not found")
-	}
-
-	user.LastAction().SetCell(cell.ID())
-
 	err = user.LastAction().Save()
 	if err != nil {
 		t.Fatalf("Test_Reroll(): Error saving action: %s", err)

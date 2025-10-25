@@ -40,13 +40,6 @@ func Test_DiceIncrement(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	cell, ok := user.CurrentCell()
-	if !ok {
-		t.Fatal("Test_DiceIncrement(): Current cell not found")
-	}
-
-	user.LastAction().SetCell(cell.ID())
-
 	res, err := game.DoAction(actions.ActionTypeRollDice, user.ID(), adventuria.ActionRequest{})
 	if err != nil {
 		t.Fatal(err)

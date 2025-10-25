@@ -171,7 +171,7 @@ func (u *UserBase) CellsPassed() int {
 	return u.GetInt("cellsPassed")
 }
 
-func (u *UserBase) SetCellsPassed(cellsPassed int) {
+func (u *UserBase) setCellsPassed(cellsPassed int) {
 	u.Set("cellsPassed", cellsPassed)
 }
 
@@ -220,8 +220,13 @@ func (u *UserBase) Move(steps int) (*OnAfterMoveEvent, error) {
 		return nil, fmt.Errorf("Move(): cell with num = %d not found, steps = %d", currentCellNum, steps)
 	}
 
-	u.SetCellsPassed(cellsPassed + steps)
-	u.LastAction().SetCanMove(false)
+	u.setCellsPassed(cellsPassed + steps)
+
+	u.lastAction = NewActionRecord()
+	u.lastAction.SetUser(u.ID())
+	u.lastAction.SetType(ActionTypeMove)
+	u.lastAction.SetDiceRoll(steps)
+	u.lastAction.setCell(currentCell.ID())
 
 	err := currentCell.OnCellReached(u)
 	if err != nil {

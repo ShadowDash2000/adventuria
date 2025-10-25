@@ -22,7 +22,7 @@ type ActionRecord interface {
 	User() string
 	SetUser(string)
 	CellId() string
-	SetCell(string)
+	setCell(string)
 	Comment() string
 	SetComment(string)
 	Game() string
@@ -42,7 +42,10 @@ type ActionRecord interface {
 
 type ActionType string
 
-const ActionTypeNone ActionType = "none"
+const (
+	ActionTypeNone ActionType = "none"
+	ActionTypeMove ActionType = "move"
+)
 
 type ActionRequest struct {
 	Comment string

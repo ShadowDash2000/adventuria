@@ -28,13 +28,6 @@ func Test_Drop(t *testing.T) {
 		t.Fatalf("Test_Drop(): Error moving: %s", err)
 	}
 
-	cell, ok := user.CurrentCell()
-	if !ok {
-		t.Fatal("Test_Drop(): Current cell not found")
-	}
-
-	user.LastAction().SetCell(cell.ID())
-
 	err = user.LastAction().Save()
 	if err != nil {
 		t.Fatalf("Test_Drop(): Error saving action: %s", err)
@@ -92,13 +85,6 @@ func Test_Drop_inJail(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Test_Drop_inJail(): Error moving: %s", err)
 	}
-
-	cell, ok := user.CurrentCell()
-	if !ok {
-		t.Fatal("Test_Drop_inJail(): Current cell not found")
-	}
-
-	user.LastAction().SetCell(cell.ID())
 
 	user.SetIsInJail(true)
 

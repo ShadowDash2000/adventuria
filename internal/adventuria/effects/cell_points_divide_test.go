@@ -53,8 +53,6 @@ func Test_CellPointsDivide(t *testing.T) {
 		t.Fatal("Test_CellPointsDivide(): Current cell not found")
 	}
 
-	user.LastAction().SetCell(cell.ID())
-
 	err = user.LastAction().Save()
 	if err != nil {
 		t.Fatalf("Test_CellPointsDivide(): Error saving action: %s", err)

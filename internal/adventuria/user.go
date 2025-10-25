@@ -21,7 +21,7 @@ type User interface {
 	DropsInARow() int
 	SetDropsInARow(drops int)
 	CellsPassed() int
-	SetCellsPassed(cellsPassed int)
+	setCellsPassed(cellsPassed int)
 	MaxInventorySlots() int
 	SetMaxInventorySlots(maxInventorySlots int)
 	ItemWheelsCount() int

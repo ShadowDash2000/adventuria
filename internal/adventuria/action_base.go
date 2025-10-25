@@ -53,17 +53,11 @@ type ActionRecordBase struct {
 	core.BaseRecordProxy
 }
 
-func NewActionRecordFromType(actionType ActionType) (ActionRecord, error) {
-	_, ok := actionsList[actionType]
-	if !ok {
-		return nil, errors.New("unknown action type")
-	}
-
+func NewActionRecord() ActionRecord {
 	actionRecord := &ActionRecordBase{}
 	actionRecord.SetProxyRecord(core.NewRecord(GameCollections.Get(CollectionActions)))
-	actionRecord.SetType(actionType)
 
-	return actionRecord, nil
+	return actionRecord
 }
 
 // TODO: remove unused
@@ -95,7 +89,7 @@ func (a *ActionRecordBase) CellId() string {
 	return a.GetString("cell")
 }
 
-func (a *ActionRecordBase) SetCell(cellId string) {
+func (a *ActionRecordBase) setCell(cellId string) {
 	a.Set("cell", cellId)
 }
 
@@ -177,18 +171,6 @@ func actionBindHooks(action ActionRecord) {
 			return e.Next()
 		}
 
-		actionType := ActionType(e.Record.GetString("type"))
-		if actionType == action.Type() {
-			action.SetProxyRecord(e.Record)
-			return e.Next()
-		}
-
-		a, err := NewActionRecordFromType(actionType)
-		if err != nil {
-			return err
-		}
-
-		action = a
 		action.SetProxyRecord(e.Record)
 
 		return e.Next()
@@ -198,18 +180,6 @@ func actionBindHooks(action ActionRecord) {
 			return e.Next()
 		}
 
-		actionType := ActionType(e.Record.GetString("type"))
-		if actionType == action.Type() {
-			action.SetProxyRecord(e.Record)
-			return e.Next()
-		}
-
-		a, err := NewActionRecordFromType(actionType)
-		if err != nil {
-			return err
-		}
-
-		action = a
 		action.SetProxyRecord(e.Record)
 
 		return e.Next()
@@ -220,12 +190,20 @@ func actionBindHooks(action ActionRecord) {
 			return e.Next()
 		}
 
-		a, err := getLastUserAction(action.User())
+		record, err := fetchLastUserAction(action.User())
 		if err != nil {
-			return err
+			if errors.Is(err, sql.ErrNoRows) {
+				action.SetProxyRecord(core.NewRecord(GameCollections.Get(CollectionActions)))
+				action.SetType(ActionTypeNone)
+				action.SetCanMove(true)
+
+				return e.Next()
+			} else {
+				return err
+			}
 		}
 
-		action = a
+		action.SetProxyRecord(record)
 
 		return e.Next()
 	})
@@ -239,17 +217,11 @@ func getLastUserAction(userId string) (ActionRecord, error) {
 
 	var a ActionRecord
 	if errors.Is(err, sql.ErrNoRows) {
-		a, err = NewActionRecordFromType(ActionTypeNone)
-		if err != nil {
-			return nil, err
-		}
+		a = NewActionRecord()
+		a.SetType(ActionTypeNone)
 		a.SetCanMove(true)
 	} else {
-		a, err = NewActionRecordFromType(ActionType(record.GetString("type")))
-		if err != nil {
-			return nil, err
-		}
-
+		a = NewActionRecord()
 		a.SetProxyRecord(record)
 	}
 

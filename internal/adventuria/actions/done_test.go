@@ -31,13 +31,6 @@ func Test_Done(t *testing.T) {
 		t.Fatalf("Test_Done(): Error moving: %s", err)
 	}
 
-	cell, ok := user.CurrentCell()
-	if !ok {
-		t.Fatal("Test_Done(): Current cell not found")
-	}
-
-	user.LastAction().SetCell(cell.ID())
-
 	err = user.LastAction().Save()
 	if err != nil {
 		t.Fatalf("Test_Done(): Error saving action: %s", err)

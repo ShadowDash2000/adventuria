@@ -46,18 +46,6 @@ func (a *RollDiceAction) Do(_ adventuria.ActionRequest) (*adventuria.ActionResul
 		return nil, err
 	}
 
-	action, err := adventuria.NewActionRecordFromType(ActionTypeRollDice)
-	if err != nil {
-		return nil, err
-	}
-	action.SetUser(a.User().ID())
-	action.SetCell(onAfterMoveEvent.CurrentCell.ID())
-	action.SetDiceRoll(onAfterMoveEvent.Steps)
-	err = action.Save()
-	if err != nil {
-		return nil, err
-	}
-
 	onAfterRollEvent := &adventuria.OnAfterRollEvent{
 		Dices: onBeforeRollEvent.Dices,
 		N:     onBeforeRollMoveEvent.N,

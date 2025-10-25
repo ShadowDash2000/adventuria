@@ -30,13 +30,6 @@ func Test_RollReverse(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	cell, ok := user.CurrentCell()
-	if !ok {
-		t.Fatal("Test_RollReverse(): Current cell not found")
-	}
-
-	user.LastAction().SetCell(cell.ID())
-
 	for i := 0; i < 100; i++ {
 		invItemId, err := user.Inventory().AddItemById(item.Id)
 		if err != nil {
