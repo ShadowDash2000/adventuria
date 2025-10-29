@@ -36,7 +36,7 @@ type ParsePlatformsMessage struct {
 }
 
 func (p *Parser) ParsePlatformsAll(ctx context.Context, limit uint64) (chan ParsePlatformsMessage, error) {
-	count, err := p.client.Platforms.Count()
+	count, err := p.client.Platforms.Count(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +55,7 @@ func (p *Parser) ParsePlatforms(ctx context.Context, count, limit uint64) (chan 
 			case <-ctx.Done():
 				return
 			default:
-				platforms, err := p.client.Platforms.Paginated(0, limit)
+				platforms, err := p.client.Platforms.Paginated(ctx, 0, limit)
 				if err != nil {
 					ch <- ParsePlatformsMessage{Err: err}
 					return
@@ -84,7 +84,7 @@ type ParseCompaniesMessage struct {
 }
 
 func (p *Parser) ParseCompaniesAll(ctx context.Context, limit uint64) (chan ParseCompaniesMessage, error) {
-	count, err := p.client.Companies.Count()
+	count, err := p.client.Companies.Count(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +103,7 @@ func (p *Parser) ParseCompanies(ctx context.Context, count, limit uint64) (chan 
 			case <-ctx.Done():
 				return
 			default:
-				companies, err := p.client.Companies.Paginated(offset, limit)
+				companies, err := p.client.Companies.Paginated(ctx, offset, limit)
 				if err != nil {
 					ch <- ParseCompaniesMessage{Err: err}
 					return
@@ -132,7 +132,7 @@ type ParseGamesMessage struct {
 }
 
 func (p *Parser) ParseGamesAll(ctx context.Context, limit uint64) (chan ParseGamesMessage, error) {
-	count, err := p.gamesCount()
+	count, err := p.gamesCount(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -155,22 +155,22 @@ func (p *Parser) ParseGames(ctx context.Context, count, limit uint64) (chan Pars
 			case <-ctx.Done():
 				return
 			default:
-				gamesIgdb, err := p.gamesPaginated(offset, limit)
+				gamesIgdb, err := p.gamesPaginated(ctx, offset, limit)
 				if err != nil {
 					ch <- ParseGamesMessage{Err: err}
 					return
 				}
-				steamAppIds, err := p.getSteamAppIds(gamesIgdb)
+				steamAppIds, err := p.getSteamAppIds(ctx, gamesIgdb)
 				if err != nil {
 					ch <- ParseGamesMessage{Err: err}
 					return
 				}
-				covers, err := p.fetchCovers(gamesIgdb)
+				covers, err := p.fetchCovers(ctx, gamesIgdb)
 				if err != nil {
 					ch <- ParseGamesMessage{Err: err}
 					return
 				}
-				companies, err := p.fetchInvolvedCompanies(gamesIgdb)
+				companies, err := p.fetchInvolvedCompanies(ctx, gamesIgdb)
 				if err != nil {
 					ch <- ParseGamesMessage{Err: err}
 					return
@@ -246,14 +246,15 @@ func (p *Parser) ParseGames(ctx context.Context, count, limit uint64) (chan Pars
 	return ch, nil
 }
 
-func (p *Parser) gamesPaginated(offset, limit uint64) ([]*pb.Game, error) {
-	return p.client.Games.Query(
+func (p *Parser) gamesPaginated(ctx context.Context, offset, limit uint64) ([]*pb.Game, error) {
+	return p.client.Games.Query(ctx,
 		fmt.Sprintf("where %s; offset %d; limit %d; fields *; sort id asc;", p.filter, offset, limit),
 	)
 }
 
-func (p *Parser) gamesCount() (uint64, error) {
+func (p *Parser) gamesCount(ctx context.Context) (uint64, error) {
 	resp, err := p.client.Request(
+		ctx,
 		"POST",
 		fmt.Sprintf("https://api.igdb.com/v4/%s/count.pb", endpoint.EPGames),
 		fmt.Sprintf("where %s;", p.filter),
@@ -274,7 +275,7 @@ const (
 	extGameSourceSteam = "Steam"
 )
 
-func (p *Parser) getSteamAppIds(games []*pb.Game) (map[uint64]uint64, error) {
+func (p *Parser) getSteamAppIds(ctx context.Context, games []*pb.Game) (map[uint64]uint64, error) {
 	var extGamesIds []uint64
 	for _, game := range games {
 		for _, extGame := range game.GetExternalGames() {
@@ -282,12 +283,12 @@ func (p *Parser) getSteamAppIds(games []*pb.Game) (map[uint64]uint64, error) {
 		}
 	}
 
-	extGames, err := p.client.ExternalGames.GetByIDs(extGamesIds)
+	extGames, err := p.client.ExternalGames.GetByIDs(ctx, extGamesIds)
 	if err != nil {
 		return nil, err
 	}
 
-	extGameSources, err := p.externalGameSources()
+	extGameSources, err := p.externalGameSources(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -312,13 +313,13 @@ func (p *Parser) getSteamAppIds(games []*pb.Game) (map[uint64]uint64, error) {
 	return res, nil
 }
 
-func (p *Parser) externalGameSources() (map[uint64]*pb.ExternalGameSource, error) {
+func (p *Parser) externalGameSources(ctx context.Context) (map[uint64]*pb.ExternalGameSource, error) {
 	if p.extGameSources != nil {
 		return p.extGameSources, nil
 	}
 
 	var err error
-	p.extGameSources, err = p.fetchExternalGameSources()
+	p.extGameSources, err = p.fetchExternalGameSources(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -326,13 +327,13 @@ func (p *Parser) externalGameSources() (map[uint64]*pb.ExternalGameSource, error
 	return p.extGameSources, nil
 }
 
-func (p *Parser) fetchExternalGameSources() (map[uint64]*pb.ExternalGameSource, error) {
-	count, err := p.client.ExternalGameSources.Count()
+func (p *Parser) fetchExternalGameSources(ctx context.Context) (map[uint64]*pb.ExternalGameSource, error) {
+	count, err := p.client.ExternalGameSources.Count(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	sources, err := p.client.ExternalGameSources.Paginated(0, count)
+	sources, err := p.client.ExternalGameSources.Paginated(ctx, 0, count)
 	if err != nil {
 		return nil, err
 	}
@@ -345,13 +346,13 @@ func (p *Parser) fetchExternalGameSources() (map[uint64]*pb.ExternalGameSource, 
 	return res, nil
 }
 
-func (p *Parser) fetchCovers(games []*pb.Game) (map[uint64]string, error) {
+func (p *Parser) fetchCovers(ctx context.Context, games []*pb.Game) (map[uint64]string, error) {
 	gameIds := make([]uint64, len(games))
 	for i, game := range games {
 		gameIds[i] = game.GetCover().GetId()
 	}
 
-	covers, err := p.client.Covers.GetByIDs(gameIds)
+	covers, err := p.client.Covers.GetByIDs(ctx, gameIds)
 	if err != nil {
 		return nil, err
 	}
@@ -367,7 +368,7 @@ func (p *Parser) fetchCovers(games []*pb.Game) (map[uint64]string, error) {
 	return res, nil
 }
 
-func (p *Parser) fetchInvolvedCompanies(games []*pb.Game) (map[uint64]*pb.InvolvedCompany, error) {
+func (p *Parser) fetchInvolvedCompanies(ctx context.Context, games []*pb.Game) (map[uint64]*pb.InvolvedCompany, error) {
 	var companyIds []uint64
 	for _, game := range games {
 		for _, company := range game.GetInvolvedCompanies() {
@@ -375,7 +376,7 @@ func (p *Parser) fetchInvolvedCompanies(games []*pb.Game) (map[uint64]*pb.Involv
 		}
 	}
 
-	companies, err := p.client.InvolvedCompanies.GetByIDs(companyIds)
+	companies, err := p.client.InvolvedCompanies.GetByIDs(ctx, companyIds)
 	if err != nil {
 		return nil, err
 	}
@@ -394,7 +395,7 @@ type ParseGenresMessage struct {
 }
 
 func (p *Parser) ParseGenresAll(ctx context.Context, limit uint64) (chan ParseGenresMessage, error) {
-	count, err := p.client.Genres.Count()
+	count, err := p.client.Genres.Count(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -413,7 +414,7 @@ func (p *Parser) ParseGenres(ctx context.Context, count, limit uint64) (chan Par
 			case <-ctx.Done():
 				return
 			default:
-				genres, err := p.client.Genres.Paginated(offset, limit)
+				genres, err := p.client.Genres.Paginated(ctx, offset, limit)
 				if err != nil {
 					ch <- ParseGenresMessage{Err: err}
 					return
