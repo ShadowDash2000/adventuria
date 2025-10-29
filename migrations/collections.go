@@ -825,6 +825,18 @@ func init() {
 						"required": false,
 						"system": false,
 						"type": "json"
+					},
+					{
+						"hidden": false,
+						"id": "number2901680126",
+						"max": null,
+						"min": 0,
+						"name": "balance",
+						"onlyInt": true,
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "number"
 					}
 				],
 				"fileToken": {
@@ -1488,6 +1500,32 @@ func init() {
 						"required": false,
 						"system": false,
 						"type": "editor"
+					},
+					{
+						"hidden": false,
+						"id": "select2363381545",
+						"maxSelect": 1,
+						"name": "type",
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "select",
+						"values": [
+							"buff",
+							"debuff"
+						]
+					},
+					{
+						"hidden": false,
+						"id": "number3402113753",
+						"max": null,
+						"min": 0,
+						"name": "price",
+						"onlyInt": true,
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "number"
 					}
 				],
 				"id": "pbc_710432678",

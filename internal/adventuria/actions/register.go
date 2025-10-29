@@ -9,6 +9,7 @@ const (
 	ActionTypeDrop      adventuria.ActionType = "drop"
 	ActionTypeRollWheel adventuria.ActionType = "rollWheel"
 	ActionTypeRollItem  adventuria.ActionType = "rollItem"
+	ActionTypeBuyItem   adventuria.ActionType = "buyItem"
 )
 
 func WithBaseActions() {
@@ -19,5 +20,6 @@ func WithBaseActions() {
 		adventuria.NewAction(ActionTypeDrop, &DropAction{}),
 		adventuria.NewAction(ActionTypeRollWheel, &RollWheelAction{}),
 		adventuria.NewAction(ActionTypeRollItem, &RollItemAction{}),
+		adventuria.NewAction(ActionTypeBuyItem, &BuyAction{}),
 	})
 }

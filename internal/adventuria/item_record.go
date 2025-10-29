@@ -43,3 +43,11 @@ func (i *ItemRecordBase) IsRollable() bool {
 func (i *ItemRecordBase) Order() int {
 	return i.itemRecord.GetInt("order")
 }
+
+func (i *ItemRecordBase) Type() string {
+	return i.itemRecord.GetString("type")
+}
+
+func (i *ItemRecordBase) Price() int {
+	return i.itemRecord.GetInt("price")
+}

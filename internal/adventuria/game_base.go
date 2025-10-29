@@ -99,7 +99,10 @@ func (g *BaseGame) DoAction(actionType ActionType, userId string, req ActionRequ
 
 	res, err := action.Do(req)
 	if err != nil {
+		PocketBase.Logger().Error("Failed to complete user action", "error", err)
 		return nil, err
+	} else if res.Error != "" {
+		return nil, errors.New(res.Error)
 	}
 
 	err = user.OnAfterAction().Trigger(&OnAfterActionEvent{})

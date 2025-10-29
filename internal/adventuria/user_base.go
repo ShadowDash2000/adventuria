@@ -305,6 +305,14 @@ func (u *UserBase) Stats() *Stats {
 	return u.stats
 }
 
+func (u *UserBase) Balance() int {
+	return u.GetInt("balance")
+}
+
+func (u *UserBase) SetBalance(balance int) {
+	u.Set("balance", balance)
+}
+
 func (u *UserBase) initHooks() {
 	u.onAfterChooseGame = &event.Hook[*OnAfterChooseGameEvent]{}
 	u.onAfterReroll = &event.Hook[*OnAfterRerollEvent]{}

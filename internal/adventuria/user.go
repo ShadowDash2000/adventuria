@@ -33,6 +33,8 @@ type User interface {
 	LastAction() ActionRecord
 	Timer() Timer
 	Stats() *Stats
+	Balance() int
+	SetBalance(int)
 
 	save() error
 }

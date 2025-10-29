@@ -15,6 +15,7 @@ func Test_WithBaseActions(t *testing.T) {
 		ActionTypeDrop,
 		ActionTypeRollWheel,
 		ActionTypeRollItem,
+		ActionTypeBuyItem,
 	}
 
 	got := 0
