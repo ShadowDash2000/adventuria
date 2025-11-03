@@ -3,7 +3,9 @@ package cells
 import (
 	"adventuria/internal/adventuria"
 	"adventuria/pkg/helper"
+	"fmt"
 
+	"github.com/mitchellh/mapstructure"
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
 )
@@ -22,17 +24,93 @@ func NewCellGame() adventuria.CellCreator {
 	}
 }
 
-func (c *CellGame) Roll(user adventuria.User) (*adventuria.WheelRollResult, error) {
-	res := &adventuria.WheelRollResult{}
+type GameFilterRequest struct {
+	Platforms  []string `json:"platforms"`
+	Developers []string `json:"developers"`
+	Publishers []string `json:"publishers"`
+	Genres     []string `json:"genres"`
+	Tags       []string `json:"tags"`
+	MinPrice   int      `json:"min_price"`
+	MaxPrice   int      `json:"max_price"`
+	//ReleaseDateFrom string   `json:"release_date_from"`
+	//ReleaseDateTo   string   `json:"release_date_to"`
+	MinCampaignTime float64  `json:"min_campaign_time"`
+	MaxCampaignTime float64  `json:"max_campaign_time"`
+	Games           []string `json:"games"`
+}
+
+func (c *CellGame) Roll(req adventuria.RollWheelRequest, user adventuria.User) (*adventuria.WheelRollResult, error) {
+	var filter *GameFilterRequest
+	if f, ok := req["filter"]; ok {
+		filter = &GameFilterRequest{}
+		err := mapstructure.Decode(f, &filter)
+		if err != nil {
+			return &adventuria.WheelRollResult{
+				Success: false,
+				Error:   "internal error: can't decode filter",
+			}, fmt.Errorf("game.roll(): can't decode filter: %w", err)
+		}
+	}
+
+	if filter != nil {
+		filterRecord := adventuria.NewGameFilterFromRecord(
+			core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionGameFilters)),
+		)
+		filterRecord.SetPlatforms(filter.Platforms)
+		filterRecord.SetDevelopers(filter.Developers)
+		filterRecord.SetPublishers(filter.Publishers)
+		filterRecord.SetGenres(filter.Genres)
+		filterRecord.SetTags(filter.Tags)
+		filterRecord.SetMinPrice(filter.MinPrice)
+		filterRecord.SetMaxPrice(filter.MaxPrice)
+		filterRecord.SetMinCampaignTime(filter.MinCampaignTime)
+		filterRecord.SetMaxCampaignTime(filter.MaxCampaignTime)
+		filterRecord.SetGames(filter.Games)
+
+		res, err := c.fetchRecordsByFilter(filterRecord)
+		if err != nil {
+			return &adventuria.WheelRollResult{
+				Success: false,
+				Error:   "internal error: can't fetch records by filter",
+			}, fmt.Errorf("game.roll(): can't fetch records by filter: %w", err)
+		}
+
+		user.LastAction().SetItemsList(res)
+	}
 
 	items, err := user.LastAction().ItemsList()
 	if err != nil {
-		return nil, err
+		return &adventuria.WheelRollResult{
+			Success: false,
+			Error:   "internal error: can't unmarshal items list",
+		}, fmt.Errorf("game.roll(): can't unmarshal items list: %w", err)
 	}
 
-	res.WinnerId = helper.RandomItemFromSlice(items)
+	records, err := adventuria.PocketBase.FindRecordsByIds(
+		adventuria.GameCollections.Get(adventuria.CollectionGames),
+		items,
+	)
+	if err != nil {
+		return &adventuria.WheelRollResult{
+			Success: false,
+			Error:   "internal error: can't fetch records",
+		}, fmt.Errorf("game.roll(): can't fetch records: %w", err)
+	}
 
-	return res, nil
+	var fillerItems []adventuria.WheelItem
+	for _, record := range records {
+		fillerItems = append(fillerItems, adventuria.WheelItem{
+			Id:   record.Id,
+			Name: record.GetString("name"),
+			Icon: record.GetString("icon"),
+		})
+	}
+
+	return &adventuria.WheelRollResult{
+		FillerItems: fillerItems,
+		WinnerId:    helper.RandomItemFromSlice(items),
+		Success:     true,
+	}, nil
 }
 
 func (c *CellGame) OnCellReached(user adventuria.User) error {
@@ -50,6 +128,17 @@ func (c *CellGame) OnCellReached(user adventuria.User) error {
 		filter = adventuria.NewGameFilterFromRecord(filterRecord)
 	}
 
+	res, err := c.fetchRecordsByFilter(filter)
+	if err != nil {
+		return err
+	}
+
+	user.LastAction().SetItemsList(res)
+
+	return nil
+}
+
+func (c *CellGame) fetchRecordsByFilter(filter adventuria.GameFilterRecord) ([]string, error) {
 	q := adventuria.PocketBase.RecordQuery(adventuria.GameCollections.Get(adventuria.CollectionGames)).
 		Limit(20).
 		OrderBy("random()")
@@ -61,7 +150,7 @@ func (c *CellGame) OnCellReached(user adventuria.User) error {
 	var records []*core.Record
 	err := q.All(&records)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	res := make([]string, len(records))
@@ -69,9 +158,7 @@ func (c *CellGame) OnCellReached(user adventuria.User) error {
 		res[i] = record.Id
 	}
 
-	user.LastAction().SetItemsList(res)
-
-	return nil
+	return res, nil
 }
 
 func (c *CellGame) setFilters(filter adventuria.GameFilterRecord, q *dbx.SelectQuery) *dbx.SelectQuery {

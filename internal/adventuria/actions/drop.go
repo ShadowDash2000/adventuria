@@ -26,6 +26,11 @@ func (a *DropAction) CanDo() bool {
 }
 
 func (a *DropAction) Do(req adventuria.ActionRequest) (*adventuria.ActionResult, error) {
+	var comment string
+	if c, ok := req["comment"]; ok {
+		comment = c.(string)
+	}
+
 	currentCell, ok := a.User().CurrentCell()
 	if !ok {
 		return nil, errors.New("current cell not found")
@@ -41,7 +46,7 @@ func (a *DropAction) Do(req adventuria.ActionRequest) (*adventuria.ActionResult,
 
 	action := a.User().LastAction()
 	action.SetType(ActionTypeDrop)
-	action.SetComment(req.Comment)
+	action.SetComment(comment)
 
 	if !onBeforeDropEvent.IsSafeDrop && !currentCell.IsSafeDrop() {
 		a.User().SetPoints(a.User().Points() + adventuria.GameSettings.PointsForDrop())

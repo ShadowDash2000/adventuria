@@ -24,9 +24,15 @@ func (a *BuyAction) CanDo() bool {
 	return true
 }
 
-func (a *BuyAction) Do(_ adventuria.ActionRequest) (*adventuria.ActionResult, error) {
-	// TODO: get id from ActionRequest
-	const requestedItemId = "1"
+func (a *BuyAction) Do(req adventuria.ActionRequest) (*adventuria.ActionResult, error) {
+	if _, ok := req["item_id"]; !ok {
+		return nil, fmt.Errorf("buy.do(): item_id not specified")
+	}
+
+	itemId, ok := req["item_id"].(string)
+	if !ok {
+		return nil, fmt.Errorf("buy.do(): item_id is not string")
+	}
 
 	ids, err := a.User().LastAction().ItemsList()
 	if err != nil {
@@ -36,16 +42,16 @@ func (a *BuyAction) Do(_ adventuria.ActionRequest) (*adventuria.ActionResult, er
 		}, fmt.Errorf("buy.do(): can't get items list: %w", err)
 	}
 
-	if !slices.Contains(ids, requestedItemId) {
+	if !slices.Contains(ids, itemId) {
 		return &adventuria.ActionResult{
 			Success: false,
-			Error:   fmt.Sprintf("item with id = %s not found", requestedItemId),
-		}, fmt.Errorf("buy.do(): item with id = %s not found", requestedItemId)
+			Error:   fmt.Sprintf("item with id = %s not found", itemId),
+		}, fmt.Errorf("buy.do(): item with id = %s not found", itemId)
 	}
 
 	itemRecord, err := adventuria.PocketBase.FindRecordById(
 		adventuria.GameCollections.Get(adventuria.CollectionItems),
-		requestedItemId,
+		itemId,
 	)
 	if err != nil {
 		return &adventuria.ActionResult{
@@ -62,7 +68,7 @@ func (a *BuyAction) Do(_ adventuria.ActionRequest) (*adventuria.ActionResult, er
 		}, nil
 	}
 
-	invItemId, err := a.User().Inventory().AddItemById(requestedItemId)
+	invItemId, err := a.User().Inventory().AddItemById(itemId)
 	if err != nil {
 		return &adventuria.ActionResult{
 			Success: false,
@@ -71,7 +77,7 @@ func (a *BuyAction) Do(_ adventuria.ActionRequest) (*adventuria.ActionResult, er
 	}
 
 	ids = slices.DeleteFunc(ids, func(s string) bool {
-		return s == requestedItemId
+		return s == itemId
 	})
 
 	a.User().LastAction().SetItemsList(ids)

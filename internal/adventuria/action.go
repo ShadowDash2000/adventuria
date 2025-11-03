@@ -47,14 +47,12 @@ const (
 	ActionTypeMove ActionType = "move"
 )
 
-type ActionRequest struct {
-	Comment string
-}
+type ActionRequest map[string]any
 
 type ActionResult struct {
-	Success bool        `json:"success"`
-	Data    interface{} `json:"data,omitempty"`
-	Error   string      `json:"error,omitempty"`
+	Success bool   `json:"success"`
+	Data    any    `json:"data,omitempty"`
+	Error   string `json:"error,omitempty"`
 }
 
 var actionsList = map[ActionType]ActionCreator{

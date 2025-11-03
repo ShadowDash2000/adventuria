@@ -7,6 +7,7 @@ require (
 	github.com/bestnite/go-igdb v0.0.16
 	github.com/forbiddencoding/howlongtobeat v0.0.0-20251016180900-5654719fd057
 	github.com/joho/godotenv v1.5.1
+	github.com/mitchellh/mapstructure v1.5.0
 	github.com/pocketbase/dbx v1.11.0
 	github.com/pocketbase/pocketbase v0.31.0
 	golang.org/x/exp v0.0.0-20251023183803-a4bb9ffd2546

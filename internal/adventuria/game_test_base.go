@@ -115,6 +115,7 @@ func (g *GameTest) createTestCells() error {
 		{"start", "Cell 1 (start)", 10, 100},
 		{"game", "Cell 2 (game)", 20, 200},
 		{"game", "Cell 3 (game)", 30, 300},
+		{"shop", "Cell 4 (shop)", 0, 400},
 	}
 
 	for _, cell := range cells {

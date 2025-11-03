@@ -11,15 +11,27 @@ type GameFilterRecord interface {
 	ID() string
 	Name() string
 	Platforms() []string
+	SetPlatforms([]string)
 	Developers() []string
+	SetDevelopers([]string)
 	Publishers() []string
+	SetPublishers([]string)
 	Genres() []string
+	SetGenres([]string)
 	Tags() []string
+	SetTags([]string)
 	MinPrice() int
+	SetMinPrice(int)
 	MaxPrice() int
+	SetMaxPrice(int)
 	ReleaseDateFrom() types.DateTime
+	SetReleaseDateFrom(types.DateTime)
 	ReleaseDateTo() types.DateTime
+	SetReleaseDateTo(types.DateTime)
 	MinCampaignTime() float64
+	SetMinCampaignTime(float64)
 	MaxCampaignTime() float64
+	SetMaxCampaignTime(float64)
 	Games() []string
+	SetGames([]string)
 }

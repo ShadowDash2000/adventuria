@@ -28,7 +28,7 @@ func (c *CellShop) OnCellReached(user adventuria.User) error {
 	var records []*core.Record
 	err := adventuria.PocketBase.RecordQuery(adventuria.GameCollections.Get(adventuria.CollectionItems)).
 		Where(dbx.And(
-			dbx.NewExp("type = buff"),
+			dbx.NewExp("type = \"buff\""),
 			dbx.NewExp("isRollable = true"),
 		)).
 		Limit(6).

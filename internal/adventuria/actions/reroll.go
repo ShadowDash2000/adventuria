@@ -21,6 +21,11 @@ func (a *RerollAction) CanDo() bool {
 }
 
 func (a *RerollAction) Do(req adventuria.ActionRequest) (*adventuria.ActionResult, error) {
+	var comment string
+	if c, ok := req["comment"]; ok {
+		comment = c.(string)
+	}
+
 	currentCell, ok := a.User().CurrentCell()
 	if !ok {
 		return nil, errors.New("current cell not found")
@@ -32,7 +37,7 @@ func (a *RerollAction) Do(req adventuria.ActionRequest) (*adventuria.ActionResul
 
 	action := a.User().LastAction()
 	action.SetType(ActionTypeReroll)
-	action.SetComment(req.Comment)
+	action.SetComment(comment)
 
 	err := a.User().OnAfterReroll().Trigger(&adventuria.OnAfterRerollEvent{})
 	if err != nil {

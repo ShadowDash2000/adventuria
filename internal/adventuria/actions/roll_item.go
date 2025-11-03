@@ -23,7 +23,7 @@ func (a *RollItemAction) Do(_ adventuria.ActionRequest) (*adventuria.ActionResul
 	}
 
 	for _, item := range items {
-		res.FillerItems = append(res.FillerItems, &adventuria.WheelItem{
+		res.FillerItems = append(res.FillerItems, adventuria.WheelItem{
 			Id:   item.ID(),
 			Name: item.Name(),
 			Icon: item.Icon(),

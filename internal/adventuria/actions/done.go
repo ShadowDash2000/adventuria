@@ -14,6 +14,11 @@ func (a *DoneAction) CanDo() bool {
 }
 
 func (a *DoneAction) Do(req adventuria.ActionRequest) (*adventuria.ActionResult, error) {
+	var comment string
+	if c, ok := req["comment"]; ok {
+		comment = c.(string)
+	}
+
 	currentCell, ok := a.User().CurrentCell()
 	if !ok {
 		return nil, errors.New("current cell not found")
@@ -29,7 +34,7 @@ func (a *DoneAction) Do(req adventuria.ActionRequest) (*adventuria.ActionResult,
 
 	action := a.User().LastAction()
 	action.SetType(ActionTypeDone)
-	action.SetComment(req.Comment)
+	action.SetComment(comment)
 	action.SetCanMove(true)
 
 	cellPoints := currentCell.Points()

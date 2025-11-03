@@ -22,7 +22,7 @@ func (a *RollWheelAction) CanDo() bool {
 	return !a.User().LastAction().CanMove()
 }
 
-func (a *RollWheelAction) Do(_ adventuria.ActionRequest) (*adventuria.ActionResult, error) {
+func (a *RollWheelAction) Do(req adventuria.ActionRequest) (*adventuria.ActionResult, error) {
 	currentCell, ok := a.User().CurrentCell()
 	if !ok {
 		return nil, errors.New("current cell not found")
@@ -36,7 +36,7 @@ func (a *RollWheelAction) Do(_ adventuria.ActionRequest) (*adventuria.ActionResu
 		return nil, err
 	}
 
-	res, err := onBeforeWheelRollEvent.CurrentCell.Roll(a.User())
+	res, err := onBeforeWheelRollEvent.CurrentCell.Roll(adventuria.RollWheelRequest(req), a.User())
 	if err != nil {
 		return nil, err
 	}

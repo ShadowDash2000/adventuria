@@ -2,12 +2,16 @@ package adventuria
 
 type CellWheel interface {
 	Cell
-	Roll(User) (*WheelRollResult, error)
+	Roll(RollWheelRequest, User) (*WheelRollResult, error)
 }
 
+type RollWheelRequest map[string]any
+
 type WheelRollResult struct {
-	FillerItems []*WheelItem `json:"fillerItems"`
-	WinnerId    string       `json:"winnerId"`
+	FillerItems []WheelItem `json:"fillerItems"`
+	WinnerId    string      `json:"winnerId"`
+	Success     bool        `json:"success"`
+	Error       string      `json:"error,omitempty"`
 }
 
 type WheelItem struct {
@@ -20,6 +24,6 @@ type CellWheelBase struct {
 	CellBase
 }
 
-func (c *CellWheelBase) Roll(_ User) (*WheelRollResult, error) {
+func (c *CellWheelBase) Roll(_ RollWheelRequest, _ User) (*WheelRollResult, error) {
 	panic("implement me")
 }
