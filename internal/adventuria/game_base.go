@@ -20,7 +20,7 @@ type BaseGame struct {
 
 func New() Game {
 	game := &BaseGame{
-		users: cache.NewMemoryCache[string, User](0, true),
+		users: cache.NewMemoryCache[string, User](time.Hour, false),
 	}
 
 	game.pb = pocketbase.New()

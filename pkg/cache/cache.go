@@ -55,6 +55,10 @@ func (c *MemoryCache[K, V]) Get(key K) (V, bool) {
 		return zero, false
 	}
 
+	// Refresh expiration on successful access
+	cachedItem.expiresAt = time.Now().Add(c.ttl)
+	c.data.Store(key, cachedItem)
+
 	return cachedItem.value, true
 }
 

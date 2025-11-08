@@ -27,21 +27,24 @@ func main() {
 	game.OnServe(func(se *core.ServeEvent) error {
 		igdbParser, err := igdb.New()
 		if err != nil {
-			return err
+			log.Printf("Failed to initialize igdb parser: %v", err)
+		} else {
+			adventuria.PocketBase.Cron().MustAdd("igdb_parser", "0 0 1 * *", igdbParser.Parse)
 		}
-		adventuria.PocketBase.Cron().MustAdd("igdb_parser", "0 0 1 * *", igdbParser.Parse)
 
 		steamParser, err := steam.New()
 		if err != nil {
-			return err
+			log.Printf("Failed to initialize steam parser: %v", err)
+		} else {
+			adventuria.PocketBase.Cron().MustAdd("steam_prices_parser", "0 0 1 * *", steamParser.Parse)
 		}
-		adventuria.PocketBase.Cron().MustAdd("steam_prices_parser", "0 0 1 * *", steamParser.Parse)
 
 		hltbParser, err := hltb.New()
 		if err != nil {
-			return err
+			log.Printf("Failed to initialize hltb parser: %v", err)
+		} else {
+			adventuria.PocketBase.Cron().MustAdd("hltb_parser", "0 0 1 * *", hltbParser.Parse)
 		}
-		adventuria.PocketBase.Cron().MustAdd("hltb_parser", "0 0 1 * *", hltbParser.Parse)
 
 		http.Route(game, se.Router)
 
