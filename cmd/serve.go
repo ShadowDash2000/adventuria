@@ -9,14 +9,16 @@ import (
 	"adventuria/internal/adventuria/games/igdb"
 	"adventuria/internal/adventuria/games/steam"
 	"adventuria/internal/http"
-	"adventuria/pkg/config"
 	"log"
 
+	"github.com/joho/godotenv"
 	"github.com/pocketbase/pocketbase/core"
 )
 
 func main() {
-	config.LoadEnv()
+	if err := godotenv.Load(); err != nil {
+		log.Printf("Failed to load .env file: %v", err)
+	}
 
 	game := adventuria.New()
 
