@@ -1265,7 +1265,7 @@ func init() {
 				"system": false,
 				"type": "base",
 				"updateRule": null,
-				"viewRule": null
+				"viewRule": ""
 			},
 			{
 				"createRule": null,
@@ -2195,12 +2195,12 @@ func init() {
 				"indexes": [
 					"CREATE UNIQUE INDEX ` + "`" + `idx_zjPBSkDWUI` + "`" + ` ON ` + "`" + `platforms` + "`" + ` (\n  ` + "`" + `id_db` + "`" + `,\n  ` + "`" + `name` + "`" + `\n)"
 				],
-				"listRule": null,
+				"listRule": "",
 				"name": "platforms",
 				"system": false,
 				"type": "base",
 				"updateRule": null,
-				"viewRule": null
+				"viewRule": ""
 			},
 			{
 				"createRule": null,
@@ -2408,12 +2408,12 @@ func init() {
 				"indexes": [
 					"CREATE UNIQUE INDEX ` + "`" + `idx_GK1ojyUpY9` + "`" + ` ON ` + "`" + `games` + "`" + ` (\n  ` + "`" + `id_db` + "`" + `,\n  ` + "`" + `name` + "`" + `\n)"
 				],
-				"listRule": null,
+				"listRule": "",
 				"name": "games",
 				"system": false,
 				"type": "base",
 				"updateRule": null,
-				"viewRule": null
+				"viewRule": ""
 			},
 			{
 				"createRule": null,
@@ -2498,12 +2498,12 @@ func init() {
 				"indexes": [
 					"CREATE UNIQUE INDEX ` + "`" + `idx_vbAmX65ekn` + "`" + ` ON ` + "`" + `companies` + "`" + ` (` + "`" + `id_db` + "`" + `)"
 				],
-				"listRule": null,
+				"listRule": "",
 				"name": "companies",
 				"system": false,
 				"type": "base",
 				"updateRule": null,
-				"viewRule": null
+				"viewRule": ""
 			},
 			{
 				"createRule": null,
@@ -2641,12 +2641,12 @@ func init() {
 				"indexes": [
 					"CREATE UNIQUE INDEX ` + "`" + `idx_ZAHaMijIkp` + "`" + ` ON ` + "`" + `genres` + "`" + ` (` + "`" + `id_db` + "`" + `)"
 				],
-				"listRule": null,
+				"listRule": "",
 				"name": "genres",
 				"system": false,
 				"type": "base",
 				"updateRule": null,
-				"viewRule": null
+				"viewRule": ""
 			},
 			{
 				"createRule": null,
@@ -2731,12 +2731,12 @@ func init() {
 				"indexes": [
 					"CREATE UNIQUE INDEX ` + "`" + `idx_GcaAaPS94H` + "`" + ` ON ` + "`" + `tags` + "`" + ` (` + "`" + `id_db` + "`" + `)"
 				],
-				"listRule": null,
+				"listRule": "",
 				"name": "tags",
 				"system": false,
 				"type": "base",
 				"updateRule": null,
-				"viewRule": null
+				"viewRule": ""
 			},
 			{
 				"createRule": null,
