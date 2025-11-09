@@ -228,3 +228,13 @@ func (h *Handlers) GetTimeLeftByUserHandler(e *core.RequestEvent) error {
 
 	return nil
 }
+
+func (h *Handlers) GetAvailableActions(e *core.RequestEvent) error {
+	actions, err := h.Game.GetAvailableActions(e.Auth.Id)
+	if err != nil {
+		e.JSON(http.StatusInternalServerError, err.Error())
+		return err
+	}
+
+	return e.JSON(http.StatusOK, actions)
+}

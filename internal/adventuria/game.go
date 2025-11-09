@@ -22,6 +22,7 @@ type Game interface {
 	StartTimer(userId string) error
 	StopTimer(userId string) error
 	GetTimeLeft(userId string) (time.Duration, bool, types.DateTime, error)
+	GetAvailableActions(userId string) ([]ActionType, error)
 }
 
 var (
