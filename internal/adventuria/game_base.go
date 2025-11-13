@@ -27,7 +27,9 @@ func New() Game {
 	PocketBase = game.pb
 
 	game.OnServe(func(se *core.ServeEvent) error {
-		game.Init()
+		if err := game.Init(); err != nil {
+			return err
+		}
 		return se.Next()
 	})
 
@@ -42,13 +44,25 @@ func (g *BaseGame) Start() error {
 	return g.pb.Start()
 }
 
-func (g *BaseGame) Init() {
-	GameCells = NewCells()
-	GameItems = NewItems()
+func (g *BaseGame) Init() error {
+	var err error
+
 	GameCollections = collections.NewCollections(PocketBase)
-	GameSettings = NewSettings()
+	GameCells, err = NewCells()
+	if err != nil {
+		return err
+	}
+	GameItems, err = NewItems()
+	if err != nil {
+		return err
+	}
+	GameSettings, err = NewSettings()
+	if err != nil {
+		return err
+	}
 
 	g.ef = NewEffectVerifier()
+	return nil
 }
 
 func (g *BaseGame) GetUser(userId string) (User, error) {

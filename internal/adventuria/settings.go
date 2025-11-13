@@ -14,14 +14,16 @@ type Settings struct {
 	core.BaseRecordProxy
 }
 
-func NewSettings() *Settings {
+func NewSettings() (*Settings, error) {
 	s := &Settings{}
 
-	s.init()
+	if err := s.init(); err != nil {
+		return nil, err
+	}
 	s.bindHooks()
 	s.RegisterSettingsCron()
 
-	return s
+	return s, nil
 }
 
 func DefaultSettings() (*core.Record, error) {

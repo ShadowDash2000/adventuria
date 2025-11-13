@@ -12,7 +12,6 @@ type Game interface {
 	OnServe(fn func(se *core.ServeEvent) error)
 	Start() error
 
-	Init()
 	GetUser(userId string) (User, error)
 	GetUserByName(name string) (User, error)
 	DoAction(actionType ActionType, userId string, req ActionRequest) (*ActionResult, error)

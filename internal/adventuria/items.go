@@ -11,15 +11,17 @@ type Items struct {
 	items *cache.MemoryCache[string, ItemRecord]
 }
 
-func NewItems() *Items {
+func NewItems() (*Items, error) {
 	items := &Items{
 		items: cache.NewMemoryCache[string, ItemRecord](0, true),
 	}
 
-	items.fetch()
+	if err := items.fetch(); err != nil {
+		return nil, err
+	}
 	items.bindHooks()
 
-	return items
+	return items, nil
 }
 
 func (i *Items) bindHooks() {
