@@ -22,7 +22,7 @@ func Test_GiveWheelOnNewLap(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err = user.Move(7)
+	_, err = user.Move(8)
 	if err != nil {
 		t.Fatal(err)
 	}
