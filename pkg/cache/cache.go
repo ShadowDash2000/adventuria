@@ -1,6 +1,7 @@
 package cache
 
 import (
+	"iter"
 	"sync"
 	"time"
 )
@@ -68,22 +69,20 @@ func (c *MemoryCache[K, V]) Delete(key K) {
 	}
 }
 
-func (c *MemoryCache[K, V]) GetAll() map[K]V {
-	res := make(map[K]V, c.Count())
-	c.data.Range(func(key, value any) bool {
-		res[key.(K)] = value.(cacheItem[V]).value
-		return true
-	})
-	return res
+func (c *MemoryCache[K, V]) GetAll() iter.Seq2[K, V] {
+	return func(yield func(K, V) bool) {
+		c.data.Range(func(key, value any) bool {
+			return yield(key.(K), value.(cacheItem[V]).value)
+		})
+	}
 }
 
-func (c *MemoryCache[K, V]) Keys() []K {
-	res := make([]K, 0, c.Count())
-	c.data.Range(func(key, _ any) bool {
-		res = append(res, key.(K))
-		return true
-	})
-	return res
+func (c *MemoryCache[K, V]) Keys() iter.Seq[K] {
+	return func(yield func(K) bool) {
+		c.data.Range(func(key, _ any) bool {
+			return yield(key.(K))
+		})
+	}
 }
 
 func (c *MemoryCache[K, V]) Count() int {
@@ -101,7 +100,7 @@ func (c *MemoryCache[K, V]) startGC(interval time.Duration) {
 			time.Sleep(interval)
 			now := time.Now()
 
-			c.data.Range(func(key, value interface{}) bool {
+			c.data.Range(func(key, value any) bool {
 				cacheItem := value.(cacheItem[V])
 				if now.After(cacheItem.expiresAt) {
 					c.data.Delete(key)

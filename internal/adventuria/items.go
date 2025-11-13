@@ -2,6 +2,7 @@ package adventuria
 
 import (
 	"adventuria/pkg/cache"
+	"iter"
 
 	"github.com/pocketbase/pocketbase/core"
 )
@@ -70,7 +71,7 @@ func (i *Items) GetById(id string) (ItemRecord, bool) {
 	return i.items.Get(id)
 }
 
-func (i *Items) GetAll() map[string]ItemRecord {
+func (i *Items) GetAll() iter.Seq2[string, ItemRecord] {
 	return i.items.GetAll()
 }
 
