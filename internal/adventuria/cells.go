@@ -3,6 +3,7 @@ package adventuria
 import (
 	"adventuria/pkg/cache"
 	"adventuria/pkg/helper"
+	"iter"
 	"slices"
 	"sort"
 	"sync"
@@ -18,16 +19,18 @@ type Cells struct {
 	mx            sync.Mutex
 }
 
-func NewCells() *Cells {
+func NewCells() (*Cells, error) {
 	cells := &Cells{
 		cells:       cache.NewMemoryCache[string, Cell](0, true),
 		cellsByCode: cache.NewMemoryCache[string, Cell](0, true),
 	}
 
-	cells.fetch()
+	if err := cells.fetch(); err != nil {
+		return nil, err
+	}
 	cells.bindHooks()
 
-	return cells
+	return cells, nil
 }
 
 func (c *Cells) bindHooks() {
@@ -165,24 +168,28 @@ func (c *Cells) GetByCode(code string) (Cell, bool) {
 	return c.cellsByCode.Get(code)
 }
 
-func (c *Cells) GetAllByType(t CellType) []Cell {
-	var res []Cell
-	for _, cell := range c.cells.GetAll() {
-		if cell.IsActive() && cell.Type() == t {
-			res = append(res, cell)
+func (c *Cells) GetAllByType(t CellType) iter.Seq[Cell] {
+	return func(yield func(Cell) bool) {
+		for _, cell := range c.cells.GetAll() {
+			if cell.IsActive() && cell.Type() == t {
+				if !yield(cell) {
+					return
+				}
+			}
 		}
 	}
-	return res
 }
 
-func (c *Cells) GetAllByTypes(t []CellType) []Cell {
-	var res []Cell
-	for _, cell := range c.cells.GetAll() {
-		if cell.IsActive() && slices.Contains(t, cell.Type()) {
-			res = append(res, cell)
+func (c *Cells) GetAllByTypes(t []CellType) iter.Seq[Cell] {
+	return func(yield func(Cell) bool) {
+		for _, cell := range c.cells.GetAll() {
+			if cell.IsActive() && slices.Contains(t, cell.Type()) {
+				if !yield(cell) {
+					return
+				}
+			}
 		}
 	}
-	return res
 }
 
 func (c *Cells) GetByType(t CellType) (Cell, bool) {
