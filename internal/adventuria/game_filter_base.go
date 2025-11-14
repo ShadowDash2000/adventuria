@@ -10,7 +10,9 @@ type GameFilterBase struct {
 }
 
 func NewGameFilterFromRecord(record *core.Record) GameFilterRecord {
-	return &GameFilterBase{}
+	f := &GameFilterBase{}
+	f.SetProxyRecord(record)
+	return f
 }
 
 func (g *GameFilterBase) ID() string {
