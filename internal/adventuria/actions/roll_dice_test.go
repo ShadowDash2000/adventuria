@@ -4,6 +4,7 @@ import (
 	"adventuria/internal/adventuria"
 	"adventuria/internal/adventuria/cells"
 	"adventuria/internal/adventuria/effects"
+	"adventuria/internal/adventuria/tests"
 	"testing"
 )
 
@@ -12,7 +13,7 @@ func Test_RollDice(t *testing.T) {
 	cells.WithBaseCells()
 	effects.WithBaseEffects()
 
-	game, err := adventuria.NewTestGame()
+	game, err := tests.NewGameTest()
 	if err != nil {
 		t.Fatalf("Test_RollDice(): Error creating game: %s", err)
 	}

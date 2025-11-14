@@ -4,6 +4,7 @@ import (
 	"adventuria/internal/adventuria"
 	"adventuria/internal/adventuria/cells"
 	"adventuria/internal/adventuria/effects"
+	"adventuria/internal/adventuria/tests"
 	"testing"
 
 	"github.com/pocketbase/pocketbase/core"
@@ -15,7 +16,7 @@ func Test_Buy(t *testing.T) {
 	cells.WithBaseCells()
 	effects.WithBaseEffects()
 
-	game, err := adventuria.NewTestGame()
+	game, err := tests.NewGameTest()
 	if err != nil {
 		t.Fatalf("Test_Buy(): Error creating game: %s", err)
 	}
@@ -74,7 +75,7 @@ func createCellPointsDivideItem() (*core.Record, error) {
 		return nil, err
 	}
 
-	icon, err := filesystem.NewFileFromBytes(adventuria.Placeholder, "icon")
+	icon, err := filesystem.NewFileFromBytes(tests.Placeholder, "icon")
 	if err != nil {
 		return nil, err
 	}

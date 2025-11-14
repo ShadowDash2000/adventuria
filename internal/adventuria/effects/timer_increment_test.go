@@ -4,6 +4,7 @@ import (
 	"adventuria/internal/adventuria"
 	"adventuria/internal/adventuria/actions"
 	"adventuria/internal/adventuria/cells"
+	"adventuria/internal/adventuria/tests"
 	"testing"
 	"time"
 
@@ -16,7 +17,7 @@ func Test_TimerIncrement(t *testing.T) {
 	cells.WithBaseCells()
 	WithBaseEffects()
 
-	game, err := adventuria.NewTestGame()
+	game, err := tests.NewGameTest()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -53,7 +54,7 @@ func createTimerIncrementItem() (*core.Record, error) {
 		return nil, err
 	}
 
-	icon, err := filesystem.NewFileFromBytes(adventuria.Placeholder, "icon")
+	icon, err := filesystem.NewFileFromBytes(tests.Placeholder, "icon")
 	if err != nil {
 		return nil, err
 	}

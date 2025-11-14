@@ -4,6 +4,7 @@ import (
 	"adventuria/internal/adventuria"
 	"adventuria/internal/adventuria/actions"
 	"adventuria/internal/adventuria/cells"
+	"adventuria/internal/adventuria/tests"
 	"testing"
 )
 
@@ -12,7 +13,7 @@ func Test_GiveWheelOnDone(t *testing.T) {
 	cells.WithBaseCells()
 	WithBaseEffects()
 
-	game, err := adventuria.NewTestGame()
+	game, err := tests.NewGameTest()
 	if err != nil {
 		t.Fatal(err)
 	}

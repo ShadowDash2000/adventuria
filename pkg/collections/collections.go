@@ -8,7 +8,7 @@ import (
 
 type Collections struct {
 	app  core.App
-	cols *cache.MemoryCache[string, *core.Collection]
+	cols cache.Cache[string, *core.Collection]
 }
 
 func NewCollections(app core.App) *Collections {

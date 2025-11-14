@@ -10,7 +10,7 @@ import (
 	"github.com/pocketbase/pocketbase/tools/router"
 )
 
-func Route(game adventuria.Game, router *router.Router[*core.RequestEvent]) {
+func Route(game *adventuria.Game, router *router.Router[*core.RequestEvent]) {
 	handlers := New(game)
 
 	gs := router.Group("")

@@ -1,7 +1,8 @@
-package adventuria
+package tests
 
 import (
-	"adventuria/pkg/cache"
+	"adventuria/internal/adventuria"
+	"adventuria/pkg/collections"
 	_ "embed"
 	"os"
 	"strconv"
@@ -18,32 +19,29 @@ import (
 var Placeholder []byte
 
 type GameTest struct {
-	BaseGame
-
-	pb *tests.TestApp
+	*adventuria.Game
+	ef *adventuria.EffectVerifier
 }
 
-func NewTestGame() (Game, error) {
-	game := &GameTest{
-		BaseGame: BaseGame{
-			users: cache.NewMemoryCache[string, User](0, true),
-		},
-	}
-
+func NewGameTest() (*GameTest, error) {
 	const pbDataDir = "pb_data_test"
 	err := os.MkdirAll(pbDataDir, 0777)
 	if err != nil {
 		return nil, err
 	}
 
+	game := &GameTest{
+		Game: adventuria.New(),
+	}
 	pb, err := tests.NewTestApp(pbDataDir)
 	if err != nil {
 		return nil, err
 	}
-	game.pb = pb
-	PocketBase = game.pb
+	adventuria.PocketBase = pb
 
-	game.Init()
+	if err = game.init(); err != nil {
+		return nil, err
+	}
 
 	err = game.createTestUsers()
 	if err != nil {
@@ -61,11 +59,24 @@ func NewTestGame() (Game, error) {
 	return game, nil
 }
 
-func (g *GameTest) OnServe(_ func(se *core.ServeEvent) error) {
+func (g *GameTest) init() error {
+	var err error
 
-}
+	adventuria.GameCollections = collections.NewCollections(adventuria.PocketBase)
+	adventuria.GameCells, err = adventuria.NewCells()
+	if err != nil {
+		return err
+	}
+	adventuria.GameItems, err = adventuria.NewItems()
+	if err != nil {
+		return err
+	}
+	adventuria.GameSettings, err = adventuria.NewSettings()
+	if err != nil {
+		return err
+	}
 
-func (g *GameTest) Start() error {
+	g.ef = adventuria.NewEffectVerifier()
 	return nil
 }
 
@@ -88,7 +99,7 @@ func (g *GameTest) createTestUsers() error {
 	}
 
 	for _, user := range users {
-		record := core.NewRecord(GameCollections.Get(CollectionUsers))
+		record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionUsers))
 		record.Set("name", user.name)
 		record.Set("password", user.password)
 		record.Set("email", user.email)
@@ -96,7 +107,7 @@ func (g *GameTest) createTestUsers() error {
 		record.Set("color", user.color)
 		record.Set("maxInventorySlots", user.maxInventorySlots)
 		record.Set("stats", "{}")
-		err = g.pb.Save(record)
+		err = adventuria.PocketBase.Save(record)
 		if err != nil {
 			return err
 		}
@@ -119,13 +130,13 @@ func (g *GameTest) createTestCells() error {
 	}
 
 	for _, cell := range cells {
-		record := core.NewRecord(GameCollections.Get(CollectionCells))
+		record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionCells))
 		record.Set("isActive", true)
 		record.Set("type", cell.cellType)
 		record.Set("name", cell.name)
 		record.Set("points", cell.points)
 		record.Set("sort", cell.sort)
-		err := g.pb.Save(record)
+		err := adventuria.PocketBase.Save(record)
 		if err != nil {
 			return err
 		}
@@ -161,7 +172,7 @@ func (g *GameTest) createTestGames() error {
 	}
 
 	for i, game := range games {
-		record := core.NewRecord(GameCollections.Get(CollectionGames))
+		record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionGames))
 		record.Set("id_db", game.idDb)
 		record.Set("name", game.name)
 		record.Set("release_date", game.releaseDate)
@@ -174,7 +185,7 @@ func (g *GameTest) createTestGames() error {
 		record.Set("steam_app_price", game.steamAppPrice)
 		record.Set("campaign_time", game.campaignTime)
 		record.Set("checksum", strconv.Itoa(i))
-		err := g.pb.Save(record)
+		err := adventuria.PocketBase.Save(record)
 		if err != nil {
 			return err
 		}

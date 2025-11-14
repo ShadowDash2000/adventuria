@@ -12,8 +12,8 @@ import (
 )
 
 type Cells struct {
-	cells         *cache.MemoryCache[string, Cell]
-	cellsByCode   *cache.MemoryCache[string, Cell]
+	cells         cache.Cache[string, Cell]
+	cellsByCode   cache.Cache[string, Cell]
 	cellsOrder    []string
 	cellsIdsOrder map[string]int
 	mx            sync.Mutex

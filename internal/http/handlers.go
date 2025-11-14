@@ -8,10 +8,10 @@ import (
 )
 
 type Handlers struct {
-	Game adventuria.Game
+	Game *adventuria.Game
 }
 
-func New(g adventuria.Game) *Handlers {
+func New(g *adventuria.Game) *Handlers {
 	return &Handlers{Game: g}
 }
 

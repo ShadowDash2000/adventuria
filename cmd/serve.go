@@ -13,6 +13,8 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/pocketbase/pocketbase/core"
+
+	_ "adventuria/migrations"
 )
 
 func main() {
@@ -26,7 +28,7 @@ func main() {
 	effects.WithBaseEffects()
 	cells.WithBaseCells()
 
-	game.OnServe(func(se *core.ServeEvent) error {
+	if err := game.Start(func(se *core.ServeEvent) error {
 		igdbParser, err := igdb.New()
 		if err != nil {
 			log.Printf("Failed to initialize igdb parser: %v", err)
@@ -51,9 +53,7 @@ func main() {
 		http.Route(game, se.Router)
 
 		return se.Next()
-	})
-
-	if err := game.Start(); err != nil {
+	}); err != nil {
 		log.Fatal(err)
 	}
 }

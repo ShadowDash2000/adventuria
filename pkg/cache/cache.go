@@ -6,6 +6,16 @@ import (
 	"time"
 )
 
+type Cache[K comparable, V any] interface {
+	Set(K, V)
+	Get(K) (V, bool)
+	Delete(K)
+	GetAll() iter.Seq2[K, V]
+	Keys() iter.Seq[K]
+	Count() int
+	Clear()
+}
+
 type MemoryCache[K comparable, V any] struct {
 	data         sync.Map
 	ttl          time.Duration
@@ -18,7 +28,7 @@ type cacheItem[V any] struct {
 	expiresAt time.Time
 }
 
-func NewMemoryCache[K comparable, V any](ttl time.Duration, preventClean bool) *MemoryCache[K, V] {
+func NewMemoryCache[K comparable, V any](ttl time.Duration, preventClean bool) Cache[K, V] {
 	cache := &MemoryCache[K, V]{
 		ttl:          ttl,
 		preventClean: preventClean,

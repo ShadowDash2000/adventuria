@@ -8,7 +8,7 @@ import (
 )
 
 type Items struct {
-	items *cache.MemoryCache[string, ItemRecord]
+	items cache.Cache[string, ItemRecord]
 }
 
 func NewItems() (*Items, error) {
