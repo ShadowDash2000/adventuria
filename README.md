@@ -1,6 +1,6 @@
 # Adventuria / Приключпопия
 
-### Запуск
+## Запуск
 
 #### Запуск приложения:
 
@@ -21,7 +21,7 @@ go run cmd/main.go superuser create EMAIL PASS
 go run cmd/main.go migrate up
 ```
 
-### Docker:
+## Docker
 
 #### Запуск через docker-compose:
 
