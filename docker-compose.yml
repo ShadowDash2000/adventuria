@@ -1,0 +1,26 @@
+services:
+  migrator:
+    build:
+      context: .
+    image: adventuria:latest
+    command: [ "./adventuria", "migrate", "up" ]
+    working_dir: /adventuria
+    restart: "no"
+    volumes:
+      - pb_data:/adventuria/pb_data
+
+  api:
+    image: adventuria:latest
+    pull_policy: never
+    depends_on:
+      migrator:
+        condition: service_completed_successfully
+    command: [ "./adventuria", "serve", "--http=0.0.0.0:8080" ]
+    working_dir: /adventuria
+    ports:
+      - "8080:8080"
+    volumes:
+      - pb_data:/adventuria/pb_data
+
+volumes:
+  pb_data: { }

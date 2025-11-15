@@ -9,6 +9,7 @@ import (
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase"
 	"github.com/pocketbase/pocketbase/core"
+	"github.com/pocketbase/pocketbase/plugins/migratecmd"
 	"github.com/pocketbase/pocketbase/tools/types"
 )
 
@@ -57,6 +58,10 @@ func New(opts ...GameOptsFunc) *Game {
 func (g *Game) Start(fn func(se *core.ServeEvent) error) error {
 	g.pb = pocketbase.New()
 	PocketBase = g.pb
+
+	migratecmd.MustRegister(g.pb, g.pb.RootCmd, migratecmd.Config{
+		Automigrate: false,
+	})
 
 	g.pb.OnServe().BindFunc(func(se *core.ServeEvent) error {
 		if err := g.init(); err != nil {
