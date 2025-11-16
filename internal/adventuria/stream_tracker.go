@@ -12,7 +12,6 @@ import (
 
 type StreamTracker struct {
 	client *streamlive.StreamLive
-	cancel context.CancelFunc
 	users  map[string]string // twitch_login -> user_id
 }
 
@@ -26,16 +25,11 @@ func NewStreamTracker() (*StreamTracker, error) {
 		return nil, errors.New("stream_tracker: TWITCH_CLIENT_SECRET not found")
 	}
 
-	s := &StreamTracker{
+	return &StreamTracker{
 		client: streamlive.New(
 			streamlive.NewTwitch(twitchClientId, twitchClientSecret),
 		),
-		users: make(map[string]string),
-	}
-
-	s.bindHooks()
-
-	return s, nil
+	}, nil
 }
 
 func (s *StreamTracker) bindHooks() {
@@ -68,7 +62,9 @@ func (s *StreamTracker) bindHooks() {
 		return e.Next()
 	})
 	PocketBase.OnRecordAfterDeleteSuccess(CollectionUsers).BindFunc(func(e *core.RecordEvent) error {
-		s.client.RemoveLogin(e.Record.GetString("twitch"))
+		login := e.Record.GetString("twitch")
+		s.client.RemoveLogin(login)
+		delete(s.users, login)
 		return e.Next()
 	})
 }
@@ -78,8 +74,8 @@ func (s *StreamTracker) fetchUsers() ([]*core.Record, error) {
 }
 
 func (s *StreamTracker) Start(ctx context.Context) error {
-	if s.cancel != nil {
-		s.cancel()
+	if s.users != nil {
+		panic("stream_tracker: already started")
 	}
 
 	users, err := s.fetchUsers()
@@ -87,6 +83,9 @@ func (s *StreamTracker) Start(ctx context.Context) error {
 		return err
 	}
 
+	s.users = make(map[string]string, len(users))
+
+	s.bindHooks()
 	s.client.OnStreamChange(s.onStreamChange)
 
 	var logins []string
@@ -100,7 +99,6 @@ func (s *StreamTracker) Start(ctx context.Context) error {
 	}
 
 	if err = s.client.StartTracking(ctx, logins, 5*time.Minute); err != nil {
-		s.cancel()
 		return err
 	}
 
