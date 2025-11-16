@@ -13,9 +13,10 @@ import (
 
 type ParserController struct {
 	parser *Parser
+	ctx    context.Context
 }
 
-func New() (*ParserController, error) {
+func New(ctx context.Context) (*ParserController, error) {
 	twitchClientId, ok := os.LookupEnv("TWITCH_CLIENT_ID")
 	if !ok {
 		return nil, errors.New("igdb: TWITCH_CLIENT_ID not found")
@@ -31,27 +32,26 @@ func New() (*ParserController, error) {
 
 	p := &ParserController{
 		parser: NewParser(twitchClientId, twitchClientSecret, igdbParseFilter),
+		ctx:    ctx,
 	}
 
 	return p, nil
 }
 
 func (p *ParserController) Parse() {
-	ctx := context.Background()
-
-	if err := p.parseCompanies(ctx, 500); err != nil {
+	if err := p.parseCompanies(p.ctx, 500); err != nil {
 		adventuria.PocketBase.Logger().Error("Failed to parse companies", "error", err)
 		return
 	}
-	if err := p.parsePlatforms(ctx, 500); err != nil {
+	if err := p.parsePlatforms(p.ctx, 500); err != nil {
 		adventuria.PocketBase.Logger().Error("Failed to parse platforms", "error", err)
 		return
 	}
-	if err := p.parseGenres(ctx, 500); err != nil {
+	if err := p.parseGenres(p.ctx, 500); err != nil {
 		adventuria.PocketBase.Logger().Error("Failed to parse genres", "error", err)
 		return
 	}
-	if err := p.parseGames(ctx, 500); err != nil {
+	if err := p.parseGames(p.ctx, 500); err != nil {
 		adventuria.PocketBase.Logger().Error("Failed to parse games", "error", err)
 	}
 }

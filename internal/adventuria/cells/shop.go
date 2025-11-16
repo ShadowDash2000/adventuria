@@ -20,7 +20,7 @@ func NewCellShop() adventuria.CellCreator {
 	}
 }
 
-func (c *CellShop) Roll(user adventuria.User) (*adventuria.WheelRollResult, error) {
+func (c *CellShop) Roll(_ adventuria.User) (*adventuria.WheelRollResult, error) {
 	return nil, nil
 }
 

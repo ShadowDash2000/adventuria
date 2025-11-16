@@ -14,11 +14,12 @@ import (
 
 type ParserController struct {
 	parser *Parser
+	ctx    context.Context
 
 	tags map[string]games.TagRecord
 }
 
-func New() (*ParserController, error) {
+func New(ctx context.Context) (*ParserController, error) {
 	steamApiKey, ok := os.LookupEnv("STEAM_API_KEY")
 	if !ok {
 		return nil, errors.New("steam: STEAM_API_KEY not found")
@@ -26,13 +27,12 @@ func New() (*ParserController, error) {
 
 	return &ParserController{
 		parser: NewParser(steamApiKey),
+		ctx:    ctx,
 	}, nil
 }
 
 func (p *ParserController) Parse() {
-	ctx := context.Background()
-
-	if err := p.parsePricesAndTags(ctx, 100); err != nil {
+	if err := p.parsePricesAndTags(p.ctx, 100); err != nil {
 		adventuria.PocketBase.Logger().Error("Failed to parse prices and tags", "error", err)
 		return
 	}
@@ -65,7 +65,7 @@ func (p *ParserController) parsePricesAndTags(ctx context.Context, limit int) er
 			game.SetSteamAppPrice(int(appDetails.Price))
 
 			tagsTmp[game.ID()] = appDetails.Tags
-			for tag, _ := range appDetails.Tags {
+			for tag := range appDetails.Tags {
 				if _, ok := p.tags[tag]; ok {
 					continue
 				}
@@ -86,7 +86,7 @@ func (p *ParserController) parsePricesAndTags(ctx context.Context, limit int) er
 		}
 
 		for _, game := range gameRecords {
-			for tag, _ := range tagsTmp[game.ID()] {
+			for tag := range tagsTmp[game.ID()] {
 				tagRecord := p.tags[tag]
 				game.SetTags(append(game.Tags(), tagRecord.ID()))
 			}

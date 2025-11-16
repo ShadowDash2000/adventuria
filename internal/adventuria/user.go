@@ -35,6 +35,8 @@ type User interface {
 	Stats() *Stats
 	Balance() int
 	SetBalance(int)
+	IsStreamLive() bool
+	SetIsStreamLive(bool)
 
 	save() error
 }

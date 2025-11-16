@@ -9,21 +9,23 @@ import (
 
 type ParserController struct {
 	parser *Parser
+	ctx    context.Context
 }
 
-func New() (*ParserController, error) {
+func New(ctx context.Context) (*ParserController, error) {
 	p, err := NewParser()
 	if err != nil {
 		return nil, err
 	}
 
-	return &ParserController{parser: p}, nil
+	return &ParserController{
+		parser: p,
+		ctx:    ctx,
+	}, nil
 }
 
 func (p *ParserController) Parse() {
-	ctx := context.Background()
-
-	if err := p.parseTime(ctx, 100); err != nil {
+	if err := p.parseTime(p.ctx, 100); err != nil {
 		adventuria.PocketBase.Logger().Error("Failed to parse time", "error", err)
 		return
 	}

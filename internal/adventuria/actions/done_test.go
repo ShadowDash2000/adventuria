@@ -19,7 +19,7 @@ func Test_Done(t *testing.T) {
 		t.Fatalf("Test_Done(): Error creating game: %s", err)
 	}
 
-	user, err := game.GetUserByName("user1")
+	user, err := adventuria.GameUsers.GetByName("user1")
 	if err != nil {
 		t.Fatalf("Test_Done(): Error getting user: %s", err)
 	}

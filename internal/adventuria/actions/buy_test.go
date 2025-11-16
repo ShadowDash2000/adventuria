@@ -30,7 +30,7 @@ func Test_Buy(t *testing.T) {
 		itemId = item.Id
 	}
 
-	user, err := game.GetUserByName("user1")
+	user, err := adventuria.GameUsers.GetByName("user1")
 	if err != nil {
 		t.Fatalf("Test_Buy(): Error getting user: %s", err)
 	}

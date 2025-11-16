@@ -313,6 +313,14 @@ func (u *UserBase) SetBalance(balance int) {
 	u.Set("balance", balance)
 }
 
+func (u *UserBase) IsStreamLive() bool {
+	return u.GetBool("is_stream_live")
+}
+
+func (u *UserBase) SetIsStreamLive(isLive bool) {
+	u.Set("is_stream_live", isLive)
+}
+
 func (u *UserBase) initHooks() {
 	u.onAfterChooseGame = &event.Hook[*OnAfterChooseGameEvent]{}
 	u.onAfterReroll = &event.Hook[*OnAfterRerollEvent]{}

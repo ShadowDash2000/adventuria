@@ -1,6 +1,7 @@
 package effects
 
 import (
+	"adventuria/internal/adventuria"
 	"adventuria/internal/adventuria/actions"
 	"adventuria/internal/adventuria/cells"
 	"adventuria/internal/adventuria/tests"
@@ -12,12 +13,12 @@ func Test_GiveWheelOnNewLap(t *testing.T) {
 	cells.WithBaseCells()
 	WithBaseEffects()
 
-	game, err := tests.NewGameTest()
+	_, err := tests.NewGameTest()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	user, err := game.GetUserByName("user1")
+	user, err := adventuria.GameUsers.GetByName("user1")
 	if err != nil {
 		t.Fatal(err)
 	}

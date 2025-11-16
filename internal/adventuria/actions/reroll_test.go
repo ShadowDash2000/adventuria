@@ -18,7 +18,7 @@ func Test_Reroll(t *testing.T) {
 		t.Fatalf("Test_Reroll(): Error creating game: %s", err)
 	}
 
-	user, err := game.GetUserByName("user1")
+	user, err := adventuria.GameUsers.GetByName("user1")
 	if err != nil {
 		t.Fatalf("Test_Reroll(): Error getting user: %s", err)
 	}

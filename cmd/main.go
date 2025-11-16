@@ -29,21 +29,21 @@ func main() {
 	cells.WithBaseCells()
 
 	if err := game.Start(func(se *core.ServeEvent) error {
-		igdbParser, err := igdb.New()
+		igdbParser, err := igdb.New(game.Context())
 		if err != nil {
 			log.Printf("Failed to initialize igdb parser: %v", err)
 		} else {
 			adventuria.PocketBase.Cron().MustAdd("igdb_parser", "0 0 1 * *", igdbParser.Parse)
 		}
 
-		steamParser, err := steam.New()
+		steamParser, err := steam.New(game.Context())
 		if err != nil {
 			log.Printf("Failed to initialize steam parser: %v", err)
 		} else {
 			adventuria.PocketBase.Cron().MustAdd("steam_prices_parser", "0 0 1 * *", steamParser.Parse)
 		}
 
-		hltbParser, err := hltb.New()
+		hltbParser, err := hltb.New(game.Context())
 		if err != nil {
 			log.Printf("Failed to initialize hltb parser: %v", err)
 		} else {

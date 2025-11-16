@@ -26,7 +26,7 @@ func Test_SafeDrop(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	user, err := game.GetUserByName("user1")
+	user, err := adventuria.GameUsers.GetByName("user1")
 	if err != nil {
 		t.Fatal(err)
 	}

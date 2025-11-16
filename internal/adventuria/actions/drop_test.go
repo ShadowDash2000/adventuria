@@ -19,7 +19,7 @@ func Test_Drop(t *testing.T) {
 		t.Fatalf("Test_Drop(): Error creating game: %s", err)
 	}
 
-	user, err := game.GetUserByName("user1")
+	user, err := adventuria.GameUsers.GetByName("user1")
 	if err != nil {
 		t.Fatalf("Test_Drop(): Error getting user: %s", err)
 	}
@@ -77,7 +77,7 @@ func Test_Drop_inJail(t *testing.T) {
 		t.Fatalf("Test_Drop_inJail(): Error creating game: %s", err)
 	}
 
-	user, err := game.GetUserByName("user1")
+	user, err := adventuria.GameUsers.GetByName("user1")
 	if err != nil {
 		t.Fatalf("Test_Drop_inJail(): Error getting user: %s", err)
 	}

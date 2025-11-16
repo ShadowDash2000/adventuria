@@ -18,6 +18,12 @@ github.com/Masterminds/semver/v3 v3.4.0 h1:Zog+i5UMtVoCU8oKka5P7i9q9HgrJeGzI9SA1
 github.com/Masterminds/semver/v3 v3.4.0/go.mod h1:4V+yj/TJE1HU9XfppCwVMZq3I84lprf4nC11bSS5beM=
 github.com/PuerkitoBio/goquery v1.11.0 h1:jZ7pwMQXIITcUXNH83LLk+txlaEy6NVOfTuP43xxfqw=
 github.com/PuerkitoBio/goquery v1.11.0/go.mod h1:wQHgxUOU3JGuj3oD/QFfxUdlzW6xPHfqyHre6VMY4DQ=
+github.com/ShadowDash2000/is-stream-live v0.0.2 h1:Bn0tA0kjiP9DlRNbugmEjC/Sw0GGzZ+4pr7FqVR7XJs=
+github.com/ShadowDash2000/is-stream-live v0.0.2/go.mod h1:HgYDSY7jw97ChiihbIIXENBCazNPf/Wyi2rQOJcgNTs=
+github.com/ShadowDash2000/is-stream-live v0.0.3 h1:5R21ibCLjw5Aiaht3bxknWIxzkdRzS+vEKQcW0WMOfM=
+github.com/ShadowDash2000/is-stream-live v0.0.3/go.mod h1:HgYDSY7jw97ChiihbIIXENBCazNPf/Wyi2rQOJcgNTs=
+github.com/ShadowDash2000/is-stream-live v0.0.4 h1:WlZlThnKWZJ4YD4hCGAVIdgf0SfrfiE/scs9QUnoYO0=
+github.com/ShadowDash2000/is-stream-live v0.0.4/go.mod h1:HgYDSY7jw97ChiihbIIXENBCazNPf/Wyi2rQOJcgNTs=
 github.com/ShadowDash2000/steam-store-go v0.0.5 h1:Bnd94/vxB+AmB7clzKgjiMO4PpsRl0j8q63bPYNz/Tw=
 github.com/ShadowDash2000/steam-store-go v0.0.5/go.mod h1:XY2zSzOgWj87WkE3PcC6sWkC4tzHqUixgxDUuBgCR7A=
 github.com/andybalholm/brotli v1.0.5/go.mod h1:fO7iG3H7G2nSZ7m0zPUDn85XEX2GTukHGRSepvi9Eig=

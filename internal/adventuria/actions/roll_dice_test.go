@@ -18,7 +18,7 @@ func Test_RollDice(t *testing.T) {
 		t.Fatalf("Test_RollDice(): Error creating game: %s", err)
 	}
 
-	user, err := game.GetUserByName("user1")
+	user, err := adventuria.GameUsers.GetByName("user1")
 	if err != nil {
 		t.Fatalf("Test_RollDice(): Error getting user: %s", err)
 	}
