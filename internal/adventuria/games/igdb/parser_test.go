@@ -1,36 +1,36 @@
 package igdb
 
 import (
-	"adventuria/pkg/config"
 	"context"
-	"errors"
 	"os"
 	"testing"
+
+	"github.com/joho/godotenv"
 )
 
 func init() {
-	config.LoadEnv("../../../../.env")
+	_ = godotenv.Load("../../../../.env")
 }
 
-func newParser() (*Parser, error) {
-	twitchClientId, ok := os.LookupEnv("TWITCH_CLIENT_ID")
-	if !ok {
-		return nil, errors.New("igdb: TWITCH_CLIENT_ID not found")
+func envOrSkip(t *testing.T, key string) string {
+	t.Helper()
+	v := os.Getenv(key)
+	if v == "" {
+		t.Skipf("env %s is not set; skipping", key)
 	}
-	twitchClientSecret, ok := os.LookupEnv("TWITCH_CLIENT_SECRET")
-	if !ok {
-		return nil, errors.New("igdb: TWITCH_CLIENT_SECRET not found")
-	}
-	igdbParseFilter, ok := os.LookupEnv("IGDB_PARSE_FILTER")
-	if !ok {
-		return nil, errors.New("igdb: IGDB_PARSE_FILTER not found")
-	}
+	return v
+}
+
+func newParser(t *testing.T) (*Parser, error) {
+	twitchClientId := envOrSkip(t, "TWITCH_CLIENT_ID")
+	twitchClientSecret := envOrSkip(t, "TWITCH_CLIENT_SECRET")
+	igdbParseFilter := envOrSkip(t, "IGDB_PARSE_FILTER")
 
 	return NewParser(twitchClientId, twitchClientSecret, igdbParseFilter), nil
 }
 
 func Test_ParsePlatforms(t *testing.T) {
-	p, err := newParser()
+	p, err := newParser(t)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -53,7 +53,7 @@ func Test_ParsePlatforms(t *testing.T) {
 }
 
 func Test_ParseCompanies(t *testing.T) {
-	p, err := newParser()
+	p, err := newParser(t)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -76,7 +76,7 @@ func Test_ParseCompanies(t *testing.T) {
 }
 
 func Test_ParseGames(t *testing.T) {
-	p, err := newParser()
+	p, err := newParser(t)
 	if err != nil {
 		t.Fatal(err)
 	}
