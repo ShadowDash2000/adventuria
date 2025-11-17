@@ -24,6 +24,8 @@ github.com/ShadowDash2000/is-stream-live v0.0.3 h1:5R21ibCLjw5Aiaht3bxknWIxzkdRz
 github.com/ShadowDash2000/is-stream-live v0.0.3/go.mod h1:HgYDSY7jw97ChiihbIIXENBCazNPf/Wyi2rQOJcgNTs=
 github.com/ShadowDash2000/is-stream-live v0.0.4 h1:WlZlThnKWZJ4YD4hCGAVIdgf0SfrfiE/scs9QUnoYO0=
 github.com/ShadowDash2000/is-stream-live v0.0.4/go.mod h1:HgYDSY7jw97ChiihbIIXENBCazNPf/Wyi2rQOJcgNTs=
+github.com/ShadowDash2000/is-stream-live v0.0.5 h1:K5U2Oa5mmEn7FAvyG+BpaS6In90ag61wcjlbnY+E4tg=
+github.com/ShadowDash2000/is-stream-live v0.0.5/go.mod h1:HgYDSY7jw97ChiihbIIXENBCazNPf/Wyi2rQOJcgNTs=
 github.com/ShadowDash2000/steam-store-go v0.0.5 h1:Bnd94/vxB+AmB7clzKgjiMO4PpsRl0j8q63bPYNz/Tw=
 github.com/ShadowDash2000/steam-store-go v0.0.5/go.mod h1:XY2zSzOgWj87WkE3PcC6sWkC4tzHqUixgxDUuBgCR7A=
 github.com/andybalholm/brotli v1.0.5/go.mod h1:fO7iG3H7G2nSZ7m0zPUDn85XEX2GTukHGRSepvi9Eig=

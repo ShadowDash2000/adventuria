@@ -3,7 +3,7 @@ module adventuria
 go 1.25.0
 
 require (
-	github.com/ShadowDash2000/is-stream-live v0.0.4
+	github.com/ShadowDash2000/is-stream-live v0.0.5
 	github.com/ShadowDash2000/steam-store-go v0.0.5
 	github.com/bestnite/go-igdb v0.0.16
 	github.com/forbiddencoding/howlongtobeat v0.0.0-20251016180900-5654719fd057

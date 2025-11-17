@@ -87,6 +87,10 @@ func (s *StreamTracker) Start(ctx context.Context) error {
 
 	s.bindHooks()
 	s.client.OnStreamChange(s.onStreamChange)
+	s.client.OnRequestError(func(e *streamlive.RequestErrorEvent) error {
+		PocketBase.Logger().Error("Stream tracker request error", "error", e.Error)
+		return e.Next()
+	})
 
 	var logins []string
 	for _, user := range users {
@@ -98,9 +102,7 @@ func (s *StreamTracker) Start(ctx context.Context) error {
 		s.users[twitchLogin] = user.Id
 	}
 
-	if err = s.client.StartTracking(ctx, logins, 5*time.Minute); err != nil {
-		return err
-	}
+	s.client.StartTracking(ctx, logins, 3*time.Minute)
 
 	return nil
 }
