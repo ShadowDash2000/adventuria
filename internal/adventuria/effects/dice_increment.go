@@ -28,8 +28,10 @@ func (ef *DiceIncrementEffect) Subscribe(
 }
 
 func (ef *DiceIncrementEffect) Verify(value string) error {
-	if _, err := strconv.Atoi(value); err != nil {
-		return err
-	}
-	return nil
+	_, err := ef.DecodeValue(value)
+	return err
+}
+
+func (ef *DiceIncrementEffect) DecodeValue(value string) (any, error) {
+	return strconv.Atoi(value)
 }

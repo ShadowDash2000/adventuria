@@ -290,6 +290,22 @@ func (u *UserBase) MoveToCellId(cellId string) error {
 	return nil
 }
 
+func (u *UserBase) MoveToCellName(cellName string) error {
+	cellPos, ok := GameCells.GetOrderByName(cellName)
+	if !ok {
+		return fmt.Errorf("cell %s not found", cellName)
+	}
+
+	currentCellNum := u.CellsPassed() % GameCells.Count()
+
+	_, err := u.Move(cellPos - currentCellNum)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (u *UserBase) Inventory() Inventory {
 	return u.inventory
 }

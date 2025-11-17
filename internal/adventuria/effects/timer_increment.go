@@ -31,8 +31,10 @@ func (ef *TimerIncrementEffect) Subscribe(
 }
 
 func (ef *TimerIncrementEffect) Verify(value string) error {
-	if _, err := strconv.Atoi(value); err != nil {
-		return err
-	}
-	return nil
+	_, err := ef.DecodeValue(value)
+	return err
+}
+
+func (ef *TimerIncrementEffect) DecodeValue(value string) (any, error) {
+	return strconv.Atoi(value)
 }

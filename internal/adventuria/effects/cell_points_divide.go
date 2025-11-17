@@ -28,8 +28,10 @@ func (ef *CellPointsDivideEffect) Subscribe(
 }
 
 func (ef *CellPointsDivideEffect) Verify(value string) error {
-	if _, err := strconv.Atoi(value); err != nil {
-		return err
-	}
-	return nil
+	_, err := ef.DecodeValue(value)
+	return err
+}
+
+func (ef *CellPointsDivideEffect) DecodeValue(value string) (any, error) {
+	return strconv.Atoi(value)
 }

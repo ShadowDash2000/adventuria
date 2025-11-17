@@ -14,6 +14,7 @@ type Effect interface {
 	Type() string
 	Subscribe(User, EffectCallback) []event.Unsubscribe
 	Verify(string) error
+	DecodeValue(string) (any, error)
 }
 
 type PersistentEffect interface {

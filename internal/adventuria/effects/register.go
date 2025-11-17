@@ -8,14 +8,14 @@ func WithBaseEffects() {
 		"jailEscape":                  adventuria.NewEffect(&JailEscapeEffect{}),
 		"diceMultiplier":              adventuria.NewEffect(&DiceMultiplierEffect{}),
 		"diceIncrement":               adventuria.NewEffect(&DiceIncrementEffect{}),
-		"changeDices":                 nil,
+		"changeDices":                 adventuria.NewEffect(&ChangeDicesEffect{}),
 		"safeDrop":                    adventuria.NewEffect(&SafeDropEffect{}),
 		"timerIncrement":              adventuria.NewEffect(&TimerIncrementEffect{}),
 		"rollReverse":                 adventuria.NewEffect(&RollReverseEffect{}),
 		"dropInventory":               adventuria.NewEffect(&DropInventoryEffect{}),
 		"cellPointsDivide":            adventuria.NewEffect(&CellPointsDivideEffect{}),
 		"teleportToRandomCellByTypes": nil,
-		"teleportToRandomCellByIds":   adventuria.NewEffect(&TeleportToRandomCellByIdEffect{}),
+		"teleportToRandomCellByName":  adventuria.NewEffect(&TeleportToRandomCellByNameEffect{}),
 	})
 
 	adventuria.RegisterPersistentEffects(map[string]adventuria.PersistentEffectCreator{

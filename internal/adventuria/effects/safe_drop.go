@@ -27,3 +27,7 @@ func (ef *SafeDropEffect) Subscribe(
 func (ef *SafeDropEffect) Verify(_ string) error {
 	return nil
 }
+
+func (ef *SafeDropEffect) DecodeValue(_ string) (any, error) {
+	return nil, nil
+}

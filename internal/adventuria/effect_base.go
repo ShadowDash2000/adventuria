@@ -55,6 +55,10 @@ func (e *EffectBase) Verify(_ string) error {
 	return errors.New("effect verifier is not implemented")
 }
 
+func (e *EffectBase) DecodeValue(_ string) (any, error) {
+	return nil, errors.New("effect decode value is not implemented")
+}
+
 // ensure PersistentEffectBase implements PersistentEffect
 var _ PersistentEffect = (*PersistentEffectBase)(nil)
 

@@ -28,3 +28,7 @@ func (ef *JailEscapeEffect) Subscribe(
 func (ef *JailEscapeEffect) Verify(_ string) error {
 	return nil
 }
+
+func (ef *JailEscapeEffect) DecodeValue(_ string) (any, error) {
+	return nil, nil
+}

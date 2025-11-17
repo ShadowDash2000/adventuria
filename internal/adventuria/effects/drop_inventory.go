@@ -30,3 +30,7 @@ func (ef *DropInventoryEffect) Subscribe(
 func (ef *DropInventoryEffect) Verify(_ string) error {
 	return nil
 }
+
+func (ef *DropInventoryEffect) DecodeValue(_ string) (any, error) {
+	return nil, nil
+}

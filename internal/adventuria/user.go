@@ -29,6 +29,7 @@ type User interface {
 	Move(steps int) (*OnAfterMoveEvent, error)
 	MoveToCellType(cellType CellType) error
 	MoveToCellId(cellId string) error
+	MoveToCellName(cellName string) error
 	Inventory() Inventory
 	LastAction() ActionRecord
 	Timer() Timer

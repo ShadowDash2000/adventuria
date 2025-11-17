@@ -28,8 +28,10 @@ func (ef *PointsIncrementEffect) Subscribe(
 }
 
 func (ef *PointsIncrementEffect) Verify(value string) error {
-	if _, err := strconv.Atoi(value); err != nil {
-		return err
-	}
-	return nil
+	_, err := ef.DecodeValue(value)
+	return err
+}
+
+func (ef *PointsIncrementEffect) DecodeValue(value string) (any, error) {
+	return strconv.Atoi(value)
 }

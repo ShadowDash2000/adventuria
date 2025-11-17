@@ -164,6 +164,15 @@ func (c *Cells) GetOrderByType(t CellType) (int, bool) {
 	return 0, false
 }
 
+// GetOrderByName
+// Note: cells order starts from 0
+func (c *Cells) GetOrderByName(n string) (int, bool) {
+	if cell, ok := c.GetByName(n); ok {
+		return c.GetOrderById(cell.ID())
+	}
+	return 0, false
+}
+
 func (c *Cells) GetByCode(code string) (Cell, bool) {
 	return c.cellsByCode.Get(code)
 }
@@ -195,6 +204,15 @@ func (c *Cells) GetAllByTypes(t []CellType) iter.Seq[Cell] {
 func (c *Cells) GetByType(t CellType) (Cell, bool) {
 	for _, cell := range c.cells.GetAll() {
 		if cell.IsActive() && cell.Type() == t {
+			return cell, true
+		}
+	}
+	return nil, false
+}
+
+func (c *Cells) GetByName(n string) (Cell, bool) {
+	for _, cell := range c.cells.GetAll() {
+		if cell.IsActive() && cell.Name() == n {
 			return cell, true
 		}
 	}

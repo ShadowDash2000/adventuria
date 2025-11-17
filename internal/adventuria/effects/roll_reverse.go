@@ -27,3 +27,7 @@ func (ef *RollReverseEffect) Subscribe(
 func (ef *RollReverseEffect) Verify(_ string) error {
 	return nil
 }
+
+func (ef *RollReverseEffect) DecodeValue(_ string) (any, error) {
+	return nil, nil
+}
