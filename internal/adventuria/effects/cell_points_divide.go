@@ -2,6 +2,7 @@ package effects
 
 import (
 	"adventuria/internal/adventuria"
+	"adventuria/pkg/event"
 	"strconv"
 )
 
@@ -9,9 +10,12 @@ type CellPointsDivideEffect struct {
 	adventuria.EffectBase
 }
 
-func (ef *CellPointsDivideEffect) Subscribe(callback adventuria.EffectCallback) {
-	ef.PoolUnsubscribers(
-		ef.User().OnBeforeDone().BindFunc(func(e *adventuria.OnBeforeDoneEvent) error {
+func (ef *CellPointsDivideEffect) Subscribe(
+	user adventuria.User,
+	callback adventuria.EffectCallback,
+) []event.Unsubscribe {
+	return []event.Unsubscribe{
+		user.OnBeforeDone().BindFunc(func(e *adventuria.OnBeforeDoneEvent) error {
 			if i := ef.GetInt("value"); i != 0 {
 				e.CellPointsDivide = i
 			}
@@ -20,7 +24,7 @@ func (ef *CellPointsDivideEffect) Subscribe(callback adventuria.EffectCallback) 
 
 			return e.Next()
 		}),
-	)
+	}
 }
 
 func (ef *CellPointsDivideEffect) Verify(value string) error {

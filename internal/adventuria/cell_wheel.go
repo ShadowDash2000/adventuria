@@ -2,7 +2,7 @@ package adventuria
 
 type CellWheel interface {
 	Cell
-	Roll(RollWheelRequest, User) (*WheelRollResult, error)
+	Roll(User, RollWheelRequest) (*WheelRollResult, error)
 }
 
 type RollWheelRequest map[string]any
@@ -20,10 +20,13 @@ type WheelItem struct {
 	Icon string `json:"icon"`
 }
 
+// ensure CellWheel implements Cell
+var _ CellWheel = (*CellWheelBase)(nil)
+
 type CellWheelBase struct {
 	CellBase
 }
 
-func (c *CellWheelBase) Roll(_ RollWheelRequest, _ User) (*WheelRollResult, error) {
+func (c *CellWheelBase) Roll(_ User, _ RollWheelRequest) (*WheelRollResult, error) {
 	panic("implement me")
 }

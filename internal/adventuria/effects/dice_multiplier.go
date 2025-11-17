@@ -2,6 +2,7 @@ package effects
 
 import (
 	"adventuria/internal/adventuria"
+	"adventuria/pkg/event"
 	"strconv"
 )
 
@@ -9,9 +10,12 @@ type DiceMultiplierEffect struct {
 	adventuria.EffectBase
 }
 
-func (ef *DiceMultiplierEffect) Subscribe(callback adventuria.EffectCallback) {
-	ef.PoolUnsubscribers(
-		ef.User().OnBeforeRollMove().BindFunc(func(e *adventuria.OnBeforeRollMoveEvent) error {
+func (ef *DiceMultiplierEffect) Subscribe(
+	user adventuria.User,
+	callback adventuria.EffectCallback,
+) []event.Unsubscribe {
+	return []event.Unsubscribe{
+		user.OnBeforeRollMove().BindFunc(func(e *adventuria.OnBeforeRollMoveEvent) error {
 			if i := ef.GetInt("value"); i != 0 {
 				e.N *= i
 			}
@@ -20,7 +24,7 @@ func (ef *DiceMultiplierEffect) Subscribe(callback adventuria.EffectCallback) {
 
 			return e.Next()
 		}),
-	)
+	}
 }
 
 func (ef *DiceMultiplierEffect) Verify(value string) error {

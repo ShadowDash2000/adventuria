@@ -2,6 +2,7 @@ package effects
 
 import (
 	"adventuria/internal/adventuria"
+	"adventuria/pkg/event"
 	"strconv"
 )
 
@@ -9,11 +10,14 @@ type TimerIncrementEffect struct {
 	adventuria.EffectBase
 }
 
-func (ef *TimerIncrementEffect) Subscribe(callback adventuria.EffectCallback) {
-	ef.PoolUnsubscribers(
-		ef.User().OnAfterAction().BindFunc(func(e *adventuria.OnAfterActionEvent) error {
+func (ef *TimerIncrementEffect) Subscribe(
+	user adventuria.User,
+	callback adventuria.EffectCallback,
+) []event.Unsubscribe {
+	return []event.Unsubscribe{
+		user.OnAfterAction().BindFunc(func(e *adventuria.OnAfterActionEvent) error {
 			if i := ef.GetInt("value"); i != 0 {
-				err := ef.User().Timer().AddSecondsTimeLimit(i)
+				err := user.Timer().AddSecondsTimeLimit(i)
 				if err != nil {
 					return err
 				}
@@ -23,7 +27,7 @@ func (ef *TimerIncrementEffect) Subscribe(callback adventuria.EffectCallback) {
 
 			return e.Next()
 		}),
-	)
+	}
 }
 
 func (ef *TimerIncrementEffect) Verify(value string) error {

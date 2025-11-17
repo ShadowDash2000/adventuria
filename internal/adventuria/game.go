@@ -95,16 +95,16 @@ func (g *Game) DoAction(actionType ActionType, userId string, req ActionRequest)
 		return nil, err
 	}
 
-	action, err := NewActionFromType(user, actionType)
+	action, err := NewActionFromType(actionType)
 	if err != nil {
 		return nil, err
 	}
 
-	if ok := action.CanDo(); !ok {
+	if ok := action.CanDo(user); !ok {
 		return nil, errors.New("cannot do action")
 	}
 
-	res, err := action.Do(req)
+	res, err := action.Do(user, req)
 	if err != nil {
 		PocketBase.Logger().Error("Failed to complete user action", "error", err)
 		return nil, err
@@ -242,9 +242,9 @@ func (g *Game) GetAvailableActions(userId string) ([]ActionType, error) {
 
 	var actions []ActionType
 	for t := range actionsList {
-		action, _ := NewActionFromType(user, t)
+		action, _ := NewActionFromType(t)
 
-		if action.CanDo() {
+		if action.CanDo(user) {
 			actions = append(actions, action.Type())
 		}
 	}

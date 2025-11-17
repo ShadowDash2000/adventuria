@@ -16,25 +16,26 @@ type UserBase struct {
 	timer      Timer
 	stats      *Stats
 
-	onAfterChooseGame   *event.Hook[*OnAfterChooseGameEvent]
-	onAfterReroll       *event.Hook[*OnAfterRerollEvent]
-	onBeforeDrop        *event.Hook[*OnBeforeDropEvent]
-	onAfterDrop         *event.Hook[*OnAfterDropEvent]
-	onAfterGoToJail     *event.Hook[*OnAfterGoToJailEvent]
-	onBeforeDone        *event.Hook[*OnBeforeDoneEvent]
-	onAfterDone         *event.Hook[*OnAfterDoneEvent]
-	onBeforeRoll        *event.Hook[*OnBeforeRollEvent]
-	onBeforeRollMove    *event.Hook[*OnBeforeRollMoveEvent]
-	onAfterRoll         *event.Hook[*OnAfterRollEvent]
-	onBeforeWheelRoll   *event.Hook[*OnBeforeWheelRollEvent]
-	onAfterWheelRoll    *event.Hook[*OnAfterWheelRollEvent]
-	onAfterItemRoll     *event.Hook[*OnAfterItemRollEvent]
-	onAfterItemUse      *event.Hook[*OnAfterItemUseEvent]
-	onNewLap            *event.Hook[*OnNewLapEvent]
-	onBeforeNextStep    *event.Hook[*OnBeforeNextStepEvent]
-	onAfterAction       *event.Hook[*OnAfterActionEvent]
-	onAfterMove         *event.Hook[*OnAfterMoveEvent]
-	onBeforeCurrentCell *event.Hook[*OnBeforeCurrentCellEvent]
+	persistentEffectsUnsubGroup []event.UnsubGroup
+	onAfterChooseGame           *event.Hook[*OnAfterChooseGameEvent]
+	onAfterReroll               *event.Hook[*OnAfterRerollEvent]
+	onBeforeDrop                *event.Hook[*OnBeforeDropEvent]
+	onAfterDrop                 *event.Hook[*OnAfterDropEvent]
+	onAfterGoToJail             *event.Hook[*OnAfterGoToJailEvent]
+	onBeforeDone                *event.Hook[*OnBeforeDoneEvent]
+	onAfterDone                 *event.Hook[*OnAfterDoneEvent]
+	onBeforeRoll                *event.Hook[*OnBeforeRollEvent]
+	onBeforeRollMove            *event.Hook[*OnBeforeRollMoveEvent]
+	onAfterRoll                 *event.Hook[*OnAfterRollEvent]
+	onBeforeWheelRoll           *event.Hook[*OnBeforeWheelRollEvent]
+	onAfterWheelRoll            *event.Hook[*OnAfterWheelRollEvent]
+	onAfterItemRoll             *event.Hook[*OnAfterItemRollEvent]
+	onAfterItemUse              *event.Hook[*OnAfterItemUseEvent]
+	onNewLap                    *event.Hook[*OnNewLapEvent]
+	onBeforeNextStep            *event.Hook[*OnBeforeNextStepEvent]
+	onAfterAction               *event.Hook[*OnAfterActionEvent]
+	onAfterMove                 *event.Hook[*OnAfterMoveEvent]
+	onBeforeCurrentCell         *event.Hook[*OnBeforeCurrentCellEvent]
 }
 
 func NewUser(userId string) (User, error) {
@@ -100,11 +101,11 @@ func (u *UserBase) bindHooks() {
 		return e.Next()
 	})
 
-	var persistentEffects []PersistentEffect
+	u.persistentEffectsUnsubGroup = make([]event.UnsubGroup, len(persistentEffectsList))
 	for _, effectCreator := range persistentEffectsList {
-		effect := effectCreator(u)
-		effect.Subscribe()
-		persistentEffects = append(persistentEffects, effect)
+		effect := effectCreator()
+		unsubs := effect.Subscribe(u)
+		u.persistentEffectsUnsubGroup = append(u.persistentEffectsUnsubGroup, event.UnsubGroup{Fns: unsubs})
 	}
 }
 

@@ -20,10 +20,6 @@ func NewCellShop() adventuria.CellCreator {
 	}
 }
 
-func (c *CellShop) Roll(_ adventuria.User) (*adventuria.WheelRollResult, error) {
-	return nil, nil
-}
-
 func (c *CellShop) OnCellReached(user adventuria.User) error {
 	var records []*core.Record
 	err := adventuria.PocketBase.RecordQuery(adventuria.GameCollections.Get(adventuria.CollectionItems)).

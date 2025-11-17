@@ -2,16 +2,20 @@ package effects
 
 import (
 	"adventuria/internal/adventuria"
+	"adventuria/pkg/event"
 )
 
 type DropInventoryEffect struct {
 	adventuria.EffectBase
 }
 
-func (ef *DropInventoryEffect) Subscribe(callback adventuria.EffectCallback) {
-	ef.PoolUnsubscribers(
-		ef.User().OnAfterAction().BindFunc(func(e *adventuria.OnAfterActionEvent) error {
-			err := ef.User().Inventory().DropInventory()
+func (ef *DropInventoryEffect) Subscribe(
+	user adventuria.User,
+	callback adventuria.EffectCallback,
+) []event.Unsubscribe {
+	return []event.Unsubscribe{
+		user.OnAfterAction().BindFunc(func(e *adventuria.OnAfterActionEvent) error {
+			err := user.Inventory().DropInventory()
 			if err != nil {
 				return err
 			}
@@ -20,7 +24,7 @@ func (ef *DropInventoryEffect) Subscribe(callback adventuria.EffectCallback) {
 
 			return e.Next()
 		}),
-	)
+	}
 }
 
 func (ef *DropInventoryEffect) Verify(_ string) error {

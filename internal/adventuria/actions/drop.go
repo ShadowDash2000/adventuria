@@ -10,28 +10,28 @@ type DropAction struct {
 	adventuria.ActionBase
 }
 
-func (a *DropAction) CanDo() bool {
-	currentCell, ok := a.User().CurrentCell()
+func (a *DropAction) CanDo(user adventuria.User) bool {
+	currentCell, ok := user.CurrentCell()
 	if ok {
 		if currentCell.CantDrop() {
 			return false
 		}
 	}
 
-	if a.User().IsInJail() {
+	if user.IsInJail() {
 		return false
 	}
 
-	return a.User().LastAction().Type() == ActionTypeRollWheel
+	return user.LastAction().Type() == ActionTypeRollWheel
 }
 
-func (a *DropAction) Do(req adventuria.ActionRequest) (*adventuria.ActionResult, error) {
+func (a *DropAction) Do(user adventuria.User, req adventuria.ActionRequest) (*adventuria.ActionResult, error) {
 	var comment string
 	if c, ok := req["comment"]; ok {
 		comment = c.(string)
 	}
 
-	currentCell, ok := a.User().CurrentCell()
+	currentCell, ok := user.CurrentCell()
 	if !ok {
 		return nil, errors.New("current cell not found")
 	}
@@ -39,21 +39,21 @@ func (a *DropAction) Do(req adventuria.ActionRequest) (*adventuria.ActionResult,
 	onBeforeDropEvent := &adventuria.OnBeforeDropEvent{
 		IsSafeDrop: false,
 	}
-	err := a.User().OnBeforeDrop().Trigger(onBeforeDropEvent)
+	err := user.OnBeforeDrop().Trigger(onBeforeDropEvent)
 	if err != nil {
 		return nil, err
 	}
 
-	action := a.User().LastAction()
+	action := user.LastAction()
 	action.SetType(ActionTypeDrop)
 	action.SetComment(comment)
 
 	if !onBeforeDropEvent.IsSafeDrop && !currentCell.IsSafeDrop() {
-		a.User().SetPoints(a.User().Points() + adventuria.GameSettings.PointsForDrop())
-		a.User().SetDropsInARow(a.User().DropsInARow() + 1)
+		user.SetPoints(user.Points() + adventuria.GameSettings.PointsForDrop())
+		user.SetDropsInARow(user.DropsInARow() + 1)
 
-		if !a.User().IsSafeDrop() {
-			if err = a.goToJail(); err != nil {
+		if !user.IsSafeDrop() {
+			if err = a.goToJail(user); err != nil {
 				return nil, err
 			}
 		} else {
@@ -61,7 +61,7 @@ func (a *DropAction) Do(req adventuria.ActionRequest) (*adventuria.ActionResult,
 		}
 	}
 
-	err = a.User().OnAfterDrop().Trigger(&adventuria.OnAfterDropEvent{})
+	err = user.OnAfterDrop().Trigger(&adventuria.OnAfterDropEvent{})
 	if err != nil {
 		return nil, err
 	}
@@ -71,15 +71,15 @@ func (a *DropAction) Do(req adventuria.ActionRequest) (*adventuria.ActionResult,
 	}, nil
 }
 
-func (a *DropAction) goToJail() error {
-	err := a.User().MoveToCellType(cells.CellTypeJail)
+func (a *DropAction) goToJail(user adventuria.User) error {
+	err := user.MoveToCellType(cells.CellTypeJail)
 	if err != nil {
 		return err
 	}
 
-	a.User().SetIsInJail(true)
+	user.SetIsInJail(true)
 
-	err = a.User().OnAfterGoToJail().Trigger(&adventuria.OnAfterGoToJailEvent{})
+	err = user.OnAfterGoToJail().Trigger(&adventuria.OnAfterGoToJailEvent{})
 	if err != nil {
 		return err
 	}

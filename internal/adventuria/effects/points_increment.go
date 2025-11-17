@@ -2,6 +2,7 @@ package effects
 
 import (
 	"adventuria/internal/adventuria"
+	"adventuria/pkg/event"
 	"strconv"
 )
 
@@ -9,18 +10,21 @@ type PointsIncrementEffect struct {
 	adventuria.EffectBase
 }
 
-func (ef *PointsIncrementEffect) Subscribe(callback adventuria.EffectCallback) {
-	ef.PoolUnsubscribers(
-		ef.User().OnAfterAction().BindFunc(func(e *adventuria.OnAfterActionEvent) error {
+func (ef *PointsIncrementEffect) Subscribe(
+	user adventuria.User,
+	callback adventuria.EffectCallback,
+) []event.Unsubscribe {
+	return []event.Unsubscribe{
+		user.OnAfterAction().BindFunc(func(e *adventuria.OnAfterActionEvent) error {
 			if i := ef.GetInt("value"); i != 0 {
-				ef.User().SetPoints(ef.User().Points() + i)
+				user.SetPoints(user.Points() + i)
 			}
 
 			callback()
 
 			return e.Next()
 		}),
-	)
+	}
 }
 
 func (ef *PointsIncrementEffect) Verify(value string) error {

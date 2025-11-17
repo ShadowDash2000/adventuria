@@ -10,11 +10,11 @@ type RollItemAction struct {
 	adventuria.ActionBase
 }
 
-func (a *RollItemAction) CanDo() bool {
-	return a.User().ItemWheelsCount() > 0
+func (a *RollItemAction) CanDo(user adventuria.User) bool {
+	return user.ItemWheelsCount() > 0
 }
 
-func (a *RollItemAction) Do(_ adventuria.ActionRequest) (*adventuria.ActionResult, error) {
+func (a *RollItemAction) Do(user adventuria.User, _ adventuria.ActionRequest) (*adventuria.ActionResult, error) {
 	res := &adventuria.WheelRollResult{}
 
 	items := adventuria.GameItems.GetAllRollable()
@@ -32,17 +32,17 @@ func (a *RollItemAction) Do(_ adventuria.ActionRequest) (*adventuria.ActionResul
 
 	res.WinnerId = helper.RandomItemFromSlice(items).ID()
 
-	_, err := a.User().Inventory().MustAddItemById(res.WinnerId)
+	_, err := user.Inventory().MustAddItemById(res.WinnerId)
 	if err != nil {
 		return nil, err
 	}
 
-	a.User().SetItemWheelsCount(a.User().ItemWheelsCount() - 1)
+	user.SetItemWheelsCount(user.ItemWheelsCount() - 1)
 
 	onAfterItemRollEvent := &adventuria.OnAfterItemRollEvent{
 		ItemId: res.WinnerId,
 	}
-	err = a.User().OnAfterItemRoll().Trigger(onAfterItemRollEvent)
+	err = user.OnAfterItemRoll().Trigger(onAfterItemRollEvent)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +50,7 @@ func (a *RollItemAction) Do(_ adventuria.ActionRequest) (*adventuria.ActionResul
 	onAfterWheelRollEvent := &adventuria.OnAfterWheelRollEvent{
 		ItemId: res.WinnerId,
 	}
-	err = a.User().OnAfterWheelRoll().Trigger(onAfterWheelRollEvent)
+	err = user.OnAfterWheelRoll().Trigger(onAfterWheelRollEvent)
 	if err != nil {
 		return nil, err
 	}

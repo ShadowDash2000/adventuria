@@ -5,13 +5,11 @@ import (
 )
 
 type Action interface {
-	User() User
 	Type() ActionType
-	CanDo() bool
-	Do(ActionRequest) (*ActionResult, error)
+	CanDo(User) bool
+	Do(User, ActionRequest) (*ActionResult, error)
 
 	setType(ActionType)
-	setUser(User)
 }
 
 type ActionRecord interface {

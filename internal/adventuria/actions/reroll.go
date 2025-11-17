@@ -9,24 +9,24 @@ type RerollAction struct {
 	adventuria.ActionBase
 }
 
-func (a *RerollAction) CanDo() bool {
-	currentCell, ok := a.User().CurrentCell()
+func (a *RerollAction) CanDo(user adventuria.User) bool {
+	currentCell, ok := user.CurrentCell()
 	if ok {
 		if currentCell.CantReroll() {
 			return false
 		}
 	}
 
-	return a.User().LastAction().Type() == ActionTypeRollWheel
+	return user.LastAction().Type() == ActionTypeRollWheel
 }
 
-func (a *RerollAction) Do(req adventuria.ActionRequest) (*adventuria.ActionResult, error) {
+func (a *RerollAction) Do(user adventuria.User, req adventuria.ActionRequest) (*adventuria.ActionResult, error) {
 	var comment string
 	if c, ok := req["comment"]; ok {
 		comment = c.(string)
 	}
 
-	currentCell, ok := a.User().CurrentCell()
+	currentCell, ok := user.CurrentCell()
 	if !ok {
 		return nil, errors.New("current cell not found")
 	}
@@ -35,11 +35,11 @@ func (a *RerollAction) Do(req adventuria.ActionRequest) (*adventuria.ActionResul
 		return nil, errors.New("can't reroll on this cell")
 	}
 
-	action := a.User().LastAction()
+	action := user.LastAction()
 	action.SetType(ActionTypeReroll)
 	action.SetComment(comment)
 
-	err := a.User().OnAfterReroll().Trigger(&adventuria.OnAfterRerollEvent{})
+	err := user.OnAfterReroll().Trigger(&adventuria.OnAfterRerollEvent{})
 	if err != nil {
 		return nil, err
 	}

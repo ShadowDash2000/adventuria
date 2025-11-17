@@ -9,30 +9,22 @@ import (
 
 type Effect interface {
 	core.RecordProxy
-	setUser(User)
 	ID() string
 	Name() string
 	Type() string
-	User() User
-	Subscribe(EffectCallback)
-	PoolUnsubscribers(...event.Unsubscribe)
-	Unsubscribe()
+	Subscribe(User, EffectCallback) []event.Unsubscribe
 	Verify(string) error
 }
 
 type PersistentEffect interface {
-	setUser(User)
-	User() User
-	Subscribe()
-	PoolUnsubscribers(...event.Unsubscribe)
-	Unsubscribe()
+	Subscribe(User) []event.Unsubscribe
 }
 
 var effectsList = map[string]EffectCreator{}
 var persistentEffectsList = map[string]PersistentEffectCreator{}
 
-type EffectCreator func(User, *core.Record) Effect
-type PersistentEffectCreator func(User) PersistentEffect
+type EffectCreator func(*core.Record) Effect
+type PersistentEffectCreator func() PersistentEffect
 type EffectCallback func()
 
 func RegisterEffects(effects map[string]EffectCreator) {

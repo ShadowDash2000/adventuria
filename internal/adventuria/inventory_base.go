@@ -147,7 +147,7 @@ func (i *InventoryBase) UseItem(itemId string) error {
 		return errors.New("inventory item not found")
 	}
 
-	return item.Use()
+	return item.Use(i.user)
 }
 
 func (i *InventoryBase) DropItem(invItemId string) error {

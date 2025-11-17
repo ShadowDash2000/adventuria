@@ -20,7 +20,7 @@ func Test_WithBaseActions(t *testing.T) {
 
 	got := 0
 	for _, actionType := range actionTypes {
-		action, err := adventuria.NewActionFromType(&adventuria.UserBase{}, actionType)
+		action, err := adventuria.NewActionFromType(actionType)
 		if err != nil {
 			t.Fatalf("Test_WithBaseActions(): Error creating action: %s", err)
 		}

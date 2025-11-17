@@ -9,8 +9,8 @@ type RollWheelAction struct {
 	adventuria.ActionBase
 }
 
-func (a *RollWheelAction) CanDo() bool {
-	currentCell, ok := a.User().CurrentCell()
+func (a *RollWheelAction) CanDo(user adventuria.User) bool {
+	currentCell, ok := user.CurrentCell()
 	if !ok {
 		return false
 	}
@@ -19,11 +19,11 @@ func (a *RollWheelAction) CanDo() bool {
 		return false
 	}
 
-	return !a.User().LastAction().CanMove()
+	return !user.LastAction().CanMove()
 }
 
-func (a *RollWheelAction) Do(req adventuria.ActionRequest) (*adventuria.ActionResult, error) {
-	currentCell, ok := a.User().CurrentCell()
+func (a *RollWheelAction) Do(user adventuria.User, req adventuria.ActionRequest) (*adventuria.ActionResult, error) {
+	currentCell, ok := user.CurrentCell()
 	if !ok {
 		return nil, errors.New("current cell not found")
 	}
@@ -31,24 +31,24 @@ func (a *RollWheelAction) Do(req adventuria.ActionRequest) (*adventuria.ActionRe
 	onBeforeWheelRollEvent := &adventuria.OnBeforeWheelRollEvent{
 		CurrentCell: currentCell.(adventuria.CellWheel),
 	}
-	err := a.User().OnBeforeWheelRoll().Trigger(onBeforeWheelRollEvent)
+	err := user.OnBeforeWheelRoll().Trigger(onBeforeWheelRollEvent)
 	if err != nil {
 		return nil, err
 	}
 
-	res, err := onBeforeWheelRollEvent.CurrentCell.Roll(adventuria.RollWheelRequest(req), a.User())
+	res, err := onBeforeWheelRollEvent.CurrentCell.Roll(user, adventuria.RollWheelRequest(req))
 	if err != nil {
 		return nil, err
 	}
 
-	action := a.User().LastAction()
+	action := user.LastAction()
 	action.SetType(ActionTypeRollWheel)
 	action.SetGame(res.WinnerId)
 
 	onAfterWheelRollEvent := &adventuria.OnAfterWheelRollEvent{
 		ItemId: res.WinnerId,
 	}
-	err = a.User().OnAfterWheelRoll().Trigger(onAfterWheelRollEvent)
+	err = user.OnAfterWheelRoll().Trigger(onAfterWheelRollEvent)
 	if err != nil {
 		return nil, err
 	}

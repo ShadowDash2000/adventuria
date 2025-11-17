@@ -8,8 +8,8 @@ type RollDiceAction struct {
 	adventuria.ActionBase
 }
 
-func (a *RollDiceAction) CanDo() bool {
-	return a.User().LastAction().CanMove()
+func (a *RollDiceAction) CanDo(user adventuria.User) bool {
+	return user.LastAction().CanMove()
 }
 
 type RollDiceResult struct {
@@ -18,11 +18,11 @@ type RollDiceResult struct {
 	CurrentCell adventuria.Cell `json:"current_cell"`
 }
 
-func (a *RollDiceAction) Do(_ adventuria.ActionRequest) (*adventuria.ActionResult, error) {
+func (a *RollDiceAction) Do(user adventuria.User, _ adventuria.ActionRequest) (*adventuria.ActionResult, error) {
 	onBeforeRollEvent := &adventuria.OnBeforeRollEvent{
 		Dices: []*adventuria.Dice{adventuria.DiceTypeD6, adventuria.DiceTypeD6},
 	}
-	err := a.User().OnBeforeRoll().Trigger(onBeforeRollEvent)
+	err := user.OnBeforeRoll().Trigger(onBeforeRollEvent)
 	if err != nil {
 		return nil, err
 	}
@@ -36,12 +36,12 @@ func (a *RollDiceAction) Do(_ adventuria.ActionRequest) (*adventuria.ActionResul
 		onBeforeRollMoveEvent.N += diceRolls[i]
 	}
 
-	err = a.User().OnBeforeRollMove().Trigger(onBeforeRollMoveEvent)
+	err = user.OnBeforeRollMove().Trigger(onBeforeRollMoveEvent)
 	if err != nil {
 		return nil, err
 	}
 
-	onAfterMoveEvent, err := a.User().Move(onBeforeRollMoveEvent.N)
+	onAfterMoveEvent, err := user.Move(onBeforeRollMoveEvent.N)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +50,7 @@ func (a *RollDiceAction) Do(_ adventuria.ActionRequest) (*adventuria.ActionResul
 		Dices: onBeforeRollEvent.Dices,
 		N:     onBeforeRollMoveEvent.N,
 	}
-	err = a.User().OnAfterRoll().Trigger(onAfterRollEvent)
+	err = user.OnAfterRoll().Trigger(onAfterRollEvent)
 	if err != nil {
 		return nil, err
 	}

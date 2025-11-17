@@ -1,15 +1,16 @@
 package adventuria
 
 import (
-	"slices"
+	"adventuria/pkg/event"
 
 	"github.com/pocketbase/pocketbase/core"
 )
 
 type ItemBase struct {
 	ItemRecordBase
-	invItemRecord core.BaseRecordProxy
-	effects       []Effect
+	invItemRecord     core.BaseRecordProxy
+	effects           []Effect
+	effectsUnsubGroup map[string]event.UnsubGroup
 }
 
 func NewItemFromInventoryRecord(user User, invItemRecord *core.Record) (Item, error) {
@@ -20,7 +21,7 @@ func NewItemFromInventoryRecord(user User, invItemRecord *core.Record) (Item, er
 
 	var effects []Effect
 	for _, effectRecord := range itemRecord.ExpandedAll("effects") {
-		effect, err := NewEffectFromRecord(user, effectRecord)
+		effect, err := NewEffectFromRecord(effectRecord)
 		if err != nil {
 			return nil, err
 		}
@@ -37,32 +38,48 @@ func NewItemFromInventoryRecord(user User, invItemRecord *core.Record) (Item, er
 	item.bindHooks()
 
 	if item.IsActive() {
-		item.Awake()
+		item.Awake(user)
 	}
 
 	return item, nil
 }
 
-func (i *ItemBase) Awake() {
+func (i *ItemBase) Awake(user User) {
+	appliedEffects := make(map[string]struct{}, i.AppliedEffectsCount())
+	for _, appliedEffectId := range i.AppliedEffects() {
+		appliedEffects[appliedEffectId] = struct{}{}
+	}
+
+	i.effectsUnsubGroup = make(map[string]event.UnsubGroup, len(i.effects)-len(appliedEffects))
 	for _, effect := range i.effects {
-		if slices.Contains(i.AppliedEffects(), effect.ID()) {
+		if _, ok := appliedEffects[effect.ID()]; ok {
 			continue
 		}
 
-		effect.Subscribe(func() {
+		unsubs := effect.Subscribe(user, func() {
 			i.addAppliedEffect(effect)
-			effect.Unsubscribe()
+			i.unsubEffectByID(effect.ID())
 
 			if i.AppliedEffectsCount() == i.EffectsCount() {
 				PocketBase.Delete(i.invItemRecord.ProxyRecord())
 			}
 		})
+		if len(unsubs) > 0 {
+			i.effectsUnsubGroup[effect.ID()] = event.UnsubGroup{Fns: unsubs}
+		}
 	}
 }
 
 func (i *ItemBase) Sleep() {
 	for _, effect := range i.effects {
-		effect.Unsubscribe()
+		i.unsubEffectByID(effect.ID())
+	}
+}
+
+func (i *ItemBase) unsubEffectByID(id string) {
+	if unsubGroup, ok := i.effectsUnsubGroup[id]; ok {
+		unsubGroup.Unsubscribe()
+		delete(i.effectsUnsubGroup, id)
 	}
 }
 
@@ -89,9 +106,9 @@ func (i *ItemBase) IsActive() bool {
 	return i.invItemRecord.GetBool("isActive")
 }
 
-func (i *ItemBase) SetIsActive(b bool) {
+func (i *ItemBase) SetIsActive(user User, b bool) {
 	if b && !i.IsActive() {
-		i.Awake()
+		i.Awake(user)
 	} else if !b && i.IsActive() {
 		i.Sleep()
 	}
@@ -118,12 +135,12 @@ func (i *ItemBase) addAppliedEffect(effect Effect) {
 	)
 }
 
-func (i *ItemBase) Use() error {
+func (i *ItemBase) Use(user User) error {
 	if i.IsActive() {
 		return nil
 	}
 
-	i.SetIsActive(true)
+	i.SetIsActive(user, true)
 	return PocketBase.Save(i.invItemRecord)
 }
 

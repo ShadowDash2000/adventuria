@@ -39,7 +39,7 @@ func (ef *EffectVerifier) Verify(effectType, value string) error {
 		return errors.New("unknown effect type")
 	}
 
-	effect := effectCreator(nil, core.NewRecord(GameCollections.Get(CollectionEffects)))
+	effect := effectCreator(core.NewRecord(GameCollections.Get(CollectionEffects)))
 
 	return effect.Verify(value)
 }

@@ -39,7 +39,7 @@ type GameFilterRequest struct {
 	Games           []string `json:"games"`
 }
 
-func (c *CellGame) Roll(req adventuria.RollWheelRequest, user adventuria.User) (*adventuria.WheelRollResult, error) {
+func (c *CellGame) Roll(user adventuria.User, req adventuria.RollWheelRequest) (*adventuria.WheelRollResult, error) {
 	var filter *GameFilterRequest
 	if f, ok := req["filter"]; ok {
 		filter = &GameFilterRequest{}

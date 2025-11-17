@@ -8,45 +8,39 @@ import (
 	"github.com/pocketbase/pocketbase/core"
 )
 
+// ensure Action implements Action
+var _ Action = (*ActionBase)(nil)
+
 type ActionBase struct {
 	t    ActionType
 	user User
 }
 
-func NewActionFromType(user User, actionType ActionType) (Action, error) {
+func NewActionFromType(actionType ActionType) (Action, error) {
 	actionCreator, ok := actionsList[actionType]
 	if !ok {
 		return nil, errors.New("unknown action type")
 	}
 
 	action := actionCreator()
-	action.setUser(user)
 
 	return action, nil
-}
-
-func (a *ActionBase) User() User {
-	return a.user
 }
 
 func (a *ActionBase) Type() ActionType {
 	return a.t
 }
 
-func (a *ActionBase) CanDo() bool {
+func (a *ActionBase) CanDo(_ User) bool {
 	panic("implement me")
 }
 
-func (a *ActionBase) Do(_ ActionRequest) (*ActionResult, error) {
+func (a *ActionBase) Do(_ User, _ ActionRequest) (*ActionResult, error) {
 	panic("implement me")
 }
 
 func (a *ActionBase) setType(t ActionType) {
 	a.t = t
-}
-
-func (a *ActionBase) setUser(user User) {
-	a.user = user
 }
 
 type ActionRecordBase struct {

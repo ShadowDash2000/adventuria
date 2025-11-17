@@ -9,17 +9,17 @@ type DoneAction struct {
 	adventuria.ActionBase
 }
 
-func (a *DoneAction) CanDo() bool {
-	return a.User().LastAction().Type() == ActionTypeRollWheel
+func (a *DoneAction) CanDo(user adventuria.User) bool {
+	return user.LastAction().Type() == ActionTypeRollWheel
 }
 
-func (a *DoneAction) Do(req adventuria.ActionRequest) (*adventuria.ActionResult, error) {
+func (a *DoneAction) Do(user adventuria.User, req adventuria.ActionRequest) (*adventuria.ActionResult, error) {
 	var comment string
 	if c, ok := req["comment"]; ok {
 		comment = c.(string)
 	}
 
-	currentCell, ok := a.User().CurrentCell()
+	currentCell, ok := user.CurrentCell()
 	if !ok {
 		return nil, errors.New("current cell not found")
 	}
@@ -27,12 +27,12 @@ func (a *DoneAction) Do(req adventuria.ActionRequest) (*adventuria.ActionResult,
 	onBeforeDoneEvent := &adventuria.OnBeforeDoneEvent{
 		CellPointsDivide: 0,
 	}
-	err := a.User().OnBeforeDone().Trigger(onBeforeDoneEvent)
+	err := user.OnBeforeDone().Trigger(onBeforeDoneEvent)
 	if err != nil {
 		return nil, err
 	}
 
-	action := a.User().LastAction()
+	action := user.LastAction()
 	action.SetType(ActionTypeDone)
 	action.SetComment(comment)
 	action.SetCanMove(true)
@@ -42,12 +42,12 @@ func (a *DoneAction) Do(req adventuria.ActionRequest) (*adventuria.ActionResult,
 		cellPoints /= onBeforeDoneEvent.CellPointsDivide
 	}
 
-	a.User().SetDropsInARow(0)
-	a.User().SetIsInJail(false)
-	a.User().SetPoints(a.User().Points() + cellPoints)
+	user.SetDropsInARow(0)
+	user.SetIsInJail(false)
+	user.SetPoints(user.Points() + cellPoints)
 
 	onAfterDoneEvent := &adventuria.OnAfterDoneEvent{}
-	err = a.User().OnAfterDone().Trigger(onAfterDoneEvent)
+	err = user.OnAfterDone().Trigger(onAfterDoneEvent)
 	if err != nil {
 		return nil, err
 	}
