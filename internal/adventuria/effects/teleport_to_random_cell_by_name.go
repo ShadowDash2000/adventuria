@@ -64,5 +64,5 @@ func (ef *TeleportToRandomCellByNameEffect) Verify(value string) error {
 }
 
 func (ef *TeleportToRandomCellByNameEffect) DecodeValue(value string) (any, error) {
-	return strings.Split(value, ","), nil
+	return strings.Split(value, ";"), nil
 }
