@@ -4,6 +4,7 @@ import (
 	"adventuria/internal/adventuria"
 	"adventuria/internal/adventuria/cells"
 	"errors"
+	"fmt"
 )
 
 type DropAction struct {
@@ -28,12 +29,21 @@ func (a *DropAction) CanDo(user adventuria.User) bool {
 func (a *DropAction) Do(user adventuria.User, req adventuria.ActionRequest) (*adventuria.ActionResult, error) {
 	var comment string
 	if c, ok := req["comment"]; ok {
-		comment = c.(string)
+		comment, ok = c.(string)
+		if !ok {
+			return &adventuria.ActionResult{
+				Success: false,
+				Error:   "request error: comment is not string",
+			}, nil
+		}
 	}
 
 	currentCell, ok := user.CurrentCell()
 	if !ok {
-		return nil, errors.New("current cell not found")
+		return &adventuria.ActionResult{
+			Success: false,
+			Error:   "internal error: current cell not found",
+		}, errors.New("drop.do(): current cell not found")
 	}
 
 	onBeforeDropEvent := &adventuria.OnBeforeDropEvent{
@@ -41,7 +51,10 @@ func (a *DropAction) Do(user adventuria.User, req adventuria.ActionRequest) (*ad
 	}
 	err := user.OnBeforeDrop().Trigger(onBeforeDropEvent)
 	if err != nil {
-		return nil, err
+		return &adventuria.ActionResult{
+			Success: false,
+			Error:   "internal error",
+		}, fmt.Errorf("drop.do(): %w", err)
 	}
 
 	action := user.LastAction()
@@ -52,18 +65,24 @@ func (a *DropAction) Do(user adventuria.User, req adventuria.ActionRequest) (*ad
 		user.SetPoints(user.Points() + adventuria.GameSettings.PointsForDrop())
 		user.SetDropsInARow(user.DropsInARow() + 1)
 
-		if !user.IsSafeDrop() {
-			if err = a.goToJail(user); err != nil {
-				return nil, err
-			}
-		} else {
+		if user.IsSafeDrop() {
 			action.SetCanMove(true)
+		} else {
+			if err = a.goToJail(user); err != nil {
+				return &adventuria.ActionResult{
+					Success: false,
+					Error:   "internal error",
+				}, fmt.Errorf("drop.do.goToJail(): %w", err)
+			}
 		}
 	}
 
 	err = user.OnAfterDrop().Trigger(&adventuria.OnAfterDropEvent{})
 	if err != nil {
-		return nil, err
+		return &adventuria.ActionResult{
+			Success: false,
+			Error:   "internal error",
+		}, fmt.Errorf("drop.do(): %w", err)
 	}
 
 	return &adventuria.ActionResult{

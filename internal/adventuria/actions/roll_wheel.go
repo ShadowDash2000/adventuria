@@ -3,6 +3,7 @@ package actions
 import (
 	"adventuria/internal/adventuria"
 	"errors"
+	"fmt"
 )
 
 type RollWheelAction struct {
@@ -25,7 +26,10 @@ func (a *RollWheelAction) CanDo(user adventuria.User) bool {
 func (a *RollWheelAction) Do(user adventuria.User, req adventuria.ActionRequest) (*adventuria.ActionResult, error) {
 	currentCell, ok := user.CurrentCell()
 	if !ok {
-		return nil, errors.New("current cell not found")
+		return &adventuria.ActionResult{
+			Success: false,
+			Error:   "internal error: current cell not found",
+		}, errors.New("roll_wheel.do(): current cell not found")
 	}
 
 	onBeforeWheelRollEvent := &adventuria.OnBeforeWheelRollEvent{
@@ -33,12 +37,18 @@ func (a *RollWheelAction) Do(user adventuria.User, req adventuria.ActionRequest)
 	}
 	err := user.OnBeforeWheelRoll().Trigger(onBeforeWheelRollEvent)
 	if err != nil {
-		return nil, err
+		return &adventuria.ActionResult{
+			Success: false,
+			Error:   "internal error",
+		}, fmt.Errorf("roll_wheel.do(): %w", err)
 	}
 
 	res, err := onBeforeWheelRollEvent.CurrentCell.Roll(user, adventuria.RollWheelRequest(req))
 	if err != nil {
-		return nil, err
+		return &adventuria.ActionResult{
+			Success: false,
+			Error:   "internal error",
+		}, fmt.Errorf("roll_wheel.do(): %w", err)
 	}
 
 	action := user.LastAction()
@@ -50,7 +60,10 @@ func (a *RollWheelAction) Do(user adventuria.User, req adventuria.ActionRequest)
 	}
 	err = user.OnAfterWheelRoll().Trigger(onAfterWheelRollEvent)
 	if err != nil {
-		return nil, err
+		return &adventuria.ActionResult{
+			Success: false,
+			Error:   "internal error",
+		}, fmt.Errorf("roll_wheel.do(): %w", err)
 	}
 
 	return &adventuria.ActionResult{

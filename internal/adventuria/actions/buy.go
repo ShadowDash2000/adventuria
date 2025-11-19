@@ -26,12 +26,18 @@ func (a *BuyAction) CanDo(user adventuria.User) bool {
 
 func (a *BuyAction) Do(user adventuria.User, req adventuria.ActionRequest) (*adventuria.ActionResult, error) {
 	if _, ok := req["item_id"]; !ok {
-		return nil, fmt.Errorf("buy.do(): item_id not specified")
+		return &adventuria.ActionResult{
+			Success: false,
+			Error:   "request error: item_id not specified",
+		}, nil
 	}
 
 	itemId, ok := req["item_id"].(string)
 	if !ok {
-		return nil, fmt.Errorf("buy.do(): item_id is not string")
+		return &adventuria.ActionResult{
+			Success: false,
+			Error:   "request error: item_id is not string",
+		}, nil
 	}
 
 	ids, err := user.LastAction().ItemsList()

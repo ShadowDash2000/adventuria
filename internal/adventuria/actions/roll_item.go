@@ -4,6 +4,7 @@ import (
 	"adventuria/internal/adventuria"
 	"adventuria/pkg/helper"
 	"errors"
+	"fmt"
 )
 
 type RollItemAction struct {
@@ -19,7 +20,10 @@ func (a *RollItemAction) Do(user adventuria.User, _ adventuria.ActionRequest) (*
 
 	items := adventuria.GameItems.GetAllRollable()
 	if len(items) == 0 {
-		return nil, errors.New("items not found")
+		return &adventuria.ActionResult{
+			Success: false,
+			Error:   "internal error: no items found",
+		}, errors.New("roll_item.do(): no items found")
 	}
 
 	for _, item := range items {
@@ -34,7 +38,10 @@ func (a *RollItemAction) Do(user adventuria.User, _ adventuria.ActionRequest) (*
 
 	_, err := user.Inventory().MustAddItemById(res.WinnerId)
 	if err != nil {
-		return nil, err
+		return &adventuria.ActionResult{
+			Success: false,
+			Error:   "internal error: can't add item to inventory",
+		}, fmt.Errorf("roll_item.do(): %w", err)
 	}
 
 	user.SetItemWheelsCount(user.ItemWheelsCount() - 1)
@@ -44,7 +51,10 @@ func (a *RollItemAction) Do(user adventuria.User, _ adventuria.ActionRequest) (*
 	}
 	err = user.OnAfterItemRoll().Trigger(onAfterItemRollEvent)
 	if err != nil {
-		return nil, err
+		return &adventuria.ActionResult{
+			Success: false,
+			Error:   "internal error",
+		}, fmt.Errorf("roll_item.do(): %w", err)
 	}
 
 	onAfterWheelRollEvent := &adventuria.OnAfterWheelRollEvent{
@@ -52,7 +62,10 @@ func (a *RollItemAction) Do(user adventuria.User, _ adventuria.ActionRequest) (*
 	}
 	err = user.OnAfterWheelRoll().Trigger(onAfterWheelRollEvent)
 	if err != nil {
-		return nil, err
+		return &adventuria.ActionResult{
+			Success: false,
+			Error:   "internal error",
+		}, fmt.Errorf("roll_item.do(): %w", err)
 	}
 
 	return &adventuria.ActionResult{

@@ -3,10 +3,9 @@ package adventuria
 import (
 	"adventuria/pkg/collections"
 	"context"
-	"errors"
+	"fmt"
 	"time"
 
-	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/plugins/migratecmd"
@@ -20,6 +19,7 @@ var (
 	GameItems       *Items
 	GameCollections *collections.Collections
 	GameSettings    *Settings
+	GameActions     *Actions
 )
 
 type Game struct {
@@ -65,6 +65,7 @@ func (g *Game) init() error {
 
 	GameCollections = collections.NewCollections(PocketBase)
 	GameUsers = NewUsers()
+	GameActions = NewActions()
 	GameCells, err = NewCells()
 	if err != nil {
 		return err
@@ -92,73 +93,56 @@ func (g *Game) init() error {
 func (g *Game) DoAction(actionType ActionType, userId string, req ActionRequest) (*ActionResult, error) {
 	user, err := GameUsers.GetByID(userId)
 	if err != nil {
-		return nil, err
+		return &ActionResult{
+			Success: false,
+			Error:   "request error: user not found",
+		}, nil
 	}
 
-	action, err := NewActionFromType(actionType)
+	if ok := GameActions.CanDo(user, actionType); !ok {
+		return &ActionResult{
+			Success: false,
+			Error:   "request error: cannot do action",
+		}, nil
+	}
+
+	res, err := GameActions.Do(user, req, actionType)
 	if err != nil {
-		return nil, err
-	}
-
-	if ok := action.CanDo(user); !ok {
-		return nil, errors.New("cannot do action")
-	}
-
-	res, err := action.Do(user, req)
-	if err != nil {
+		// TODO: if we hit an error here, we should rollback the user's action
 		PocketBase.Logger().Error("Failed to complete user action", "error", err)
-		return nil, err
+		return &ActionResult{
+			Success: false,
+			Error:   "internal error",
+		}, fmt.Errorf("doAction(): %w", err)
 	} else if res.Error != "" {
-		return nil, errors.New(res.Error)
+		return res, nil
 	}
 
 	err = user.OnAfterAction().Trigger(&OnAfterActionEvent{})
 	if err != nil {
-		return nil, err
+		return &ActionResult{
+			Success: false,
+			Error:   "internal error",
+		}, fmt.Errorf("doAction(): %w", err)
 	}
 
 	err = user.LastAction().Save()
 	if err != nil {
-		return nil, err
+		return &ActionResult{
+			Success: false,
+			Error:   "internal error",
+		}, fmt.Errorf("doAction(): %w", err)
 	}
 
 	err = user.save()
 	if err != nil {
-		return nil, err
+		return &ActionResult{
+			Success: false,
+			Error:   "internal error",
+		}, fmt.Errorf("doAction(): %w", err)
 	}
 
 	return res, nil
-}
-
-// UpdateAction TODO: reimplement, method expired
-func (g *Game) UpdateAction(actionId string, comment string, userId string) error {
-	record := &core.Record{}
-	err := PocketBase.
-		RecordQuery(GameCollections.Get(CollectionActions)).
-		AndWhere(
-			dbx.HashExp{
-				"user": userId,
-				"id":   actionId,
-			},
-		).
-		AndWhere(
-			dbx.Or(
-				// TODO get rid of hard coded types
-				dbx.HashExp{"type": "done"},
-				dbx.HashExp{"type": "drop"},
-				dbx.HashExp{"type": "reroll"},
-			),
-		).
-		Limit(1).
-		One(record)
-	if err != nil {
-		return err
-	}
-
-	action := NewActionFromRecord(record)
-	action.SetComment(comment)
-
-	return action.Save()
 }
 
 func (g *Game) UseItem(userId, itemId string) error {
@@ -241,12 +225,8 @@ func (g *Game) GetAvailableActions(userId string) ([]ActionType, error) {
 	}
 
 	var actions []ActionType
-	for t := range actionsList {
-		action, _ := NewActionFromType(t)
-
-		if action.CanDo(user) {
-			actions = append(actions, action.Type())
-		}
+	for t := range GameActions.AvailableActions(user) {
+		actions = append(actions, t)
 	}
 
 	return actions, nil

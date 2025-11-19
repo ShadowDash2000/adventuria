@@ -2,7 +2,7 @@ package actions
 
 import (
 	"adventuria/internal/adventuria"
-	"errors"
+	"fmt"
 )
 
 type RerollAction struct {
@@ -23,16 +23,13 @@ func (a *RerollAction) CanDo(user adventuria.User) bool {
 func (a *RerollAction) Do(user adventuria.User, req adventuria.ActionRequest) (*adventuria.ActionResult, error) {
 	var comment string
 	if c, ok := req["comment"]; ok {
-		comment = c.(string)
-	}
-
-	currentCell, ok := user.CurrentCell()
-	if !ok {
-		return nil, errors.New("current cell not found")
-	}
-
-	if currentCell.CantReroll() {
-		return nil, errors.New("can't reroll on this cell")
+		comment, ok = c.(string)
+		if !ok {
+			return &adventuria.ActionResult{
+				Success: false,
+				Error:   "request error: comment is not string",
+			}, nil
+		}
 	}
 
 	action := user.LastAction()
@@ -41,8 +38,13 @@ func (a *RerollAction) Do(user adventuria.User, req adventuria.ActionRequest) (*
 
 	err := user.OnAfterReroll().Trigger(&adventuria.OnAfterRerollEvent{})
 	if err != nil {
-		return nil, err
+		return &adventuria.ActionResult{
+			Success: false,
+			Error:   "internal error",
+		}, fmt.Errorf("reroll.do(): %w", err)
 	}
 
-	return &adventuria.ActionResult{}, nil
+	return &adventuria.ActionResult{
+		Success: true,
+	}, nil
 }

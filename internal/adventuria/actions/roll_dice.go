@@ -2,6 +2,7 @@ package actions
 
 import (
 	"adventuria/internal/adventuria"
+	"fmt"
 )
 
 type RollDiceAction struct {
@@ -24,7 +25,10 @@ func (a *RollDiceAction) Do(user adventuria.User, _ adventuria.ActionRequest) (*
 	}
 	err := user.OnBeforeRoll().Trigger(onBeforeRollEvent)
 	if err != nil {
-		return nil, err
+		return &adventuria.ActionResult{
+			Success: false,
+			Error:   "internal error",
+		}, fmt.Errorf("roll_dice.do(): %w", err)
 	}
 
 	onBeforeRollMoveEvent := &adventuria.OnBeforeRollMoveEvent{
@@ -38,12 +42,18 @@ func (a *RollDiceAction) Do(user adventuria.User, _ adventuria.ActionRequest) (*
 
 	err = user.OnBeforeRollMove().Trigger(onBeforeRollMoveEvent)
 	if err != nil {
-		return nil, err
+		return &adventuria.ActionResult{
+			Success: false,
+			Error:   "internal error",
+		}, fmt.Errorf("roll_dice.do(): %w", err)
 	}
 
 	onAfterMoveEvent, err := user.Move(onBeforeRollMoveEvent.N)
 	if err != nil {
-		return nil, err
+		return &adventuria.ActionResult{
+			Success: false,
+			Error:   "internal error",
+		}, fmt.Errorf("roll_dice.do(): %w", err)
 	}
 
 	onAfterRollEvent := &adventuria.OnAfterRollEvent{
@@ -52,7 +62,10 @@ func (a *RollDiceAction) Do(user adventuria.User, _ adventuria.ActionRequest) (*
 	}
 	err = user.OnAfterRoll().Trigger(onAfterRollEvent)
 	if err != nil {
-		return nil, err
+		return &adventuria.ActionResult{
+			Success: false,
+			Error:   "internal error",
+		}, fmt.Errorf("roll_dice.do(): %w", err)
 	}
 
 	return &adventuria.ActionResult{

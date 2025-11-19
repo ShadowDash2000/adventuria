@@ -64,6 +64,7 @@ func (g *GameTest) init() error {
 
 	adventuria.GameCollections = collections.NewCollections(adventuria.PocketBase)
 	adventuria.GameUsers = adventuria.NewUsers()
+	adventuria.GameActions = adventuria.NewActions()
 	adventuria.GameCells, err = adventuria.NewCells()
 	if err != nil {
 		return err
