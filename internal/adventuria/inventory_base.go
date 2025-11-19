@@ -42,8 +42,7 @@ func (i *InventoryBase) bindHooks() {
 		return e.Next()
 	})
 	PocketBase.OnRecordAfterDeleteSuccess(CollectionInventory).BindFunc(func(e *core.RecordEvent) error {
-		if item, ok := i.items[e.Record.Id]; ok {
-			item.Sleep()
+		if _, ok := i.items[e.Record.Id]; ok {
 			delete(i.items, e.Record.Id)
 		}
 		return e.Next()
@@ -147,7 +146,7 @@ func (i *InventoryBase) UseItem(itemId string) error {
 		return errors.New("inventory item not found")
 	}
 
-	return item.Use(i.user)
+	return item.Use()
 }
 
 func (i *InventoryBase) DropItem(invItemId string) error {

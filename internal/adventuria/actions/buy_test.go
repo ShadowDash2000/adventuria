@@ -42,7 +42,7 @@ func Test_Buy(t *testing.T) {
 
 	user.SetBalance(2)
 
-	err = user.LastAction().Save()
+	err = adventuria.PocketBase.Save(user.LastAction().ProxyRecord())
 	if err != nil {
 		t.Fatalf("Test_Buy(): Error saving action: %s", err)
 	}

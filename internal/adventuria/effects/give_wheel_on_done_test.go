@@ -28,7 +28,7 @@ func Test_GiveWheelOnDone(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = user.LastAction().Save()
+	err = adventuria.PocketBase.Save(user.LastAction().ProxyRecord())
 	if err != nil {
 		t.Fatalf("Test_GiveWheelOnDone(): Error saving action: %s", err)
 	}

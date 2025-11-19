@@ -38,8 +38,6 @@ type User interface {
 	SetBalance(int)
 	IsStreamLive() bool
 	SetIsStreamLive(bool)
-
-	save() error
 }
 
 type UserEvent interface {
@@ -73,4 +71,9 @@ type Stats struct {
 	DiceRolls   int `json:"diceRolls"`
 	MaxDiceRoll int `json:"maxDiceRoll"`
 	WheelRolled int `json:"wheelRolled"`
+}
+
+type UserSnapshot struct {
+	Data  map[string]any
+	Stats *Stats
 }

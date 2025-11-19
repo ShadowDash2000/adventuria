@@ -2,12 +2,14 @@ package adventuria
 
 import (
 	"adventuria/pkg/event"
+	"errors"
 
 	"github.com/pocketbase/pocketbase/core"
 )
 
 type ItemBase struct {
 	ItemRecordBase
+	user              User
 	invItemRecord     core.BaseRecordProxy
 	effects           []Effect
 	effectsUnsubGroup map[string]event.UnsubGroup
@@ -30,6 +32,7 @@ func NewItemFromInventoryRecord(user User, invItemRecord *core.Record) (Item, er
 	}
 
 	item := &ItemBase{
+		user:    user,
 		effects: effects,
 	}
 
@@ -38,13 +41,13 @@ func NewItemFromInventoryRecord(user User, invItemRecord *core.Record) (Item, er
 	item.bindHooks()
 
 	if item.IsActive() {
-		item.Awake(user)
+		item.awake()
 	}
 
 	return item, nil
 }
 
-func (i *ItemBase) Awake(user User) {
+func (i *ItemBase) awake() {
 	appliedEffects := make(map[string]struct{}, i.AppliedEffectsCount())
 	for _, appliedEffectId := range i.AppliedEffects() {
 		appliedEffects[appliedEffectId] = struct{}{}
@@ -56,11 +59,12 @@ func (i *ItemBase) Awake(user User) {
 			continue
 		}
 
-		unsubs := effect.Subscribe(user, func() {
+		unsubs := effect.Subscribe(i.user, func() {
 			i.addAppliedEffect(effect)
 			i.unsubEffectByID(effect.ID())
 
 			if i.AppliedEffectsCount() == i.EffectsCount() {
+				i.sleep()
 				PocketBase.Delete(i.invItemRecord.ProxyRecord())
 			}
 		})
@@ -70,7 +74,7 @@ func (i *ItemBase) Awake(user User) {
 	}
 }
 
-func (i *ItemBase) Sleep() {
+func (i *ItemBase) sleep() {
 	for _, effect := range i.effects {
 		i.unsubEffectByID(effect.ID())
 	}
@@ -96,6 +100,12 @@ func (i *ItemBase) bindHooks() {
 		}
 		return e.Next()
 	})
+	PocketBase.OnRecordAfterDeleteSuccess(CollectionInventory).BindFunc(func(e *core.RecordEvent) error {
+		if e.Record.Id == i.invItemRecord.Id {
+			i.sleep()
+		}
+		return e.Next()
+	})
 }
 
 func (i *ItemBase) IDInventory() string {
@@ -106,13 +116,7 @@ func (i *ItemBase) IsActive() bool {
 	return i.invItemRecord.GetBool("isActive")
 }
 
-func (i *ItemBase) SetIsActive(user User, b bool) {
-	if b && !i.IsActive() {
-		i.Awake(user)
-	} else if !b && i.IsActive() {
-		i.Sleep()
-	}
-
+func (i *ItemBase) setIsActive(b bool) {
 	i.invItemRecord.Set("isActive", b)
 }
 
@@ -135,18 +139,27 @@ func (i *ItemBase) addAppliedEffect(effect Effect) {
 	)
 }
 
-func (i *ItemBase) Use(user User) error {
+func (i *ItemBase) Use() error {
 	if i.IsActive() {
-		return nil
+		return errors.New("item is already active")
 	}
 
-	i.SetIsActive(user, true)
-	return PocketBase.Save(i.invItemRecord)
+	i.setIsActive(true)
+	if err := PocketBase.Save(i.invItemRecord); err != nil {
+		return err
+	}
+	i.awake()
+
+	return nil
 }
 
 func (i *ItemBase) Drop() error {
 	if !i.CanDrop() {
 		return nil
+	}
+
+	if i.IsActive() {
+		i.sleep()
 	}
 
 	return PocketBase.Delete(i.invItemRecord.ProxyRecord())

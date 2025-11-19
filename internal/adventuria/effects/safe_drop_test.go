@@ -46,7 +46,7 @@ func Test_SafeDrop(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = user.LastAction().Save()
+	err = adventuria.PocketBase.Save(user.LastAction().ProxyRecord())
 	if err != nil {
 		t.Fatalf("Test_SafeDrop(): Error saving action: %s", err)
 	}

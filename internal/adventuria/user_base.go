@@ -38,22 +38,17 @@ type UserBase struct {
 }
 
 func NewUser(userId string) (User, error) {
-	if userId == "" {
-		return nil, errors.New("empty user id")
-	}
-
 	var err error
-	timer, err := NewTimer(userId)
-	if err != nil {
-		return nil, err
-	}
-
 	u := &UserBase{
-		timer: timer,
 		stats: &Stats{},
 	}
 
 	err = u.fetchUser(userId)
+	if err != nil {
+		return nil, err
+	}
+
+	u.timer, err = NewTimer(userId)
 	if err != nil {
 		return nil, err
 	}
@@ -96,6 +91,12 @@ func (u *UserBase) bindHooks() {
 	PocketBase.OnRecordAfterUpdateSuccess(CollectionUsers).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == u.Id {
 			u.SetProxyRecord(e.Record)
+		}
+		return e.Next()
+	})
+	PocketBase.OnRecordUpdate(CollectionUsers).BindFunc(func(e *core.RecordEvent) error {
+		if e.Record.Id == u.Id {
+			e.Record.Set("stats", u.stats)
 		}
 		return e.Next()
 	})
@@ -195,12 +196,6 @@ func (u *UserBase) ItemWheelsCount() int {
 
 func (u *UserBase) SetItemWheelsCount(itemWheelsCount int) {
 	u.Set("itemWheelsCount", itemWheelsCount)
-}
-
-func (u *UserBase) save() error {
-	u.Set("stats", u.stats)
-
-	return PocketBase.Save(u)
 }
 
 func (u *UserBase) Move(steps int) (*OnAfterMoveEvent, error) {

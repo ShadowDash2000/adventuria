@@ -114,7 +114,7 @@ func (s *StreamTracker) onStreamChange(e *streamlive.StreamChangeEvent) error {
 	}
 
 	user.SetIsStreamLive(e.Live)
-	if err = user.save(); err != nil {
+	if err = PocketBase.Save(user.ProxyRecord()); err != nil {
 		return err
 	}
 

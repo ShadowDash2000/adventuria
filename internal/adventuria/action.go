@@ -16,7 +16,6 @@ type ActionRecord interface {
 	core.RecordProxy
 
 	ID() string
-	Save() error
 	User() string
 	SetUser(string)
 	CellId() string

@@ -23,5 +23,4 @@ type Timer interface {
 	StartTime() types.DateTime
 	SetStartTime(time types.DateTime)
 	AddSecondsTimeLimit(secs int) error
-	Save() error
 }

@@ -28,7 +28,7 @@ func Test_Reroll(t *testing.T) {
 		t.Fatalf("Test_Reroll(): Error moving: %s", err)
 	}
 
-	err = user.LastAction().Save()
+	err = adventuria.PocketBase.Save(user.LastAction().ProxyRecord())
 	if err != nil {
 		t.Fatalf("Test_Reroll(): Error saving action: %s", err)
 	}

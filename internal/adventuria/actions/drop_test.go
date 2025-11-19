@@ -29,7 +29,7 @@ func Test_Drop(t *testing.T) {
 		t.Fatalf("Test_Drop(): Error moving: %s", err)
 	}
 
-	err = user.LastAction().Save()
+	err = adventuria.PocketBase.Save(user.LastAction().ProxyRecord())
 	if err != nil {
 		t.Fatalf("Test_Drop(): Error saving action: %s", err)
 	}
@@ -94,8 +94,8 @@ func Test_Drop_inJail(t *testing.T) {
 		t.Fatalf("Test_Drop_inJail(): Error action roll wheel: %s", err)
 	}
 
-	_, err = game.DoAction(ActionTypeDrop, user.ID(), adventuria.ActionRequest{})
-	if err == nil {
+	canDo := adventuria.GameActions.CanDo(user, ActionTypeDrop)
+	if canDo {
 		t.Fatalf("Test_Drop_inJail(): Expected that you can't drop in jail: %s", err)
 	}
 }

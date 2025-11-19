@@ -69,10 +69,10 @@ func (a *UpdateCommentAction) Do(user adventuria.User, req adventuria.ActionRequ
 		}, nil
 	}
 
-	action := adventuria.NewActionFromRecord(record)
+	action := adventuria.NewActionRecordFromRecord(record)
 	action.SetComment(comment)
 
-	err = action.Save()
+	err = adventuria.PocketBase.Save(record)
 	if err != nil {
 		return &adventuria.ActionResult{
 			Success: false,

@@ -54,7 +54,7 @@ func Test_CellPointsDivide(t *testing.T) {
 		t.Fatal("Test_CellPointsDivide(): Current cell not found")
 	}
 
-	err = user.LastAction().Save()
+	err = adventuria.PocketBase.Save(user.LastAction().ProxyRecord())
 	if err != nil {
 		t.Fatalf("Test_CellPointsDivide(): Error saving action: %s", err)
 	}

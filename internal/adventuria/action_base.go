@@ -54,8 +54,7 @@ func NewActionRecord() ActionRecord {
 	return actionRecord
 }
 
-// TODO: remove unused
-func NewActionFromRecord(record *core.Record) ActionRecord {
+func NewActionRecordFromRecord(record *core.Record) ActionRecord {
 	a := &ActionRecordBase{}
 
 	a.SetProxyRecord(record)
@@ -65,10 +64,6 @@ func NewActionFromRecord(record *core.Record) ActionRecord {
 
 func (a *ActionRecordBase) ID() string {
 	return a.Id
-}
-
-func (a *ActionRecordBase) Save() error {
-	return PocketBase.Save(a)
 }
 
 func (a *ActionRecordBase) User() string {

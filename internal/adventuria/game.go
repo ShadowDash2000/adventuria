@@ -126,7 +126,7 @@ func (g *Game) DoAction(actionType ActionType, userId string, req ActionRequest)
 		}, fmt.Errorf("doAction(): %w", err)
 	}
 
-	err = user.LastAction().Save()
+	err = PocketBase.Save(user.LastAction().ProxyRecord())
 	if err != nil {
 		return &ActionResult{
 			Success: false,
@@ -134,7 +134,7 @@ func (g *Game) DoAction(actionType ActionType, userId string, req ActionRequest)
 		}, fmt.Errorf("doAction(): %w", err)
 	}
 
-	err = user.save()
+	err = PocketBase.Save(user.ProxyRecord())
 	if err != nil {
 		return &ActionResult{
 			Success: false,
@@ -169,7 +169,7 @@ func (g *Game) UseItem(userId, itemId string) error {
 		return err
 	}
 
-	err = user.save()
+	err = PocketBase.Save(user.ProxyRecord())
 	if err != nil {
 		return err
 	}

@@ -32,7 +32,7 @@ func Test_Done(t *testing.T) {
 		t.Fatalf("Test_Done(): Error moving: %s", err)
 	}
 
-	err = user.LastAction().Save()
+	err = adventuria.PocketBase.Save(user.LastAction().ProxyRecord())
 	if err != nil {
 		t.Fatalf("Test_Done(): Error saving action: %s", err)
 	}

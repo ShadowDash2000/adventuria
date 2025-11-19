@@ -144,10 +144,6 @@ func (t *TimerBase) AddSecondsTimeLimit(secs int) error {
 	return PocketBase.Save(t)
 }
 
-func (t *TimerBase) Save() error {
-	return PocketBase.Save(t)
-}
-
 func CreateTimer(userId string, timeLimit int) (*TimerBase, error) {
 	timer := &TimerBase{}
 	timer.SetProxyRecord(core.NewRecord(GameCollections.Get(CollectionTimers)))
@@ -192,7 +188,7 @@ func ResetAllTimers(timeLimit int, limitExceedPenalty int) error {
 
 		timer.SetTimeLimit(newTimeLimit)
 		timer.SetTimePassed(0)
-		err = timer.Save()
+		err = PocketBase.Save(timer.ProxyRecord())
 		if err != nil {
 			return err
 		}

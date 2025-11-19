@@ -16,11 +16,8 @@ type ItemRecord interface {
 type Item interface {
 	ItemRecord
 
-	Awake(User)
-	Sleep()
-
 	EffectsCount() int
 	AppliedEffectsCount() int
-	Use(User) error
+	Use() error
 	Drop() error
 }
