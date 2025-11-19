@@ -3,7 +3,6 @@ package actions
 import (
 	"adventuria/internal/adventuria"
 	"errors"
-	"fmt"
 )
 
 type DoneAction struct {
@@ -40,10 +39,11 @@ func (a *DoneAction) Do(user adventuria.User, req adventuria.ActionRequest) (*ad
 	}
 	err := user.OnBeforeDone().Trigger(onBeforeDoneEvent)
 	if err != nil {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   "internal error",
-		}, fmt.Errorf("done.do(): %w", err)
+		adventuria.PocketBase.Logger().Error(
+			"done.do(): failed to trigger onBeforeDone event",
+			"error",
+			err,
+		)
 	}
 
 	action := user.LastAction()
@@ -63,10 +63,11 @@ func (a *DoneAction) Do(user adventuria.User, req adventuria.ActionRequest) (*ad
 	onAfterDoneEvent := &adventuria.OnAfterDoneEvent{}
 	err = user.OnAfterDone().Trigger(onAfterDoneEvent)
 	if err != nil {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   "internal error",
-		}, fmt.Errorf("done.do(): %w", err)
+		adventuria.PocketBase.Logger().Error(
+			"done.do(): failed to trigger onAfterDone event",
+			"error",
+			err,
+		)
 	}
 
 	return &adventuria.ActionResult{

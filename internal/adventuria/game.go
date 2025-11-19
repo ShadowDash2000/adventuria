@@ -108,7 +108,6 @@ func (g *Game) DoAction(actionType ActionType, userId string, req ActionRequest)
 
 	res, err := GameActions.Do(user, req, actionType)
 	if err != nil {
-		// TODO: if we hit an error here, we should rollback the user's action
 		PocketBase.Logger().Error("Failed to complete user action", "error", err)
 		return &ActionResult{
 			Success: false,

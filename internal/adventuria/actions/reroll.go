@@ -2,7 +2,6 @@ package actions
 
 import (
 	"adventuria/internal/adventuria"
-	"fmt"
 )
 
 type RerollAction struct {
@@ -38,10 +37,11 @@ func (a *RerollAction) Do(user adventuria.User, req adventuria.ActionRequest) (*
 
 	err := user.OnAfterReroll().Trigger(&adventuria.OnAfterRerollEvent{})
 	if err != nil {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   "internal error",
-		}, fmt.Errorf("reroll.do(): %w", err)
+		adventuria.PocketBase.Logger().Error(
+			"reroll.do(): failed to trigger onAfterReroll event",
+			"error",
+			err,
+		)
 	}
 
 	return &adventuria.ActionResult{

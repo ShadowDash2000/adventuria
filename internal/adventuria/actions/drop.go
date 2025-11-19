@@ -51,10 +51,11 @@ func (a *DropAction) Do(user adventuria.User, req adventuria.ActionRequest) (*ad
 	}
 	err := user.OnBeforeDrop().Trigger(onBeforeDropEvent)
 	if err != nil {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   "internal error",
-		}, fmt.Errorf("drop.do(): %w", err)
+		adventuria.PocketBase.Logger().Error(
+			"drop.do(): failed to trigger onBeforeDrop event",
+			"error",
+			err,
+		)
 	}
 
 	action := user.LastAction()
@@ -68,11 +69,23 @@ func (a *DropAction) Do(user adventuria.User, req adventuria.ActionRequest) (*ad
 		if user.IsSafeDrop() {
 			action.SetCanMove(true)
 		} else {
-			if err = a.goToJail(user); err != nil {
+			err = user.MoveToCellType(cells.CellTypeJail)
+			if err != nil {
 				return &adventuria.ActionResult{
 					Success: false,
 					Error:   "internal error",
-				}, fmt.Errorf("drop.do.goToJail(): %w", err)
+				}, fmt.Errorf("drop.do(): %w", err)
+			}
+
+			user.SetIsInJail(true)
+
+			err = user.OnAfterGoToJail().Trigger(&adventuria.OnAfterGoToJailEvent{})
+			if err != nil {
+				adventuria.PocketBase.Logger().Error(
+					"drop.do(): failed to trigger onAfterGoToJail event",
+					"error",
+					err,
+				)
 			}
 		}
 	}
@@ -88,20 +101,4 @@ func (a *DropAction) Do(user adventuria.User, req adventuria.ActionRequest) (*ad
 	return &adventuria.ActionResult{
 		Success: true,
 	}, nil
-}
-
-func (a *DropAction) goToJail(user adventuria.User) error {
-	err := user.MoveToCellType(cells.CellTypeJail)
-	if err != nil {
-		return err
-	}
-
-	user.SetIsInJail(true)
-
-	err = user.OnAfterGoToJail().Trigger(&adventuria.OnAfterGoToJailEvent{})
-	if err != nil {
-		return err
-	}
-
-	return nil
 }

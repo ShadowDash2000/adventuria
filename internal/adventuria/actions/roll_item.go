@@ -51,10 +51,11 @@ func (a *RollItemAction) Do(user adventuria.User, _ adventuria.ActionRequest) (*
 	}
 	err = user.OnAfterItemRoll().Trigger(onAfterItemRollEvent)
 	if err != nil {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   "internal error",
-		}, fmt.Errorf("roll_item.do(): %w", err)
+		adventuria.PocketBase.Logger().Error(
+			"roll_item.do(): failed to trigger onAfterItemRoll event",
+			"error",
+			err,
+		)
 	}
 
 	onAfterWheelRollEvent := &adventuria.OnAfterWheelRollEvent{
@@ -62,10 +63,11 @@ func (a *RollItemAction) Do(user adventuria.User, _ adventuria.ActionRequest) (*
 	}
 	err = user.OnAfterWheelRoll().Trigger(onAfterWheelRollEvent)
 	if err != nil {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   "internal error",
-		}, fmt.Errorf("roll_item.do(): %w", err)
+		adventuria.PocketBase.Logger().Error(
+			"roll_item.do(): failed to trigger onAfterWheelRoll event",
+			"error",
+			err,
+		)
 	}
 
 	return &adventuria.ActionResult{

@@ -14,7 +14,7 @@ type UserBase struct {
 	lastAction ActionRecord
 	inventory  Inventory
 	timer      Timer
-	stats      *Stats
+	stats      Stats
 
 	onAfterChooseGame   *event.Hook[*OnAfterChooseGameEvent]
 	onAfterReroll       *event.Hook[*OnAfterRerollEvent]
@@ -40,7 +40,7 @@ type UserBase struct {
 func NewUser(userId string) (User, error) {
 	var err error
 	u := &UserBase{
-		stats: &Stats{},
+		stats: Stats{},
 	}
 
 	err = u.fetchUser(userId)
@@ -319,7 +319,7 @@ func (u *UserBase) Timer() Timer {
 }
 
 func (u *UserBase) Stats() *Stats {
-	return u.stats
+	return &u.stats
 }
 
 func (u *UserBase) Balance() int {

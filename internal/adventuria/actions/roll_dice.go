@@ -25,10 +25,11 @@ func (a *RollDiceAction) Do(user adventuria.User, _ adventuria.ActionRequest) (*
 	}
 	err := user.OnBeforeRoll().Trigger(onBeforeRollEvent)
 	if err != nil {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   "internal error",
-		}, fmt.Errorf("roll_dice.do(): %w", err)
+		adventuria.PocketBase.Logger().Error(
+			"roll_dice.do(): failed to trigger onBeforeRoll event",
+			"error",
+			err,
+		)
 	}
 
 	onBeforeRollMoveEvent := &adventuria.OnBeforeRollMoveEvent{
@@ -42,10 +43,11 @@ func (a *RollDiceAction) Do(user adventuria.User, _ adventuria.ActionRequest) (*
 
 	err = user.OnBeforeRollMove().Trigger(onBeforeRollMoveEvent)
 	if err != nil {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   "internal error",
-		}, fmt.Errorf("roll_dice.do(): %w", err)
+		adventuria.PocketBase.Logger().Error(
+			"roll_dice.do(): failed to trigger onBeforeRollMove event",
+			"error",
+			err,
+		)
 	}
 
 	onAfterMoveEvent, err := user.Move(onBeforeRollMoveEvent.N)
@@ -62,10 +64,11 @@ func (a *RollDiceAction) Do(user adventuria.User, _ adventuria.ActionRequest) (*
 	}
 	err = user.OnAfterRoll().Trigger(onAfterRollEvent)
 	if err != nil {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   "internal error",
-		}, fmt.Errorf("roll_dice.do(): %w", err)
+		adventuria.PocketBase.Logger().Error(
+			"roll_dice.do(): failed to trigger onAfterRoll event",
+			"error",
+			err,
+		)
 	}
 
 	return &adventuria.ActionResult{

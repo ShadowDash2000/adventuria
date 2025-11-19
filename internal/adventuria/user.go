@@ -72,8 +72,3 @@ type Stats struct {
 	MaxDiceRoll int `json:"maxDiceRoll"`
 	WheelRolled int `json:"wheelRolled"`
 }
-
-type UserSnapshot struct {
-	Data  map[string]any
-	Stats *Stats
-}
