@@ -99,6 +99,16 @@ func (g *Game) DoAction(actionType ActionType, userId string, req ActionRequest)
 		}, nil
 	}
 
+	if user.isInAction() {
+		return &ActionResult{
+			Success: false,
+			Error:   "request error: user is already in action",
+		}, nil
+	}
+
+	user.setIsInAction(true)
+	defer user.setIsInAction(false)
+
 	if ok := GameActions.CanDo(user, actionType); !ok {
 		return &ActionResult{
 			Success: false,

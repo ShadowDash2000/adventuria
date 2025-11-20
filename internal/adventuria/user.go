@@ -38,6 +38,8 @@ type User interface {
 	SetBalance(int)
 	IsStreamLive() bool
 	SetIsStreamLive(bool)
+	isInAction() bool
+	setIsInAction(bool)
 }
 
 type UserEvent interface {

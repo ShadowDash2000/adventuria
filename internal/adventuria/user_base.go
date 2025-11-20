@@ -15,6 +15,7 @@ type UserBase struct {
 	inventory  Inventory
 	timer      Timer
 	stats      Stats
+	inAction   bool
 
 	onAfterChooseGame   *event.Hook[*OnAfterChooseGameEvent]
 	onAfterReroll       *event.Hook[*OnAfterRerollEvent]
@@ -336,6 +337,14 @@ func (u *UserBase) IsStreamLive() bool {
 
 func (u *UserBase) SetIsStreamLive(isLive bool) {
 	u.Set("is_stream_live", isLive)
+}
+
+func (u *UserBase) isInAction() bool {
+	return u.inAction
+}
+
+func (u *UserBase) setIsInAction(b bool) {
+	u.inAction = b
 }
 
 func (u *UserBase) initHooks() {
