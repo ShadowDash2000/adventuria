@@ -12,6 +12,7 @@ type InventoryBase struct {
 	user     User
 	items    map[string]Item
 	maxSlots int
+	hookIds  []string
 }
 
 func NewInventory(user User, maxSlots int) (Inventory, error) {
@@ -31,7 +32,9 @@ func NewInventory(user User, maxSlots int) (Inventory, error) {
 }
 
 func (i *InventoryBase) bindHooks() {
-	PocketBase.OnRecordAfterCreateSuccess(CollectionInventory).BindFunc(func(e *core.RecordEvent) error {
+	i.hookIds = make([]string, 2)
+
+	i.hookIds[0] = PocketBase.OnRecordAfterCreateSuccess(CollectionInventory).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.GetString("user") == i.user.ID() {
 			item, err := NewItemFromInventoryRecord(i.user, e.Record)
 			if err != nil {
@@ -41,12 +44,20 @@ func (i *InventoryBase) bindHooks() {
 		}
 		return e.Next()
 	})
-	PocketBase.OnRecordAfterDeleteSuccess(CollectionInventory).BindFunc(func(e *core.RecordEvent) error {
+	i.hookIds[1] = PocketBase.OnRecordAfterDeleteSuccess(CollectionInventory).BindFunc(func(e *core.RecordEvent) error {
 		if _, ok := i.items[e.Record.Id]; ok {
 			delete(i.items, e.Record.Id)
 		}
 		return e.Next()
 	})
+}
+
+func (i *InventoryBase) Close() {
+	PocketBase.OnRecordAfterCreateSuccess(CollectionInventory).Unbind(i.hookIds[0])
+	PocketBase.OnRecordAfterDeleteSuccess(CollectionInventory).Unbind(i.hookIds[1])
+	for _, item := range i.items {
+		item.Close()
+	}
 }
 
 func (i *InventoryBase) fetchInventory() error {

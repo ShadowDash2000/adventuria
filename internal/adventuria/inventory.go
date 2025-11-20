@@ -1,6 +1,10 @@
 package adventuria
 
+import "adventuria/pkg/cache"
+
 type Inventory interface {
+	cache.Closable
+
 	MaxSlots() int
 	SetMaxSlots(int)
 	AvailableSlots() int

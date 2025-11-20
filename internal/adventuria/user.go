@@ -1,6 +1,7 @@
 package adventuria
 
 import (
+	"adventuria/pkg/cache"
 	"adventuria/pkg/event"
 
 	"github.com/pocketbase/pocketbase/core"
@@ -9,6 +10,7 @@ import (
 type User interface {
 	core.RecordProxy
 	UserEvent
+	cache.Closable
 
 	ID() string
 	Name() string

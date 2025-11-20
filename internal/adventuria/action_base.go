@@ -1,6 +1,7 @@
 package adventuria
 
 import (
+	"adventuria/pkg/cache"
 	"database/sql"
 	"errors"
 
@@ -143,48 +144,58 @@ func (a *ActionRecordBase) SetCanMove(b bool) {
 	a.Set("can_move", b)
 }
 
-func NewLastUserAction(userId string) (ActionRecord, error) {
+var _ cache.Closable = (*LastUserActionRecord)(nil)
+
+type LastUserActionRecord struct {
+	ActionRecordBase
+	hookIds []string
+}
+
+func NewLastUserAction(userId string) (*LastUserActionRecord, error) {
 	a, err := getLastUserAction(userId)
 	if err != nil {
 		return nil, err
 	}
-	actionBindHooks(a)
+
+	a.bindHooks()
 
 	return a, nil
 }
 
-func actionBindHooks(action ActionRecord) {
-	PocketBase.OnRecordAfterCreateSuccess(CollectionActions).BindFunc(func(e *core.RecordEvent) error {
+func (a *LastUserActionRecord) bindHooks() {
+	a.hookIds = make([]string, 3)
+
+	a.hookIds[0] = PocketBase.OnRecordAfterCreateSuccess(CollectionActions).BindFunc(func(e *core.RecordEvent) error {
 		userId := e.Record.GetString("user")
-		if userId != action.User() {
+		if userId != a.User() {
 			return e.Next()
 		}
 
-		action.SetProxyRecord(e.Record)
+		a.SetProxyRecord(e.Record)
 
 		return e.Next()
 	})
-	PocketBase.OnRecordAfterUpdateSuccess(CollectionActions).BindFunc(func(e *core.RecordEvent) error {
-		if e.Record.Id == action.ID() {
+	a.hookIds[1] = PocketBase.OnRecordAfterUpdateSuccess(CollectionActions).BindFunc(func(e *core.RecordEvent) error {
+		if e.Record.Id == a.ID() {
 			return e.Next()
 		}
 
-		action.SetProxyRecord(e.Record)
+		a.SetProxyRecord(e.Record)
 
 		return e.Next()
 	})
-	PocketBase.OnRecordAfterDeleteSuccess(CollectionActions).BindFunc(func(e *core.RecordEvent) error {
+	a.hookIds[2] = PocketBase.OnRecordAfterDeleteSuccess(CollectionActions).BindFunc(func(e *core.RecordEvent) error {
 		userId := e.Record.GetString("user")
-		if userId != action.User() {
+		if userId != a.User() {
 			return e.Next()
 		}
 
-		record, err := fetchLastUserAction(action.User())
+		record, err := fetchLastUserAction(a.User())
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
-				action.SetProxyRecord(core.NewRecord(GameCollections.Get(CollectionActions)))
-				action.SetType(ActionTypeNone)
-				action.SetCanMove(true)
+				a.SetProxyRecord(core.NewRecord(GameCollections.Get(CollectionActions)))
+				a.SetType(ActionTypeNone)
+				a.SetCanMove(true)
 
 				return e.Next()
 			} else {
@@ -192,25 +203,30 @@ func actionBindHooks(action ActionRecord) {
 			}
 		}
 
-		action.SetProxyRecord(record)
+		a.SetProxyRecord(record)
 
 		return e.Next()
 	})
 }
 
-func getLastUserAction(userId string) (ActionRecord, error) {
+func (a *LastUserActionRecord) Close() {
+	PocketBase.OnRecordAfterCreateSuccess(CollectionActions).Unbind(a.hookIds[0])
+	PocketBase.OnRecordAfterUpdateSuccess(CollectionActions).Unbind(a.hookIds[1])
+	PocketBase.OnRecordAfterDeleteSuccess(CollectionActions).Unbind(a.hookIds[2])
+}
+
+func getLastUserAction(userId string) (*LastUserActionRecord, error) {
 	record, err := fetchLastUserAction(userId)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return nil, err
 	}
 
-	var a ActionRecord
+	a := &LastUserActionRecord{}
 	if errors.Is(err, sql.ErrNoRows) {
-		a = NewActionRecord()
+		a.SetProxyRecord(core.NewRecord(GameCollections.Get(CollectionActions)))
 		a.SetType(ActionTypeNone)
 		a.SetCanMove(true)
 	} else {
-		a = NewActionRecord()
 		a.SetProxyRecord(record)
 	}
 

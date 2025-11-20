@@ -13,6 +13,7 @@ type ItemBase struct {
 	invItemRecord     core.BaseRecordProxy
 	effects           []Effect
 	effectsUnsubGroup map[string]event.UnsubGroup
+	hookIds           []string
 }
 
 func NewItemFromInventoryRecord(user User, invItemRecord *core.Record) (Item, error) {
@@ -88,24 +89,33 @@ func (i *ItemBase) unsubEffectByID(id string) {
 }
 
 func (i *ItemBase) bindHooks() {
-	PocketBase.OnRecordAfterUpdateSuccess(CollectionItems).BindFunc(func(e *core.RecordEvent) error {
+	i.hookIds = make([]string, 3)
+
+	i.hookIds[0] = PocketBase.OnRecordAfterUpdateSuccess(CollectionItems).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == i.itemRecord.Id {
 			i.itemRecord.SetProxyRecord(e.Record)
 		}
 		return e.Next()
 	})
-	PocketBase.OnRecordAfterUpdateSuccess(CollectionInventory).BindFunc(func(e *core.RecordEvent) error {
+	i.hookIds[1] = PocketBase.OnRecordAfterUpdateSuccess(CollectionInventory).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == i.invItemRecord.Id {
 			i.invItemRecord.SetProxyRecord(e.Record)
 		}
 		return e.Next()
 	})
-	PocketBase.OnRecordAfterDeleteSuccess(CollectionInventory).BindFunc(func(e *core.RecordEvent) error {
+	i.hookIds[2] = PocketBase.OnRecordAfterDeleteSuccess(CollectionInventory).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == i.invItemRecord.Id {
 			i.sleep()
 		}
 		return e.Next()
 	})
+}
+
+func (i *ItemBase) Close() {
+	i.sleep()
+	PocketBase.OnRecordAfterCreateSuccess(CollectionInventory).Unbind(i.hookIds[0])
+	PocketBase.OnRecordAfterUpdateSuccess(CollectionInventory).Unbind(i.hookIds[1])
+	PocketBase.OnRecordAfterDeleteSuccess(CollectionInventory).Unbind(i.hookIds[2])
 }
 
 func (i *ItemBase) IDInventory() string {

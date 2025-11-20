@@ -1,5 +1,7 @@
 package adventuria
 
+import "adventuria/pkg/cache"
+
 type ItemRecord interface {
 	ID() string
 	Name() string
@@ -15,6 +17,7 @@ type ItemRecord interface {
 
 type Item interface {
 	ItemRecord
+	cache.Closable
 
 	EffectsCount() int
 	AppliedEffectsCount() int

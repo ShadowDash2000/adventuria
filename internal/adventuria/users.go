@@ -11,7 +11,7 @@ type Users struct {
 
 func NewUsers() *Users {
 	return &Users{
-		users: cache.NewMemoryCache[string, User](time.Hour, false),
+		users: cache.NewMemoryCacheWithClose[string, User](time.Hour, false),
 	}
 }
 

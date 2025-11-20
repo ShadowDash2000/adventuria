@@ -11,11 +11,13 @@ import (
 
 type UserBase struct {
 	core.BaseRecordProxy
-	lastAction ActionRecord
-	inventory  Inventory
-	timer      Timer
-	stats      Stats
-	inAction   bool
+	lastAction         *LastUserActionRecord
+	inventory          Inventory
+	timer              Timer
+	stats              Stats
+	inAction           bool
+	hookIds            []string
+	pEffectsUnsubGroup []event.UnsubGroup
 
 	onAfterChooseGame   *event.Hook[*OnAfterChooseGameEvent]
 	onAfterReroll       *event.Hook[*OnAfterRerollEvent]
@@ -89,31 +91,46 @@ func NewUserFromName(name string) (User, error) {
 }
 
 func (u *UserBase) bindHooks() {
-	PocketBase.OnRecordAfterUpdateSuccess(CollectionUsers).BindFunc(func(e *core.RecordEvent) error {
+	u.hookIds = make([]string, 3)
+
+	u.hookIds[0] = PocketBase.OnRecordAfterUpdateSuccess(CollectionUsers).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == u.Id {
 			u.SetProxyRecord(e.Record)
 		}
 		return e.Next()
 	})
-	PocketBase.OnRecordUpdate(CollectionUsers).BindFunc(func(e *core.RecordEvent) error {
+	u.hookIds[1] = PocketBase.OnRecordUpdate(CollectionUsers).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == u.Id {
 			e.Record.Set("stats", u.stats)
 		}
 		return e.Next()
 	})
 
-	persistentEffectsUnsubGroup := make([]event.UnsubGroup, len(persistentEffectsList))
+	i := 0
+	u.pEffectsUnsubGroup = make([]event.UnsubGroup, len(persistentEffectsList))
 	for _, effectCreator := range persistentEffectsList {
 		effect := effectCreator()
 		unsubs := effect.Subscribe(u)
-		persistentEffectsUnsubGroup = append(persistentEffectsUnsubGroup, event.UnsubGroup{Fns: unsubs})
+		u.pEffectsUnsubGroup[i] = event.UnsubGroup{Fns: unsubs}
+		i++
 	}
-	PocketBase.OnTerminate().BindFunc(func(e *core.TerminateEvent) error {
-		for _, unsubGroup := range persistentEffectsUnsubGroup {
+	u.hookIds[2] = PocketBase.OnTerminate().BindFunc(func(e *core.TerminateEvent) error {
+		for _, unsubGroup := range u.pEffectsUnsubGroup {
 			unsubGroup.Unsubscribe()
 		}
 		return e.Next()
 	})
+}
+
+func (u *UserBase) Close() {
+	PocketBase.OnRecordAfterUpdateSuccess(CollectionUsers).Unbind(u.hookIds[0])
+	PocketBase.OnRecordUpdate(CollectionUsers).Unbind(u.hookIds[1])
+	PocketBase.OnTerminate().Unbind(u.hookIds[2])
+	for _, unsubGroup := range u.pEffectsUnsubGroup {
+		unsubGroup.Unsubscribe()
+	}
+	u.inventory.Close()
+	u.lastAction.Close()
 }
 
 func (u *UserBase) SetProxyRecord(record *core.Record) {
@@ -224,7 +241,7 @@ func (u *UserBase) Move(steps int) (*OnAfterMoveEvent, error) {
 
 	u.setCellsPassed(cellsPassed + steps)
 
-	u.lastAction = NewActionRecord()
+	u.lastAction.SetProxyRecord(core.NewRecord(GameCollections.Get(CollectionActions)))
 	u.lastAction.SetUser(u.ID())
 	u.lastAction.SetType(ActionTypeMove)
 	u.lastAction.SetDiceRoll(steps)
