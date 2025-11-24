@@ -239,7 +239,7 @@ func (u *UserBase) Move(steps int) (*OnAfterMoveEvent, error) {
 		return nil, fmt.Errorf("Move(): cell with num = %d not found, steps = %d", currentCellNum, steps)
 	}
 
-	u.setCellsPassed(cellsPassed + steps)
+	u.setCellsPassed(totalSteps)
 
 	u.lastAction.SetProxyRecord(core.NewRecord(GameCollections.Get(CollectionActions)))
 	u.lastAction.SetUser(u.ID())

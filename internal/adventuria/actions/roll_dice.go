@@ -15,8 +15,13 @@ func (a *RollDiceAction) CanDo(user adventuria.User) bool {
 
 type RollDiceResult struct {
 	Roll        int             `json:"roll"`
-	DiceRolls   []int           `json:"dice_roll"`
+	DiceRolls   []DiceRoll      `json:"dice_rolls"`
 	CurrentCell adventuria.Cell `json:"current_cell"`
+}
+
+type DiceRoll struct {
+	Type string `json:"type"`
+	Roll int    `json:"roll"`
 }
 
 func (a *RollDiceAction) Do(user adventuria.User, _ adventuria.ActionRequest) (*adventuria.ActionResult, error) {
@@ -35,10 +40,13 @@ func (a *RollDiceAction) Do(user adventuria.User, _ adventuria.ActionRequest) (*
 	onBeforeRollMoveEvent := &adventuria.OnBeforeRollMoveEvent{
 		N: 0,
 	}
-	diceRolls := make([]int, len(onBeforeRollEvent.Dices))
+	diceRolls := make([]DiceRoll, len(onBeforeRollEvent.Dices))
 	for i, dice := range onBeforeRollEvent.Dices {
-		diceRolls[i] = dice.Roll()
-		onBeforeRollMoveEvent.N += diceRolls[i]
+		diceRolls[i] = DiceRoll{
+			Type: dice.Type,
+			Roll: dice.Roll(),
+		}
+		onBeforeRollMoveEvent.N += diceRolls[i].Roll
 	}
 
 	err = user.OnBeforeRollMove().Trigger(onBeforeRollMoveEvent)
