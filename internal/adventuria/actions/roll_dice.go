@@ -66,6 +66,8 @@ func (a *RollDiceAction) Do(user adventuria.User, _ adventuria.ActionRequest) (*
 		}, fmt.Errorf("roll_dice.do(): %w", err)
 	}
 
+	user.LastAction().SetType(ActionTypeRollDice)
+
 	onAfterRollEvent := &adventuria.OnAfterRollEvent{
 		Dices: onBeforeRollEvent.Dices,
 		N:     onBeforeRollMoveEvent.N,

@@ -176,7 +176,7 @@ func (a *LastUserActionRecord) bindHooks() {
 		return e.Next()
 	})
 	a.hookIds[1] = PocketBase.OnRecordAfterUpdateSuccess(CollectionActions).BindFunc(func(e *core.RecordEvent) error {
-		if e.Record.Id == a.ID() {
+		if e.Record.Id != a.ID() {
 			return e.Next()
 		}
 
