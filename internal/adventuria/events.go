@@ -23,7 +23,7 @@ type OnAfterGoToJailEvent struct {
 }
 type OnBeforeDoneEvent struct {
 	event.Event
-	CellPointsDivide int
+	CellPoints int
 }
 type OnAfterDoneEvent struct {
 	event.Event

@@ -54,8 +54,8 @@ func Test_DiceMultiplier(t *testing.T) {
 	t.Log("Test_DiceMultiplier(): Roll dice result:", rollDiceRes)
 
 	dicesSum := 0
-	for _, n := range rollDiceRes.DiceRolls {
-		dicesSum += n
+	for _, roll := range rollDiceRes.DiceRolls {
+		dicesSum += roll.Roll
 	}
 
 	wantRoll := dicesSum * 2

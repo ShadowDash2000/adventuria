@@ -17,7 +17,7 @@ func (ef *CellPointsDivideEffect) Subscribe(
 	return []event.Unsubscribe{
 		user.OnBeforeDone().BindFunc(func(e *adventuria.OnBeforeDoneEvent) error {
 			if i := ef.GetInt("value"); i != 0 {
-				e.CellPointsDivide = i
+				e.CellPoints = e.CellPoints / i
 			}
 
 			callback()

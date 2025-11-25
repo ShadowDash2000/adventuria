@@ -33,9 +33,8 @@ func (a *DoneAction) Do(user adventuria.User, req adventuria.ActionRequest) (*ad
 		}, errors.New("done.do(): current cell not found")
 	}
 
-	// TODO: we need to pass actual cell points here instead of doing math here
 	onBeforeDoneEvent := &adventuria.OnBeforeDoneEvent{
-		CellPointsDivide: 0,
+		CellPoints: currentCell.Points(),
 	}
 	err := user.OnBeforeDone().Trigger(onBeforeDoneEvent)
 	if err != nil {
@@ -51,14 +50,9 @@ func (a *DoneAction) Do(user adventuria.User, req adventuria.ActionRequest) (*ad
 	action.SetComment(comment)
 	action.SetCanMove(true)
 
-	cellPoints := currentCell.Points()
-	if onBeforeDoneEvent.CellPointsDivide != 0 {
-		cellPoints /= onBeforeDoneEvent.CellPointsDivide
-	}
-
 	user.SetDropsInARow(0)
 	user.SetIsInJail(false)
-	user.SetPoints(user.Points() + cellPoints)
+	user.SetPoints(user.Points() + onBeforeDoneEvent.CellPoints)
 
 	onAfterDoneEvent := &adventuria.OnAfterDoneEvent{}
 	err = user.OnAfterDone().Trigger(onAfterDoneEvent)

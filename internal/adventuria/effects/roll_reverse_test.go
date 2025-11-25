@@ -53,8 +53,8 @@ func Test_RollReverse(t *testing.T) {
 		}
 
 		dicesSum := 0
-		for _, n := range rollDiceRes.DiceRolls {
-			dicesSum += n
+		for _, roll := range rollDiceRes.DiceRolls {
+			dicesSum += roll.Roll
 		}
 
 		wantRoll := dicesSum * -1
