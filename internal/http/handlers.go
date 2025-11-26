@@ -140,7 +140,8 @@ func (h *Handlers) RollItemHandler(e *core.RequestEvent) error {
 
 func (h *Handlers) UseItemHandler(e *core.RequestEvent) error {
 	data := struct {
-		ItemId string `json:"itemId"`
+		ItemId string                    `json:"itemId"`
+		Data   adventuria.UseItemRequest `json:"data"`
 	}{}
 
 	err := e.BindBody(&data)
@@ -148,7 +149,7 @@ func (h *Handlers) UseItemHandler(e *core.RequestEvent) error {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	err = h.Game.UseItem(e.Auth.Id, data.ItemId)
+	err = h.Game.UseItem(e.Auth.Id, data.ItemId, data.Data)
 	if err != nil {
 		return e.JSON(http.StatusInternalServerError, err.Error())
 	}

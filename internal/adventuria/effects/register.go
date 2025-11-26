@@ -16,6 +16,8 @@ func WithBaseEffects() {
 		"cellPointsDivide":            adventuria.NewEffect(&CellPointsDivideEffect{}),
 		"teleportToRandomCellByTypes": nil,
 		"teleportToRandomCellByName":  adventuria.NewEffect(&TeleportToRandomCellByNameEffect{}),
+		"changeMaxGamePrice":          adventuria.NewEffect(&ChangeMaxGamePriceEffect{}),
+		"noTimeLimit":                 adventuria.NewEffect(&NoTimeLimitEffect{}),
 	})
 
 	adventuria.RegisterPersistentEffects(map[string]adventuria.PersistentEffectCreator{

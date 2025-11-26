@@ -1076,6 +1076,16 @@ func init() {
 						"required": false,
 						"system": false,
 						"type": "bool"
+					},
+					{
+						"hidden": false,
+						"id": "json49410773",
+						"maxSize": 0,
+						"name": "game_filter",
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "json"
 					}
 				],
 				"id": "pbc_2484833797",

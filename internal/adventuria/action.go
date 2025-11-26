@@ -2,6 +2,7 @@ package adventuria
 
 import (
 	"github.com/pocketbase/pocketbase/core"
+	"github.com/pocketbase/pocketbase/tools/types"
 )
 
 type Action interface {
@@ -35,6 +36,21 @@ type ActionRecord interface {
 	SetItemsList([]string)
 	CanMove() bool
 	SetCanMove(bool)
+	CustomGameFilter() *CustomGameFilter
+}
+
+type CustomGameFilter struct {
+	Platforms       []string
+	Developers      []string
+	Publishers      []string
+	Genres          []string
+	Tags            []string
+	MinPrice        int
+	MaxPrice        int
+	ReleaseDateFrom types.DateTime
+	ReleaseDateTo   types.DateTime
+	MinCampaignTime float64
+	MaxCampaignTime float64
 }
 
 type ActionType string

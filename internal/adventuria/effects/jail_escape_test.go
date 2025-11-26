@@ -38,7 +38,7 @@ func Test_JailEscape(t *testing.T) {
 
 	user.SetIsInJail(true)
 
-	err = game.UseItem(user.ID(), invItemId)
+	err = game.UseItem(user.ID(), invItemId, adventuria.UseItemRequest{})
 	if err != nil {
 		t.Fatal(err)
 	}

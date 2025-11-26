@@ -46,6 +46,7 @@ func (a *ActionBase) setType(t ActionType) {
 
 type ActionRecordBase struct {
 	core.BaseRecordProxy
+	gameFilter CustomGameFilter
 }
 
 func NewActionRecord() ActionRecord {
@@ -61,6 +62,11 @@ func NewActionRecordFromRecord(record *core.Record) ActionRecord {
 	a.SetProxyRecord(record)
 
 	return a
+}
+
+func (a *ActionRecordBase) SetProxyRecord(record *core.Record) {
+	a.BaseRecordProxy.SetProxyRecord(record)
+	a.UnmarshalJSONField("game_filter", &a.gameFilter)
 }
 
 func (a *ActionRecordBase) ID() string {
@@ -142,6 +148,10 @@ func (a *ActionRecordBase) CanMove() bool {
 
 func (a *ActionRecordBase) SetCanMove(b bool) {
 	a.Set("can_move", b)
+}
+
+func (a *ActionRecordBase) CustomGameFilter() *CustomGameFilter {
+	return &a.gameFilter
 }
 
 var _ cache.Closable = (*LastUserActionRecord)(nil)
@@ -226,6 +236,10 @@ func getLastUserAction(userId string) (*LastUserActionRecord, error) {
 		a.SetProxyRecord(core.NewRecord(GameCollections.Get(CollectionActions)))
 		a.SetType(ActionTypeNone)
 		a.SetCanMove(true)
+		firstCell, ok := GameCells.GetByOrder(0)
+		if ok {
+			a.setCell(firstCell.ID())
+		}
 	} else {
 		a.SetProxyRecord(record)
 	}

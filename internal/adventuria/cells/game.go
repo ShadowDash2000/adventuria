@@ -24,6 +24,13 @@ func NewCellGame() adventuria.CellCreator {
 }
 
 func (c *CellGame) Roll(user adventuria.User, _ adventuria.RollWheelRequest) (*adventuria.WheelRollResult, error) {
+	if err := c.checkCustomFilter(user); err != nil {
+		return &adventuria.WheelRollResult{
+			Success: false,
+			Error:   "internal error: can't apply custom filter",
+		}, fmt.Errorf("game.roll(): can't apply custom filter: %w", err)
+	}
+
 	items, err := user.LastAction().ItemsList()
 	if err != nil {
 		return &adventuria.WheelRollResult{
@@ -80,6 +87,79 @@ func (c *CellGame) OnCellReached(user adventuria.User) error {
 	}
 
 	user.LastAction().SetItemsList(res)
+
+	return nil
+}
+
+func (c *CellGame) checkCustomFilter(user adventuria.User) error {
+	needToUpdate := false
+	customFilter := user.LastAction().CustomGameFilter()
+	filter := adventuria.GameFilterRecord(&adventuria.GameFilterBase{})
+	if c.Filter() != "" {
+		filterRecord, err := adventuria.PocketBase.FindRecordById(
+			adventuria.GameCollections.Get(adventuria.CollectionGameFilters),
+			c.Filter(),
+		)
+		if err != nil {
+			return err
+		}
+
+		filter = adventuria.NewGameFilterFromRecord(filterRecord)
+	}
+
+	if len(customFilter.Platforms) > 0 {
+		filter.SetPlatforms(append(filter.Platforms(), customFilter.Platforms...))
+		needToUpdate = true
+	}
+	if len(customFilter.Developers) > 0 {
+		filter.SetDevelopers(append(filter.Developers(), customFilter.Developers...))
+		needToUpdate = true
+	}
+	if len(customFilter.Publishers) > 0 {
+		filter.SetPublishers(append(filter.Publishers(), customFilter.Publishers...))
+		needToUpdate = true
+	}
+	if len(customFilter.Genres) > 0 {
+		filter.SetGenres(append(filter.Genres(), customFilter.Genres...))
+		needToUpdate = true
+	}
+	if len(customFilter.Tags) > 0 {
+		filter.SetTags(append(filter.Tags(), customFilter.Tags...))
+		needToUpdate = true
+	}
+	if customFilter.MinPrice != 0 {
+		filter.SetMinPrice(customFilter.MinPrice)
+		needToUpdate = true
+	}
+	if customFilter.MaxPrice != 0 {
+		filter.SetMaxPrice(customFilter.MaxPrice)
+		needToUpdate = true
+	}
+	if !customFilter.ReleaseDateFrom.IsZero() {
+		filter.SetReleaseDateFrom(customFilter.ReleaseDateFrom)
+		needToUpdate = true
+	}
+	if !customFilter.ReleaseDateTo.IsZero() {
+		filter.SetReleaseDateTo(customFilter.ReleaseDateTo)
+		needToUpdate = true
+	}
+	if customFilter.MinCampaignTime != 0 {
+		filter.SetMinCampaignTime(customFilter.MinCampaignTime)
+		needToUpdate = true
+	}
+	if customFilter.MaxCampaignTime != 0 {
+		filter.SetMaxCampaignTime(customFilter.MaxCampaignTime)
+		needToUpdate = true
+	}
+
+	if needToUpdate {
+		res, err := FetchRecordsByFilter(filter)
+		if err != nil {
+			return err
+		}
+
+		user.LastAction().SetItemsList(res)
+	}
 
 	return nil
 }

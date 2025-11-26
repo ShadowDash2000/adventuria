@@ -154,7 +154,9 @@ func (g *Game) DoAction(actionType ActionType, userId string, req ActionRequest)
 	return res, nil
 }
 
-func (g *Game) UseItem(userId, itemId string) error {
+type UseItemRequest map[string]any
+
+func (g *Game) UseItem(userId, itemId string, req UseItemRequest) error {
 	user, err := GameUsers.GetByID(userId)
 	if err != nil {
 		return err
@@ -165,10 +167,10 @@ func (g *Game) UseItem(userId, itemId string) error {
 		return err
 	}
 
-	onAfterItemUseEvent := &OnAfterItemUseEvent{
-		ItemId: itemId,
-	}
-	err = user.OnAfterItemUse().Trigger(onAfterItemUseEvent)
+	err = user.OnAfterItemUse().Trigger(&OnAfterItemUseEvent{
+		ItemId:  itemId,
+		Request: req,
+	})
 	if err != nil {
 		return err
 	}
@@ -179,6 +181,11 @@ func (g *Game) UseItem(userId, itemId string) error {
 	}
 
 	err = PocketBase.Save(user.ProxyRecord())
+	if err != nil {
+		return err
+	}
+
+	err = PocketBase.Save(user.LastAction().ProxyRecord())
 	if err != nil {
 		return err
 	}

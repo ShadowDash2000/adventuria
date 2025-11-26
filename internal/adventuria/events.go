@@ -55,7 +55,12 @@ type OnAfterItemRollEvent struct {
 }
 type OnAfterItemUseEvent struct {
 	event.Event
-	ItemId string
+	ItemId  string
+	Request UseItemRequest
+}
+type OnAfterItemAdd struct {
+	event.Event
+	ItemRecord ItemRecord
 }
 type OnNewLapEvent struct {
 	event.Event

@@ -2,6 +2,7 @@ package actions
 
 import (
 	"adventuria/internal/adventuria"
+	"fmt"
 )
 
 type RerollAction struct {
@@ -34,8 +35,18 @@ func (a *RerollAction) Do(user adventuria.User, req adventuria.ActionRequest) (*
 	action := user.LastAction()
 	action.SetType(ActionTypeReroll)
 	action.SetComment(comment)
+	err := adventuria.PocketBase.Save(action.ProxyRecord())
+	if err != nil {
+		return &adventuria.ActionResult{
+			Success: false,
+			Error:   "internal error: can't save action record",
+		}, fmt.Errorf("reroll.do(): %w", err)
+	}
+	action.ProxyRecord().MarkAsNew()
+	action.ProxyRecord().Set("id", "")
+	action.SetComment("")
 
-	err := user.OnAfterReroll().Trigger(&adventuria.OnAfterRerollEvent{})
+	err = user.OnAfterReroll().Trigger(&adventuria.OnAfterRerollEvent{})
 	if err != nil {
 		adventuria.PocketBase.Logger().Error(
 			"reroll.do(): failed to trigger onAfterReroll event",

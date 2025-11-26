@@ -37,7 +37,7 @@ func Test_RollReverse(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		err = game.UseItem(user.ID(), invItemId)
+		err = game.UseItem(user.ID(), invItemId, adventuria.UseItemRequest{})
 		if err != nil {
 			t.Fatal(err)
 		}

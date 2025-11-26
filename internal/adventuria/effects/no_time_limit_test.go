@@ -11,17 +11,17 @@ import (
 	"github.com/pocketbase/pocketbase/tools/filesystem"
 )
 
-func Test_DiceIncrement(t *testing.T) {
+func Test_NoTimeLimit(t *testing.T) {
 	actions.WithBaseActions()
 	cells.WithBaseCells()
 	WithBaseEffects()
 
-	game, err := tests.NewGameTest()
+	_, err := tests.NewGameTest()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	item, err := createDiceIncrementItem()
+	item, err := createNoTimeLimitItem()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -31,41 +31,23 @@ func Test_DiceIncrement(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	invItemId, err := user.Inventory().AddItemById(item.Id)
+	_, err = user.Inventory().AddItemById(item.Id)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = game.UseItem(user.ID(), invItemId, adventuria.UseItemRequest{})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	res, err := game.DoAction(actions.ActionTypeRollDice, user.ID(), adventuria.ActionRequest{})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	rollDiceRes, ok := res.Data.(actions.RollDiceResult)
-	if !ok {
-		t.Fatal("Test_DiceIncrement(): Result data is not RollDiceResult")
-	}
-
-	t.Log("Test_DiceIncrement(): Roll dice result:", rollDiceRes)
-
-	dicesSum := 0
-	for _, roll := range rollDiceRes.DiceRolls {
-		dicesSum += roll.Roll
-	}
-
-	wantRoll := dicesSum + 2
-	if wantRoll != rollDiceRes.Roll {
-		t.Fatalf("Test_DiceIncrement(): Roll not incremented, want = %d, got = %d", wantRoll, rollDiceRes.Roll)
+	if user.LastAction().CustomGameFilter().MinCampaignTime != -1 ||
+		user.LastAction().CustomGameFilter().MaxCampaignTime != -1 {
+		t.Fatalf(
+			"Test_NoTimeLimit(): Min/Max campaign time is %f/%f, expected -1/-1",
+			user.LastAction().CustomGameFilter().MinCampaignTime,
+			user.LastAction().CustomGameFilter().MaxCampaignTime,
+		)
 	}
 }
 
-func createDiceIncrementItem() (*core.Record, error) {
-	effectRecord, err := createDiceIncrementEffect()
+func createNoTimeLimitItem() (*core.Record, error) {
+	effectRecord, err := createNoTimeLimitEffect()
 	if err != nil {
 		return nil, err
 	}
@@ -76,12 +58,14 @@ func createDiceIncrementItem() (*core.Record, error) {
 	}
 
 	record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionItems))
-	record.Set("name", "Dice Increment")
+	record.Set("name", "No Time Limit")
 	record.Set("effects", []string{effectRecord.Id})
 	record.Set("icon", icon)
 	record.Set("order", 1)
 	record.Set("isUsingSlot", true)
-	record.Set("canDrop", true)
+	record.Set("canDrop", false)
+	record.Set("isActiveByDefault", true)
+
 	err = adventuria.PocketBase.Save(record)
 	if err != nil {
 		return nil, err
@@ -90,11 +74,10 @@ func createDiceIncrementItem() (*core.Record, error) {
 	return record, nil
 }
 
-func createDiceIncrementEffect() (*core.Record, error) {
+func createNoTimeLimitEffect() (*core.Record, error) {
 	record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionEffects))
-	record.Set("name", "Dice Increment")
-	record.Set("type", "diceIncrement")
-	record.Set("value", 2)
+	record.Set("name", "No Time Limit")
+	record.Set("type", "noTimeLimit")
 	err := adventuria.PocketBase.Save(record)
 	if err != nil {
 		return nil, err

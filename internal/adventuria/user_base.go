@@ -38,6 +38,7 @@ type UserBase struct {
 	onAfterAction       *event.Hook[*OnAfterActionEvent]
 	onAfterMove         *event.Hook[*OnAfterMoveEvent]
 	onBeforeCurrentCell *event.Hook[*OnBeforeCurrentCellEvent]
+	onAfterItemAdd      *event.Hook[*OnAfterItemAdd]
 }
 
 func NewUser(userId string) (User, error) {
@@ -384,6 +385,7 @@ func (u *UserBase) initHooks() {
 	u.onAfterAction = &event.Hook[*OnAfterActionEvent]{}
 	u.onAfterMove = &event.Hook[*OnAfterMoveEvent]{}
 	u.onBeforeCurrentCell = &event.Hook[*OnBeforeCurrentCellEvent]{}
+	u.onAfterItemAdd = &event.Hook[*OnAfterItemAdd]{}
 }
 
 func (u *UserBase) OnAfterChooseGame() *event.Hook[*OnAfterChooseGameEvent] {
@@ -460,4 +462,8 @@ func (u *UserBase) OnAfterMove() *event.Hook[*OnAfterMoveEvent] {
 
 func (u *UserBase) OnBeforeCurrentCell() *event.Hook[*OnBeforeCurrentCellEvent] {
 	return u.onBeforeCurrentCell
+}
+
+func (u *UserBase) OnAfterItemAdd() *event.Hook[*OnAfterItemAdd] {
+	return u.onAfterItemAdd
 }

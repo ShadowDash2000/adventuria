@@ -11,7 +11,6 @@ const (
 	ActionTypeRollItem      adventuria.ActionType = "rollItem"
 	ActionTypeBuyItem       adventuria.ActionType = "buyItem"
 	ActionTypeUpdateComment adventuria.ActionType = "update_comment"
-	ActionTypeRerollFilter  adventuria.ActionType = "reroll_filter"
 )
 
 func WithBaseActions() {
@@ -24,6 +23,5 @@ func WithBaseActions() {
 		adventuria.NewAction(ActionTypeRollItem, &RollItemAction{}),
 		adventuria.NewAction(ActionTypeBuyItem, &BuyAction{}),
 		adventuria.NewAction(ActionTypeUpdateComment, &UpdateCommentAction{}),
-		adventuria.NewAction(ActionTypeRerollFilter, &RerollFilterAction{}),
 	})
 }

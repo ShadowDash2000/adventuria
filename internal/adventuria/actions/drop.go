@@ -61,6 +61,16 @@ func (a *DropAction) Do(user adventuria.User, req adventuria.ActionRequest) (*ad
 	action := user.LastAction()
 	action.SetType(ActionTypeDrop)
 	action.SetComment(comment)
+	err = adventuria.PocketBase.Save(action.ProxyRecord())
+	if err != nil {
+		return &adventuria.ActionResult{
+			Success: false,
+			Error:   "internal error: can't save action record",
+		}, fmt.Errorf("drop.do(): %w", err)
+	}
+	action.ProxyRecord().MarkAsNew()
+	action.ProxyRecord().Set("id", "")
+	action.SetComment("")
 
 	if !onBeforeDropEvent.IsSafeDrop && !currentCell.IsSafeDrop() {
 		user.SetPoints(user.Points() + adventuria.GameSettings.PointsForDrop())

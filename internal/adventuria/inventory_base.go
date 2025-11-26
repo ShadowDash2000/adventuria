@@ -41,6 +41,10 @@ func (i *InventoryBase) bindHooks() {
 				return err
 			}
 			i.items[e.Record.Id] = item
+
+			_ = i.user.OnAfterItemAdd().Trigger(&OnAfterItemAdd{
+				ItemRecord: item,
+			})
 		}
 		return e.Next()
 	})
@@ -115,6 +119,10 @@ func (i *InventoryBase) AddItem(item ItemRecord) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
+	_ = i.user.OnAfterItemAdd().Trigger(&OnAfterItemAdd{
+		ItemRecord: item,
+	})
 
 	return record.Id, nil
 }

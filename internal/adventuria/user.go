@@ -64,6 +64,7 @@ type UserEvent interface {
 	OnAfterAction() *event.Hook[*OnAfterActionEvent]
 	OnAfterMove() *event.Hook[*OnAfterMoveEvent]
 	OnBeforeCurrentCell() *event.Hook[*OnBeforeCurrentCellEvent]
+	OnAfterItemAdd() *event.Hook[*OnAfterItemAdd]
 }
 
 type Stats struct {
