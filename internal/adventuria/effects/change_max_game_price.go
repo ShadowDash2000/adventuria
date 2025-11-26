@@ -11,16 +11,16 @@ type ChangeMaxGamePriceEffect struct {
 }
 
 func (ef *ChangeMaxGamePriceEffect) Subscribe(
-	user adventuria.User,
+	ctx adventuria.EffectContext,
 	callback adventuria.EffectCallback,
 ) []event.Unsubscribe {
 	return []event.Unsubscribe{
-		user.OnAfterItemAdd().BindFunc(func(e *adventuria.OnAfterItemAdd) error {
+		ctx.User.OnAfterItemAdd().BindFunc(func(e *adventuria.OnAfterItemAdd) error {
 			if i := ef.GetInt("value"); i != 0 {
-				user.LastAction().CustomGameFilter().MaxPrice = i
-			}
+				ctx.User.LastAction().CustomGameFilter().MaxPrice = i
 
-			callback()
+				callback()
+			}
 
 			return e.Next()
 		}),

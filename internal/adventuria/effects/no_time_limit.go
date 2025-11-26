@@ -10,13 +10,13 @@ type NoTimeLimitEffect struct {
 }
 
 func (ef *NoTimeLimitEffect) Subscribe(
-	user adventuria.User,
+	ctx adventuria.EffectContext,
 	callback adventuria.EffectCallback,
 ) []event.Unsubscribe {
 	return []event.Unsubscribe{
-		user.OnAfterItemAdd().BindFunc(func(e *adventuria.OnAfterItemAdd) error {
-			user.LastAction().CustomGameFilter().MinCampaignTime = -1
-			user.LastAction().CustomGameFilter().MaxCampaignTime = -1
+		ctx.User.OnAfterItemAdd().BindFunc(func(e *adventuria.OnAfterItemAdd) error {
+			ctx.User.LastAction().CustomGameFilter().MinCampaignTime = -1
+			ctx.User.LastAction().CustomGameFilter().MaxCampaignTime = -1
 
 			callback()
 

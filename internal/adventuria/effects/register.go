@@ -18,6 +18,7 @@ func WithBaseEffects() {
 		"teleportToRandomCellByName":  adventuria.NewEffect(&TeleportToRandomCellByNameEffect{}),
 		"changeMaxGamePrice":          adventuria.NewEffect(&ChangeMaxGamePriceEffect{}),
 		"noTimeLimit":                 adventuria.NewEffect(&NoTimeLimitEffect{}),
+		"addGameTag":                  adventuria.NewEffect(&AddGameTagEffect{}),
 	})
 
 	adventuria.RegisterPersistentEffects(map[string]adventuria.PersistentEffectCreator{

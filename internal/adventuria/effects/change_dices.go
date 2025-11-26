@@ -13,11 +13,11 @@ type ChangeDicesEffect struct {
 }
 
 func (ef *ChangeDicesEffect) Subscribe(
-	user adventuria.User,
+	ctx adventuria.EffectContext,
 	callback adventuria.EffectCallback,
 ) []event.Unsubscribe {
 	return []event.Unsubscribe{
-		user.OnBeforeRoll().BindFunc(func(e *adventuria.OnBeforeRollEvent) error {
+		ctx.User.OnBeforeRoll().BindFunc(func(e *adventuria.OnBeforeRollEvent) error {
 			dicesAny, _ := ef.DecodeValue(ef.GetString("value"))
 			dices := dicesAny.([]string)
 			diceList := make([]*adventuria.Dice, len(dices))

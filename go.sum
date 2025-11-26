@@ -18,14 +18,8 @@ github.com/Masterminds/semver/v3 v3.4.0 h1:Zog+i5UMtVoCU8oKka5P7i9q9HgrJeGzI9SA1
 github.com/Masterminds/semver/v3 v3.4.0/go.mod h1:4V+yj/TJE1HU9XfppCwVMZq3I84lprf4nC11bSS5beM=
 github.com/PuerkitoBio/goquery v1.11.0 h1:jZ7pwMQXIITcUXNH83LLk+txlaEy6NVOfTuP43xxfqw=
 github.com/PuerkitoBio/goquery v1.11.0/go.mod h1:wQHgxUOU3JGuj3oD/QFfxUdlzW6xPHfqyHre6VMY4DQ=
-github.com/ShadowDash2000/is-stream-live v0.0.2 h1:Bn0tA0kjiP9DlRNbugmEjC/Sw0GGzZ+4pr7FqVR7XJs=
-github.com/ShadowDash2000/is-stream-live v0.0.2/go.mod h1:HgYDSY7jw97ChiihbIIXENBCazNPf/Wyi2rQOJcgNTs=
-github.com/ShadowDash2000/is-stream-live v0.0.3 h1:5R21ibCLjw5Aiaht3bxknWIxzkdRzS+vEKQcW0WMOfM=
-github.com/ShadowDash2000/is-stream-live v0.0.3/go.mod h1:HgYDSY7jw97ChiihbIIXENBCazNPf/Wyi2rQOJcgNTs=
-github.com/ShadowDash2000/is-stream-live v0.0.4 h1:WlZlThnKWZJ4YD4hCGAVIdgf0SfrfiE/scs9QUnoYO0=
-github.com/ShadowDash2000/is-stream-live v0.0.4/go.mod h1:HgYDSY7jw97ChiihbIIXENBCazNPf/Wyi2rQOJcgNTs=
-github.com/ShadowDash2000/is-stream-live v0.0.5 h1:K5U2Oa5mmEn7FAvyG+BpaS6In90ag61wcjlbnY+E4tg=
-github.com/ShadowDash2000/is-stream-live v0.0.5/go.mod h1:HgYDSY7jw97ChiihbIIXENBCazNPf/Wyi2rQOJcgNTs=
+github.com/ShadowDash2000/is-stream-live v0.0.6 h1:Mpj9MPKGEiJmznlBsT3XYNGR4+k/fddKEvq7niVt9d8=
+github.com/ShadowDash2000/is-stream-live v0.0.6/go.mod h1:HgYDSY7jw97ChiihbIIXENBCazNPf/Wyi2rQOJcgNTs=
 github.com/ShadowDash2000/steam-store-go v0.0.5 h1:Bnd94/vxB+AmB7clzKgjiMO4PpsRl0j8q63bPYNz/Tw=
 github.com/ShadowDash2000/steam-store-go v0.0.5/go.mod h1:XY2zSzOgWj87WkE3PcC6sWkC4tzHqUixgxDUuBgCR7A=
 github.com/andybalholm/brotli v1.0.5/go.mod h1:fO7iG3H7G2nSZ7m0zPUDn85XEX2GTukHGRSepvi9Eig=
@@ -196,8 +190,6 @@ github.com/matttproud/golang_protobuf_extensions v1.0.1/go.mod h1:D8He9yQNgCq6Z5
 github.com/mfridman/tparse v0.18.0 h1:wh6dzOKaIwkUGyKgOntDW4liXSo37qg5AXbIhkMV3vE=
 github.com/mfridman/tparse v0.18.0/go.mod h1:gEvqZTuCgEhPbYk/2lS3Kcxg1GmTxxU7kTC8DvP0i/A=
 github.com/microcosm-cc/bluemonday v1.0.1/go.mod h1:hsXNsILzKxV+sX77C5b8FSuKF00vh2OMYv+xgHpAMF4=
-github.com/mitchellh/mapstructure v1.5.0 h1:jeMsZIYE/09sWLaz43PL7Gy6RuMjD2eJVyuac5Z2hdY=
-github.com/mitchellh/mapstructure v1.5.0/go.mod h1:bFUtVrKA4DC2yAKiSyO/QUcy7e+RRV2QTWOzhPopBRo=
 github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd/go.mod h1:6dJC0mAP4ikYIbvyc7fijjWJddQyLn8Ig3JB5CqoB9Q=
 github.com/modern-go/reflect2 v1.0.1/go.mod h1:bx2lNnkwVCuqBIxFjflWJWanXIb3RllmbCylyMrvgv0=
 github.com/ncruces/go-strftime v1.0.0 h1:HMFp8mLCTPp341M/ZnA4qaf7ZlsbTc+miZjCLOFAw7w=

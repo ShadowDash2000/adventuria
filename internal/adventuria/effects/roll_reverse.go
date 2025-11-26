@@ -10,11 +10,11 @@ type RollReverseEffect struct {
 }
 
 func (ef *RollReverseEffect) Subscribe(
-	user adventuria.User,
+	ctx adventuria.EffectContext,
 	callback adventuria.EffectCallback,
 ) []event.Unsubscribe {
 	return []event.Unsubscribe{
-		user.OnBeforeRollMove().BindFunc(func(e *adventuria.OnBeforeRollMoveEvent) error {
+		ctx.User.OnBeforeRollMove().BindFunc(func(e *adventuria.OnBeforeRollMoveEvent) error {
 			e.N *= -1
 
 			callback()

@@ -11,16 +11,16 @@ type PointsIncrementEffect struct {
 }
 
 func (ef *PointsIncrementEffect) Subscribe(
-	user adventuria.User,
+	ctx adventuria.EffectContext,
 	callback adventuria.EffectCallback,
 ) []event.Unsubscribe {
 	return []event.Unsubscribe{
-		user.OnAfterAction().BindFunc(func(e *adventuria.OnAfterActionEvent) error {
+		ctx.User.OnAfterAction().BindFunc(func(e *adventuria.OnAfterActionEvent) error {
 			if i := ef.GetInt("value"); i != 0 {
-				user.SetPoints(user.Points() + i)
-			}
+				ctx.User.SetPoints(ctx.User.Points() + i)
 
-			callback()
+				callback()
+			}
 
 			return e.Next()
 		}),

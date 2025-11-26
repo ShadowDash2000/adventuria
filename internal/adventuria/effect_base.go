@@ -47,7 +47,7 @@ func (e *EffectBase) Type() string {
 	return e.GetString("type")
 }
 
-func (e *EffectBase) Subscribe(_ User, _ EffectCallback) []event.Unsubscribe {
+func (e *EffectBase) Subscribe(_ EffectContext, _ EffectCallback) []event.Unsubscribe {
 	panic("implement me")
 }
 

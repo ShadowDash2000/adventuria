@@ -12,9 +12,14 @@ type Effect interface {
 	ID() string
 	Name() string
 	Type() string
-	Subscribe(User, EffectCallback) []event.Unsubscribe
+	Subscribe(EffectContext, EffectCallback) []event.Unsubscribe
 	Verify(string) error
 	DecodeValue(string) (any, error)
+}
+
+type EffectContext struct {
+	User      User
+	InvItemID string
 }
 
 type PersistentEffect interface {

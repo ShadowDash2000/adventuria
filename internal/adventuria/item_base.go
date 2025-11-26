@@ -60,15 +60,20 @@ func (i *ItemBase) awake() {
 			continue
 		}
 
-		unsubs := effect.Subscribe(i.user, func() {
-			i.addAppliedEffect(effect)
-			i.unsubEffectByID(effect.ID())
+		unsubs := effect.Subscribe(
+			EffectContext{
+				User:      i.user,
+				InvItemID: i.invItemRecord.Id,
+			},
+			func() {
+				i.addAppliedEffect(effect)
+				i.unsubEffectByID(effect.ID())
 
-			if i.AppliedEffectsCount() == i.EffectsCount() {
-				i.sleep()
-				PocketBase.Delete(i.invItemRecord.ProxyRecord())
-			}
-		})
+				if i.AppliedEffectsCount() == i.EffectsCount() {
+					i.sleep()
+					PocketBase.Delete(i.invItemRecord.ProxyRecord())
+				}
+			})
 		if len(unsubs) > 0 {
 			i.effectsUnsubGroup[effect.ID()] = event.UnsubGroup{Fns: unsubs}
 		}

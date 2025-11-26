@@ -11,16 +11,16 @@ type DiceIncrementEffect struct {
 }
 
 func (ef *DiceIncrementEffect) Subscribe(
-	user adventuria.User,
+	ctx adventuria.EffectContext,
 	callback adventuria.EffectCallback,
 ) []event.Unsubscribe {
 	return []event.Unsubscribe{
-		user.OnBeforeRollMove().BindFunc(func(e *adventuria.OnBeforeRollMoveEvent) error {
+		ctx.User.OnBeforeRollMove().BindFunc(func(e *adventuria.OnBeforeRollMoveEvent) error {
 			if i := ef.GetInt("value"); i != 0 {
 				e.N += i
-			}
 
-			callback()
+				callback()
+			}
 
 			return e.Next()
 		}),

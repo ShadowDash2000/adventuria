@@ -11,19 +11,19 @@ type TimerIncrementEffect struct {
 }
 
 func (ef *TimerIncrementEffect) Subscribe(
-	user adventuria.User,
+	ctx adventuria.EffectContext,
 	callback adventuria.EffectCallback,
 ) []event.Unsubscribe {
 	return []event.Unsubscribe{
-		user.OnAfterAction().BindFunc(func(e *adventuria.OnAfterActionEvent) error {
+		ctx.User.OnAfterAction().BindFunc(func(e *adventuria.OnAfterActionEvent) error {
 			if i := ef.GetInt("value"); i != 0 {
-				err := user.Timer().AddSecondsTimeLimit(i)
+				err := ctx.User.Timer().AddSecondsTimeLimit(i)
 				if err != nil {
 					return err
 				}
-			}
 
-			callback()
+				callback()
+			}
 
 			return e.Next()
 		}),

@@ -10,12 +10,12 @@ type DropInventoryEffect struct {
 }
 
 func (ef *DropInventoryEffect) Subscribe(
-	user adventuria.User,
+	ctx adventuria.EffectContext,
 	callback adventuria.EffectCallback,
 ) []event.Unsubscribe {
 	return []event.Unsubscribe{
-		user.OnAfterAction().BindFunc(func(e *adventuria.OnAfterActionEvent) error {
-			err := user.Inventory().DropInventory()
+		ctx.User.OnAfterAction().BindFunc(func(e *adventuria.OnAfterActionEvent) error {
+			err := ctx.User.Inventory().DropInventory()
 			if err != nil {
 				return err
 			}

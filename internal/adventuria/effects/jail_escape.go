@@ -10,13 +10,13 @@ type JailEscapeEffect struct {
 }
 
 func (ef *JailEscapeEffect) Subscribe(
-	user adventuria.User,
+	ctx adventuria.EffectContext,
 	callback adventuria.EffectCallback,
 ) []event.Unsubscribe {
 	return []event.Unsubscribe{
-		user.OnAfterAction().BindFunc(func(e *adventuria.OnAfterActionEvent) error {
-			user.SetIsInJail(false)
-			user.SetDropsInARow(0)
+		ctx.User.OnAfterAction().BindFunc(func(e *adventuria.OnAfterActionEvent) error {
+			ctx.User.SetIsInJail(false)
+			ctx.User.SetDropsInARow(0)
 
 			callback()
 

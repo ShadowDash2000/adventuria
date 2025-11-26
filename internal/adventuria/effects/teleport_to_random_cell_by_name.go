@@ -17,13 +17,13 @@ type TeleportToRandomCellByNameEffect struct {
 }
 
 func (ef *TeleportToRandomCellByNameEffect) Subscribe(
-	user adventuria.User,
+	ctx adventuria.EffectContext,
 	callback adventuria.EffectCallback,
 ) []event.Unsubscribe {
 	return []event.Unsubscribe{
-		user.OnAfterAction().BindFunc(func(e *adventuria.OnAfterActionEvent) error {
+		ctx.User.OnAfterAction().BindFunc(func(e *adventuria.OnAfterActionEvent) error {
 			namesAny, _ := ef.DecodeValue(ef.GetString("value"))
-			err := user.MoveToCellId(helper.RandomItemFromSlice(namesAny.([]string)))
+			err := ctx.User.MoveToCellId(helper.RandomItemFromSlice(namesAny.([]string)))
 			if err != nil {
 				return err
 			}

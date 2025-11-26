@@ -11,16 +11,16 @@ type CellPointsDivideEffect struct {
 }
 
 func (ef *CellPointsDivideEffect) Subscribe(
-	user adventuria.User,
+	ctx adventuria.EffectContext,
 	callback adventuria.EffectCallback,
 ) []event.Unsubscribe {
 	return []event.Unsubscribe{
-		user.OnBeforeDone().BindFunc(func(e *adventuria.OnBeforeDoneEvent) error {
+		ctx.User.OnBeforeDone().BindFunc(func(e *adventuria.OnBeforeDoneEvent) error {
 			if i := ef.GetInt("value"); i != 0 {
 				e.CellPoints = e.CellPoints / i
-			}
 
-			callback()
+				callback()
+			}
 
 			return e.Next()
 		}),
