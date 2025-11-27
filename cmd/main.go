@@ -6,6 +6,7 @@ import (
 	"adventuria/internal/adventuria/cells"
 	"adventuria/internal/adventuria/effects"
 	"adventuria/internal/adventuria/games/parser"
+	stracker "adventuria/internal/adventuria/stream-tracker"
 	"adventuria/internal/http"
 	"log"
 
@@ -30,6 +31,15 @@ func main() {
 		gamesParser, err := parser.NewGamesParser(game.Context())
 		if err == nil {
 			adventuria.PocketBase.Cron().MustAdd("games_parser", "0 0 1 * *", gamesParser.Parse)
+		}
+
+		st, err := stracker.NewStreamTracker()
+		if err != nil {
+			adventuria.PocketBase.Logger().Error("Failed to initialize stream tracker", "error", err)
+		} else {
+			if err = st.Start(game.Context()); err != nil {
+				adventuria.PocketBase.Logger().Error("Failed to start stream tracker", "error", err)
+			}
 		}
 
 		http.Route(game, se.Router)

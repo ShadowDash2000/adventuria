@@ -27,7 +27,6 @@ type Game struct {
 	ctx    context.Context
 	cancel context.CancelFunc
 	ef     *EffectVerifier
-	st     *StreamTracker
 }
 
 func New() *Game {
@@ -77,13 +76,6 @@ func (g *Game) init() error {
 	GameSettings, err = NewSettings()
 	if err != nil {
 		return err
-	}
-	g.st, err = NewStreamTracker()
-	if err != nil {
-		return err
-	}
-	if err = g.st.Start(g.ctx); err != nil {
-		PocketBase.Logger().Error("Failed to start stream tracker", "error", err)
 	}
 
 	g.ef = NewEffectVerifier()

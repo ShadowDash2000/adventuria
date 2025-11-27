@@ -1,6 +1,7 @@
-package adventuria
+package stream_tracker
 
 import (
+	"adventuria/internal/adventuria"
 	"context"
 	"errors"
 	"os"
@@ -33,7 +34,7 @@ func NewStreamTracker() (*StreamTracker, error) {
 }
 
 func (s *StreamTracker) bindHooks() {
-	PocketBase.OnRecordAfterCreateSuccess(CollectionUsers).BindFunc(func(e *core.RecordEvent) error {
+	adventuria.PocketBase.OnRecordAfterCreateSuccess(adventuria.CollectionUsers).BindFunc(func(e *core.RecordEvent) error {
 		login := e.Record.GetString("twitch")
 		if login != "" {
 			s.client.AddLogin(login)
@@ -41,7 +42,7 @@ func (s *StreamTracker) bindHooks() {
 		}
 		return e.Next()
 	})
-	PocketBase.OnRecordAfterUpdateSuccess(CollectionUsers).BindFunc(func(e *core.RecordEvent) error {
+	adventuria.PocketBase.OnRecordAfterUpdateSuccess(adventuria.CollectionUsers).BindFunc(func(e *core.RecordEvent) error {
 		newLogin := e.Record.GetString("twitch")
 		for prevLogin, userId := range s.users {
 			if userId != e.Record.Id {
@@ -61,7 +62,7 @@ func (s *StreamTracker) bindHooks() {
 		}
 		return e.Next()
 	})
-	PocketBase.OnRecordAfterDeleteSuccess(CollectionUsers).BindFunc(func(e *core.RecordEvent) error {
+	adventuria.PocketBase.OnRecordAfterDeleteSuccess(adventuria.CollectionUsers).BindFunc(func(e *core.RecordEvent) error {
 		login := e.Record.GetString("twitch")
 		s.client.RemoveLogin(login)
 		delete(s.users, login)
@@ -70,7 +71,7 @@ func (s *StreamTracker) bindHooks() {
 }
 
 func (s *StreamTracker) fetchUsers() ([]*core.Record, error) {
-	return PocketBase.FindAllRecords(GameCollections.Get(CollectionUsers))
+	return adventuria.PocketBase.FindAllRecords(adventuria.GameCollections.Get(adventuria.CollectionUsers))
 }
 
 func (s *StreamTracker) Start(ctx context.Context) error {
@@ -88,7 +89,7 @@ func (s *StreamTracker) Start(ctx context.Context) error {
 	s.bindHooks()
 	s.client.OnStreamChange(s.onStreamChange)
 	s.client.OnRequestError(func(e *streamlive.RequestErrorEvent) error {
-		PocketBase.Logger().Error("Stream tracker request error", "error", e.Error)
+		adventuria.PocketBase.Logger().Error("Stream tracker request error", "error", e.Error)
 		return e.Next()
 	})
 
@@ -108,13 +109,13 @@ func (s *StreamTracker) Start(ctx context.Context) error {
 }
 
 func (s *StreamTracker) onStreamChange(e *streamlive.StreamChangeEvent) error {
-	user, err := GameUsers.GetByID(s.users[e.Channel])
+	user, err := adventuria.GameUsers.GetByID(s.users[e.Channel])
 	if err != nil {
 		return err
 	}
 
 	user.SetIsStreamLive(e.Live)
-	if err = PocketBase.Save(user.ProxyRecord()); err != nil {
+	if err = adventuria.PocketBase.Save(user.ProxyRecord()); err != nil {
 		return err
 	}
 
