@@ -13,3 +13,8 @@ func NewCellStart() adventuria.CellCreator {
 		}
 	}
 }
+
+func (c *CellStart) OnCellReached(user adventuria.User) error {
+	user.LastAction().SetCanMove(true)
+	return nil
+}

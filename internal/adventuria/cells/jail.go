@@ -19,3 +19,10 @@ func NewCellJail() adventuria.CellCreator {
 		}
 	}
 }
+
+func (c *CellJail) OnCellReached(user adventuria.User) error {
+	if !user.IsInJail() {
+		user.LastAction().SetCanMove(true)
+	}
+	return nil
+}
