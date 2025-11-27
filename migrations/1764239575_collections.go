@@ -1239,6 +1239,18 @@ func init() {
 						"type": "number"
 					},
 					{
+						"hidden": false,
+						"id": "number243370965",
+						"max": null,
+						"min": null,
+						"name": "coins",
+						"onlyInt": true,
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "number"
+					},
+					{
 						"convertURLs": false,
 						"hidden": false,
 						"id": "editor1843675174",
@@ -1394,7 +1406,7 @@ func init() {
 				"system": false,
 				"type": "base",
 				"updateRule": null,
-				"viewRule": null
+				"viewRule": ""
 			},
 			{
 				"createRule": null,
@@ -1568,7 +1580,7 @@ func init() {
 				"system": false,
 				"type": "base",
 				"updateRule": null,
-				"viewRule": null
+				"viewRule": ""
 			},
 			{
 				"createRule": null,
@@ -1653,12 +1665,12 @@ func init() {
 				],
 				"id": "pbc_3646440256",
 				"indexes": [],
-				"listRule": null,
+				"listRule": "",
 				"name": "effects",
 				"system": false,
 				"type": "base",
 				"updateRule": null,
-				"viewRule": null
+				"viewRule": ""
 			},
 			{
 				"createRule": null,
@@ -2558,7 +2570,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_x4jF",
+						"id": "_clone_11qx",
 						"max": null,
 						"min": null,
 						"name": "steam_app_id",
@@ -2570,7 +2582,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_dvuK",
+						"id": "_clone_gEAW",
 						"max": null,
 						"min": null,
 						"name": "steam_app_price",
@@ -2792,7 +2804,7 @@ func init() {
 					{
 						"autogeneratePattern": "",
 						"hidden": false,
-						"id": "_clone_JfRs",
+						"id": "_clone_lMSP",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -2805,7 +2817,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_3zO2",
+						"id": "_clone_sY10",
 						"max": null,
 						"min": null,
 						"name": "steam_app_id",
@@ -2817,7 +2829,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_zRXQ",
+						"id": "_clone_gfFE",
 						"max": null,
 						"min": null,
 						"name": "campaign_time",
