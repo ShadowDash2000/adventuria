@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"adventuria/internal/adventuria"
 	"adventuria/internal/adventuria/games/hltb"
 	"adventuria/internal/adventuria/games/igdb"
 	"adventuria/internal/adventuria/games/steam"
@@ -41,7 +42,15 @@ func NewGamesParser(ctx context.Context) (*GamesParser, error) {
 }
 
 func (p *GamesParser) Parse() {
-	p.igdbParser.Parse()
-	p.steamParser.Parse()
-	p.hltbParser.Parse()
+	adventuria.PocketBase.Logger().Info("IGDB parser started")
+	p.igdbParser.Parse(500)
+	adventuria.PocketBase.Logger().Info("IGDB parser finished")
+
+	adventuria.PocketBase.Logger().Info("Steam parser started")
+	p.steamParser.Parse(100)
+	adventuria.PocketBase.Logger().Info("Steam parser finished")
+
+	adventuria.PocketBase.Logger().Info("HLTB parser started")
+	p.hltbParser.Parse(100)
+	adventuria.PocketBase.Logger().Info("HLTB parser finished")
 }

@@ -24,8 +24,8 @@ func New(ctx context.Context) (*ParserController, error) {
 	}, nil
 }
 
-func (p *ParserController) Parse() {
-	if err := p.parseTime(p.ctx, 100); err != nil {
+func (p *ParserController) Parse(limit int) {
+	if err := p.parseTime(p.ctx, limit); err != nil {
 		adventuria.PocketBase.Logger().Error("Failed to parse time", "error", err)
 		return
 	}
