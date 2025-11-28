@@ -43,3 +43,11 @@ func (c *CellShop) OnCellReached(user adventuria.User) error {
 
 	return nil
 }
+
+func (c *CellShop) Verify(_ string) error {
+	return nil
+}
+
+func (c *CellShop) DecodeValue(_ string) (any, error) {
+	return nil, nil
+}

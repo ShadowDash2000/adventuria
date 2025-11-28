@@ -23,6 +23,14 @@ func NewCellGame() adventuria.CellCreator {
 	}
 }
 
+func (c *CellGame) Verify(_ string) error {
+	return nil
+}
+
+func (c *CellGame) DecodeValue(_ string) (any, error) {
+	return nil, nil
+}
+
 func (c *CellGame) Roll(user adventuria.User, _ adventuria.RollWheelRequest) (*adventuria.WheelRollResult, error) {
 	if err := c.checkCustomFilter(user); err != nil {
 		return &adventuria.WheelRollResult{

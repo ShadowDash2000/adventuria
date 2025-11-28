@@ -51,3 +51,14 @@ func UpdateRecordsFromViewCollection(
 
 	return nil
 }
+
+// normalized mod (0..n-1)
+func mod(a, m int) int {
+	return ((a % m) + m) % m
+}
+
+// floor division
+func floorDiv(a, m int) int {
+	r := mod(a, m)
+	return (a - r) / m
+}

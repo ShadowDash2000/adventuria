@@ -19,3 +19,11 @@ func (c *CellItem) OnCellReached(user adventuria.User) error {
 	user.LastAction().SetCanMove(true)
 	return nil
 }
+
+func (c *CellItem) Verify(_ string) error {
+	return nil
+}
+
+func (c *CellItem) DecodeValue(_ string) (any, error) {
+	return nil, nil
+}

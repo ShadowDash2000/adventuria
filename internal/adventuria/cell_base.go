@@ -13,7 +13,7 @@ type CellBase struct {
 func NewCellFromRecord(record *core.Record) (Cell, error) {
 	t := CellType(record.GetString("type"))
 
-	cellCreator, ok := CellsList[t]
+	cellCreator, ok := cellsList[t]
 	if !ok {
 		return nil, fmt.Errorf("unknown cell type: %s", t)
 	}
@@ -26,10 +26,6 @@ func NewCellFromRecord(record *core.Record) (Cell, error) {
 
 func (c *CellBase) ID() string {
 	return c.Id
-}
-
-func (c *CellBase) IsActive() bool {
-	return c.GetBool("isActive")
 }
 
 func (c *CellBase) Sort() int {
@@ -86,4 +82,12 @@ func (c *CellBase) IsSafeDrop() bool {
 
 func (c *CellBase) OnCellReached(_ User) error {
 	return nil
+}
+
+func (c *CellBase) Verify(_ string) error {
+	panic("implement me")
+}
+
+func (c *CellBase) DecodeValue(_ string) (any, error) {
+	panic("implement me")
 }

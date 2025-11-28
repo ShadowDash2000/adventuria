@@ -126,9 +126,7 @@ func (c *Cells) sort() {
 func (c *Cells) getUnactiveCellsIds() []string {
 	var res []string
 	for _, cell := range c.cells.GetAll() {
-		if !cell.IsActive() {
-			res = append(res, cell.ID())
-		}
+		res = append(res, cell.ID())
 	}
 	return res
 }
@@ -180,7 +178,7 @@ func (c *Cells) GetByCode(code string) (Cell, bool) {
 func (c *Cells) GetAllByType(t CellType) iter.Seq[Cell] {
 	return func(yield func(Cell) bool) {
 		for _, cell := range c.cells.GetAll() {
-			if cell.IsActive() && cell.Type() == t {
+			if cell.Type() == t {
 				if !yield(cell) {
 					return
 				}
@@ -192,7 +190,7 @@ func (c *Cells) GetAllByType(t CellType) iter.Seq[Cell] {
 func (c *Cells) GetAllByTypes(t []CellType) iter.Seq[Cell] {
 	return func(yield func(Cell) bool) {
 		for _, cell := range c.cells.GetAll() {
-			if cell.IsActive() && slices.Contains(t, cell.Type()) {
+			if slices.Contains(t, cell.Type()) {
 				if !yield(cell) {
 					return
 				}
@@ -203,7 +201,7 @@ func (c *Cells) GetAllByTypes(t []CellType) iter.Seq[Cell] {
 
 func (c *Cells) GetByType(t CellType) (Cell, bool) {
 	for _, cell := range c.cells.GetAll() {
-		if cell.IsActive() && cell.Type() == t {
+		if cell.Type() == t {
 			return cell, true
 		}
 	}
@@ -212,7 +210,7 @@ func (c *Cells) GetByType(t CellType) (Cell, bool) {
 
 func (c *Cells) GetByName(n string) (Cell, bool) {
 	for _, cell := range c.cells.GetAll() {
-		if cell.IsActive() && cell.Name() == n {
+		if cell.Name() == n {
 			return cell, true
 		}
 	}

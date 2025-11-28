@@ -11,7 +11,6 @@ type CellType string
 type Cell interface {
 	core.RecordProxy
 	ID() string
-	IsActive() bool
 	Sort() int
 	Type() CellType
 	SetType(CellType)
@@ -26,12 +25,14 @@ type Cell interface {
 	CantReroll() bool
 	IsSafeDrop() bool
 	OnCellReached(User) error
+	Verify(string) error
+	DecodeValue(string) (any, error)
 }
 
-var CellsList = map[CellType]CellCreator{}
+var cellsList = map[CellType]CellCreator{}
 
 type CellCreator func() Cell
 
 func RegisterCells(cells map[CellType]CellCreator) {
-	maps.Insert(CellsList, maps.All(cells))
+	maps.Insert(cellsList, maps.All(cells))
 }

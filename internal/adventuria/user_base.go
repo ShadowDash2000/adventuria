@@ -221,23 +221,13 @@ func (u *UserBase) Move(steps int) (*OnAfterMoveEvent, error) {
 	cellsPassed := u.CellsPassed()
 	cellsCount := GameCells.Count()
 
-	// normalized mod (0..n-1)
-	mod := func(a, m int) int {
-		return ((a % m) + m) % m
-	}
-	// floor division
-	floorDiv := func(a, m int) int {
-		r := mod(a, m)
-		return (a - r) / m
-	}
-
 	totalSteps := cellsPassed + steps
 	currentCellNum := mod(totalSteps, cellsCount)
 	lapsPassed := floorDiv(totalSteps, cellsCount) - floorDiv(cellsPassed, cellsCount)
 
 	currentCell, ok := GameCells.GetByOrder(currentCellNum)
 	if !ok {
-		return nil, fmt.Errorf("Move(): cell with num = %d not found, steps = %d", currentCellNum, steps)
+		return nil, fmt.Errorf("user.Move(): cell with num = %d not found, steps = %d", currentCellNum, steps)
 	}
 
 	u.setCellsPassed(totalSteps)

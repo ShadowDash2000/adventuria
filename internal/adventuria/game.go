@@ -27,6 +27,7 @@ type Game struct {
 	ctx    context.Context
 	cancel context.CancelFunc
 	ef     *EffectVerifier
+	cf     *CellVerifier
 }
 
 func New() *Game {
@@ -79,6 +80,7 @@ func (g *Game) init() error {
 	}
 
 	g.ef = NewEffectVerifier()
+	g.cf = NewCellVerifier()
 	return nil
 }
 

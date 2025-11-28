@@ -1116,7 +1116,7 @@ func init() {
 						"type": "text"
 					},
 					{
-						"hidden": true,
+						"hidden": false,
 						"id": "autodate2990389176",
 						"name": "created",
 						"onCreate": true,
@@ -1126,7 +1126,7 @@ func init() {
 						"type": "autodate"
 					},
 					{
-						"hidden": true,
+						"hidden": false,
 						"id": "autodate3332085495",
 						"name": "updated",
 						"onCreate": true,
@@ -1134,15 +1134,6 @@ func init() {
 						"presentable": false,
 						"system": false,
 						"type": "autodate"
-					},
-					{
-						"hidden": false,
-						"id": "bool2323052248",
-						"name": "isActive",
-						"presentable": false,
-						"required": false,
-						"system": false,
-						"type": "bool"
 					},
 					{
 						"hidden": false,
@@ -1205,7 +1196,7 @@ func init() {
 						"name": "icon",
 						"presentable": false,
 						"protected": false,
-						"required": false,
+						"required": true,
 						"system": false,
 						"thumbs": [
 							"250x0"
@@ -1301,10 +1292,26 @@ func init() {
 						"required": false,
 						"system": false,
 						"type": "bool"
+					},
+					{
+						"autogeneratePattern": "",
+						"hidden": false,
+						"id": "text494360628",
+						"max": 0,
+						"min": 0,
+						"name": "value",
+						"pattern": "",
+						"presentable": false,
+						"primaryKey": false,
+						"required": false,
+						"system": false,
+						"type": "text"
 					}
 				],
 				"id": "pbc_2659677491",
-				"indexes": [],
+				"indexes": [
+					"CREATE UNIQUE INDEX ` + "`" + `idx_FtG3MH65DJ` + "`" + ` ON ` + "`" + `cells` + "`" + ` (` + "`" + `name` + "`" + `)"
+				],
 				"listRule": "",
 				"name": "cells",
 				"system": false,
@@ -2570,7 +2577,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_11qx",
+						"id": "_clone_oasY",
 						"max": null,
 						"min": null,
 						"name": "steam_app_id",
@@ -2582,7 +2589,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_gEAW",
+						"id": "_clone_2cID",
 						"max": null,
 						"min": null,
 						"name": "steam_app_price",
@@ -2804,7 +2811,7 @@ func init() {
 					{
 						"autogeneratePattern": "",
 						"hidden": false,
-						"id": "_clone_lMSP",
+						"id": "_clone_eF54",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -2817,7 +2824,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_sY10",
+						"id": "_clone_AIT4",
 						"max": null,
 						"min": null,
 						"name": "steam_app_id",
@@ -2829,7 +2836,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_gfFE",
+						"id": "_clone_43Wm",
 						"max": null,
 						"min": null,
 						"name": "campaign_time",
