@@ -2,7 +2,6 @@ package adventuria
 
 import (
 	"adventuria/pkg/cache"
-	"adventuria/pkg/helper"
 	"iter"
 	"slices"
 	"sort"
@@ -106,10 +105,10 @@ func (c *Cells) sort() {
 	c.mx.Lock()
 	defer c.mx.Unlock()
 
-	// Exclude inactive cells from sorting.
-	c.cellsOrder = helper.FilterByField(c.cells.Keys(), c.getUnactiveCellsIds(), func(cellId string) string {
-		return cellId
-	})
+	c.cellsOrder = make([]string, 0, c.cells.Count())
+	for _, cell := range c.cells.GetAll() {
+		c.cellsOrder = append(c.cellsOrder, cell.ID())
+	}
 
 	sort.Slice(c.cellsOrder, func(i, j int) bool {
 		cell1, _ := c.cells.Get(c.cellsOrder[i])
@@ -121,14 +120,6 @@ func (c *Cells) sort() {
 	for key, cellId := range c.cellsOrder {
 		c.cellsIdsOrder[cellId] = key
 	}
-}
-
-func (c *Cells) getUnactiveCellsIds() []string {
-	var res []string
-	for _, cell := range c.cells.GetAll() {
-		res = append(res, cell.ID())
-	}
-	return res
 }
 
 // GetByOrder

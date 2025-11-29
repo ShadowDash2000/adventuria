@@ -131,6 +131,11 @@ func (g *GameTest) createTestCells() error {
 		{"shop", "Cell 4 (shop)", 0, 400},
 	}
 
+	icon, err := filesystem.NewFileFromBytes(Placeholder, "icon")
+	if err != nil {
+		return err
+	}
+
 	for _, cell := range cells {
 		record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionCells))
 		record.Set("isActive", true)
@@ -138,6 +143,7 @@ func (g *GameTest) createTestCells() error {
 		record.Set("name", cell.name)
 		record.Set("points", cell.points)
 		record.Set("sort", cell.sort)
+		record.Set("icon", icon)
 		err := adventuria.PocketBase.Save(record)
 		if err != nil {
 			return err

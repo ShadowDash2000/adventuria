@@ -17,7 +17,6 @@ func Test_WithBaseActions(t *testing.T) {
 		ActionTypeRollItem,
 		ActionTypeBuyItem,
 		ActionTypeUpdateComment,
-		ActionTypeRerollFilter,
 	}
 
 	got := 0
