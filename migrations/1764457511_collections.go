@@ -1828,7 +1828,7 @@ func init() {
 						"type": "text"
 					},
 					{
-						"hidden": true,
+						"hidden": false,
 						"id": "autodate2990389176",
 						"name": "created",
 						"onCreate": true,
@@ -1838,7 +1838,7 @@ func init() {
 						"type": "autodate"
 					},
 					{
-						"hidden": true,
+						"hidden": false,
 						"id": "autodate3332085495",
 						"name": "updated",
 						"onCreate": true,
@@ -1895,7 +1895,7 @@ func init() {
 				"system": false,
 				"type": "base",
 				"updateRule": null,
-				"viewRule": null
+				"viewRule": ""
 			},
 			{
 				"createRule": null,
@@ -2023,7 +2023,7 @@ func init() {
 						"type": "text"
 					},
 					{
-						"hidden": true,
+						"hidden": false,
 						"id": "autodate2990389176",
 						"name": "created",
 						"onCreate": true,
@@ -2033,7 +2033,7 @@ func init() {
 						"type": "autodate"
 					},
 					{
-						"hidden": true,
+						"hidden": false,
 						"id": "autodate3332085495",
 						"name": "updated",
 						"onCreate": true,
@@ -2057,34 +2057,31 @@ func init() {
 						"type": "text"
 					},
 					{
+						"autogeneratePattern": "",
+						"hidden": false,
+						"id": "text2560465762",
+						"max": 0,
+						"min": 0,
+						"name": "slug",
+						"pattern": "^[-_a-zA-Z0-9]+$",
+						"presentable": false,
+						"primaryKey": false,
+						"required": true,
+						"system": false,
+						"type": "text"
+					},
+					{
 						"cascadeDelete": false,
 						"collectionId": "pbc_3543894142",
 						"hidden": false,
 						"id": "relation2608059894",
 						"maxSelect": 999,
 						"minSelect": 0,
-						"name": "audios",
+						"name": "audio",
 						"presentable": false,
 						"required": true,
 						"system": false,
 						"type": "relation"
-					},
-					{
-						"hidden": false,
-						"id": "select1001261735",
-						"maxSelect": 1,
-						"name": "event",
-						"presentable": false,
-						"required": true,
-						"system": false,
-						"type": "select",
-						"values": [
-							"roll",
-							"rollCell",
-							"rollItem",
-							"rollWheelPreset",
-							"fm"
-						]
 					}
 				],
 				"id": "pbc_91682242",
@@ -2094,7 +2091,7 @@ func init() {
 				"system": false,
 				"type": "base",
 				"updateRule": null,
-				"viewRule": null
+				"viewRule": ""
 			},
 			{
 				"createRule": null,
@@ -2568,7 +2565,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_yHf5",
+						"id": "_clone_yoG0",
 						"max": null,
 						"min": null,
 						"name": "steam_app_id",
@@ -2580,7 +2577,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_2CZG",
+						"id": "_clone_tLYA",
 						"max": null,
 						"min": null,
 						"name": "steam_app_price",
@@ -2802,7 +2799,7 @@ func init() {
 					{
 						"autogeneratePattern": "",
 						"hidden": false,
-						"id": "_clone_8ZRc",
+						"id": "_clone_oDnx",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -2815,7 +2812,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_Zqga",
+						"id": "_clone_NtIJ",
 						"max": null,
 						"min": null,
 						"name": "steam_app_id",
@@ -2827,7 +2824,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_rj0f",
+						"id": "_clone_PnDy",
 						"max": null,
 						"min": null,
 						"name": "campaign_time",
