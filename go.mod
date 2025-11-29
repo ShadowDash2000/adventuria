@@ -3,9 +3,9 @@ module adventuria
 go 1.25.0
 
 require (
+	git.nite07.com/shadod/go-igdb v1.0.1
 	github.com/ShadowDash2000/is-stream-live v0.0.6
 	github.com/ShadowDash2000/steam-store-go v0.0.5
-	github.com/bestnite/go-igdb v0.0.16
 	github.com/forbiddencoding/howlongtobeat v0.0.0-20251016180900-5654719fd057
 	github.com/joho/godotenv v1.5.1
 	github.com/pocketbase/dbx v1.11.0
@@ -15,6 +15,7 @@ require (
 )
 
 require (
+	git.nite07.com/nite/go-flaresolverr v1.0.1 // indirect
 	github.com/Danny-Dasilva/CycleTLS/cycletls v1.0.30 // indirect
 	github.com/Danny-Dasilva/fhttp v0.0.0-20240217042913-eeeb0b347ce1 // indirect
 	github.com/Masterminds/semver/v3 v3.4.0 // indirect
@@ -22,7 +23,6 @@ require (
 	github.com/andybalholm/brotli v1.2.0 // indirect
 	github.com/andybalholm/cascadia v1.3.3 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
-	github.com/bestnite/go-flaresolverr v0.0.0-20250404141941-4644c2e66727 // indirect
 	github.com/disintegration/imaging v1.6.2 // indirect
 	github.com/domodwyer/mailyak/v3 v3.6.2 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect

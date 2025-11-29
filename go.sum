@@ -9,6 +9,10 @@ dmitri.shuralyov.com/state v0.0.0-20180228185332-28bcc343414c/go.mod h1:0PRwlb0D
 filippo.io/edwards25519 v1.1.0 h1:FNf4tywRC1HmFuKW5xopWpigGjJKiJSV0Cqo0cJWDaA=
 filippo.io/edwards25519 v1.1.0/go.mod h1:BxyFTGdWcka3PhytdK4V28tE5sGfRvvvRV7EaN4VDT4=
 git.apache.org/thrift.git v0.0.0-20180902110319-2566ecd5d999/go.mod h1:fPE2ZNJGynbRyZ4dJvy6G277gSllfV2HJqblrnkyeyg=
+git.nite07.com/nite/go-flaresolverr v1.0.1 h1:fTnfQnoilxZDVXgVr/ThtPYo2VCwY9pr5iEXvdePoAU=
+git.nite07.com/nite/go-flaresolverr v1.0.1/go.mod h1:KXW66g+K5Q9ind4nYurf0Cg5IcMbaSISkJ6cB5cGdZU=
+git.nite07.com/shadod/go-igdb v1.0.1 h1:ehnUeDMRA6VJmxTA6QN9pLysecWPucYvMikH6Z7tXqw=
+git.nite07.com/shadod/go-igdb v1.0.1/go.mod h1:MLcDctM3fyREhXkz2b6StTuxJ5TcsjFfAQLjg3Ss7rs=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/Danny-Dasilva/CycleTLS/cycletls v1.0.30 h1:MUrYvIPkb4D83p16LKt7csGjhAF2JIeCdjtzhjm7doY=
 github.com/Danny-Dasilva/CycleTLS/cycletls v1.0.30/go.mod h1:uLgl93R8am9dUvj+9pAI3pTwsmRKmFeWzz3eaN9HrQw=
@@ -32,10 +36,6 @@ github.com/asaskevich/govalidator v0.0.0-20200108200545-475eaeb16496/go.mod h1:o
 github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 h1:DklsrG3dyBCFEj5IhUbnKptjxatkF07cF2ak3yi77so=
 github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2/go.mod h1:WaHUgvxTVq04UNunO+XhnAqY/wQc+bxr74GqbsZ/Jqw=
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
-github.com/bestnite/go-flaresolverr v0.0.0-20250404141941-4644c2e66727 h1:F1fNb9j7wgPXa54SWAIYn1l8NJTg74Qx3EJ8qmys6FY=
-github.com/bestnite/go-flaresolverr v0.0.0-20250404141941-4644c2e66727/go.mod h1:LX2oPIfG4LnUtQ7FAWV727IXuODZVbzRwG/7t2KdMNo=
-github.com/bestnite/go-igdb v0.0.16 h1:1xZ6YqLI6KJI0FUEMIqhq205SRFQ2v9xGpeodztmcqg=
-github.com/bestnite/go-igdb v0.0.16/go.mod h1:4brc1zSgxQIYMwJLdPnwxwBa4EuVHODDBQVT1eRZjEk=
 github.com/bradfitz/go-smtpd v0.0.0-20170404230938-deb6d6237625/go.mod h1:HYsPBTaaSFSlLx/70C2HPIMNZpVV8+vt/A+FMnYP11g=
 github.com/buger/jsonparser v0.0.0-20181115193947-bf1c66bbce23/go.mod h1:bbYlZJ7hK1yFx9hf58LP0zeX7UjIGs20ufpu3evjr+s=
 github.com/bwesterb/go-ristretto v1.2.3/go.mod h1:fUIoIZaG73pV5biE2Blr2xEzDoMj7NFEuV9ekS419A0=

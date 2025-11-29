@@ -2,7 +2,8 @@ services:
   migrator:
     build:
       context: .
-    image: adventuria:latest
+    image: adventuria:2.0.0
+    pull_policy: never
     command: [ "./adventuria", "migrate", "up" ]
     working_dir: /adventuria
     restart: "no"
@@ -10,7 +11,7 @@ services:
       - pb_data:/adventuria/pb_data
 
   api:
-    image: adventuria:latest
+    image: adventuria:2.0.0
     pull_policy: never
     depends_on:
       migrator:

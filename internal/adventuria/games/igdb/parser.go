@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/bestnite/go-igdb"
-	"github.com/bestnite/go-igdb/endpoint"
-	pb "github.com/bestnite/go-igdb/proto"
+	"git.nite07.com/shadod/go-igdb"
+	"git.nite07.com/shadod/go-igdb/endpoint"
+	pb "git.nite07.com/shadod/go-igdb/proto"
 	"github.com/pocketbase/pocketbase/tools/types"
 	"google.golang.org/protobuf/proto"
 )
