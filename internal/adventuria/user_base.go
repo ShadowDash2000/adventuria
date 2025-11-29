@@ -237,6 +237,7 @@ func (u *UserBase) Move(steps int) (*OnAfterMoveEvent, error) {
 	u.lastAction.SetType(ActionTypeMove)
 	u.lastAction.SetDiceRoll(steps)
 	u.lastAction.setCell(currentCell.ID())
+	u.lastAction.SetCanMove(false)
 
 	err := currentCell.OnCellReached(u)
 	if err != nil {
@@ -267,15 +268,17 @@ func (u *UserBase) Move(steps int) (*OnAfterMoveEvent, error) {
 	return onAfterMoveEvent, nil
 }
 
+func (u *UserBase) CurrentCellOrder() int {
+	return mod(u.CellsPassed(), GameCells.Count())
+}
+
 func (u *UserBase) MoveToCellType(cellType CellType) error {
 	cellPos, ok := GameCells.GetOrderByType(cellType)
 	if !ok {
 		return errors.New("cell not found")
 	}
 
-	currentCellNum := u.CellsPassed() % GameCells.Count()
-
-	_, err := u.Move(cellPos - currentCellNum)
+	_, err := u.Move(cellPos - u.CurrentCellOrder())
 	if err != nil {
 		return err
 	}
@@ -289,9 +292,7 @@ func (u *UserBase) MoveToCellId(cellId string) error {
 		return fmt.Errorf("cell %s not found", cellId)
 	}
 
-	currentCellNum := u.CellsPassed() % GameCells.Count()
-
-	_, err := u.Move(cellPos - currentCellNum)
+	_, err := u.Move(cellPos - u.CurrentCellOrder())
 	if err != nil {
 		return err
 	}
@@ -305,9 +306,7 @@ func (u *UserBase) MoveToCellName(cellName string) error {
 		return fmt.Errorf("cell %s not found", cellName)
 	}
 
-	currentCellNum := u.CellsPassed() % GameCells.Count()
-
-	_, err := u.Move(cellPos - currentCellNum)
+	_, err := u.Move(cellPos - u.CurrentCellOrder())
 	if err != nil {
 		return err
 	}

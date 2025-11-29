@@ -20,7 +20,7 @@ func (a *RollWheelAction) CanDo(user adventuria.User) bool {
 		return false
 	}
 
-	return !user.LastAction().CanMove()
+	return !user.LastAction().CanMove() && user.LastAction().Type() != ActionTypeRollWheel
 }
 
 func (a *RollWheelAction) Do(user adventuria.User, req adventuria.ActionRequest) (*adventuria.ActionResult, error) {

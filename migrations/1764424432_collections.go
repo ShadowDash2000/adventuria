@@ -1026,15 +1026,6 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "bool251867723",
-						"name": "notAffectNextStep",
-						"presentable": false,
-						"required": false,
-						"system": false,
-						"type": "bool"
-					},
-					{
-						"hidden": false,
 						"id": "number1608302395",
 						"max": null,
 						"min": null,
@@ -2577,7 +2568,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_oasY",
+						"id": "_clone_yHf5",
 						"max": null,
 						"min": null,
 						"name": "steam_app_id",
@@ -2589,7 +2580,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_2cID",
+						"id": "_clone_2CZG",
 						"max": null,
 						"min": null,
 						"name": "steam_app_price",
@@ -2811,7 +2802,7 @@ func init() {
 					{
 						"autogeneratePattern": "",
 						"hidden": false,
-						"id": "_clone_eF54",
+						"id": "_clone_8ZRc",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -2824,7 +2815,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_AIT4",
+						"id": "_clone_Zqga",
 						"max": null,
 						"min": null,
 						"name": "steam_app_id",
@@ -2836,7 +2827,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_43Wm",
+						"id": "_clone_rj0f",
 						"max": null,
 						"min": null,
 						"name": "campaign_time",

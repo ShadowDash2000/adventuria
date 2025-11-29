@@ -2,7 +2,6 @@ package actions
 
 import (
 	"adventuria/internal/adventuria"
-	"adventuria/internal/adventuria/cells"
 	"fmt"
 	"slices"
 )
@@ -17,7 +16,7 @@ func (a *BuyAction) CanDo(user adventuria.User) bool {
 		return false
 	}
 
-	if _, ok = currentCell.(*cells.CellShop); !ok {
+	if currentCell.Type() != "shop" {
 		return false
 	}
 

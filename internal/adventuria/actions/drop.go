@@ -2,7 +2,6 @@ package actions
 
 import (
 	"adventuria/internal/adventuria"
-	"adventuria/internal/adventuria/cells"
 	"errors"
 	"fmt"
 )
@@ -79,7 +78,7 @@ func (a *DropAction) Do(user adventuria.User, req adventuria.ActionRequest) (*ad
 		if user.IsSafeDrop() {
 			action.SetCanMove(true)
 		} else {
-			err = user.MoveToCellType(cells.CellTypeJail)
+			err = user.MoveToCellType("jail")
 			if err != nil {
 				return &adventuria.ActionResult{
 					Success: false,

@@ -27,7 +27,6 @@ type ActionRecord interface {
 	SetGame(string)
 	Type() ActionType
 	SetType(ActionType)
-	SetNotAffectNextStep(bool)
 	DiceRoll() int
 	SetDiceRoll(int)
 	ItemsUsed() []string

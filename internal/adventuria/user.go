@@ -29,6 +29,7 @@ type User interface {
 	ItemWheelsCount() int
 	SetItemWheelsCount(itemWheelsCount int)
 	Move(steps int) (*OnAfterMoveEvent, error)
+	CurrentCellOrder() int
 	MoveToCellType(cellType CellType) error
 	MoveToCellId(cellId string) error
 	MoveToCellName(cellName string) error

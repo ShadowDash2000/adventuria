@@ -113,10 +113,6 @@ func (a *ActionRecordBase) SetType(t ActionType) {
 	a.Set("type", string(t))
 }
 
-func (a *ActionRecordBase) SetNotAffectNextStep(b bool) {
-	a.Set("notAffectNextStep", b)
-}
-
 func (a *ActionRecordBase) DiceRoll() int {
 	return a.GetInt("diceRoll")
 }
