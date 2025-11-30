@@ -14,9 +14,9 @@ func (a *RollDiceAction) CanDo(user adventuria.User) bool {
 }
 
 type RollDiceResult struct {
-	Roll        int             `json:"roll"`
-	DiceRolls   []DiceRoll      `json:"dice_rolls"`
-	CurrentCell adventuria.Cell `json:"current_cell"`
+	Roll      int                            `json:"roll"`
+	DiceRolls []DiceRoll                     `json:"dice_rolls"`
+	Path      []*adventuria.OnAfterMoveEvent `json:"path"`
 }
 
 type DiceRoll struct {
@@ -58,7 +58,7 @@ func (a *RollDiceAction) Do(user adventuria.User, _ adventuria.ActionRequest) (*
 		)
 	}
 
-	onAfterMoveEvent, err := user.Move(onBeforeRollMoveEvent.N)
+	moveRes, err := user.Move(onBeforeRollMoveEvent.N)
 	if err != nil {
 		return &adventuria.ActionResult{
 			Success: false,
@@ -84,9 +84,9 @@ func (a *RollDiceAction) Do(user adventuria.User, _ adventuria.ActionRequest) (*
 	return &adventuria.ActionResult{
 		Success: true,
 		Data: RollDiceResult{
-			Roll:        onBeforeRollMoveEvent.N,
-			DiceRolls:   diceRolls,
-			CurrentCell: onAfterMoveEvent.CurrentCell,
+			Roll:      onBeforeRollMoveEvent.N,
+			DiceRolls: diceRolls,
+			Path:      moveRes,
 		},
 	}, nil
 }

@@ -76,9 +76,11 @@ type OnAfterActionEvent struct {
 }
 type OnAfterMoveEvent struct {
 	event.Event
-	Steps       int
-	CurrentCell Cell
-	Laps        int
+	Steps          int  `json:"steps"`
+	TotalSteps     int  `json:"total_steps"`
+	PrevTotalSteps int  `json:"prev_total_steps"`
+	CurrentCell    Cell `json:"current_cell"`
+	Laps           int  `json:"laps"`
 }
 type OnBeforeCurrentCellEvent struct {
 	event.Event

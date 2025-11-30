@@ -217,7 +217,12 @@ func (u *UserBase) SetItemWheelsCount(itemWheelsCount int) {
 	u.Set("itemWheelsCount", itemWheelsCount)
 }
 
-func (u *UserBase) Move(steps int) (*OnAfterMoveEvent, error) {
+type CellReachedContext struct {
+	User  User
+	Moves []*OnAfterMoveEvent
+}
+
+func (u *UserBase) Move(steps int) ([]*OnAfterMoveEvent, error) {
 	cellsPassed := u.CellsPassed()
 	cellsCount := GameCells.Count()
 
@@ -239,7 +244,25 @@ func (u *UserBase) Move(steps int) (*OnAfterMoveEvent, error) {
 	u.lastAction.setCell(currentCell.ID())
 	u.lastAction.SetCanMove(false)
 
-	err := currentCell.OnCellReached(u)
+	onAfterMoveEvent := OnAfterMoveEvent{
+		Steps:          steps,
+		TotalSteps:     totalSteps,
+		PrevTotalSteps: cellsPassed,
+		CurrentCell:    currentCell,
+		Laps:           lapsPassed,
+	}
+
+	err := u.OnAfterMove().Trigger(&onAfterMoveEvent)
+	if err != nil {
+		return nil, err
+	}
+
+	cellReachedCtx := CellReachedContext{
+		User:  u,
+		Moves: []*OnAfterMoveEvent{&onAfterMoveEvent},
+	}
+
+	err = currentCell.OnCellReached(&cellReachedCtx)
 	if err != nil {
 		return nil, err
 	}
@@ -254,64 +277,35 @@ func (u *UserBase) Move(steps int) (*OnAfterMoveEvent, error) {
 		}
 	}
 
-	onAfterMoveEvent := &OnAfterMoveEvent{
-		Steps:       steps,
-		CurrentCell: currentCell,
-		Laps:        lapsPassed,
-	}
-
-	err = u.OnAfterMove().Trigger(onAfterMoveEvent)
-	if err != nil {
-		return nil, err
-	}
-
-	return onAfterMoveEvent, nil
+	return cellReachedCtx.Moves, nil
 }
 
 func (u *UserBase) CurrentCellOrder() int {
 	return mod(u.CellsPassed(), GameCells.Count())
 }
 
-func (u *UserBase) MoveToCellType(cellType CellType) error {
+func (u *UserBase) MoveToCellType(cellType CellType) ([]*OnAfterMoveEvent, error) {
 	cellPos, ok := GameCells.GetOrderByType(cellType)
 	if !ok {
-		return errors.New("cell not found")
+		return nil, errors.New("cell not found")
 	}
-
-	_, err := u.Move(cellPos - u.CurrentCellOrder())
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return u.Move(cellPos - u.CurrentCellOrder())
 }
 
-func (u *UserBase) MoveToCellId(cellId string) error {
+func (u *UserBase) MoveToCellId(cellId string) ([]*OnAfterMoveEvent, error) {
 	cellPos, ok := GameCells.GetOrderById(cellId)
 	if !ok {
-		return fmt.Errorf("cell %s not found", cellId)
+		return nil, fmt.Errorf("cell %s not found", cellId)
 	}
-
-	_, err := u.Move(cellPos - u.CurrentCellOrder())
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return u.Move(cellPos - u.CurrentCellOrder())
 }
 
-func (u *UserBase) MoveToCellName(cellName string) error {
+func (u *UserBase) MoveToCellName(cellName string) ([]*OnAfterMoveEvent, error) {
 	cellPos, ok := GameCells.GetOrderByName(cellName)
 	if !ok {
-		return fmt.Errorf("cell %s not found", cellName)
+		return nil, fmt.Errorf("cell %s not found", cellName)
 	}
-
-	_, err := u.Move(cellPos - u.CurrentCellOrder())
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return u.Move(cellPos - u.CurrentCellOrder())
 }
 
 func (u *UserBase) Inventory() Inventory {

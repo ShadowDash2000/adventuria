@@ -17,14 +17,18 @@ func NewCellTeleport() adventuria.CellCreator {
 	}
 }
 
-func (c *CellTeleport) OnCellReached(user adventuria.User) error {
-	if err := adventuria.PocketBase.Save(user.LastAction().ProxyRecord()); err != nil {
+func (c *CellTeleport) OnCellReached(ctx *adventuria.CellReachedContext) error {
+	if err := adventuria.PocketBase.Save(ctx.User.LastAction().ProxyRecord()); err != nil {
 		return err
 	}
-	if err := user.MoveToCellName(c.GetString("value")); err != nil {
+	res, err := ctx.User.MoveToCellName(c.GetString("value"))
+	if err != nil {
 		return err
 	}
-	user.LastAction().SetType("teleport")
+
+	ctx.Moves = append(ctx.Moves, res...)
+	ctx.User.LastAction().SetType("teleport")
+
 	return nil
 }
 

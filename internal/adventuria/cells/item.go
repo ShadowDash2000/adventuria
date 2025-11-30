@@ -14,9 +14,9 @@ func NewCellItem() adventuria.CellCreator {
 	}
 }
 
-func (c *CellItem) OnCellReached(user adventuria.User) error {
-	user.SetItemWheelsCount(user.ItemWheelsCount() + 1)
-	user.LastAction().SetCanMove(true)
+func (c *CellItem) OnCellReached(ctx *adventuria.CellReachedContext) error {
+	ctx.User.SetItemWheelsCount(ctx.User.ItemWheelsCount() + 1)
+	ctx.User.LastAction().SetCanMove(true)
 	return nil
 }
 

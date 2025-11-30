@@ -20,7 +20,7 @@ func NewCellShop() adventuria.CellCreator {
 	}
 }
 
-func (c *CellShop) OnCellReached(user adventuria.User) error {
+func (c *CellShop) OnCellReached(ctx *adventuria.CellReachedContext) error {
 	var records []*core.Record
 	err := adventuria.PocketBase.RecordQuery(adventuria.GameCollections.Get(adventuria.CollectionItems)).
 		Where(dbx.And(
@@ -38,8 +38,8 @@ func (c *CellShop) OnCellReached(user adventuria.User) error {
 		res[i] = record.Id
 	}
 
-	user.LastAction().SetItemsList(res)
-	user.LastAction().SetCanMove(true)
+	ctx.User.LastAction().SetItemsList(res)
+	ctx.User.LastAction().SetCanMove(true)
 
 	return nil
 }

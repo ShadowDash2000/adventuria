@@ -23,7 +23,7 @@ func (ef *TeleportToRandomCellByNameEffect) Subscribe(
 	return []event.Unsubscribe{
 		ctx.User.OnAfterAction().BindFunc(func(e *adventuria.OnAfterActionEvent) error {
 			namesAny, _ := ef.DecodeValue(ef.GetString("value"))
-			err := ctx.User.MoveToCellId(helper.RandomItemFromSlice(namesAny.([]string)))
+			_, err := ctx.User.MoveToCellId(helper.RandomItemFromSlice(namesAny.([]string)))
 			if err != nil {
 				return err
 			}

@@ -74,7 +74,7 @@ func (c *CellGame) Roll(user adventuria.User, _ adventuria.RollWheelRequest) (*a
 	}, nil
 }
 
-func (c *CellGame) OnCellReached(user adventuria.User) error {
+func (c *CellGame) OnCellReached(ctx *adventuria.CellReachedContext) error {
 	var filter adventuria.GameFilterRecord
 
 	if c.Filter() != "" {
@@ -94,7 +94,7 @@ func (c *CellGame) OnCellReached(user adventuria.User) error {
 		return err
 	}
 
-	user.LastAction().SetItemsList(res)
+	ctx.User.LastAction().SetItemsList(res)
 
 	return nil
 }

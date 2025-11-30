@@ -24,7 +24,7 @@ type Cell interface {
 	CantDrop() bool
 	CantReroll() bool
 	IsSafeDrop() bool
-	OnCellReached(User) error
+	OnCellReached(*CellReachedContext) error
 	Verify(string) error
 	DecodeValue(string) (any, error)
 }

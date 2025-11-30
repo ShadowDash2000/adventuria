@@ -6,6 +6,9 @@ import (
 	"github.com/pocketbase/pocketbase/core"
 )
 
+// ensure CellBase implements Cell
+var _ Cell = (*CellBase)(nil)
+
 type CellBase struct {
 	core.BaseRecordProxy
 }
@@ -80,7 +83,7 @@ func (c *CellBase) IsSafeDrop() bool {
 	return c.GetBool("isSafeDrop")
 }
 
-func (c *CellBase) OnCellReached(_ User) error {
+func (c *CellBase) OnCellReached(_ *CellReachedContext) error {
 	return nil
 }
 

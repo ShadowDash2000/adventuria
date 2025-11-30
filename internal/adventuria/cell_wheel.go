@@ -20,7 +20,7 @@ type WheelItem struct {
 	Icon string `json:"icon"`
 }
 
-// ensure CellWheel implements Cell
+// ensure CellWheelBase implements CellWheel
 var _ CellWheel = (*CellWheelBase)(nil)
 
 type CellWheelBase struct {

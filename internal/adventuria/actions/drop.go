@@ -78,7 +78,7 @@ func (a *DropAction) Do(user adventuria.User, req adventuria.ActionRequest) (*ad
 		if user.IsSafeDrop() {
 			action.SetCanMove(true)
 		} else {
-			err = user.MoveToCellType("jail")
+			_, err = user.MoveToCellType("jail")
 			if err != nil {
 				return &adventuria.ActionResult{
 					Success: false,
