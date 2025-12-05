@@ -35,6 +35,14 @@ func (g *GameRecordBase) SetName(name string) {
 	g.Set("name", name)
 }
 
+func (g *GameRecordBase) Slug() string {
+	return g.GetString("slug")
+}
+
+func (g *GameRecordBase) SetSlug(slug string) {
+	g.Set("slug", slug)
+}
+
 func (g *GameRecordBase) ReleaseDate() types.DateTime {
 	return g.GetDateTime("releaseDate")
 }
@@ -97,6 +105,14 @@ func (g *GameRecordBase) SteamAppPrice() int {
 
 func (g *GameRecordBase) SetSteamAppPrice(price int) {
 	g.Set("steam_app_price", price)
+}
+
+func (g *GameRecordBase) HltbID() int {
+	return g.GetInt("hltb_id")
+}
+
+func (g *GameRecordBase) SetHltbID(id int) {
+	g.Set("hltb_id", id)
 }
 
 func (g *GameRecordBase) CampaignTime() float64 {

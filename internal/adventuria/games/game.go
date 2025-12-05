@@ -10,6 +10,7 @@ import (
 type Game struct {
 	IdDb        uint64
 	Name        string
+	Slug        string
 	ReleaseDate types.DateTime
 	Platforms   CollectionReference
 	Developers  CollectionReference
@@ -29,6 +30,8 @@ type GameRecord interface {
 	SetIdDb(uint64)
 	Name() string
 	SetName(string)
+	Slug() string
+	SetSlug(string)
 	ReleaseDate() types.DateTime
 	SetReleaseDate(types.DateTime)
 	Platforms() []string
@@ -45,6 +48,8 @@ type GameRecord interface {
 	SetSteamAppId(uint64)
 	SteamAppPrice() int
 	SetSteamAppPrice(int)
+	HltbID() int
+	SetHltbID(int)
 	CampaignTime() float64
 	SetCampaignTime(float64)
 	Cover() string

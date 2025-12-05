@@ -19,12 +19,18 @@ func Route(game *adventuria.Game, router *router.Router[*core.RequestEvent]) {
 
 	g := router.Group("/api")
 
-	g.GET("/timer/left/{userId}", handlers.GetTimeLeftByUserHandler)
+	timer := g.Group("/timer")
+	timer.GET("/timer/left/{userId}", handlers.GetTimeLeftByUserHandler)
+	timer.GET("/timer/left", handlers.GetTimeLeftHandler)
+
+	timerA := timer.Group("")
+	timerA.Bind(apis.RequireAuth())
+	timerA.Bind(adventuria.GameSettings.CheckActionsBlock())
+	timerA.POST("/timer/start", handlers.StartTimerHandler)
+	timerA.POST("/timer/stop", handlers.StopTimerHandler)
 
 	ga := g.Group("")
 	ga.Bind(apis.RequireAuth())
-
-	ga.GET("/timer/left", handlers.GetTimeLeftHandler)
 
 	gab := ga.Group("")
 	gab.Bind(adventuria.GameSettings.CheckActionsBlock())
@@ -43,7 +49,4 @@ func Route(game *adventuria.Game, router *router.Router[*core.RequestEvent]) {
 
 	gab.POST("/use-item", handlers.UseItemHandler)
 	gab.POST("/drop-item", handlers.DropItemHandler)
-
-	gab.POST("/timer/start", handlers.StartTimerHandler)
-	gab.POST("/timer/stop", handlers.StopTimerHandler)
 }

@@ -198,11 +198,11 @@ func (p *Parser) ParseGames(ctx context.Context, count, limit uint64) (chan Pars
 						}
 
 						if company.GetDeveloper() {
-							developersIds = append(developersIds, company.GetId())
+							developersIds = append(developersIds, company.GetCompany().GetId())
 							continue
 						}
 						if company.GetPublisher() {
-							publishersIds = append(publishersIds, company.GetId())
+							publishersIds = append(publishersIds, company.GetCompany().GetId())
 							continue
 						}
 					}
@@ -215,6 +215,7 @@ func (p *Parser) ParseGames(ctx context.Context, count, limit uint64) (chan Pars
 					res.Games[i] = games.Game{
 						IdDb:        game.GetId(),
 						Name:        game.GetName(),
+						Slug:        game.GetSlug(),
 						ReleaseDate: releaseDate,
 						Platforms: games.CollectionReference{
 							Ids:        platformIds,

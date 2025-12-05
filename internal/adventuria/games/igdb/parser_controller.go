@@ -74,6 +74,7 @@ func (p *ParserController) parseGames(ctx context.Context, limit uint64) error {
 			gameRecord := games.NewGameFromRecord(record)
 			gameRecord.SetIdDb(game.IdDb)
 			gameRecord.SetName(game.Name)
+			gameRecord.SetSlug(game.Slug)
 			gameRecord.SetReleaseDate(game.ReleaseDate)
 			gameRecord.SetSteamAppId(game.SteamAppId)
 			gameRecord.SetSteamAppPrice(-1)

@@ -2002,7 +2002,7 @@ func init() {
 				"system": false,
 				"type": "base",
 				"updateRule": null,
-				"viewRule": null
+				"viewRule": ""
 			},
 			{
 				"createRule": null,
@@ -2307,6 +2307,20 @@ func init() {
 						"type": "text"
 					},
 					{
+						"autogeneratePattern": "",
+						"hidden": false,
+						"id": "text2560465762",
+						"max": 0,
+						"min": 0,
+						"name": "slug",
+						"pattern": "",
+						"presentable": false,
+						"primaryKey": false,
+						"required": true,
+						"system": false,
+						"type": "text"
+					},
+					{
 						"hidden": false,
 						"id": "date1985597558",
 						"max": "",
@@ -2400,6 +2414,18 @@ func init() {
 						"max": null,
 						"min": null,
 						"name": "steam_app_price",
+						"onlyInt": true,
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "number"
+					},
+					{
+						"hidden": false,
+						"id": "number1585346424",
+						"max": null,
+						"min": null,
+						"name": "hltb_id",
 						"onlyInt": true,
 						"presentable": false,
 						"required": false,
@@ -2565,7 +2591,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_yoG0",
+						"id": "_clone_wwFy",
 						"max": null,
 						"min": null,
 						"name": "steam_app_id",
@@ -2577,7 +2603,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_tLYA",
+						"id": "_clone_R3Tt",
 						"max": null,
 						"min": null,
 						"name": "steam_app_price",
@@ -2799,7 +2825,7 @@ func init() {
 					{
 						"autogeneratePattern": "",
 						"hidden": false,
-						"id": "_clone_oDnx",
+						"id": "_clone_sbE7",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -2812,7 +2838,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_NtIJ",
+						"id": "_clone_lwzK",
 						"max": null,
 						"min": null,
 						"name": "steam_app_id",
@@ -2824,7 +2850,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_PnDy",
+						"id": "_clone_nHMW",
 						"max": null,
 						"min": null,
 						"name": "campaign_time",

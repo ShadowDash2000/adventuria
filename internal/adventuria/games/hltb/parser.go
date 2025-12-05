@@ -21,6 +21,7 @@ func NewParser() (*Parser, error) {
 }
 
 type WalkthroughTime struct {
+	GameID   int
 	Campaign float64
 }
 
@@ -37,6 +38,7 @@ func (p *Parser) ParseTime(ctx context.Context, search string) (*WalkthroughTime
 	}
 
 	return &WalkthroughTime{
+		GameID:   res[0].GameID,
 		Campaign: res[0].CompMain,
 	}, nil
 }

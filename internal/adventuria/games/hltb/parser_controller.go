@@ -52,6 +52,7 @@ func (p *ParserController) parseTime(ctx context.Context, limit int) error {
 					return err
 				}
 			} else {
+				game.SetHltbID(gameTime.GameID)
 				game.SetCampaignTime(gameTime.Campaign)
 			}
 
