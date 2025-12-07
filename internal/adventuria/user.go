@@ -30,7 +30,7 @@ type User interface {
 	SetItemWheelsCount(itemWheelsCount int)
 	Move(steps int) ([]*OnAfterMoveEvent, error)
 	CurrentCellOrder() int
-	MoveToCellType(cellType CellType) ([]*OnAfterMoveEvent, error)
+	MoveToClosestCellType(cellType CellType) ([]*OnAfterMoveEvent, error)
 	MoveToCellId(cellId string) ([]*OnAfterMoveEvent, error)
 	MoveToCellName(cellName string) ([]*OnAfterMoveEvent, error)
 	Inventory() Inventory

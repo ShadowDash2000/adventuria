@@ -284,12 +284,27 @@ func (u *UserBase) CurrentCellOrder() int {
 	return mod(u.CellsPassed(), GameCells.Count())
 }
 
-func (u *UserBase) MoveToCellType(cellType CellType) ([]*OnAfterMoveEvent, error) {
-	cellPos, ok := GameCells.GetOrderByType(cellType)
-	if !ok {
+func (u *UserBase) MoveToClosestCellType(cellType CellType) ([]*OnAfterMoveEvent, error) {
+	var (
+		closest     int
+		minDistance int
+		found       bool
+	)
+	currentCellOrder := u.CurrentCellOrder()
+	for order := range GameCells.GetOrderByType(cellType) {
+		distance := abs(order - currentCellOrder)
+		if !found || distance < minDistance {
+			closest = order
+			minDistance = distance
+			found = true
+		}
+	}
+
+	if !found {
 		return nil, errors.New("cell not found")
 	}
-	return u.Move(cellPos - u.CurrentCellOrder())
+
+	return u.Move(closest - u.CurrentCellOrder())
 }
 
 func (u *UserBase) MoveToCellId(cellId string) ([]*OnAfterMoveEvent, error) {

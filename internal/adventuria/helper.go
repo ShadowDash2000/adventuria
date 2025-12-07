@@ -2,6 +2,7 @@ package adventuria
 
 import (
 	"github.com/pocketbase/pocketbase/core"
+	"golang.org/x/exp/constraints"
 )
 
 func GetRecordById(table, id string, expand []string) (*core.Record, error) {
@@ -61,4 +62,8 @@ func mod(a, m int) int {
 func floorDiv(a, m int) int {
 	r := mod(a, m)
 	return (a - r) / m
+}
+
+func abs[T constraints.Signed](x T) T {
+	return max(x, -x)
 }
