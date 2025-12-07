@@ -80,7 +80,7 @@ func (i *Items) GetAll() iter.Seq2[string, ItemRecord] {
 func (i *Items) GetAllRollable() []ItemRecord {
 	var res []ItemRecord
 	for _, item := range i.items.GetAll() {
-		if !item.IsRollable() {
+		if !item.IsRollable() || item.Type() != "buff" {
 			continue
 		}
 		res = append(res, item)
