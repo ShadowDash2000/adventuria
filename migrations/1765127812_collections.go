@@ -920,7 +920,7 @@ func init() {
 				"verificationToken": {
 					"duration": 259200
 				},
-				"viewRule": "id = @request.auth.id"
+				"viewRule": ""
 			},
 			{
 				"createRule": null,
@@ -2591,7 +2591,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_wwFy",
+						"id": "_clone_IHNt",
 						"max": null,
 						"min": null,
 						"name": "steam_app_id",
@@ -2603,7 +2603,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_R3Tt",
+						"id": "_clone_vhi8",
 						"max": null,
 						"min": null,
 						"name": "steam_app_price",
@@ -2825,7 +2825,7 @@ func init() {
 					{
 						"autogeneratePattern": "",
 						"hidden": false,
-						"id": "_clone_sbE7",
+						"id": "_clone_KeiK",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -2838,7 +2838,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_lwzK",
+						"id": "_clone_tVqR",
 						"max": null,
 						"min": null,
 						"name": "steam_app_id",
@@ -2850,7 +2850,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_nHMW",
+						"id": "_clone_kZ1p",
 						"max": null,
 						"min": null,
 						"name": "campaign_time",
