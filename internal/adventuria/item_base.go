@@ -9,6 +9,7 @@ import (
 
 type ItemBase struct {
 	ItemRecordBase
+	isAwake           bool
 	user              User
 	invItemRecord     core.BaseRecordProxy
 	effects           []Effect
@@ -78,12 +79,16 @@ func (i *ItemBase) awake() {
 			i.effectsUnsubGroup[effect.ID()] = event.UnsubGroup{Fns: unsubs}
 		}
 	}
+
+	i.isAwake = true
 }
 
 func (i *ItemBase) sleep() {
 	for _, effect := range i.effects {
 		i.unsubEffectByID(effect.ID())
 	}
+
+	i.isAwake = false
 }
 
 func (i *ItemBase) unsubEffectByID(id string) {
@@ -105,6 +110,12 @@ func (i *ItemBase) bindHooks() {
 	i.hookIds[1] = PocketBase.OnRecordAfterUpdateSuccess(CollectionInventory).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == i.invItemRecord.Id {
 			i.invItemRecord.SetProxyRecord(e.Record)
+
+			if i.IsActive() && !i.isAwake {
+				i.awake()
+			} else if !i.IsActive() && i.isAwake {
+				i.sleep()
+			}
 		}
 		return e.Next()
 	})
