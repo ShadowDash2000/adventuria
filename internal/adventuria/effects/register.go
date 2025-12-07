@@ -19,6 +19,7 @@ func WithBaseEffects() {
 		"changeMaxGamePrice":          adventuria.NewEffect(&ChangeMaxGamePriceEffect{}),
 		"noTimeLimit":                 adventuria.NewEffect(&NoTimeLimitEffect{}),
 		"addGameTag":                  adventuria.NewEffect(&AddGameTagEffect{}),
+		"replaceDiceRoll":             adventuria.NewEffect(&ReplaceDiceRollEffect{}),
 	})
 
 	adventuria.RegisterPersistentEffects(map[string]adventuria.PersistentEffectCreator{
