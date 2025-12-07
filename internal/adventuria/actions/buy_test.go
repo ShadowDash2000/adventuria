@@ -64,7 +64,7 @@ func Test_Buy(t *testing.T) {
 		t.Fatalf("Test_Buy(): User balance = %d, want = 0", user.Balance())
 	}
 
-	if user.Inventory().UseItem(invItemId) != nil {
+	if _, _, err = user.Inventory().UseItem(invItemId); err != nil {
 		t.Fatalf("Test_Buy(): Error using item: %s", err)
 	}
 }

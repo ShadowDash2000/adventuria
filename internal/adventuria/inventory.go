@@ -12,7 +12,7 @@ type Inventory interface {
 	AddItem(ItemRecord) (string, error)
 	AddItemById(string) (string, error)
 	MustAddItemById(string) (string, error)
-	UseItem(string) error
+	UseItem(string) (OnUseSuccess, OnUseFail, error)
 	DropItem(string) error
 	DropRandomItem() error
 	DropInventory() error

@@ -165,18 +165,20 @@ func (i *ItemBase) addAppliedEffect(effect Effect) {
 	)
 }
 
-func (i *ItemBase) Use() error {
+func (i *ItemBase) Use() (OnUseSuccess, OnUseFail, error) {
 	if i.IsActive() {
-		return errors.New("item is already active")
+		return nil, nil, errors.New("item is already active")
 	}
 
 	i.setIsActive(true)
-	if err := PocketBase.Save(i.invItemRecord); err != nil {
-		return err
-	}
 	i.awake()
 
-	return nil
+	return func() error {
+			return PocketBase.Save(i.invItemRecord)
+		}, func() {
+			i.setIsActive(false)
+			i.sleep()
+		}, nil
 }
 
 func (i *ItemBase) Drop() error {

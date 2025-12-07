@@ -21,6 +21,9 @@ type Item interface {
 
 	EffectsCount() int
 	AppliedEffectsCount() int
-	Use() error
+	Use() (OnUseSuccess, OnUseFail, error)
 	Drop() error
 }
+
+type OnUseSuccess func() error
+type OnUseFail func()

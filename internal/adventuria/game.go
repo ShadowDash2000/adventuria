@@ -156,7 +156,7 @@ func (g *Game) UseItem(userId, itemId string, req UseItemRequest) error {
 		return err
 	}
 
-	err = user.Inventory().UseItem(itemId)
+	onUseSuccess, onUseFail, err := user.Inventory().UseItem(itemId)
 	if err != nil {
 		return err
 	}
@@ -166,6 +166,11 @@ func (g *Game) UseItem(userId, itemId string, req UseItemRequest) error {
 		Request: req,
 	})
 	if err != nil {
+		onUseFail()
+		return err
+	}
+
+	if err = onUseSuccess(); err != nil {
 		return err
 	}
 

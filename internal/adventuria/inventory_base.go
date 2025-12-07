@@ -159,10 +159,10 @@ func (i *InventoryBase) MustAddItemById(itemId string) (string, error) {
 	return i.AddItem(item)
 }
 
-func (i *InventoryBase) UseItem(itemId string) error {
+func (i *InventoryBase) UseItem(itemId string) (OnUseSuccess, OnUseFail, error) {
 	item, ok := i.items[itemId]
 	if !ok {
-		return errors.New("inventory item not found")
+		return nil, nil, errors.New("inventory item not found")
 	}
 
 	return item.Use()

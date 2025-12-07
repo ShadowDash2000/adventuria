@@ -169,7 +169,7 @@ func NewLastUserAction(userId string) (*LastUserActionRecord, error) {
 }
 
 func (a *LastUserActionRecord) bindHooks() {
-	a.hookIds = make([]string, 3)
+	a.hookIds = make([]string, 4)
 
 	a.hookIds[0] = PocketBase.OnRecordAfterCreateSuccess(CollectionActions).BindFunc(func(e *core.RecordEvent) error {
 		userId := e.Record.GetString("user")
@@ -213,12 +213,19 @@ func (a *LastUserActionRecord) bindHooks() {
 
 		return e.Next()
 	})
+	a.hookIds[3] = PocketBase.OnRecordUpdate(CollectionActions).BindFunc(func(e *core.RecordEvent) error {
+		if e.Record.Id == a.ID() {
+			e.Record.Set("game_filter", a.gameFilter)
+		}
+		return e.Next()
+	})
 }
 
 func (a *LastUserActionRecord) Close() {
 	PocketBase.OnRecordAfterCreateSuccess(CollectionActions).Unbind(a.hookIds[0])
 	PocketBase.OnRecordAfterUpdateSuccess(CollectionActions).Unbind(a.hookIds[1])
 	PocketBase.OnRecordAfterDeleteSuccess(CollectionActions).Unbind(a.hookIds[2])
+	PocketBase.OnRecordUpdate(CollectionActions).Unbind(a.hookIds[3])
 }
 
 func getLastUserAction(userId string) (*LastUserActionRecord, error) {

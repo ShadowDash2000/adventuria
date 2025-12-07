@@ -55,6 +55,10 @@ func NewGameTest() (*GameTest, error) {
 	if err != nil {
 		return nil, err
 	}
+	err = game.createTestTags()
+	if err != nil {
+		return nil, err
+	}
 
 	return game, nil
 }
@@ -194,6 +198,28 @@ func (g *GameTest) createTestGames() error {
 		record.Set("steam_app_id", game.steamAppId)
 		record.Set("steam_app_price", game.steamAppPrice)
 		record.Set("campaign_time", game.campaignTime)
+		record.Set("checksum", strconv.Itoa(i))
+		err := adventuria.PocketBase.Save(record)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (g *GameTest) createTestTags() error {
+	games := []struct {
+		idDb uint64
+		name string
+	}{
+		{idDb: 1, name: "Adventure"},
+	}
+
+	for i, game := range games {
+		record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionTags))
+		record.Set("id_db", game.idDb)
+		record.Set("name", game.name)
 		record.Set("checksum", strconv.Itoa(i))
 		err := adventuria.PocketBase.Save(record)
 		if err != nil {
