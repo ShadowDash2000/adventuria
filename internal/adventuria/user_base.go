@@ -52,6 +52,8 @@ func NewUser(userId string) (User, error) {
 		return nil, err
 	}
 
+	u.initHooks()
+
 	u.timer, err = NewTimer(userId)
 	if err != nil {
 		return nil, err
@@ -67,7 +69,6 @@ func NewUser(userId string) (User, error) {
 		return nil, err
 	}
 
-	u.initHooks()
 	u.bindHooks()
 
 	return u, nil
