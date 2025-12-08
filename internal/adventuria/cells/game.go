@@ -47,6 +47,13 @@ func (c *CellGame) Roll(user adventuria.User, _ adventuria.RollWheelRequest) (*a
 		}, fmt.Errorf("game.roll(): can't unmarshal items list: %w", err)
 	}
 
+	if len(items) == 0 {
+		return &adventuria.WheelRollResult{
+			Success: false,
+			Error:   "internal error: no items to roll",
+		}, fmt.Errorf("game.roll(): no items to roll")
+	}
+
 	records, err := adventuria.PocketBase.FindRecordsByIds(
 		adventuria.GameCollections.Get(adventuria.CollectionGames),
 		items,
@@ -102,7 +109,7 @@ func (c *CellGame) OnCellReached(ctx *adventuria.CellReachedContext) error {
 func (c *CellGame) checkCustomFilter(user adventuria.User) error {
 	needToUpdate := false
 	customFilter := user.LastAction().CustomGameFilter()
-	filter := adventuria.GameFilterRecord(&adventuria.GameFilterBase{})
+	var filter adventuria.GameFilterRecord
 	if c.Filter() != "" {
 		filterRecord, err := adventuria.PocketBase.FindRecordById(
 			adventuria.GameCollections.Get(adventuria.CollectionGameFilters),
@@ -113,6 +120,12 @@ func (c *CellGame) checkCustomFilter(user adventuria.User) error {
 		}
 
 		filter = adventuria.NewGameFilterFromRecord(filterRecord)
+	} else {
+		filter = adventuria.NewGameFilterFromRecord(
+			core.NewRecord(
+				adventuria.GameCollections.Get(adventuria.CollectionGameFilters),
+			),
+		)
 	}
 
 	if len(customFilter.Platforms) > 0 {
@@ -197,22 +210,22 @@ func FetchRecordsByFilter(filter adventuria.GameFilterRecord) ([]string, error) 
 
 func SetFilters(filter adventuria.GameFilterRecord, q *dbx.SelectQuery) *dbx.SelectQuery {
 	if len(filter.Platforms()) > 0 {
-		q = q.AndWhere(dbx.In("platforms", StringSliceToAny(filter.Platforms())...))
+		q = q.AndWhere(dbx.OrLike("platforms", filter.Platforms()...))
 	}
 	if len(filter.Developers()) > 0 {
-		q = q.AndWhere(dbx.In("developers", StringSliceToAny(filter.Developers())...))
+		q = q.AndWhere(dbx.OrLike("developers", filter.Developers()...))
 	}
 	if len(filter.Publishers()) > 0 {
-		q = q.AndWhere(dbx.In("publishers", StringSliceToAny(filter.Publishers())...))
+		q = q.AndWhere(dbx.OrLike("publishers", filter.Publishers()...))
 	}
 	if len(filter.Genres()) > 0 {
-		q = q.AndWhere(dbx.In("genres", StringSliceToAny(filter.Genres())...))
+		q = q.AndWhere(dbx.OrLike("genres", filter.Genres()...))
 	}
 	if len(filter.Tags()) > 0 {
-		q = q.AndWhere(dbx.In("tags", StringSliceToAny(filter.Tags())...))
+		q = q.AndWhere(dbx.OrLike("tags", filter.Tags()...))
 	}
 	if len(filter.Games()) > 0 {
-		q = q.AndWhere(dbx.In("id", StringSliceToAny(filter.Games())...))
+		q = q.AndWhere(dbx.OrLike("id", filter.Games()...))
 	}
 
 	if filter.MinPrice() > 0 {
