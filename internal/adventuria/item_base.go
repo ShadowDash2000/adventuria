@@ -174,6 +174,10 @@ func (i *ItemBase) Use() (OnUseSuccess, OnUseFail, error) {
 	i.awake()
 
 	return func() error {
+			// if item is not awake, then it was removed from inventory
+			if !i.isAwake {
+				return nil
+			}
 			return PocketBase.Save(i.invItemRecord)
 		}, func() {
 			i.setIsActive(false)
