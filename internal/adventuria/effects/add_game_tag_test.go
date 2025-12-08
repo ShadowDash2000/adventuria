@@ -37,6 +37,11 @@ func Test_AddGameTag(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	_, err = game.DoAction(actions.ActionTypeRollDice, user.ID(), adventuria.ActionRequest{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	tag, err := adventuria.PocketBase.FindFirstRecordByFilter(
 		adventuria.GameCollections.Get(adventuria.CollectionTags),
 		"",
