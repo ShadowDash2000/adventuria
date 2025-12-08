@@ -57,10 +57,12 @@ func (p *ParserController) Parse(limit uint64) {
 }
 
 func (p *ParserController) parseGames(ctx context.Context, limit uint64) error {
-	ch, err := p.parser.ParseGamesAll(ctx, limit)
+	ch, count, err := p.parser.ParseGamesAll(ctx, limit)
 	if err != nil {
 		return err
 	}
+
+	adventuria.PocketBase.Logger().Info("igdb.parseGames", "games_count", count)
 
 	for msg := range ch {
 		if msg.Err != nil {

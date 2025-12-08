@@ -131,13 +131,18 @@ type ParseGamesMessage struct {
 	Err   error
 }
 
-func (p *Parser) ParseGamesAll(ctx context.Context, limit uint64) (chan ParseGamesMessage, error) {
+func (p *Parser) ParseGamesAll(ctx context.Context, limit uint64) (chan ParseGamesMessage, uint64, error) {
 	count, err := p.gamesCount(ctx)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	return p.ParseGames(ctx, count, limit)
+	ch, err := p.ParseGames(ctx, count, limit)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return ch, count, nil
 }
 
 func (p *Parser) ParseGames(ctx context.Context, count, limit uint64) (chan ParseGamesMessage, error) {
