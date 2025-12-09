@@ -37,7 +37,7 @@ func Test_AddGameTag(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err = game.DoAction(actions.ActionTypeRollDice, user.ID(), adventuria.ActionRequest{})
+	_, err = user.Move(1)
 	if err != nil {
 		t.Fatal(err)
 	}
