@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"git.nite07.com/shadod/go-igdb"
 	"git.nite07.com/shadod/go-igdb/endpoint"
@@ -131,13 +132,13 @@ type ParseGamesMessage struct {
 	Err   error
 }
 
-func (p *Parser) ParseGamesAll(ctx context.Context, limit uint64) (chan ParseGamesMessage, uint64, error) {
+func (p *Parser) ParseGamesAll(ctx context.Context, offset, limit uint64) (chan ParseGamesMessage, uint64, error) {
 	count, err := p.gamesCount(ctx)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	ch, err := p.ParseGames(ctx, count, limit)
+	ch, err := p.ParseGames(ctx, count, offset, limit)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -145,7 +146,7 @@ func (p *Parser) ParseGamesAll(ctx context.Context, limit uint64) (chan ParseGam
 	return ch, count, nil
 }
 
-func (p *Parser) ParseGames(ctx context.Context, count, limit uint64) (chan ParseGamesMessage, error) {
+func (p *Parser) ParseGames(ctx context.Context, count, offset, limit uint64) (chan ParseGamesMessage, error) {
 	if limit > count {
 		limit = count
 	}
@@ -155,7 +156,7 @@ func (p *Parser) ParseGames(ctx context.Context, count, limit uint64) (chan Pars
 	go func() {
 		defer close(ch)
 
-		for offset := uint64(0); offset < count; offset += limit {
+		for ; offset < count; offset += limit {
 			select {
 			case <-ctx.Done():
 				return
@@ -311,6 +312,12 @@ func (p *Parser) getSteamAppIds(ctx context.Context, games []*pb.Game) (map[uint
 		if uid, err := strconv.ParseUint(extGame.GetUid(), 10, 64); err == nil {
 			res[extGame.GetGame().GetId()] = uid
 			continue
+		}
+		if uids := strings.Split(extGame.GetUid(), ","); len(uids) > 0 {
+			if uid, err := strconv.ParseUint(uids[0], 10, 64); err == nil {
+				res[extGame.GetGame().GetId()] = uid
+				continue
+			}
 		}
 
 		return nil, fmt.Errorf("getSteamAppId(): Can't parse Steam App Id = %v", extGame.GetUid())

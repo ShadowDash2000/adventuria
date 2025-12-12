@@ -157,3 +157,11 @@ func (s *Settings) RegisterSettingsCron() {
 		}
 	})
 }
+
+func (s *Settings) IGDBGamesParsed() uint64 {
+	return uint64(s.GetInt("igdb_games_parsed"))
+}
+
+func (s *Settings) SetIGDBGamesParsed(count uint64) {
+	s.Set("igdb_games_parsed", count)
+}

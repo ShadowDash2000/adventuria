@@ -57,13 +57,14 @@ func (p *ParserController) Parse(limit uint64) {
 }
 
 func (p *ParserController) parseGames(ctx context.Context, limit uint64) error {
-	ch, count, err := p.parser.ParseGamesAll(ctx, limit)
+	ch, count, err := p.parser.ParseGamesAll(ctx, adventuria.GameSettings.IGDBGamesParsed(), limit)
 	if err != nil {
 		return err
 	}
 
 	adventuria.PocketBase.Logger().Info("igdb.parseGames", "games_count", count)
 
+	count = 0
 	for msg := range ch {
 		if msg.Err != nil {
 			return msg.Err
@@ -115,6 +116,13 @@ func (p *ParserController) parseGames(ctx context.Context, limit uint64) error {
 		if err != nil {
 			return err
 		}
+
+		count += uint64(len(records))
+	}
+
+	adventuria.GameSettings.SetIGDBGamesParsed(count)
+	if err = adventuria.PocketBase.Save(adventuria.GameSettings.ProxyRecord()); err != nil {
+		adventuria.PocketBase.Logger().Error("igdb.parseGames: failed to save game settings", "error", err)
 	}
 
 	return nil

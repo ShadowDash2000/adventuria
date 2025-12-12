@@ -1798,6 +1798,18 @@ func init() {
 						"required": false,
 						"system": false,
 						"type": "editor"
+					},
+					{
+						"hidden": false,
+						"id": "number4136927524",
+						"max": null,
+						"min": null,
+						"name": "igdb_games_parsed",
+						"onlyInt": true,
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "number"
 					}
 				],
 				"id": "pbc_2769025244",
@@ -2591,7 +2603,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_IHNt",
+						"id": "_clone_VsoH",
 						"max": null,
 						"min": null,
 						"name": "steam_app_id",
@@ -2603,7 +2615,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_vhi8",
+						"id": "_clone_tzyW",
 						"max": null,
 						"min": null,
 						"name": "steam_app_price",
@@ -2825,7 +2837,7 @@ func init() {
 					{
 						"autogeneratePattern": "",
 						"hidden": false,
-						"id": "_clone_KeiK",
+						"id": "_clone_mvS9",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -2838,7 +2850,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_tVqR",
+						"id": "_clone_Yyr3",
 						"max": null,
 						"min": null,
 						"name": "steam_app_id",
@@ -2850,7 +2862,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_kZ1p",
+						"id": "_clone_5ADu",
 						"max": null,
 						"min": null,
 						"name": "campaign_time",
