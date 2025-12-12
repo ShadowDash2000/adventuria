@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/forbiddencoding/howlongtobeat"
+	"github.com/ShadowDash2000/howlongtobeat"
 )
 
 type Parser struct {
