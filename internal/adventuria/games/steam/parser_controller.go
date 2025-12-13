@@ -24,12 +24,74 @@ func New() (*ParserController, error) {
 }
 
 func (p *ParserController) Parse(ctx context.Context) {
-	if err := p.parsePricesAndTags(ctx); err != nil {
-		adventuria.PocketBase.Logger().Error("Failed to parse prices and tags", "error", err)
+	if err := p.parsePrices(ctx); err != nil {
+		adventuria.PocketBase.Logger().Error("Failed to parse prices", "error", err)
 		return
 	}
 }
 
+func (p *ParserController) parsePrices(ctx context.Context) error {
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	ok, err := p.isWhereGamesWithoutPrice(ctx)
+	if err != nil || !ok {
+		return err
+	}
+
+	ch := p.parser.ParseAllApps(ctx, adventuria.GameSettings.SteamSpyLastPage())
+
+	for msg := range ch {
+		if msg.Err != nil {
+			if errors.Is(msg.Err, steamstore.ErrNoApiKey) {
+				adventuria.GameSettings.SetSteamSpyLastPage(0)
+				_ = adventuria.PocketBase.Save(adventuria.GameSettings.ProxyRecord())
+				break
+			}
+			adventuria.GameSettings.SetSteamSpyLastPage(msg.Page)
+			_ = adventuria.PocketBase.Save(adventuria.GameSettings.ProxyRecord())
+			return msg.Err
+		}
+
+		adventuria.GameSettings.SetSteamSpyLastPage(msg.Page)
+		_ = adventuria.PocketBase.Save(adventuria.GameSettings.ProxyRecord())
+
+		gameRecords, err := p.getGamesWithoutPriceBySteamAppDetails(ctx, msg.Apps)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				continue
+			}
+			return err
+		}
+
+		for _, appDetails := range msg.Apps {
+			gameRecord, ok := gameRecords[appDetails.AppId]
+			if ok {
+				gameRecord.SetSteamAppPrice(int(appDetails.Price))
+				continue
+			}
+
+			// delete, 'cause no changes to update
+			delete(gameRecords, appDetails.AppId)
+			adventuria.PocketBase.Logger().Debug(
+				"steam.parsePrices(): Game not found",
+				"appId", appDetails.AppId,
+				"app", appDetails,
+			)
+		}
+
+		for _, gameRecord := range gameRecords {
+			err = adventuria.PocketBase.Save(gameRecord.ProxyRecord())
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+// Deprecated: use parsePrices instead.
 func (p *ParserController) parsePricesAndTags(ctx context.Context) error {
 	tags, err := p.getTags()
 	if err != nil {
@@ -183,7 +245,7 @@ func (p *ParserController) isWhereGamesWithoutPrice(ctx context.Context) (bool, 
 			),
 		).
 		Select("COUNT(DISTINCT [[id]])").
-		OrderBy( /* reset */ ).
+		OrderBy( /* reset */).
 		Row(&count)
 	if err != nil {
 		return false, err
