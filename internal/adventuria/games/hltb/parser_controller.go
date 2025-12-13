@@ -5,14 +5,16 @@ import (
 	"adventuria/internal/adventuria/games"
 	"context"
 	"errors"
+	"regexp"
+	"strings"
+	"unicode"
 )
 
 type ParserController struct {
 	parser *Parser
-	ctx    context.Context
 }
 
-func New(ctx context.Context) (*ParserController, error) {
+func New() (*ParserController, error) {
 	p, err := NewParser()
 	if err != nil {
 		return nil, err
@@ -20,12 +22,11 @@ func New(ctx context.Context) (*ParserController, error) {
 
 	return &ParserController{
 		parser: p,
-		ctx:    ctx,
 	}, nil
 }
 
-func (p *ParserController) Parse(limit int) {
-	if err := p.parseTime(p.ctx, limit); err != nil {
+func (p *ParserController) Parse(ctx context.Context, limit int) {
+	if err := p.parseTime(ctx, limit); err != nil {
 		adventuria.PocketBase.Logger().Error("Failed to parse time", "error", err)
 		return
 	}
@@ -43,17 +44,17 @@ func (p *ParserController) parseTime(ctx context.Context, limit int) error {
 		}
 
 		for _, game := range gameRecords {
-			gameTime, err := p.parser.ParseTime(ctx, game.Name())
+			time, err := p.parseWalkthroughTime(ctx, game)
 			if err != nil {
 				if errors.Is(err, ErrGameNotFound) {
-					adventuria.PocketBase.Logger().Debug("parseTime(): Game not found", "game", game.Name())
+					adventuria.PocketBase.Logger().Info("parseTime(): Game not found", "game", game.Name())
 					game.SetCampaignTime(0)
 				} else {
 					return err
 				}
 			} else {
-				game.SetHltbID(gameTime.GameID)
-				game.SetCampaignTime(gameTime.Campaign)
+				game.SetHltbID(time.GameID)
+				game.SetCampaignTime(time.Campaign)
 			}
 
 			err = adventuria.PocketBase.Save(game.ProxyRecord())
@@ -63,6 +64,30 @@ func (p *ParserController) parseTime(ctx context.Context, limit int) error {
 		}
 	}
 	return nil
+}
+
+func (p *ParserController) parseWalkthroughTime(ctx context.Context, game games.GameRecord) (*WalkthroughTime, error) {
+	steamAppId := game.SteamAppId()
+
+	var (
+		gameTime *WalkthroughTime
+		err      error
+	)
+	if steamAppId > 0 {
+		gameTime, err = p.parser.ParseBySteamAppId(ctx, steamAppId)
+	} else {
+		normalizedTitle := normalizeTitle(game.Name())
+
+		adventuria.PocketBase.Logger().Debug(
+			"parseTime(): Parsing time",
+			"game", game.Name(),
+			"normalizedTitle", normalizedTitle,
+		)
+
+		gameTime, err = p.parser.ParseTime(ctx, normalizedTitle)
+	}
+
+	return gameTime, err
 }
 
 func (p *ParserController) getGamesWithoutTime(limit int) ([]games.GameRecord, error) {
@@ -84,4 +109,34 @@ func (p *ParserController) getGamesWithoutTime(limit int) ([]games.GameRecord, e
 	}
 
 	return res, nil
+}
+
+var (
+	regParens = regexp.MustCompile(`\s*[(\[{].*?[)\]}]\s*`)
+	regSpaces = regexp.MustCompile(`\s+`)
+)
+
+func normalizeTitle(s string) string {
+	s = strings.TrimSpace(s)
+	if s == "" {
+		return s
+	}
+
+	s = regParens.ReplaceAllString(s, " ")
+
+	s = strings.ToLower(s)
+
+	s = strings.Map(func(r rune) rune {
+		switch {
+		case unicode.IsLetter(r) || unicode.IsDigit(r):
+			return r
+		case r == '\'' || r == '.' || r == '/' || r == '\\':
+			return r
+		default:
+			return ' '
+		}
+	}, s)
+
+	s = regSpaces.ReplaceAllString(s, " ")
+	return strings.TrimSpace(s)
 }

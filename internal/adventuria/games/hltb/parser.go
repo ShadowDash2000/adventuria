@@ -4,11 +4,13 @@ import (
 	"context"
 	"errors"
 
+	"github.com/ShadowDash2000/hltb-crashdummy-go"
 	"github.com/ShadowDash2000/howlongtobeat"
 )
 
 type Parser struct {
-	client *howlongtobeat.Client
+	client       *howlongtobeat.Client
+	cachedClient *hltb.Client
 }
 
 func NewParser() (*Parser, error) {
@@ -17,7 +19,7 @@ func NewParser() (*Parser, error) {
 		return nil, err
 	}
 
-	return &Parser{client: c}, nil
+	return &Parser{client: c, cachedClient: hltb.New()}, nil
 }
 
 type WalkthroughTime struct {
@@ -40,5 +42,21 @@ func (p *Parser) ParseTime(ctx context.Context, search string) (*WalkthroughTime
 	return &WalkthroughTime{
 		GameID:   res[0].GameID,
 		Campaign: res[0].CompMain,
+	}, nil
+}
+
+func (p *Parser) ParseBySteamAppId(ctx context.Context, appId uint64) (*WalkthroughTime, error) {
+	res, err := p.cachedClient.GetBySteamAppId(ctx, appId)
+	if err != nil {
+		return nil, err
+	}
+
+	if errors.Is(err, hltb.ErrNotFound) {
+		return nil, ErrGameNotFound
+	}
+
+	return &WalkthroughTime{
+		GameID:   int(res.HltbId),
+		Campaign: res.MainStory,
 	}, nil
 }

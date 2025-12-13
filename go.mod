@@ -4,9 +4,10 @@ go 1.25.5
 
 require (
 	git.nite07.com/shadod/go-igdb v1.0.1
-	github.com/ShadowDash2000/howlongtobeat v1.0.0
+	github.com/ShadowDash2000/hltb-crashdummy-go v1.0.1
+	github.com/ShadowDash2000/howlongtobeat v1.0.1
 	github.com/ShadowDash2000/is-stream-live v0.0.6
-	github.com/ShadowDash2000/steam-store-go v0.0.5
+	github.com/ShadowDash2000/steam-store-go v0.0.12
 	github.com/joho/godotenv v1.5.1
 	github.com/pocketbase/dbx v1.11.0
 	github.com/pocketbase/pocketbase v0.34.2
@@ -56,14 +57,14 @@ require (
 	github.com/spf13/cobra v1.10.2 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
 	go.uber.org/mock v0.6.0 // indirect
-	golang.org/x/crypto v0.45.0 // indirect
+	golang.org/x/crypto v0.46.0 // indirect
 	golang.org/x/image v0.33.0 // indirect
 	golang.org/x/mod v0.30.0 // indirect
-	golang.org/x/net v0.47.0 // indirect
+	golang.org/x/net v0.48.0 // indirect
 	golang.org/x/oauth2 v0.33.0 // indirect
-	golang.org/x/sync v0.18.0 // indirect
-	golang.org/x/sys v0.38.0 // indirect
-	golang.org/x/text v0.31.0 // indirect
+	golang.org/x/sync v0.19.0 // indirect
+	golang.org/x/sys v0.39.0 // indirect
+	golang.org/x/text v0.32.0 // indirect
 	golang.org/x/time v0.14.0 // indirect
 	golang.org/x/tools v0.39.0 // indirect
 	h12.io/socks v1.0.3 // indirect
@@ -71,4 +72,5 @@ require (
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
 	modernc.org/sqlite v1.40.1 // indirect
+	resty.dev/v3 v3.0.0-beta.4 // indirect
 )

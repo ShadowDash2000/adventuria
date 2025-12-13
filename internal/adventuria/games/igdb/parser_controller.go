@@ -13,10 +13,9 @@ import (
 
 type ParserController struct {
 	parser *Parser
-	ctx    context.Context
 }
 
-func New(ctx context.Context) (*ParserController, error) {
+func New() (*ParserController, error) {
 	twitchClientId, ok := os.LookupEnv("TWITCH_CLIENT_ID")
 	if !ok {
 		return nil, errors.New("igdb: TWITCH_CLIENT_ID not found")
@@ -32,42 +31,56 @@ func New(ctx context.Context) (*ParserController, error) {
 
 	p := &ParserController{
 		parser: NewParser(twitchClientId, twitchClientSecret, igdbParseFilter),
-		ctx:    ctx,
 	}
 
 	return p, nil
 }
 
-func (p *ParserController) Parse(limit uint64) {
-	if err := p.parseCompanies(p.ctx, limit); err != nil {
-		adventuria.PocketBase.Logger().Error("Failed to parse companies", "error", err)
-		return
-	}
-	if err := p.parsePlatforms(p.ctx, limit); err != nil {
+func (p *ParserController) Parse(ctx context.Context, limit uint64) {
+	if err := p.parsePlatforms(ctx, limit); err != nil {
 		adventuria.PocketBase.Logger().Error("Failed to parse platforms", "error", err)
 		return
 	}
-	if err := p.parseGenres(p.ctx, limit); err != nil {
+	if err := p.parseGenres(ctx, limit); err != nil {
 		adventuria.PocketBase.Logger().Error("Failed to parse genres", "error", err)
 		return
 	}
-	if err := p.parseGames(p.ctx, limit); err != nil {
+	if err := p.parseGames(ctx, limit); err != nil {
 		adventuria.PocketBase.Logger().Error("Failed to parse games", "error", err)
 	}
 }
 
 func (p *ParserController) parseGames(ctx context.Context, limit uint64) error {
-	ch, count, err := p.parser.ParseGamesAll(ctx, adventuria.GameSettings.IGDBGamesParsed(), limit)
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	gamesCount, err := p.parser.GamesCount(ctx)
 	if err != nil {
 		return err
 	}
 
-	adventuria.PocketBase.Logger().Info("igdb.parseGames", "games_count", count)
+	adventuria.PocketBase.Logger().Info("igdb.parseGames", "games_count", gamesCount)
 
-	count = 0
+	gamesParsedPrev := adventuria.GameSettings.IGDBGamesParsed()
+	if gamesParsedPrev >= gamesCount {
+		adventuria.PocketBase.Logger().Info("IGDB: Nothing to parse", "games_parsed_prev", gamesParsedPrev, "games_count", gamesCount)
+		cancel()
+		return nil
+	}
+
+	ch, err := p.parser.ParseGames(ctx, gamesCount, gamesParsedPrev, limit)
+	if err != nil {
+		return err
+	}
+
+	count := gamesParsedPrev
 	for msg := range ch {
 		if msg.Err != nil {
 			return msg.Err
+		}
+
+		if err = p.saveCompaniesFromGames(ctx, msg.Games); err != nil {
+			return err
 		}
 
 		records := make([]games.UpdatableRecord, len(msg.Games))
@@ -118,17 +131,62 @@ func (p *ParserController) parseGames(ctx context.Context, limit uint64) error {
 		}
 
 		count += uint64(len(records))
+
+		adventuria.GameSettings.SetIGDBGamesParsed(count)
+		if err = adventuria.PocketBase.Save(adventuria.GameSettings.ProxyRecord()); err != nil {
+			adventuria.PocketBase.Logger().Error("igdb.parseGames: failed to save game settings", "error", err)
+		}
 	}
 
-	adventuria.GameSettings.SetIGDBGamesParsed(count)
-	if err = adventuria.PocketBase.Save(adventuria.GameSettings.ProxyRecord()); err != nil {
-		adventuria.PocketBase.Logger().Error("igdb.parseGames: failed to save game settings", "error", err)
+	return nil
+}
+
+func (p *ParserController) saveCompaniesFromGames(ctx context.Context, gs []games.Game) error {
+	uniq := make(map[uint64]struct{})
+	for _, g := range gs {
+		for _, id := range g.Developers.Ids {
+			uniq[id] = struct{}{}
+		}
+		for _, id := range g.Publishers.Ids {
+			uniq[id] = struct{}{}
+		}
+	}
+
+	if len(uniq) > 0 {
+		ids := make([]uint64, 0, len(uniq))
+		for id := range uniq {
+			ids = append(ids, id)
+		}
+
+		companies, err := p.parser.FetchCompaniesByIDs(ctx, ids)
+		if err != nil {
+			return err
+		}
+
+		compRecords := make([]games.UpdatableRecord, len(companies))
+		for i, company := range companies {
+			record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionCompanies))
+
+			companyRecord := games.NewCompanyFromRecord(record)
+			companyRecord.SetIdDb(company.IdDb)
+			companyRecord.SetName(company.Name)
+			companyRecord.SetChecksum(company.Checksum)
+
+			compRecords[i] = companyRecord
+		}
+
+		if err = p.batchUpdate(compRecords); err != nil {
+			return err
+		}
 	}
 
 	return nil
 }
 
 func (p *ParserController) parsePlatforms(ctx context.Context, limit uint64) error {
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
 	ch, err := p.parser.ParsePlatformsAll(ctx, limit)
 	if err != nil {
 		return err
@@ -161,6 +219,9 @@ func (p *ParserController) parsePlatforms(ctx context.Context, limit uint64) err
 }
 
 func (p *ParserController) parseCompanies(ctx context.Context, limit uint64) error {
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
 	ch, err := p.parser.ParseCompaniesAll(ctx, limit)
 	if err != nil {
 		return err
@@ -193,6 +254,9 @@ func (p *ParserController) parseCompanies(ctx context.Context, limit uint64) err
 }
 
 func (p *ParserController) parseGenres(ctx context.Context, limit uint64) error {
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
 	ch, err := p.parser.ParseGenresAll(ctx, limit)
 	if err != nil {
 		return err

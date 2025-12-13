@@ -36,7 +36,7 @@ type ParsePlatformsMessage struct {
 	Err       error
 }
 
-func (p *Parser) ParsePlatformsAll(ctx context.Context, limit uint64) (chan ParsePlatformsMessage, error) {
+func (p *Parser) ParsePlatformsAll(ctx context.Context, limit uint64) (<-chan ParsePlatformsMessage, error) {
 	count, err := p.client.Platforms.Count(ctx)
 	if err != nil {
 		return nil, err
@@ -45,7 +45,7 @@ func (p *Parser) ParsePlatformsAll(ctx context.Context, limit uint64) (chan Pars
 	return p.ParsePlatforms(ctx, count, limit)
 }
 
-func (p *Parser) ParsePlatforms(ctx context.Context, count, limit uint64) (chan ParsePlatformsMessage, error) {
+func (p *Parser) ParsePlatforms(ctx context.Context, count, limit uint64) (<-chan ParsePlatformsMessage, error) {
 	ch := make(chan ParsePlatformsMessage)
 
 	go func() {
@@ -84,7 +84,7 @@ type ParseCompaniesMessage struct {
 	Err       error
 }
 
-func (p *Parser) ParseCompaniesAll(ctx context.Context, limit uint64) (chan ParseCompaniesMessage, error) {
+func (p *Parser) ParseCompaniesAll(ctx context.Context, limit uint64) (<-chan ParseCompaniesMessage, error) {
 	count, err := p.client.Companies.Count(ctx)
 	if err != nil {
 		return nil, err
@@ -93,7 +93,7 @@ func (p *Parser) ParseCompaniesAll(ctx context.Context, limit uint64) (chan Pars
 	return p.ParseCompanies(ctx, count, limit)
 }
 
-func (p *Parser) ParseCompanies(ctx context.Context, count, limit uint64) (chan ParseCompaniesMessage, error) {
+func (p *Parser) ParseCompanies(ctx context.Context, count, limit uint64) (<-chan ParseCompaniesMessage, error) {
 	ch := make(chan ParseCompaniesMessage)
 
 	go func() {
@@ -127,13 +127,35 @@ func (p *Parser) ParseCompanies(ctx context.Context, count, limit uint64) (chan 
 	return ch, nil
 }
 
+func (p *Parser) FetchCompaniesByIDs(ctx context.Context, ids []uint64) ([]games.Company, error) {
+	if len(ids) == 0 {
+		return nil, nil
+	}
+
+	comps, err := p.client.Companies.GetByIDs(ctx, ids)
+	if err != nil {
+		return nil, err
+	}
+
+	res := make([]games.Company, len(comps))
+	for i, c := range comps {
+		res[i] = games.Company{
+			IdDb:     c.GetId(),
+			Name:     c.GetName(),
+			Checksum: c.GetChecksum(),
+		}
+	}
+
+	return res, nil
+}
+
 type ParseGamesMessage struct {
 	Games []games.Game
 	Err   error
 }
 
-func (p *Parser) ParseGamesAll(ctx context.Context, offset, limit uint64) (chan ParseGamesMessage, uint64, error) {
-	count, err := p.gamesCount(ctx)
+func (p *Parser) ParseGamesAll(ctx context.Context, offset, limit uint64) (<-chan ParseGamesMessage, uint64, error) {
+	count, err := p.GamesCount(ctx)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -146,7 +168,7 @@ func (p *Parser) ParseGamesAll(ctx context.Context, offset, limit uint64) (chan 
 	return ch, count, nil
 }
 
-func (p *Parser) ParseGames(ctx context.Context, count, offset, limit uint64) (chan ParseGamesMessage, error) {
+func (p *Parser) ParseGames(ctx context.Context, count, offset, limit uint64) (<-chan ParseGamesMessage, error) {
 	if limit > count {
 		limit = count
 	}
@@ -259,7 +281,7 @@ func (p *Parser) gamesPaginated(ctx context.Context, offset, limit uint64) ([]*p
 	)
 }
 
-func (p *Parser) gamesCount(ctx context.Context) (uint64, error) {
+func (p *Parser) GamesCount(ctx context.Context) (uint64, error) {
 	resp, err := p.client.Request(
 		ctx,
 		"POST",
@@ -407,7 +429,7 @@ type ParseGenresMessage struct {
 	Err    error
 }
 
-func (p *Parser) ParseGenresAll(ctx context.Context, limit uint64) (chan ParseGenresMessage, error) {
+func (p *Parser) ParseGenresAll(ctx context.Context, limit uint64) (<-chan ParseGenresMessage, error) {
 	count, err := p.client.Genres.Count(ctx)
 	if err != nil {
 		return nil, err
@@ -416,7 +438,7 @@ func (p *Parser) ParseGenresAll(ctx context.Context, limit uint64) (chan ParseGe
 	return p.ParseGenres(ctx, count, limit)
 }
 
-func (p *Parser) ParseGenres(ctx context.Context, count, limit uint64) (chan ParseGenresMessage, error) {
+func (p *Parser) ParseGenres(ctx context.Context, count, limit uint64) (<-chan ParseGenresMessage, error) {
 	ch := make(chan ParseGenresMessage)
 
 	go func() {

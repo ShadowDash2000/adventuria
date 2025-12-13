@@ -28,9 +28,11 @@ func main() {
 	cells.WithBaseCells()
 
 	if err := game.Start(func(se *core.ServeEvent) error {
-		gamesParser, err := parser.NewGamesParser(game.Context())
+		gamesParser, err := parser.NewGamesParser()
 		if err == nil {
-			adventuria.PocketBase.Cron().MustAdd("games_parser", "0 0 1 * *", gamesParser.Parse)
+			adventuria.PocketBase.Cron().MustAdd("games_parser", "0 0 1 * *", func() {
+				gamesParser.Parse(game.Context())
+			})
 		}
 
 		st, err := stracker.NewStreamTracker()
