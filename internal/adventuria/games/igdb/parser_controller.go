@@ -83,6 +83,10 @@ func (p *ParserController) parseGames(ctx context.Context, limit uint64) error {
 			return err
 		}
 
+		if err = p.saveKeywordsFromGames(ctx, msg.Games); err != nil {
+			return err
+		}
+
 		records := make([]games.UpdatableRecord, len(msg.Games))
 		for i, game := range msg.Games {
 			record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionGames))
@@ -121,6 +125,12 @@ func (p *ParserController) parseGames(ctx context.Context, limit uint64) error {
 				return err
 			}
 			gameRecord.SetGenres(genreIds)
+
+			tagIds, err := p.collectionReferenceToIds(game.Tags)
+			if err != nil {
+				return err
+			}
+			gameRecord.SetTags(tagIds)
 
 			records[i] = gameRecord
 		}
@@ -181,6 +191,43 @@ func (p *ParserController) saveCompaniesFromGames(ctx context.Context, gs []game
 	}
 
 	return nil
+}
+
+func (p *ParserController) saveKeywordsFromGames(ctx context.Context, gs []games.Game) error {
+	uniq := make(map[uint64]struct{})
+	for _, g := range gs {
+		for _, id := range g.Tags.Ids {
+			uniq[id] = struct{}{}
+		}
+	}
+
+	if len(uniq) == 0 {
+		return nil
+	}
+
+	ids := make([]uint64, 0, len(uniq))
+	for id := range uniq {
+		ids = append(ids, id)
+	}
+
+	tags, err := p.parser.FetchKeywordsByIDs(ctx, ids)
+	if err != nil {
+		return err
+	}
+
+	tagRecords := make([]games.UpdatableRecord, len(tags))
+	for i, tag := range tags {
+		record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionTags))
+
+		tagRecord := games.NewTagFromRecord(record)
+		tagRecord.SetIdDb(tag.IdDb)
+		tagRecord.SetName(tag.Name)
+		tagRecord.SetChecksum(tag.Checksum)
+
+		tagRecords[i] = tagRecord
+	}
+
+	return p.batchUpdate(tagRecords)
 }
 
 func (p *ParserController) parsePlatforms(ctx context.Context, limit uint64) error {

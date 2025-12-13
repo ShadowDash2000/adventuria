@@ -81,7 +81,7 @@ func Test_ParseGames(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	ch, err := p.ParseGames(context.Background(), 10, 10)
+	ch, err := p.ParseGames(context.Background(), 10, 0, 10)
 	if err != nil {
 		t.Fatal(err)
 	}

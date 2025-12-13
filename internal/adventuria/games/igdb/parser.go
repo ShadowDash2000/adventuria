@@ -149,6 +149,28 @@ func (p *Parser) FetchCompaniesByIDs(ctx context.Context, ids []uint64) ([]games
 	return res, nil
 }
 
+func (p *Parser) FetchKeywordsByIDs(ctx context.Context, ids []uint64) ([]games.Tag, error) {
+	if len(ids) == 0 {
+		return nil, nil
+	}
+
+	tags, err := p.client.Keywords.GetByIDs(ctx, ids)
+	if err != nil {
+		return nil, err
+	}
+
+	res := make([]games.Tag, len(tags))
+	for i, tag := range tags {
+		res[i] = games.Tag{
+			IdDb:     tag.GetId(),
+			Name:     tag.GetName(),
+			Checksum: tag.GetChecksum(),
+		}
+	}
+
+	return res, nil
+}
+
 type ParseGamesMessage struct {
 	Games []games.Game
 	Err   error
@@ -240,6 +262,11 @@ func (p *Parser) ParseGames(ctx context.Context, count, offset, limit uint64) (<
 						genreIds[i] = genre.GetId()
 					}
 
+					keywordIds := make([]uint64, len(game.GetKeywords()))
+					for i, keyword := range game.GetKeywords() {
+						keywordIds[i] = keyword.GetId()
+					}
+
 					res.Games[i] = games.Game{
 						IdDb:        game.GetId(),
 						Name:        game.GetName(),
@@ -260,6 +287,10 @@ func (p *Parser) ParseGames(ctx context.Context, count, offset, limit uint64) (<
 						Genres: games.CollectionReference{
 							Ids:        genreIds,
 							Collection: adventuria.CollectionGenres,
+						},
+						Tags: games.CollectionReference{
+							Ids:        keywordIds,
+							Collection: adventuria.CollectionTags,
 						},
 						SteamAppId: steamAppIds[game.GetId()],
 						Cover:      covers[game.GetId()],
