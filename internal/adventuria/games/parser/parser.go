@@ -11,9 +11,11 @@ import (
 )
 
 const (
-	HltbRateLimit = time.Second / 60
-	HltbBurst     = 60
-	HltbWorkers   = 60
+	HltbRateLimit = 300 * time.Millisecond
+	HltbBurst     = 1
+	HltbWorkers   = 5
+	HltbWaitEvery = 10 * time.Minute
+	HltbWait      = 10 * time.Second
 )
 
 type GamesParser struct {
@@ -49,6 +51,15 @@ func NewGamesParser() (*GamesParser, error) {
 }
 
 func (p *GamesParser) Parse(ctx context.Context) {
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	unsub := adventuria.GameSettings.OnKillParser().BindFunc(func(e *adventuria.OnKillParserEvent) error {
+		cancel()
+		return e.Next()
+	})
+	defer unsub()
+
 	if !adventuria.GameSettings.DisableIGDBParser() {
 		adventuria.PocketBase.Logger().Info("IGDB parser started")
 		p.igdbParser.Parse(ctx, 500)
@@ -63,7 +74,7 @@ func (p *GamesParser) Parse(ctx context.Context) {
 
 	if !adventuria.GameSettings.DisableHLTBParser() {
 		adventuria.PocketBase.Logger().Info("HLTB parser started")
-		p.hltbParser.ParseWithWorkers(ctx, 100, HltbWorkers)
+		p.hltbParser.ParseWithWorkers(ctx, 100, HltbWorkers, HltbWaitEvery, HltbWait)
 		adventuria.PocketBase.Logger().Info("HLTB parser finished")
 	}
 }

@@ -37,12 +37,37 @@ func (p *ParserController) Parse(ctx context.Context, limit int64) {
 	}
 }
 
-func (p *ParserController) ParseWithWorkers(ctx context.Context, limit int64, workers int) {
-	p.runParseTime(ctx, limit, workers)
+func (p *ParserController) ParseWithWorkers(ctx context.Context, limit int64, workers int, waitEvery, wait time.Duration) {
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	_ = p.parser.RefreshToken(ctx, false)
+	p.runRefreshToken(ctx)
+	p.runParseTime(ctx, limit, workers, waitEvery, wait)
 }
 
-func (p *ParserController) runParseTime(ctx context.Context, limit int64, workers int) {
-	ch := p.fetchGamesWithoutTime(ctx, limit)
+func (p *ParserController) runRefreshToken(ctx context.Context) {
+	go func() {
+		ticker := time.NewTicker(5 * time.Minute)
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				err := p.parser.RefreshToken(ctx, false)
+				if err != nil {
+					adventuria.PocketBase.Logger().Error("Failed to refresh token", "error", err)
+				}
+			}
+		}
+	}()
+}
+
+// runParseTime runs the parseTimeFromChan method in goroutines.
+// Method is blocking and will wait until all games are processed.
+func (p *ParserController) runParseTime(ctx context.Context, limit int64, workers int, waitEvery, wait time.Duration) {
+	ch := p.fetchGamesWithoutTime(ctx, limit, waitEvery, wait)
 	var wg sync.WaitGroup
 	wg.Add(workers)
 
@@ -58,10 +83,12 @@ func (p *ParserController) runParseTime(ctx context.Context, limit int64, worker
 
 // fetchGamesWithoutTime returns a channel of games without campaign time
 // that will work until there are no more games to fetch.
-func (p *ParserController) fetchGamesWithoutTime(ctx context.Context, limit int64) <-chan games.GameRecord {
+func (p *ParserController) fetchGamesWithoutTime(ctx context.Context, limit int64, waitEvery, wait time.Duration) <-chan games.GameRecord {
 	ch := make(chan games.GameRecord, limit)
 
 	go func() {
+		ticker := time.NewTicker(waitEvery)
+		defer ticker.Stop()
 		defer close(ch)
 
 		for {
@@ -84,6 +111,8 @@ func (p *ParserController) fetchGamesWithoutTime(ctx context.Context, limit int6
 				select {
 				case <-ctx.Done():
 					return
+				case <-ticker.C:
+					time.Sleep(wait)
 				case ch <- game:
 				}
 			}

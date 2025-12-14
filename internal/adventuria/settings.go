@@ -1,6 +1,7 @@
 package adventuria
 
 import (
+	"adventuria/pkg/event"
 	"database/sql"
 	"errors"
 	"time"
@@ -12,6 +13,12 @@ import (
 
 type Settings struct {
 	core.BaseRecordProxy
+
+	onKillParser *event.Hook[*OnKillParserEvent]
+}
+
+type OnKillParserEvent struct {
+	event.Event
 }
 
 func NewSettings() (*Settings, error) {
@@ -20,6 +27,7 @@ func NewSettings() (*Settings, error) {
 	if err := s.init(); err != nil {
 		return nil, err
 	}
+	s.initHooks()
 	s.bindHooks()
 	s.RegisterSettingsCron()
 
@@ -38,6 +46,10 @@ func DefaultSettings() (*core.Record, error) {
 	return record, nil
 }
 
+func (s *Settings) initHooks() {
+	s.onKillParser = &event.Hook[*OnKillParserEvent]{}
+}
+
 func (s *Settings) bindHooks() {
 	PocketBase.OnRecordAfterCreateSuccess(CollectionSettings).BindFunc(func(e *core.RecordEvent) error {
 		s.SetProxyRecord(e.Record)
@@ -45,6 +57,13 @@ func (s *Settings) bindHooks() {
 	})
 	PocketBase.OnRecordAfterUpdateSuccess(CollectionSettings).BindFunc(func(e *core.RecordEvent) error {
 		s.SetProxyRecord(e.Record)
+		return e.Next()
+	})
+	PocketBase.OnRecordUpdate(CollectionSettings).BindFunc(func(e *core.RecordEvent) error {
+		if ok := e.Record.GetBool("kill_parser"); ok {
+			_ = s.onKillParser.Trigger(&OnKillParserEvent{})
+			e.Record.Set("kill_parser", false)
+		}
 		return e.Next()
 	})
 }
@@ -184,4 +203,8 @@ func (s *Settings) DisableSteamParser() bool {
 
 func (s *Settings) DisableHLTBParser() bool {
 	return s.GetBool("disable_hltb_parser")
+}
+
+func (s *Settings) OnKillParser() *event.Hook[*OnKillParserEvent] {
+	return s.onKillParser
 }

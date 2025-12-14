@@ -68,3 +68,7 @@ func (p *Parser) ParseBySteamAppId(ctx context.Context, appId uint64) (*Walkthro
 		Campaign: res.MainStory,
 	}, nil
 }
+
+func (p *Parser) RefreshToken(ctx context.Context, search bool) error {
+	return p.client.RefreshToken(ctx, search)
+}

@@ -32,6 +32,8 @@ github.com/ShadowDash2000/howlongtobeat v1.0.1 h1:dUe0s1WEbGmY186bOHk/8rE9cC5nq/
 github.com/ShadowDash2000/howlongtobeat v1.0.1/go.mod h1:Xzw7z9AD00dmHsbLifLScNWM8KKIo95HLCCfpGrn2Ss=
 github.com/ShadowDash2000/howlongtobeat v1.1.0 h1:jtW+cRADs0CUwUGKSfU9Yu9Ru8yZa713oWEgDMTc+bI=
 github.com/ShadowDash2000/howlongtobeat v1.1.0/go.mod h1:VJfXkGdWompS8D/oO/g5M7LoBh0BxyMaf2CONs2zFTA=
+github.com/ShadowDash2000/howlongtobeat v1.1.2 h1:K+pDgZAcTe+glZyE169kL1QPwj+Vl1HN6sckGGQbf1g=
+github.com/ShadowDash2000/howlongtobeat v1.1.2/go.mod h1:VJfXkGdWompS8D/oO/g5M7LoBh0BxyMaf2CONs2zFTA=
 github.com/ShadowDash2000/is-stream-live v0.0.6 h1:Mpj9MPKGEiJmznlBsT3XYNGR4+k/fddKEvq7niVt9d8=
 github.com/ShadowDash2000/is-stream-live v0.0.6/go.mod h1:HgYDSY7jw97ChiihbIIXENBCazNPf/Wyi2rQOJcgNTs=
 github.com/ShadowDash2000/steam-store-go v0.0.12 h1:eoKpg4SR5BosYAnroQNWyUjYcDpDfmtOcXQtOFX7rKI=

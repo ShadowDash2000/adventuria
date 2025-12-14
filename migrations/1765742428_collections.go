@@ -1810,6 +1810,54 @@ func init() {
 						"required": false,
 						"system": false,
 						"type": "number"
+					},
+					{
+						"hidden": false,
+						"id": "number2528183409",
+						"max": null,
+						"min": null,
+						"name": "steam_spy_last_page",
+						"onlyInt": true,
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "number"
+					},
+					{
+						"hidden": false,
+						"id": "bool915307263",
+						"name": "disable_igdb_parser",
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "bool"
+					},
+					{
+						"hidden": false,
+						"id": "bool4060771310",
+						"name": "disable_steam_parser",
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "bool"
+					},
+					{
+						"hidden": false,
+						"id": "bool2736790713",
+						"name": "disable_hltb_parser",
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "bool"
+					},
+					{
+						"hidden": false,
+						"id": "bool1132377056",
+						"name": "kill_parser",
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "bool"
 					}
 				],
 				"id": "pbc_2769025244",
@@ -2602,8 +2650,22 @@ func init() {
 						"type": "text"
 					},
 					{
+						"autogeneratePattern": "",
 						"hidden": false,
-						"id": "_clone_VsoH",
+						"id": "_clone_YDJw",
+						"max": 0,
+						"min": 0,
+						"name": "name",
+						"pattern": "",
+						"presentable": false,
+						"primaryKey": false,
+						"required": true,
+						"system": false,
+						"type": "text"
+					},
+					{
+						"hidden": false,
+						"id": "_clone_0ieg",
 						"max": null,
 						"min": null,
 						"name": "steam_app_id",
@@ -2615,7 +2677,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_tzyW",
+						"id": "_clone_fLDW",
 						"max": null,
 						"min": null,
 						"name": "steam_app_price",
@@ -2633,7 +2695,7 @@ func init() {
 				"system": false,
 				"type": "view",
 				"updateRule": null,
-				"viewQuery": "SELECT\n  g.id,\n  g.steam_app_id,\n  g.steam_app_price\nFROM games g\nJOIN json_each(g.platforms) AS je\nJOIN platforms p ON p.id = je.value\nWHERE p.id_db = 6 AND g.steam_app_id > 0 AND g.steam_app_price = -1",
+				"viewQuery": "SELECT\n  g.id,\n  g.name,\n  g.steam_app_id,\n  g.steam_app_price\nFROM games g\nJOIN json_each(g.platforms) AS je\nJOIN platforms p ON p.id = je.value\nWHERE p.id_db = 6 AND g.steam_app_id > 0 AND g.steam_app_price = -1",
 				"viewRule": null
 			},
 			{
@@ -2837,7 +2899,7 @@ func init() {
 					{
 						"autogeneratePattern": "",
 						"hidden": false,
-						"id": "_clone_mvS9",
+						"id": "_clone_iPKG",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -2850,7 +2912,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_Yyr3",
+						"id": "_clone_QyO9",
 						"max": null,
 						"min": null,
 						"name": "steam_app_id",
@@ -2862,7 +2924,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_5ADu",
+						"id": "_clone_Vsdi",
 						"max": null,
 						"min": null,
 						"name": "campaign_time",
@@ -3091,6 +3153,274 @@ func init() {
 				"system": false,
 				"type": "base",
 				"updateRule": null,
+				"viewRule": null
+			},
+			{
+				"createRule": null,
+				"deleteRule": null,
+				"fields": [
+					{
+						"autogeneratePattern": "",
+						"hidden": false,
+						"id": "text3208210256",
+						"max": 0,
+						"min": 0,
+						"name": "id",
+						"pattern": "^[a-z0-9]+$",
+						"presentable": false,
+						"primaryKey": true,
+						"required": true,
+						"system": true,
+						"type": "text"
+					},
+					{
+						"autogeneratePattern": "",
+						"hidden": false,
+						"id": "_clone_i0co",
+						"max": 0,
+						"min": 0,
+						"name": "name",
+						"pattern": "",
+						"presentable": false,
+						"primaryKey": false,
+						"required": true,
+						"system": false,
+						"type": "text"
+					},
+					{
+						"hidden": false,
+						"id": "_clone_kMua",
+						"max": null,
+						"min": null,
+						"name": "steam_app_id",
+						"onlyInt": true,
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "number"
+					},
+					{
+						"hidden": false,
+						"id": "_clone_C3d8",
+						"max": null,
+						"min": null,
+						"name": "campaign_time",
+						"onlyInt": false,
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "number"
+					}
+				],
+				"id": "pbc_4099960803",
+				"indexes": [],
+				"listRule": null,
+				"name": "games_with_zero_walktrough_time",
+				"system": false,
+				"type": "view",
+				"updateRule": null,
+				"viewQuery": "SELECT\n  g.id,\n  g.name,\n  g.steam_app_id,\n  g.campaign_time\nFROM games g\nWHERE g.campaign_time = 0",
+				"viewRule": null
+			},
+			{
+				"createRule": null,
+				"deleteRule": null,
+				"fields": [
+					{
+						"autogeneratePattern": "",
+						"hidden": false,
+						"id": "text3208210256",
+						"max": 0,
+						"min": 0,
+						"name": "id",
+						"pattern": "^[a-z0-9]+$",
+						"presentable": false,
+						"primaryKey": true,
+						"required": true,
+						"system": true,
+						"type": "text"
+					},
+					{
+						"autogeneratePattern": "",
+						"hidden": false,
+						"id": "_clone_CBlD",
+						"max": 0,
+						"min": 0,
+						"name": "name",
+						"pattern": "",
+						"presentable": false,
+						"primaryKey": false,
+						"required": true,
+						"system": false,
+						"type": "text"
+					},
+					{
+						"hidden": false,
+						"id": "_clone_T3R3",
+						"max": null,
+						"min": null,
+						"name": "steam_app_id",
+						"onlyInt": true,
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "number"
+					},
+					{
+						"hidden": false,
+						"id": "_clone_8COE",
+						"max": null,
+						"min": null,
+						"name": "steam_app_price",
+						"onlyInt": true,
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "number"
+					}
+				],
+				"id": "pbc_4267612969",
+				"indexes": [],
+				"listRule": null,
+				"name": "pc_games_with_zero_price",
+				"system": false,
+				"type": "view",
+				"updateRule": null,
+				"viewQuery": "SELECT\n  g.id,\n  g.name,\n  g.steam_app_id,\n  g.steam_app_price\nFROM games g\nJOIN json_each(g.platforms) AS je\nJOIN platforms p ON p.id = je.value\nWHERE p.id_db = 6 AND g.steam_app_id > 0 AND g.steam_app_price = 0",
+				"viewRule": null
+			},
+			{
+				"createRule": null,
+				"deleteRule": null,
+				"fields": [
+					{
+						"autogeneratePattern": "",
+						"hidden": false,
+						"id": "text3208210256",
+						"max": 0,
+						"min": 0,
+						"name": "id",
+						"pattern": "^[a-z0-9]+$",
+						"presentable": false,
+						"primaryKey": true,
+						"required": true,
+						"system": true,
+						"type": "text"
+					},
+					{
+						"autogeneratePattern": "",
+						"hidden": false,
+						"id": "_clone_LqfC",
+						"max": 0,
+						"min": 0,
+						"name": "name",
+						"pattern": "",
+						"presentable": false,
+						"primaryKey": false,
+						"required": true,
+						"system": false,
+						"type": "text"
+					},
+					{
+						"hidden": false,
+						"id": "_clone_htTe",
+						"max": null,
+						"min": null,
+						"name": "steam_app_id",
+						"onlyInt": true,
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "number"
+					},
+					{
+						"hidden": false,
+						"id": "_clone_iUHd",
+						"max": null,
+						"min": null,
+						"name": "steam_app_price",
+						"onlyInt": true,
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "number"
+					}
+				],
+				"id": "pbc_1179195841",
+				"indexes": [],
+				"listRule": null,
+				"name": "pc_games_without_tags",
+				"system": false,
+				"type": "view",
+				"updateRule": null,
+				"viewQuery": "SELECT\n  g.id,\n  g.name,\n  g.steam_app_id,\n  g.steam_app_price\nFROM games g\nJOIN json_each(g.platforms) AS je\nJOIN platforms p ON p.id = je.value\nWHERE p.id_db = 6 AND g.steam_app_id > 0 AND g.tags = \"[]\"",
+				"viewRule": null
+			},
+			{
+				"createRule": null,
+				"deleteRule": null,
+				"fields": [
+					{
+						"autogeneratePattern": "",
+						"hidden": false,
+						"id": "text3208210256",
+						"max": 0,
+						"min": 0,
+						"name": "id",
+						"pattern": "^[a-z0-9]+$",
+						"presentable": false,
+						"primaryKey": true,
+						"required": true,
+						"system": true,
+						"type": "text"
+					},
+					{
+						"autogeneratePattern": "",
+						"hidden": false,
+						"id": "_clone_sXfa",
+						"max": 0,
+						"min": 0,
+						"name": "name",
+						"pattern": "",
+						"presentable": false,
+						"primaryKey": false,
+						"required": true,
+						"system": false,
+						"type": "text"
+					},
+					{
+						"hidden": false,
+						"id": "_clone_ouw0",
+						"max": null,
+						"min": null,
+						"name": "steam_app_id",
+						"onlyInt": true,
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "number"
+					},
+					{
+						"hidden": false,
+						"id": "_clone_GxUt",
+						"max": null,
+						"min": null,
+						"name": "campaign_time",
+						"onlyInt": false,
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "number"
+					}
+				],
+				"id": "pbc_3035161465",
+				"indexes": [],
+				"listRule": null,
+				"name": "game_with_walkthrough_time",
+				"system": false,
+				"type": "view",
+				"updateRule": null,
+				"viewQuery": "SELECT\n  g.id,\n  g.name,\n  g.steam_app_id,\n  g.campaign_time\nFROM games g\nWHERE g.campaign_time > 0",
 				"viewRule": null
 			}
 		]`
