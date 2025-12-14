@@ -50,7 +50,11 @@ func (p *ParserController) parseTime(ctx context.Context, limit int) error {
 					adventuria.PocketBase.Logger().Info("parseTime(): Game not found", "game", game.Name())
 					game.SetCampaignTime(0)
 				} else {
-					return err
+					adventuria.PocketBase.Logger().Error("parseTime(): Failed to parse time",
+						"error", err,
+						"game", game.Name(),
+					)
+					continue
 				}
 			} else {
 				game.SetHltbID(time.GameID)
@@ -75,7 +79,17 @@ func (p *ParserController) parseWalkthroughTime(ctx context.Context, game games.
 	)
 	if steamAppId > 0 {
 		gameTime, err = p.parser.ParseBySteamAppId(ctx, steamAppId)
-	} else {
+
+		if err != nil {
+			adventuria.PocketBase.Logger().Debug(
+				"parseTime(): Failed to parse time by steam app id",
+				"error", err,
+				"steamAppId", steamAppId,
+			)
+		}
+	}
+
+	if steamAppId <= 0 || gameTime == nil {
 		normalizedTitle := normalizeTitle(game.Name())
 
 		adventuria.PocketBase.Logger().Debug(

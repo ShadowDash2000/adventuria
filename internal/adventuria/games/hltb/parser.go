@@ -48,11 +48,11 @@ func (p *Parser) ParseTime(ctx context.Context, search string) (*WalkthroughTime
 func (p *Parser) ParseBySteamAppId(ctx context.Context, appId uint64) (*WalkthroughTime, error) {
 	res, err := p.cachedClient.GetBySteamAppId(ctx, appId)
 	if err != nil {
-		return nil, err
-	}
+		if errors.Is(err, hltb.ErrNotFound) {
+			return nil, ErrGameNotFound
+		}
 
-	if errors.Is(err, hltb.ErrNotFound) {
-		return nil, ErrGameNotFound
+		return nil, err
 	}
 
 	return &WalkthroughTime{

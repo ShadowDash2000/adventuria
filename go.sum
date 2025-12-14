@@ -24,6 +24,8 @@ github.com/PuerkitoBio/goquery v1.11.0 h1:jZ7pwMQXIITcUXNH83LLk+txlaEy6NVOfTuP43
 github.com/PuerkitoBio/goquery v1.11.0/go.mod h1:wQHgxUOU3JGuj3oD/QFfxUdlzW6xPHfqyHre6VMY4DQ=
 github.com/ShadowDash2000/hltb-crashdummy-go v1.0.1 h1:MiN+9G/XD78oN5c+zQXcLT55ispAgqXPn+dc4DxToEg=
 github.com/ShadowDash2000/hltb-crashdummy-go v1.0.1/go.mod h1:q2kccuuy98Is6suKZCS0vjwsnJ/Pn80i2L5JwJFRRTk=
+github.com/ShadowDash2000/hltb-crashdummy-go v1.0.2 h1:qv98haB0Sw4Ihr0c8EfDRLnC6O/bpgQF5q8JoBpGEsI=
+github.com/ShadowDash2000/hltb-crashdummy-go v1.0.2/go.mod h1:q2kccuuy98Is6suKZCS0vjwsnJ/Pn80i2L5JwJFRRTk=
 github.com/ShadowDash2000/howlongtobeat v1.0.1 h1:dUe0s1WEbGmY186bOHk/8rE9cC5nq/6a62aPhKqNFZI=
 github.com/ShadowDash2000/howlongtobeat v1.0.1/go.mod h1:Xzw7z9AD00dmHsbLifLScNWM8KKIo95HLCCfpGrn2Ss=
 github.com/ShadowDash2000/is-stream-live v0.0.6 h1:Mpj9MPKGEiJmznlBsT3XYNGR4+k/fddKEvq7niVt9d8=
