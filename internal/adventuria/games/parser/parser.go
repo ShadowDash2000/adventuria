@@ -7,6 +7,13 @@ import (
 	"adventuria/internal/adventuria/games/steam"
 	"context"
 	"log"
+	"time"
+)
+
+const (
+	HltbRateLimit = time.Second / 60
+	HltbBurst     = 60
+	HltbWorkers   = 60
 )
 
 type GamesParser struct {
@@ -28,7 +35,7 @@ func NewGamesParser() (*GamesParser, error) {
 		return nil, err
 	}
 
-	hltbParser, err := hltb.New()
+	hltbParser, err := hltb.New(HltbRateLimit, HltbBurst)
 	if err != nil {
 		log.Printf("Failed to initialize hltb parser: %v", err)
 		return nil, err
@@ -56,7 +63,7 @@ func (p *GamesParser) Parse(ctx context.Context) {
 
 	if !adventuria.GameSettings.DisableHLTBParser() {
 		adventuria.PocketBase.Logger().Info("HLTB parser started")
-		p.hltbParser.Parse(ctx, 100)
+		p.hltbParser.ParseWithWorkers(ctx, 100, HltbWorkers)
 		adventuria.PocketBase.Logger().Info("HLTB parser finished")
 	}
 }

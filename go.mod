@@ -4,8 +4,8 @@ go 1.25.5
 
 require (
 	git.nite07.com/shadod/go-igdb v1.0.1
-	github.com/ShadowDash2000/hltb-crashdummy-go v1.0.2
-	github.com/ShadowDash2000/howlongtobeat v1.0.1
+	github.com/ShadowDash2000/hltb-crashdummy-go v1.1.0
+	github.com/ShadowDash2000/howlongtobeat v1.1.0
 	github.com/ShadowDash2000/is-stream-live v0.0.6
 	github.com/ShadowDash2000/steam-store-go v0.0.12
 	github.com/joho/godotenv v1.5.1

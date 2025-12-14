@@ -3,6 +3,7 @@ package hltb
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/ShadowDash2000/hltb-crashdummy-go"
 	"github.com/ShadowDash2000/howlongtobeat"
@@ -13,13 +14,20 @@ type Parser struct {
 	cachedClient *hltb.Client
 }
 
-func NewParser() (*Parser, error) {
-	c, err := howlongtobeat.New()
+func NewParser(r time.Duration, b int) (*Parser, error) {
+	c, err := howlongtobeat.New(
+		howlongtobeat.WithRateLimit(r, b),
+	)
 	if err != nil {
 		return nil, err
 	}
 
-	return &Parser{client: c, cachedClient: hltb.New()}, nil
+	return &Parser{
+		client: c,
+		cachedClient: hltb.New(
+			hltb.WithRateLimit(r, b),
+		),
+	}, nil
 }
 
 type WalkthroughTime struct {

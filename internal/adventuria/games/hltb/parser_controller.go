@@ -7,15 +7,20 @@ import (
 	"errors"
 	"regexp"
 	"strings"
+	"sync"
+	"time"
 	"unicode"
+
+	"github.com/pocketbase/dbx"
+	"github.com/pocketbase/pocketbase/core"
 )
 
 type ParserController struct {
 	parser *Parser
 }
 
-func New() (*ParserController, error) {
-	p, err := NewParser()
+func New(r time.Duration, b int) (*ParserController, error) {
+	p, err := NewParser(r, b)
 	if err != nil {
 		return nil, err
 	}
@@ -25,16 +30,97 @@ func New() (*ParserController, error) {
 	}, nil
 }
 
-func (p *ParserController) Parse(ctx context.Context, limit int) {
+func (p *ParserController) Parse(ctx context.Context, limit int64) {
 	if err := p.parseTime(ctx, limit); err != nil {
 		adventuria.PocketBase.Logger().Error("Failed to parse time", "error", err)
 		return
 	}
 }
 
-func (p *ParserController) parseTime(ctx context.Context, limit int) error {
+func (p *ParserController) ParseWithWorkers(ctx context.Context, limit int64, workers int) {
+	p.runParseTime(ctx, limit, workers)
+}
+
+func (p *ParserController) runParseTime(ctx context.Context, limit int64, workers int) {
+	ch := p.fetchGamesWithoutTime(ctx, limit)
+	var wg sync.WaitGroup
+	wg.Add(workers)
+
+	for i := 0; i < workers; i++ {
+		go func() {
+			defer wg.Done()
+			p.parseTimeFromChan(ctx, ch)
+		}()
+	}
+
+	wg.Wait()
+}
+
+// fetchGamesWithoutTime returns a channel of games without campaign time
+// that will work until there are no more games to fetch.
+func (p *ParserController) fetchGamesWithoutTime(ctx context.Context, limit int64) <-chan games.GameRecord {
+	ch := make(chan games.GameRecord, limit)
+
+	go func() {
+		defer close(ch)
+
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+			}
+
+			gameRecords, err := p.getGamesWithoutTime(ctx, limit)
+			if err != nil {
+				return
+			}
+
+			if len(gameRecords) == 0 {
+				return
+			}
+
+			for _, game := range gameRecords {
+				select {
+				case <-ctx.Done():
+					return
+				case ch <- game:
+				}
+			}
+		}
+	}()
+
+	return ch
+}
+
+func (p *ParserController) parseTimeFromChan(ctx context.Context, ch <-chan games.GameRecord) {
+	for game := range ch {
+		time, err := p.parseWalkthroughTime(ctx, game)
+		if err != nil {
+			if errors.Is(err, ErrGameNotFound) {
+				adventuria.PocketBase.Logger().Debug("parseTimeFromChan(): Game not found", "game", game.Name())
+				game.SetCampaignTime(0)
+			} else {
+				adventuria.PocketBase.Logger().Error("parseTimeFromChan(): Failed to parse time",
+					"error", err,
+					"game", game.Name(),
+				)
+			}
+		} else {
+			game.SetHltbID(time.GameID)
+			game.SetCampaignTime(time.Campaign)
+		}
+
+		err = adventuria.PocketBase.Save(game.ProxyRecord())
+		if err != nil {
+			adventuria.PocketBase.Logger().Error("parseTimeFromChan(): Failed to save game", "error", err)
+		}
+	}
+}
+
+func (p *ParserController) parseTime(ctx context.Context, limit int64) error {
 	for {
-		gameRecords, err := p.getGamesWithoutTime(limit)
+		gameRecords, err := p.getGamesWithoutTime(ctx, limit)
 		if err != nil {
 			return err
 		}
@@ -104,15 +190,13 @@ func (p *ParserController) parseWalkthroughTime(ctx context.Context, game games.
 	return gameTime, err
 }
 
-func (p *ParserController) getGamesWithoutTime(limit int) ([]games.GameRecord, error) {
-	records, err := adventuria.PocketBase.FindRecordsByFilter(
-		adventuria.GameCollections.Get(adventuria.CollectionGames),
-		"campaign_time = -1",
-		"",
-		limit,
-		0,
-		nil,
-	)
+func (p *ParserController) getGamesWithoutTime(ctx context.Context, limit int64) ([]games.GameRecord, error) {
+	var records []*core.Record
+	err := adventuria.PocketBase.RecordQuery(adventuria.GameCollections.Get(adventuria.CollectionGames)).
+		WithContext(ctx).
+		Where(dbx.HashExp{"campaign_time": -1}).
+		Limit(limit).
+		All(&records)
 	if err != nil {
 		return nil, err
 	}
