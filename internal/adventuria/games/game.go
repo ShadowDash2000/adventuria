@@ -5,8 +5,6 @@ import (
 	"github.com/pocketbase/pocketbase/tools/types"
 )
 
-// TODO maybe we should combine games with movies in one DB collection
-
 type Game struct {
 	IdDb        uint64
 	Name        string
@@ -47,12 +45,10 @@ type GameRecord interface {
 	SetTags([]string)
 	SteamAppId() uint64
 	SetSteamAppId(uint64)
-	SteamAppPrice() int
-	SetSteamAppPrice(int)
-	HltbID() int
-	SetHltbID(int)
-	CampaignTime() float64
-	SetCampaignTime(float64)
+	SteamSpy() string
+	SetSteamSpy(string)
+	Hltb() string
+	SetHltb(string)
 	Cover() string
 	SetCover(string)
 }

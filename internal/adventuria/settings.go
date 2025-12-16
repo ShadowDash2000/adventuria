@@ -185,14 +185,6 @@ func (s *Settings) SetIGDBGamesParsed(count uint64) {
 	s.Set("igdb_games_parsed", count)
 }
 
-func (s *Settings) SteamSpyLastPage() uint {
-	return uint(s.GetInt("steam_spy_last_page"))
-}
-
-func (s *Settings) SetSteamSpyLastPage(page uint) {
-	s.Set("steam_spy_last_page", page)
-}
-
 func (s *Settings) DisableIGDBParser() bool {
 	return s.GetBool("disable_igdb_parser")
 }

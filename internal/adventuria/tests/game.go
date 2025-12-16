@@ -170,18 +170,17 @@ func (g *GameTest) createTestGames() error {
 		tags          []string
 		steamAppId    uint64
 		steamAppPrice int
-		campaignTime  float64
 	}{
-		{idDb: 1, name: "Half-Life", slug: "half-life", releaseDate: types.NowDateTime(), steamAppId: 1001, steamAppPrice: 1234, campaignTime: 10},
-		{idDb: 2, name: "Portal", slug: "portal", releaseDate: types.NowDateTime(), steamAppId: 1002, steamAppPrice: 999, campaignTime: 4},
-		{idDb: 3, name: "Team Fortress 2", slug: "team-fortress-2", releaseDate: types.NowDateTime(), steamAppId: 1003, steamAppPrice: 0, campaignTime: 0},
-		{idDb: 4, name: "Left 4 Dead", slug: "left-4-dead", releaseDate: types.NowDateTime(), steamAppId: 1004, steamAppPrice: 1499, campaignTime: 6},
-		{idDb: 5, name: "Counter-Strike", slug: "counter-strike", releaseDate: types.NowDateTime(), steamAppId: 1005, steamAppPrice: 1499, campaignTime: 0},
-		{idDb: 6, name: "Dota 2", slug: "dota-2", releaseDate: types.NowDateTime(), steamAppId: 1006, steamAppPrice: 0, campaignTime: 0},
-		{idDb: 7, name: "Portal 2", slug: "portal-2", releaseDate: types.NowDateTime(), steamAppId: 1007, steamAppPrice: 1999, campaignTime: 8},
-		{idDb: 8, name: "Half-Life 2", slug: "half-life-2", releaseDate: types.NowDateTime(), steamAppId: 1008, steamAppPrice: 1999, campaignTime: 15},
-		{idDb: 9, name: "Left 4 Dead 2", slug: "left-4-dead-2", releaseDate: types.NowDateTime(), steamAppId: 1009, steamAppPrice: 1999, campaignTime: 7},
-		{idDb: 10, name: "Counter-Strike 2", slug: "counter-strike-2", releaseDate: types.NowDateTime(), steamAppId: 1010, steamAppPrice: 0, campaignTime: 0},
+		{idDb: 1, name: "Half-Life", slug: "half-life", releaseDate: types.NowDateTime(), steamAppId: 1001, steamAppPrice: 1234},
+		{idDb: 2, name: "Portal", slug: "portal", releaseDate: types.NowDateTime(), steamAppId: 1002, steamAppPrice: 999},
+		{idDb: 3, name: "Team Fortress 2", slug: "team-fortress-2", releaseDate: types.NowDateTime(), steamAppId: 1003, steamAppPrice: 0},
+		{idDb: 4, name: "Left 4 Dead", slug: "left-4-dead", releaseDate: types.NowDateTime(), steamAppId: 1004, steamAppPrice: 1499},
+		{idDb: 5, name: "Counter-Strike", slug: "counter-strike", releaseDate: types.NowDateTime(), steamAppId: 1005, steamAppPrice: 1499},
+		{idDb: 6, name: "Dota 2", slug: "dota-2", releaseDate: types.NowDateTime(), steamAppId: 1006, steamAppPrice: 0},
+		{idDb: 7, name: "Portal 2", slug: "portal-2", releaseDate: types.NowDateTime(), steamAppId: 1007, steamAppPrice: 1999},
+		{idDb: 8, name: "Half-Life 2", slug: "half-life-2", releaseDate: types.NowDateTime(), steamAppId: 1008, steamAppPrice: 1999},
+		{idDb: 9, name: "Left 4 Dead 2", slug: "left-4-dead-2", releaseDate: types.NowDateTime(), steamAppId: 1009, steamAppPrice: 1999},
+		{idDb: 10, name: "Counter-Strike 2", slug: "counter-strike-2", releaseDate: types.NowDateTime(), steamAppId: 1010, steamAppPrice: 0},
 	}
 
 	for i, game := range games {
@@ -197,7 +196,6 @@ func (g *GameTest) createTestGames() error {
 		record.Set("tags", game.tags)
 		record.Set("steam_app_id", game.steamAppId)
 		record.Set("steam_app_price", game.steamAppPrice)
-		record.Set("campaign_time", game.campaignTime)
 		record.Set("checksum", strconv.Itoa(i))
 		err := adventuria.PocketBase.Save(record)
 		if err != nil {

@@ -1,72 +1,52 @@
 package steam
 
 import (
+	"adventuria/internal/adventuria/games/github"
 	"context"
-	"time"
+	"encoding/json"
+	"net/http"
 
 	steamstore "github.com/ShadowDash2000/steam-store-go"
 )
 
-type Parser struct {
-	client *steamstore.Client
+type Parser struct{}
+
+type Release struct {
+	Assets []Asset `json:"assets"`
+}
+
+type Asset struct {
+	Name               string `json:"name"`
+	BrowserDownloadURL string `json:"browser_download_url"`
 }
 
 func NewParser() *Parser {
-	return &Parser{
-		client: steamstore.New(
-			steamstore.WithRateLimit(60*time.Second),
-			steamstore.WithBurst(1),
-		),
-	}
+	return &Parser{}
 }
 
-type AppDetail struct {
-	Price uint
-	Tags  map[string]uint
-}
-
-func (p *Parser) ParseAppDetails(ctx context.Context, appId uint) (*AppDetail, error) {
-	appDetail, err := p.client.GetSteamSpyAppDetails(ctx, appId)
+func (p *Parser) FetchLatestRelease(ctx context.Context) ([]steamstore.SteamSpyAppDetailsResponse, error) {
+	downloadUrl, err := github.FetchLatestReleaseDownloadUrl(ctx, "ShadowDash2000", "steam-spy-scraper")
 	if err != nil {
 		return nil, err
 	}
 
-	return &AppDetail{
-		Price: uint(appDetail.Price),
-		Tags:  appDetail.Tags,
-	}, nil
-}
+	client := http.DefaultClient
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, downloadUrl, nil)
+	if err != nil {
+		return nil, err
+	}
+	fileRes, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer fileRes.Body.Close()
 
-type ParseAllAppsMessage struct {
-	Apps map[string]steamstore.SteamSpyAppDetailsResponse
-	Page uint
-	Err  error
-}
+	var games struct {
+		Data []steamstore.SteamSpyAppDetailsResponse `json:"data"`
+	}
+	if err = json.NewDecoder(fileRes.Body).Decode(&games); err != nil {
+		return nil, err
+	}
 
-func (p *Parser) ParseAllApps(ctx context.Context, startPage uint) <-chan ParseAllAppsMessage {
-	ch := make(chan ParseAllAppsMessage)
-
-	go func() {
-		defer close(ch)
-
-		page := startPage
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			default:
-				res, err := p.client.GetSteamSpyAppsPaginated(ctx, page)
-				if err != nil {
-					ch <- ParseAllAppsMessage{Page: page, Err: err}
-					return
-				}
-
-				ch <- ParseAllAppsMessage{Apps: res, Page: page}
-
-				page++
-			}
-		}
-	}()
-
-	return ch
+	return games.Data, nil
 }

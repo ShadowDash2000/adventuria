@@ -22,16 +22,6 @@ github.com/Masterminds/semver/v3 v3.4.0 h1:Zog+i5UMtVoCU8oKka5P7i9q9HgrJeGzI9SA1
 github.com/Masterminds/semver/v3 v3.4.0/go.mod h1:4V+yj/TJE1HU9XfppCwVMZq3I84lprf4nC11bSS5beM=
 github.com/PuerkitoBio/goquery v1.11.0 h1:jZ7pwMQXIITcUXNH83LLk+txlaEy6NVOfTuP43xxfqw=
 github.com/PuerkitoBio/goquery v1.11.0/go.mod h1:wQHgxUOU3JGuj3oD/QFfxUdlzW6xPHfqyHre6VMY4DQ=
-github.com/ShadowDash2000/hltb-crashdummy-go v1.0.1 h1:MiN+9G/XD78oN5c+zQXcLT55ispAgqXPn+dc4DxToEg=
-github.com/ShadowDash2000/hltb-crashdummy-go v1.0.1/go.mod h1:q2kccuuy98Is6suKZCS0vjwsnJ/Pn80i2L5JwJFRRTk=
-github.com/ShadowDash2000/hltb-crashdummy-go v1.0.2 h1:qv98haB0Sw4Ihr0c8EfDRLnC6O/bpgQF5q8JoBpGEsI=
-github.com/ShadowDash2000/hltb-crashdummy-go v1.0.2/go.mod h1:q2kccuuy98Is6suKZCS0vjwsnJ/Pn80i2L5JwJFRRTk=
-github.com/ShadowDash2000/hltb-crashdummy-go v1.1.0 h1:I8x1Riirhz/p7ApmJumciv3ManrXW7iYspz15dDgBGQ=
-github.com/ShadowDash2000/hltb-crashdummy-go v1.1.0/go.mod h1:x9xechf6FqUQZL7O0vVEXV3Z3ECRKFl/si8X/K1NtZA=
-github.com/ShadowDash2000/howlongtobeat v1.0.1 h1:dUe0s1WEbGmY186bOHk/8rE9cC5nq/6a62aPhKqNFZI=
-github.com/ShadowDash2000/howlongtobeat v1.0.1/go.mod h1:Xzw7z9AD00dmHsbLifLScNWM8KKIo95HLCCfpGrn2Ss=
-github.com/ShadowDash2000/howlongtobeat v1.1.0 h1:jtW+cRADs0CUwUGKSfU9Yu9Ru8yZa713oWEgDMTc+bI=
-github.com/ShadowDash2000/howlongtobeat v1.1.0/go.mod h1:VJfXkGdWompS8D/oO/g5M7LoBh0BxyMaf2CONs2zFTA=
 github.com/ShadowDash2000/howlongtobeat v1.1.2 h1:K+pDgZAcTe+glZyE169kL1QPwj+Vl1HN6sckGGQbf1g=
 github.com/ShadowDash2000/howlongtobeat v1.1.2/go.mod h1:VJfXkGdWompS8D/oO/g5M7LoBh0BxyMaf2CONs2zFTA=
 github.com/ShadowDash2000/is-stream-live v0.0.6 h1:Mpj9MPKGEiJmznlBsT3XYNGR4+k/fddKEvq7niVt9d8=

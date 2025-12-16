@@ -7,15 +7,6 @@ import (
 	"adventuria/internal/adventuria/games/steam"
 	"context"
 	"log"
-	"time"
-)
-
-const (
-	HltbRateLimit = 300 * time.Millisecond
-	HltbBurst     = 1
-	HltbWorkers   = 5
-	HltbWaitEvery = 10 * time.Minute
-	HltbWait      = 10 * time.Second
 )
 
 type GamesParser struct {
@@ -31,22 +22,10 @@ func NewGamesParser() (*GamesParser, error) {
 		return nil, err
 	}
 
-	steamParser, err := steam.New()
-	if err != nil {
-		log.Printf("Failed to initialize steam parser: %v", err)
-		return nil, err
-	}
-
-	hltbParser, err := hltb.New(HltbRateLimit, HltbBurst)
-	if err != nil {
-		log.Printf("Failed to initialize hltb parser: %v", err)
-		return nil, err
-	}
-
 	return &GamesParser{
 		igdbParser:  igdbParser,
-		steamParser: steamParser,
-		hltbParser:  hltbParser,
+		steamParser: steam.New(),
+		hltbParser:  hltb.New(),
 	}, nil
 }
 
@@ -60,12 +39,6 @@ func (p *GamesParser) Parse(ctx context.Context) {
 	})
 	defer unsub()
 
-	if !adventuria.GameSettings.DisableIGDBParser() {
-		adventuria.PocketBase.Logger().Info("IGDB parser started")
-		p.igdbParser.Parse(ctx, 500)
-		adventuria.PocketBase.Logger().Info("IGDB parser finished")
-	}
-
 	if !adventuria.GameSettings.DisableSteamParser() {
 		adventuria.PocketBase.Logger().Info("Steam parser started")
 		p.steamParser.Parse(ctx)
@@ -73,8 +46,14 @@ func (p *GamesParser) Parse(ctx context.Context) {
 	}
 
 	if !adventuria.GameSettings.DisableHLTBParser() {
-		adventuria.PocketBase.Logger().Info("HLTB parser started")
-		p.hltbParser.ParseWithWorkers(ctx, 100, HltbWorkers, HltbWaitEvery, HltbWait)
-		adventuria.PocketBase.Logger().Info("HLTB parser finished")
+		adventuria.PocketBase.Logger().Info("HLTB scraper parser started")
+		p.hltbParser.Parse(ctx)
+		adventuria.PocketBase.Logger().Info("HLTB scraper parser finished")
+	}
+
+	if !adventuria.GameSettings.DisableIGDBParser() {
+		adventuria.PocketBase.Logger().Info("IGDB parser started")
+		p.igdbParser.Parse(ctx, 500)
+		adventuria.PocketBase.Logger().Info("IGDB parser finished")
 	}
 }

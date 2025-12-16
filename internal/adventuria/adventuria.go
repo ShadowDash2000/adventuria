@@ -10,13 +10,12 @@ const (
 	CollectionTimers    = "timers"
 	CollectionSettings  = "settings"
 
-	CollectionGames       = "games"
-	CollectionCompanies   = "companies"
-	CollectionPlatforms   = "platforms"
-	CollectionGenres      = "genres"
-	CollectionTags        = "tags"
-	CollectionGameFilters = "game_filters"
-
-	ViewCollectionPcGamesWithoutPrice         = "pc_games_without_price"
-	ViewCollectionGamesWithoutWalkthroughTime = "games_without_walkthrough_time"
+	CollectionGames         = "games"
+	CollectionCompanies     = "companies"
+	CollectionPlatforms     = "platforms"
+	CollectionGenres        = "genres"
+	CollectionTags          = "tags"
+	CollectionGameFilters   = "game_filters"
+	CollectionHowLongToBeat = "howlongtobeat"
+	CollectionSteamSpy      = "steam_spy"
 )

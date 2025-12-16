@@ -99,28 +99,20 @@ func (g *GameRecordBase) SetSteamAppId(id uint64) {
 	g.Set("steam_app_id", int(id))
 }
 
-func (g *GameRecordBase) SteamAppPrice() int {
-	return g.GetInt("steam_app_price")
+func (g *GameRecordBase) SteamSpy() string {
+	return g.GetString("steam_spy")
 }
 
-func (g *GameRecordBase) SetSteamAppPrice(price int) {
-	g.Set("steam_app_price", price)
+func (g *GameRecordBase) SetSteamSpy(id string) {
+	g.Set("steam_spy", id)
 }
 
-func (g *GameRecordBase) HltbID() int {
-	return g.GetInt("hltb_id")
+func (g *GameRecordBase) Hltb() string {
+	return g.GetString("hltb")
 }
 
-func (g *GameRecordBase) SetHltbID(id int) {
-	g.Set("hltb_id", id)
-}
-
-func (g *GameRecordBase) CampaignTime() float64 {
-	return g.GetFloat("campaign_time")
-}
-
-func (g *GameRecordBase) SetCampaignTime(time float64) {
-	g.Set("campaign_time", time)
+func (g *GameRecordBase) SetHltb(id string) {
+	g.Set("hltb", id)
 }
 
 func (g *GameRecordBase) Cover() string {
