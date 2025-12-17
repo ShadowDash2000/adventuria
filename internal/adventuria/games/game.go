@@ -45,10 +45,14 @@ type GameRecord interface {
 	SetTags([]string)
 	SteamAppId() uint64
 	SetSteamAppId(uint64)
+	SteamAppPrice() uint
+	SetSteamAppPrice(uint)
 	SteamSpy() string
 	SetSteamSpy(string)
-	Hltb() string
-	SetHltb(string)
+	HltbId() int
+	SetHltbId(int)
+	Campaign() float64
+	SetCampaign(float64)
 	Cover() string
 	SetCover(string)
 }

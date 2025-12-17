@@ -2445,38 +2445,48 @@ func init() {
 						"type": "relation"
 					},
 					{
-						"cascadeDelete": false,
-						"collectionId": "pbc_3685607326",
-						"hidden": false,
-						"id": "relation3213230342",
-						"maxSelect": 1,
-						"minSelect": 0,
-						"name": "steam_spy",
-						"presentable": false,
-						"required": false,
-						"system": false,
-						"type": "relation"
-					},
-					{
-						"cascadeDelete": false,
-						"collectionId": "pbc_2205342315",
-						"hidden": false,
-						"id": "relation1995738674",
-						"maxSelect": 1,
-						"minSelect": 0,
-						"name": "hltb",
-						"presentable": false,
-						"required": false,
-						"system": false,
-						"type": "relation"
-					},
-					{
 						"hidden": false,
 						"id": "number1276789363",
 						"max": null,
-						"min": null,
+						"min": 0,
 						"name": "steam_app_id",
 						"onlyInt": true,
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "number"
+					},
+					{
+						"hidden": false,
+						"id": "number3126295302",
+						"max": null,
+						"min": 0,
+						"name": "steam_app_price",
+						"onlyInt": true,
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "number"
+					},
+					{
+						"hidden": false,
+						"id": "number1585346424",
+						"max": null,
+						"min": 0,
+						"name": "hltb_id",
+						"onlyInt": true,
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "number"
+					},
+					{
+						"hidden": false,
+						"id": "number2148206572",
+						"max": null,
+						"min": 0,
+						"name": "hltb_campaign_time",
+						"onlyInt": false,
 						"presentable": false,
 						"required": false,
 						"system": false,
@@ -2630,7 +2640,7 @@ func init() {
 					{
 						"autogeneratePattern": "",
 						"hidden": false,
-						"id": "_clone_rKLI",
+						"id": "_clone_SCWc",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -2643,9 +2653,9 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_AANK",
+						"id": "_clone_2DHr",
 						"max": null,
-						"min": null,
+						"min": 0,
 						"name": "steam_app_id",
 						"onlyInt": true,
 						"presentable": false,
@@ -2654,27 +2664,26 @@ func init() {
 						"type": "number"
 					},
 					{
-						"cascadeDelete": false,
-						"collectionId": "pbc_3685607326",
 						"hidden": false,
-						"id": "_clone_IWl2",
-						"maxSelect": 1,
-						"minSelect": 0,
-						"name": "steam_spy",
+						"id": "_clone_FiO4",
+						"max": null,
+						"min": 0,
+						"name": "steam_app_price",
+						"onlyInt": true,
 						"presentable": false,
 						"required": false,
 						"system": false,
-						"type": "relation"
+						"type": "number"
 					}
 				],
 				"id": "pbc_4103053455",
 				"indexes": [],
 				"listRule": null,
-				"name": "game_without_steam_spy",
+				"name": "games_without_steam_price",
 				"system": false,
 				"type": "view",
 				"updateRule": null,
-				"viewQuery": "SELECT\n  g.id,\n  g.name,\n  g.steam_app_id,\n  g.steam_spy\nFROM games g\nWHERE g.steam_app_id > 0 and g.steam_spy = \"\"",
+				"viewQuery": "SELECT\n  g.id,\n  g.name,\n  g.steam_app_id,\n  g.steam_app_price\nFROM games g\nWHERE g.steam_app_id > 0 and g.steam_app_price = 0",
 				"viewRule": null
 			},
 			{
@@ -2878,7 +2887,7 @@ func init() {
 					{
 						"autogeneratePattern": "",
 						"hidden": false,
-						"id": "_clone_hMxr",
+						"id": "_clone_q9Xw",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -2891,9 +2900,9 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_jSsx",
+						"id": "_clone_l6cc",
 						"max": null,
-						"min": null,
+						"min": 0,
 						"name": "steam_app_id",
 						"onlyInt": true,
 						"presentable": false,
@@ -2902,27 +2911,38 @@ func init() {
 						"type": "number"
 					},
 					{
-						"cascadeDelete": false,
-						"collectionId": "pbc_2205342315",
 						"hidden": false,
-						"id": "_clone_FNpH",
-						"maxSelect": 1,
-						"minSelect": 0,
-						"name": "hltb",
+						"id": "_clone_P0Tr",
+						"max": null,
+						"min": 0,
+						"name": "hltb_id",
+						"onlyInt": true,
 						"presentable": false,
 						"required": false,
 						"system": false,
-						"type": "relation"
+						"type": "number"
+					},
+					{
+						"hidden": false,
+						"id": "_clone_sbux",
+						"max": null,
+						"min": 0,
+						"name": "hltb_campaign_time",
+						"onlyInt": false,
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "number"
 					}
 				],
 				"id": "pbc_2627336249",
 				"indexes": [],
 				"listRule": null,
-				"name": "game_without_hltb",
+				"name": "games_without_hltb",
 				"system": false,
 				"type": "view",
 				"updateRule": null,
-				"viewQuery": "SELECT\n  g.id,\n  g.name,\n  g.steam_app_id,\n  g.hltb\nFROM games g\nWHERE g.hltb = \"\"",
+				"viewQuery": "SELECT\n  g.id,\n  g.name,\n  g.steam_app_id,\n  g.hltb_id,\n  g.hltb_campaign_time\nFROM games g\nWHERE g.hltb_id = 0",
 				"viewRule": null
 			},
 			{
@@ -3156,7 +3176,7 @@ func init() {
 					{
 						"autogeneratePattern": "",
 						"hidden": false,
-						"id": "_clone_hdBI",
+						"id": "_clone_BWGL",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -3169,9 +3189,9 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_AuUt",
+						"id": "_clone_ZJvT",
 						"max": null,
-						"min": null,
+						"min": 0,
 						"name": "steam_app_id",
 						"onlyInt": true,
 						"presentable": false,
@@ -3180,27 +3200,26 @@ func init() {
 						"type": "number"
 					},
 					{
-						"cascadeDelete": false,
-						"collectionId": "pbc_3685607326",
 						"hidden": false,
-						"id": "_clone_jm2i",
-						"maxSelect": 1,
-						"minSelect": 0,
-						"name": "steam_spy",
+						"id": "_clone_cKb2",
+						"max": null,
+						"min": 0,
+						"name": "steam_app_price",
+						"onlyInt": true,
 						"presentable": false,
 						"required": false,
 						"system": false,
-						"type": "relation"
+						"type": "number"
 					}
 				],
 				"id": "pbc_4267612969",
 				"indexes": [],
 				"listRule": null,
-				"name": "games_with_steam_spy",
+				"name": "games_with_steam_price",
 				"system": false,
 				"type": "view",
 				"updateRule": null,
-				"viewQuery": "SELECT\n  g.id,\n  g.name,\n  g.steam_app_id,\n  g.steam_spy\nFROM games g\nWHERE g.steam_app_id > 0 and g.steam_spy != \"\"",
+				"viewQuery": "SELECT\n  g.id,\n  g.name,\n  g.steam_app_id,\n  g.steam_app_price\nFROM games g\nWHERE g.steam_app_id > 0 and g.steam_app_price > 0",
 				"viewRule": null
 			},
 			{
@@ -3224,7 +3243,7 @@ func init() {
 					{
 						"autogeneratePattern": "",
 						"hidden": false,
-						"id": "_clone_1zhi",
+						"id": "_clone_sCRK",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -3237,9 +3256,9 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_fQcz",
+						"id": "_clone_m9jn",
 						"max": null,
-						"min": null,
+						"min": 0,
 						"name": "steam_app_id",
 						"onlyInt": true,
 						"presentable": false,
@@ -3248,27 +3267,38 @@ func init() {
 						"type": "number"
 					},
 					{
-						"cascadeDelete": false,
-						"collectionId": "pbc_2205342315",
 						"hidden": false,
-						"id": "_clone_9PJh",
-						"maxSelect": 1,
-						"minSelect": 0,
-						"name": "hltb",
+						"id": "_clone_9lCZ",
+						"max": null,
+						"min": 0,
+						"name": "hltb_id",
+						"onlyInt": true,
 						"presentable": false,
 						"required": false,
 						"system": false,
-						"type": "relation"
+						"type": "number"
+					},
+					{
+						"hidden": false,
+						"id": "_clone_Rpw2",
+						"max": null,
+						"min": 0,
+						"name": "hltb_campaign_time",
+						"onlyInt": false,
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "number"
 					}
 				],
 				"id": "pbc_3035161465",
 				"indexes": [],
 				"listRule": null,
-				"name": "game_with_hltb",
+				"name": "games_with_hltb",
 				"system": false,
 				"type": "view",
 				"updateRule": null,
-				"viewQuery": "SELECT\n  g.id,\n  g.name,\n  g.steam_app_id,\n  g.hltb\nFROM games g\nWHERE g.hltb != \"\"",
+				"viewQuery": "SELECT\n  g.id,\n  g.name,\n  g.steam_app_id,\n  g.hltb_id,\n  g.hltb_campaign_time\nFROM games g\nWHERE g.hltb_id > 0",
 				"viewRule": null
 			},
 			{

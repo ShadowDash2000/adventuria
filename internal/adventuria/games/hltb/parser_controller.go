@@ -66,25 +66,3 @@ func (p *ParserController) isGameExist(ctx context.Context, id int) bool {
 		One(&core.Record{})
 	return err == nil
 }
-
-type HowLongToBeatRecord struct {
-	core.BaseRecordProxy
-}
-
-func NewHowLongToBeatRecordFromRecord(record *core.Record) *HowLongToBeatRecord {
-	r := &HowLongToBeatRecord{}
-	r.SetProxyRecord(record)
-	return r
-}
-
-func (r *HowLongToBeatRecord) SetIdDb(id int) {
-	r.Set("id_db", id)
-}
-
-func (r *HowLongToBeatRecord) SetName(name string) {
-	r.Set("name", name)
-}
-
-func (r *HowLongToBeatRecord) SetCampaign(campaign float64) {
-	r.Set("campaign", campaign)
-}

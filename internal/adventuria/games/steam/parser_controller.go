@@ -66,25 +66,3 @@ func (p *ParserController) isAppExist(ctx context.Context, id uint) bool {
 		One(&core.Record{})
 	return err == nil
 }
-
-type SteamSpyRecord struct {
-	core.BaseRecordProxy
-}
-
-func NewSteamSpyRecordFromRecord(record *core.Record) *SteamSpyRecord {
-	r := &SteamSpyRecord{}
-	r.SetProxyRecord(record)
-	return r
-}
-
-func (r *SteamSpyRecord) SetIdDb(id uint) {
-	r.Set("id_db", id)
-}
-
-func (r *SteamSpyRecord) SetName(name string) {
-	r.Set("name", name)
-}
-
-func (r *SteamSpyRecord) SetPrice(price uint) {
-	r.Set("price", price)
-}

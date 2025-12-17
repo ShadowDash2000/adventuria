@@ -229,10 +229,10 @@ func SetFilters(filter adventuria.GameFilterRecord, q *dbx.SelectQuery) *dbx.Sel
 	}
 
 	if filter.MinPrice() > 0 {
-		q = q.AndWhere(dbx.NewExp("steam_spy.price > {:price}", dbx.Params{"price": filter.MinPrice()}))
+		q = q.AndWhere(dbx.NewExp("steam_app_price > {:price}", dbx.Params{"price": filter.MinPrice()}))
 	}
 	if filter.MaxPrice() > 0 {
-		q = q.AndWhere(dbx.NewExp("steam_spy.price < {:price}", dbx.Params{"price": filter.MaxPrice()}))
+		q = q.AndWhere(dbx.NewExp("steam_app_price < {:price}", dbx.Params{"price": filter.MaxPrice()}))
 	}
 
 	if !filter.ReleaseDateFrom().IsZero() {
@@ -243,10 +243,10 @@ func SetFilters(filter adventuria.GameFilterRecord, q *dbx.SelectQuery) *dbx.Sel
 	}
 
 	if filter.MinCampaignTime() > 0 {
-		q = q.AndWhere(dbx.NewExp("hltb.campaign > {:time}", dbx.Params{"time": filter.MinCampaignTime()}))
+		q = q.AndWhere(dbx.NewExp("campaign_time > {:time}", dbx.Params{"time": filter.MinCampaignTime()}))
 	}
 	if filter.MaxCampaignTime() > 0 {
-		q = q.AndWhere(dbx.NewExp("hltb.campaign < {:time}", dbx.Params{"time": filter.MaxCampaignTime()}))
+		q = q.AndWhere(dbx.NewExp("campaign_time < {:time}", dbx.Params{"time": filter.MaxCampaignTime()}))
 	}
 
 	return q

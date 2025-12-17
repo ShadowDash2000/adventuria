@@ -3,6 +3,8 @@ package igdb
 import (
 	"adventuria/internal/adventuria"
 	"adventuria/internal/adventuria/games"
+	"adventuria/internal/adventuria/games/hltb"
+	"adventuria/internal/adventuria/games/steam"
 	"context"
 	"database/sql"
 	"errors"
@@ -107,15 +109,17 @@ func (p *ParserController) parseGames(ctx context.Context, limit uint64) error {
 			gameRecord.SetChecksum(game.Checksum)
 
 			if game.SteamAppId > 0 {
-				steamSpyId, err := p.findSteamSpyByAppId(ctx, uint(game.SteamAppId))
+				steamSpyRecord, err := p.findSteamSpyByAppId(ctx, uint(game.SteamAppId))
 				if err == nil {
-					gameRecord.SetSteamSpy(steamSpyId)
+					gameRecord.SetSteamSpy(steamSpyRecord.Id)
+					gameRecord.SetSteamAppPrice(steamSpyRecord.Price())
 				}
 			}
 
-			hltbId, err := p.findHltbByGameName(ctx, game.Name)
+			hltbRecord, err := p.findHltbByGameName(ctx, game.Name)
 			if err == nil {
-				gameRecord.SetHltb(hltbId)
+				gameRecord.SetHltbId(hltbRecord.IdDb())
+				gameRecord.SetCampaign(hltbRecord.Campaign())
 			}
 
 			platformIds, err := p.collectionReferenceToIds(game.Platforms)
@@ -441,10 +445,10 @@ func (p *ParserController) collectionReferenceToIds(reference games.CollectionRe
 	return ids, nil
 }
 
-func (p *ParserController) findHltbByGameName(ctx context.Context, gameName string) (string, error) {
+func (p *ParserController) findHltbByGameName(ctx context.Context, gameName string) (*hltb.HowLongToBeatRecord, error) {
 	parts := strings.Fields(normalizeTitle(gameName))
 	if len(parts) == 0 {
-		return "", errors.New("game name is empty")
+		return nil, errors.New("game name is empty")
 	}
 
 	var records []*core.Record
@@ -454,11 +458,11 @@ func (p *ParserController) findHltbByGameName(ctx context.Context, gameName stri
 		Where(dbx.Like("name", parts...)).
 		All(&records)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	if len(records) == 0 {
-		return "", sql.ErrNoRows
+		return nil, sql.ErrNoRows
 	}
 
 	type match struct {
@@ -487,7 +491,7 @@ func (p *ParserController) findHltbByGameName(ctx context.Context, gameName stri
 		return matches[i].distance < matches[j].distance
 	})
 
-	return matches[0].record.Id, nil
+	return hltb.NewHowLongToBeatRecordFromRecord(matches[0].record), nil
 }
 
 var (
@@ -556,7 +560,7 @@ func levenshteinDistance(s1, s2 string) int {
 	return matrix[n][m]
 }
 
-func (p *ParserController) findSteamSpyByAppId(ctx context.Context, appId uint) (string, error) {
+func (p *ParserController) findSteamSpyByAppId(ctx context.Context, appId uint) (*steam.SteamSpyRecord, error) {
 	var record core.Record
 	err := adventuria.PocketBase.
 		RecordQuery(adventuria.GameCollections.Get(adventuria.CollectionSteamSpy)).
@@ -564,8 +568,8 @@ func (p *ParserController) findSteamSpyByAppId(ctx context.Context, appId uint) 
 		Where(dbx.HashExp{"id_db": appId}).
 		One(&record)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	adventuria.PocketBase.Logger().Debug("steamspy found", "steamspy_id", record.Id, "record", record)
-	return record.Id, nil
+
+	return steam.NewSteamSpyRecordFromRecord(&record), nil
 }
