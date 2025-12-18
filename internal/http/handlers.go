@@ -138,6 +138,27 @@ func (h *Handlers) RollItemHandler(e *core.RequestEvent) error {
 	return e.JSON(http.StatusOK, res)
 }
 
+func (h *Handlers) BuyItemHandler(e *core.RequestEvent) error {
+	req := adventuria.ActionRequest{}
+
+	err := e.BindBody(&req)
+	if err != nil {
+		return e.JSON(http.StatusBadRequest, err.Error())
+	}
+
+	res, err := h.Game.DoAction("buyItem", e.Auth.Id, req)
+	if err != nil {
+		return e.JSON(http.StatusInternalServerError, &adventuria.ActionResult{
+			Success: false,
+			Error:   "internal error",
+		})
+	} else if !res.Success {
+		return e.JSON(http.StatusBadRequest, res)
+	}
+
+	return e.JSON(http.StatusOK, res)
+}
+
 func (h *Handlers) UseItemHandler(e *core.RequestEvent) error {
 	data := struct {
 		ItemId string                    `json:"itemId"`

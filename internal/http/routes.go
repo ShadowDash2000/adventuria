@@ -46,6 +46,7 @@ func Route(game *adventuria.Game, router *router.Router[*core.RequestEvent]) {
 
 	gab.POST("/roll-wheel", handlers.RollWheelHandler)
 	gab.POST("/roll-item", handlers.RollItemHandler)
+	gab.POST("/buy-item", handlers.BuyItemHandler)
 
 	gab.POST("/use-item", handlers.UseItemHandler)
 	gab.POST("/drop-item", handlers.DropItemHandler)

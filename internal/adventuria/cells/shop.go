@@ -3,10 +3,13 @@ package cells
 import (
 	"adventuria/internal/adventuria"
 	"fmt"
+	"math/rand/v2"
 
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
 )
+
+const shopMaxItems = 6
 
 type CellShop struct {
 	adventuria.CellBase
@@ -27,15 +30,14 @@ func (c *CellShop) OnCellReached(ctx *adventuria.CellReachedContext) error {
 			dbx.NewExp("type = \"buff\""),
 			dbx.NewExp("isRollable = true"),
 		)).
-		Limit(6).
 		All(&records)
 	if err != nil {
 		return fmt.Errorf("shop.OnCellReached: %w", err)
 	}
 
-	res := make([]string, len(records))
-	for i, record := range records {
-		res[i] = record.Id
+	res := make([]string, shopMaxItems)
+	for i := 0; i < shopMaxItems; i++ {
+		res[i] = records[rand.N(len(records))].Id
 	}
 
 	ctx.User.LastAction().SetItemsList(res)

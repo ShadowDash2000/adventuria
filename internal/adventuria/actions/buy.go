@@ -81,9 +81,9 @@ func (a *BuyAction) Do(user adventuria.User, req adventuria.ActionRequest) (*adv
 		}, fmt.Errorf("buy.do(): can't add item to inventory: %w", err)
 	}
 
-	ids = slices.DeleteFunc(ids, func(s string) bool {
-		return s == itemId
-	})
+	if index := slices.Index(ids, itemId); index != -1 {
+		ids = slices.Delete(ids, index, index+1)
+	}
 
 	user.LastAction().SetItemsList(ids)
 	user.SetBalance(user.Balance() - item.Price())
