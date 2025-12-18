@@ -2,7 +2,6 @@ package effects
 
 import (
 	"adventuria/internal/adventuria"
-	"adventuria/internal/adventuria/actions"
 	"adventuria/pkg/event"
 	"adventuria/pkg/helper"
 	"errors"
@@ -23,7 +22,7 @@ func (ef *AddRandomItemToInventoryEffect) Subscribe(
 ) []event.Unsubscribe {
 	return []event.Unsubscribe{
 		ctx.User.OnAfterAction().BindFunc(func(e *adventuria.OnAfterActionEvent) error {
-			if e.ActionType == actions.ActionTypeBuyItem {
+			if e.ActionType == "buyItem" {
 				idsAny, _ := ef.DecodeValue(ef.GetString("value"))
 				_, err := ctx.User.Inventory().AddItemById(helper.RandomItemFromSlice(idsAny.([]string)))
 				if err != nil {
