@@ -3,6 +3,7 @@ package igdb
 import (
 	"adventuria/internal/adventuria"
 	"adventuria/internal/adventuria/games"
+	"adventuria/internal/adventuria/games/cheapshark"
 	"adventuria/internal/adventuria/games/hltb"
 	"adventuria/internal/adventuria/games/steam"
 	"context"
@@ -109,10 +110,9 @@ func (p *ParserController) parseGames(ctx context.Context, limit uint64) error {
 			gameRecord.SetChecksum(game.Checksum)
 
 			if game.SteamAppId > 0 {
-				steamSpyRecord, err := p.findSteamSpyByAppId(ctx, uint(game.SteamAppId))
+				price, err := p.findPriceBySteamAppid(ctx, uint(game.SteamAppId))
 				if err == nil {
-					gameRecord.SetSteamSpy(steamSpyRecord.Id)
-					gameRecord.SetSteamAppPrice(steamSpyRecord.Price())
+					gameRecord.SetSteamAppPrice(price)
 				}
 			}
 
@@ -560,6 +560,20 @@ func levenshteinDistance(s1, s2 string) int {
 	return matrix[n][m]
 }
 
+func (p *ParserController) findPriceBySteamAppid(ctx context.Context, appId uint) (uint, error) {
+	steamSpyRecord, err := p.findSteamSpyByAppId(ctx, appId)
+	if err == nil {
+		return steamSpyRecord.Price(), nil
+	}
+
+	cheapsharkRecord, err := p.findCheapsharkByAppId(ctx, appId)
+	if err == nil {
+		return uint(cheapsharkRecord.Price() * 100), nil
+	}
+
+	return 0, nil
+}
+
 func (p *ParserController) findSteamSpyByAppId(ctx context.Context, appId uint) (*steam.SteamSpyRecord, error) {
 	var record core.Record
 	err := adventuria.PocketBase.
@@ -572,4 +586,18 @@ func (p *ParserController) findSteamSpyByAppId(ctx context.Context, appId uint) 
 	}
 
 	return steam.NewSteamSpyRecordFromRecord(&record), nil
+}
+
+func (p *ParserController) findCheapsharkByAppId(ctx context.Context, appId uint) (*cheapshark.CheapSharkRecord, error) {
+	var record core.Record
+	err := adventuria.PocketBase.
+		RecordQuery(adventuria.GameCollections.Get(adventuria.CollectionCheapshark)).
+		WithContext(ctx).
+		Where(dbx.HashExp{"id_db": appId}).
+		One(&record)
+	if err != nil {
+		return nil, err
+	}
+
+	return cheapshark.NewCheapsharkRecordFromRecord(&record), nil
 }

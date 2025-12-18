@@ -107,14 +107,6 @@ func (g *GameRecordBase) SetSteamAppPrice(price uint) {
 	g.Set("steam_app_price", price)
 }
 
-func (g *GameRecordBase) SteamSpy() string {
-	return g.GetString("steam_spy")
-}
-
-func (g *GameRecordBase) SetSteamSpy(id string) {
-	g.Set("steam_spy", id)
-}
-
 func (g *GameRecordBase) HltbId() int {
 	return g.GetInt("hltb_id")
 }

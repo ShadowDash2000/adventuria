@@ -193,6 +193,10 @@ func (s *Settings) DisableSteamParser() bool {
 	return s.GetBool("disable_steam_parser")
 }
 
+func (s *Settings) DisableCheapsharkParser() bool {
+	return s.GetBool("disable_cheapshark_parser")
+}
+
 func (s *Settings) DisableHLTBParser() bool {
 	return s.GetBool("disable_hltb_parser")
 }

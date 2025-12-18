@@ -1,12 +1,10 @@
-package steam
+package cheapshark
 
 import (
 	"adventuria/internal/adventuria/games/github"
 	"context"
 	"encoding/json"
 	"net/http"
-
-	steamstore "github.com/ShadowDash2000/steam-store-go"
 )
 
 type Parser struct{}
@@ -15,8 +13,8 @@ func NewParser() *Parser {
 	return &Parser{}
 }
 
-func (p *Parser) FetchLatestRelease(ctx context.Context) ([]steamstore.SteamSpyAppDetailsResponse, error) {
-	downloadUrl, err := github.FetchLatestReleaseDownloadUrl(ctx, "ShadowDash2000", "steam-spy-scraper")
+func (p *Parser) FetchLatestRelease(ctx context.Context) ([]CheapSharkResponse, error) {
+	downloadUrl, err := github.FetchLatestReleaseDownloadUrl(ctx, "ShadowDash2000", "cheapshark-scraper")
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +31,7 @@ func (p *Parser) FetchLatestRelease(ctx context.Context) ([]steamstore.SteamSpyA
 	defer fileRes.Body.Close()
 
 	var games struct {
-		Data []steamstore.SteamSpyAppDetailsResponse `json:"data"`
+		Data []CheapSharkResponse `json:"data"`
 	}
 	if err = json.NewDecoder(fileRes.Body).Decode(&games); err != nil {
 		return nil, err

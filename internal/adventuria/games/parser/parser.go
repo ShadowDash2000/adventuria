@@ -2,6 +2,7 @@ package parser
 
 import (
 	"adventuria/internal/adventuria"
+	"adventuria/internal/adventuria/games/cheapshark"
 	"adventuria/internal/adventuria/games/hltb"
 	"adventuria/internal/adventuria/games/igdb"
 	"adventuria/internal/adventuria/games/steam"
@@ -10,9 +11,10 @@ import (
 )
 
 type GamesParser struct {
-	igdbParser  *igdb.ParserController
-	steamParser *steam.ParserController
-	hltbParser  *hltb.ParserController
+	igdbParser       *igdb.ParserController
+	steamParser      *steam.ParserController
+	hltbParser       *hltb.ParserController
+	cheapsharkParser *cheapshark.ParserController
 }
 
 func NewGamesParser() (*GamesParser, error) {
@@ -23,9 +25,10 @@ func NewGamesParser() (*GamesParser, error) {
 	}
 
 	return &GamesParser{
-		igdbParser:  igdbParser,
-		steamParser: steam.New(),
-		hltbParser:  hltb.New(),
+		igdbParser:       igdbParser,
+		steamParser:      steam.New(),
+		hltbParser:       hltb.New(),
+		cheapsharkParser: cheapshark.New(),
 	}, nil
 }
 
@@ -43,6 +46,12 @@ func (p *GamesParser) Parse(ctx context.Context) {
 		adventuria.PocketBase.Logger().Info("Steam parser started")
 		p.steamParser.Parse(ctx)
 		adventuria.PocketBase.Logger().Info("Steam parser finished")
+	}
+
+	if !adventuria.GameSettings.DisableCheapsharkParser() {
+		adventuria.PocketBase.Logger().Info("Cheapshark parser started")
+		p.cheapsharkParser.Parse(ctx)
+		adventuria.PocketBase.Logger().Info("Cheapshark parser finished")
 	}
 
 	if !adventuria.GameSettings.DisableHLTBParser() {

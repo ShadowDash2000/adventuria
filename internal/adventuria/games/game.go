@@ -47,8 +47,6 @@ type GameRecord interface {
 	SetSteamAppId(uint64)
 	SteamAppPrice() uint
 	SetSteamAppPrice(uint)
-	SteamSpy() string
-	SetSteamSpy(string)
 	HltbId() int
 	SetHltbId(int)
 	Campaign() float64

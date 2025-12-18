@@ -1831,6 +1831,15 @@ func init() {
 					},
 					{
 						"hidden": false,
+						"id": "bool3572996312",
+						"name": "disable_cheapshark_parser",
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "bool"
+					},
+					{
+						"hidden": false,
 						"id": "bool2736790713",
 						"name": "disable_hltb_parser",
 						"presentable": false,
@@ -2640,7 +2649,7 @@ func init() {
 					{
 						"autogeneratePattern": "",
 						"hidden": false,
-						"id": "_clone_SCWc",
+						"id": "_clone_hNWw",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -2653,7 +2662,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_2DHr",
+						"id": "_clone_6Bh5",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_id",
@@ -2665,7 +2674,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_FiO4",
+						"id": "_clone_tTKD",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_price",
@@ -2887,7 +2896,7 @@ func init() {
 					{
 						"autogeneratePattern": "",
 						"hidden": false,
-						"id": "_clone_q9Xw",
+						"id": "_clone_FsSH",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -2900,7 +2909,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_l6cc",
+						"id": "_clone_8DoG",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_id",
@@ -2912,7 +2921,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_P0Tr",
+						"id": "_clone_tA7k",
 						"max": null,
 						"min": 0,
 						"name": "hltb_id",
@@ -2924,7 +2933,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_sbux",
+						"id": "_clone_cavs",
 						"max": null,
 						"min": 0,
 						"name": "hltb_campaign_time",
@@ -3176,7 +3185,7 @@ func init() {
 					{
 						"autogeneratePattern": "",
 						"hidden": false,
-						"id": "_clone_BWGL",
+						"id": "_clone_rXGZ",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -3189,7 +3198,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_ZJvT",
+						"id": "_clone_He1M",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_id",
@@ -3201,7 +3210,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_cKb2",
+						"id": "_clone_xNi3",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_price",
@@ -3243,7 +3252,7 @@ func init() {
 					{
 						"autogeneratePattern": "",
 						"hidden": false,
-						"id": "_clone_sCRK",
+						"id": "_clone_A822",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -3256,7 +3265,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_m9jn",
+						"id": "_clone_VD0q",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_id",
@@ -3268,7 +3277,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_9lCZ",
+						"id": "_clone_faCS",
 						"max": null,
 						"min": 0,
 						"name": "hltb_id",
@@ -3280,7 +3289,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_Rpw2",
+						"id": "_clone_tE7M",
 						"max": null,
 						"min": 0,
 						"name": "hltb_campaign_time",
@@ -3476,6 +3485,94 @@ func init() {
 				"type": "base",
 				"updateRule": null,
 				"viewRule": ""
+			},
+			{
+				"createRule": null,
+				"deleteRule": null,
+				"fields": [
+					{
+						"autogeneratePattern": "[a-z0-9]{15}",
+						"hidden": false,
+						"id": "text3208210256",
+						"max": 15,
+						"min": 15,
+						"name": "id",
+						"pattern": "^[a-z0-9]+$",
+						"presentable": false,
+						"primaryKey": true,
+						"required": true,
+						"system": true,
+						"type": "text"
+					},
+					{
+						"hidden": false,
+						"id": "autodate2990389176",
+						"name": "created",
+						"onCreate": true,
+						"onUpdate": false,
+						"presentable": false,
+						"system": false,
+						"type": "autodate"
+					},
+					{
+						"hidden": false,
+						"id": "autodate3332085495",
+						"name": "updated",
+						"onCreate": true,
+						"onUpdate": true,
+						"presentable": false,
+						"system": false,
+						"type": "autodate"
+					},
+					{
+						"hidden": false,
+						"id": "number596198703",
+						"max": null,
+						"min": null,
+						"name": "id_db",
+						"onlyInt": true,
+						"presentable": false,
+						"required": true,
+						"system": false,
+						"type": "number"
+					},
+					{
+						"autogeneratePattern": "",
+						"hidden": false,
+						"id": "text1579384326",
+						"max": 0,
+						"min": 0,
+						"name": "name",
+						"pattern": "",
+						"presentable": false,
+						"primaryKey": false,
+						"required": true,
+						"system": false,
+						"type": "text"
+					},
+					{
+						"hidden": false,
+						"id": "number3402113753",
+						"max": null,
+						"min": 0,
+						"name": "price",
+						"onlyInt": false,
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "number"
+					}
+				],
+				"id": "pbc_2955241254",
+				"indexes": [
+					"CREATE UNIQUE INDEX ` + "`" + `idx_dtqfLFjT0k` + "`" + ` ON ` + "`" + `cheapshark` + "`" + ` (` + "`" + `id_db` + "`" + `)"
+				],
+				"listRule": null,
+				"name": "cheapshark",
+				"system": false,
+				"type": "base",
+				"updateRule": null,
+				"viewRule": null
 			}
 		]`
 

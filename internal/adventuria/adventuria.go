@@ -18,4 +18,5 @@ const (
 	CollectionGameFilters   = "game_filters"
 	CollectionHowLongToBeat = "howlongtobeat"
 	CollectionSteamSpy      = "steam_spy"
+	CollectionCheapshark    = "cheapshark"
 )
