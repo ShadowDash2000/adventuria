@@ -4,6 +4,7 @@ import "adventuria/internal/adventuria"
 
 func WithBaseEffects() {
 	adventuria.RegisterEffects(map[string]adventuria.EffectCreator{
+		"nothing":                     adventuria.NewEffect(&NothingEffect{}),
 		"pointsIncrement":             adventuria.NewEffect(&PointsIncrementEffect{}),
 		"jailEscape":                  adventuria.NewEffect(&JailEscapeEffect{}),
 		"diceMultiplier":              adventuria.NewEffect(&DiceMultiplierEffect{}),
@@ -16,6 +17,7 @@ func WithBaseEffects() {
 		"cellPointsDivide":            adventuria.NewEffect(&CellPointsDivideEffect{}),
 		"teleportToRandomCellByTypes": nil,
 		"teleportToRandomCellByName":  adventuria.NewEffect(&TeleportToRandomCellByNameEffect{}),
+		"changeMinGamePrice":          adventuria.NewEffect(&ChangeMinGamePriceEffect{}),
 		"changeMaxGamePrice":          adventuria.NewEffect(&ChangeMaxGamePriceEffect{}),
 		"noTimeLimit":                 adventuria.NewEffect(&NoTimeLimitEffect{}),
 		"addGameTag":                  adventuria.NewEffect(&AddGameTagEffect{}),
