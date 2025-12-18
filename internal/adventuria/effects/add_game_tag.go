@@ -4,6 +4,7 @@ import (
 	"adventuria/internal/adventuria"
 	"adventuria/pkg/event"
 	"errors"
+	"slices"
 
 	"github.com/pocketbase/pocketbase/core"
 )
@@ -30,6 +31,10 @@ func (ef *AddGameTagEffect) Subscribe(
 					}
 
 					filter := ctx.User.LastAction().CustomGameFilter()
+					if index := slices.Index(filter.Tags, tagID); index != -1 {
+						return errors.New("addGameTag: tag already exists")
+					}
+
 					filter.Tags = append(filter.Tags, tagID)
 
 					callback()
