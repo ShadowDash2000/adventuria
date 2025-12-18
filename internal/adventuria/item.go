@@ -19,6 +19,8 @@ type Item interface {
 	ItemRecord
 	cache.Closable
 
+	IDInventory() string
+	IsActive() bool
 	EffectsCount() int
 	AppliedEffectsCount() int
 	Use() (OnUseSuccess, OnUseFail, error)

@@ -62,6 +62,10 @@ type OnAfterItemAdd struct {
 	event.Event
 	ItemRecord ItemRecord
 }
+type OnAfterItemSave struct {
+	event.Event
+	Item Item
+}
 type OnNewLapEvent struct {
 	event.Event
 	Laps int
@@ -73,6 +77,7 @@ type OnBeforeNextStepEvent struct {
 }
 type OnAfterActionEvent struct {
 	event.Event
+	ActionType ActionType
 }
 type OnAfterMoveEvent struct {
 	event.Event

@@ -42,8 +42,8 @@ func (i *InventoryBase) bindHooks() {
 			}
 			i.items[e.Record.Id] = item
 
-			_ = i.user.OnAfterItemAdd().Trigger(&OnAfterItemAdd{
-				ItemRecord: item,
+			_ = i.user.OnAfterItemSave().Trigger(&OnAfterItemSave{
+				Item: item,
 			})
 		}
 		return e.Next()

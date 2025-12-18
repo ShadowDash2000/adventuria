@@ -121,7 +121,9 @@ func (g *Game) DoAction(actionType ActionType, userId string, req ActionRequest)
 		return res, nil
 	}
 
-	err = user.OnAfterAction().Trigger(&OnAfterActionEvent{})
+	err = user.OnAfterAction().Trigger(&OnAfterActionEvent{
+		ActionType: actionType,
+	})
 	if err != nil {
 		return &ActionResult{
 			Success: false,
@@ -174,7 +176,9 @@ func (g *Game) UseItem(userId, itemId string, req UseItemRequest) error {
 		return err
 	}
 
-	err = user.OnAfterAction().Trigger(&OnAfterActionEvent{})
+	err = user.OnAfterAction().Trigger(&OnAfterActionEvent{
+		ActionType: "useItem",
+	})
 	if err != nil {
 		return err
 	}

@@ -22,6 +22,7 @@ func WithBaseEffects() {
 		"noTimeLimit":                 adventuria.NewEffect(&NoTimeLimitEffect{}),
 		"addGameTag":                  adventuria.NewEffect(&AddGameTagEffect{}),
 		"replaceDiceRoll":             adventuria.NewEffect(&ReplaceDiceRollEffect{}),
+		"addRandomItemToInventory":    adventuria.NewEffect(&AddRandomItemToInventoryEffect{}),
 	})
 
 	adventuria.RegisterPersistentEffects(map[string]adventuria.PersistentEffectCreator{

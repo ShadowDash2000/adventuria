@@ -21,14 +21,16 @@ func (ef *TeleportToRandomCellByNameEffect) Subscribe(
 	callback adventuria.EffectCallback,
 ) []event.Unsubscribe {
 	return []event.Unsubscribe{
-		ctx.User.OnAfterAction().BindFunc(func(e *adventuria.OnAfterActionEvent) error {
-			namesAny, _ := ef.DecodeValue(ef.GetString("value"))
-			_, err := ctx.User.MoveToCellName(helper.RandomItemFromSlice(namesAny.([]string)))
-			if err != nil {
-				return err
-			}
+		ctx.User.OnAfterItemSave().BindFunc(func(e *adventuria.OnAfterItemSave) error {
+			if e.Item.IDInventory() == ctx.InvItemID {
+				namesAny, _ := ef.DecodeValue(ef.GetString("value"))
+				_, err := ctx.User.MoveToCellName(helper.RandomItemFromSlice(namesAny.([]string)))
+				if err != nil {
+					return err
+				}
 
-			callback()
+				callback()
+			}
 
 			return e.Next()
 		}),
