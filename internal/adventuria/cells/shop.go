@@ -35,6 +35,10 @@ func (c *CellShop) OnCellReached(ctx *adventuria.CellReachedContext) error {
 		return fmt.Errorf("shop.OnCellReached: %w", err)
 	}
 
+	if len(records) == 0 {
+		return nil
+	}
+
 	res := make([]string, shopMaxItems)
 	for i := 0; i < shopMaxItems; i++ {
 		res[i] = records[rand.N(len(records))].Id
