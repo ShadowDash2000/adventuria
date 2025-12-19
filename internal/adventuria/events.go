@@ -55,8 +55,8 @@ type OnAfterItemRollEvent struct {
 }
 type OnAfterItemUseEvent struct {
 	event.Event
-	ItemId  string
-	Request UseItemRequest
+	InvItemId string
+	Request   UseItemRequest
 }
 type OnAfterItemAdd struct {
 	event.Event

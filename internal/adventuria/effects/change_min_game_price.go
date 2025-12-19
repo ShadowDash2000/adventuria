@@ -15,11 +15,13 @@ func (ef *ChangeMinGamePriceEffect) Subscribe(
 	callback adventuria.EffectCallback,
 ) []event.Unsubscribe {
 	return []event.Unsubscribe{
-		ctx.User.OnAfterItemAdd().BindFunc(func(e *adventuria.OnAfterItemAdd) error {
-			if i := ef.GetInt("value"); i != 0 {
-				ctx.User.LastAction().CustomGameFilter().MinPrice = i
+		ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) error {
+			if e.InvItemId == ctx.InvItemID {
+				if i := ef.GetInt("value"); i != 0 {
+					ctx.User.LastAction().CustomGameFilter().MinPrice = i
 
-				callback()
+					callback()
+				}
 			}
 
 			return e.Next()

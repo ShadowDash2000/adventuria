@@ -16,7 +16,7 @@ func Test_ChangeMaxGamePrice(t *testing.T) {
 	cells.WithBaseCells()
 	WithBaseEffects()
 
-	_, err := tests.NewGameTest()
+	game, err := tests.NewGameTest()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -31,7 +31,12 @@ func Test_ChangeMaxGamePrice(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err = user.Inventory().AddItemById(item.Id)
+	invItemId, err := user.Inventory().AddItemById(item.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = game.UseItem(user.ID(), invItemId, adventuria.UseItemRequest{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -59,7 +64,7 @@ func createChangeMaxGamePriceItem() (*core.Record, error) {
 	record.Set("order", 1)
 	record.Set("isUsingSlot", true)
 	record.Set("canDrop", false)
-	record.Set("isActiveByDefault", true)
+	record.Set("isActiveByDefault", false)
 
 	err = adventuria.PocketBase.Save(record)
 	if err != nil {

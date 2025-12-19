@@ -19,7 +19,7 @@ func (ef *AddGameTagEffect) Subscribe(
 ) []event.Unsubscribe {
 	return []event.Unsubscribe{
 		ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) error {
-			if ctx.InvItemID == e.ItemId {
+			if ctx.InvItemID == e.InvItemId {
 				if !adventuria.GameActions.CanDo(ctx.User, "rollWheel") {
 					return errors.New("addGameTag: can't add tag while rollWheel isn't available")
 				}

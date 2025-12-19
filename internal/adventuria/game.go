@@ -164,8 +164,8 @@ func (g *Game) UseItem(userId, itemId string, req UseItemRequest) error {
 	}
 
 	err = user.OnAfterItemUse().Trigger(&OnAfterItemUseEvent{
-		ItemId:  itemId,
-		Request: req,
+		InvItemId: itemId,
+		Request:   req,
 	})
 	if err != nil {
 		onUseFail()
