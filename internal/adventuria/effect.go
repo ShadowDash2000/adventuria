@@ -12,7 +12,7 @@ type Effect interface {
 	ID() string
 	Name() string
 	Type() string
-	Subscribe(EffectContext, EffectCallback) []event.Unsubscribe
+	Subscribe(EffectContext, EffectCallback) ([]event.Unsubscribe, error)
 	Verify(string) error
 	DecodeValue(string) (any, error)
 }

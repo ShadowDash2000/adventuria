@@ -46,7 +46,8 @@ func (a *DropAction) Do(user adventuria.User, req adventuria.ActionRequest) (*ad
 	}
 
 	onBeforeDropEvent := &adventuria.OnBeforeDropEvent{
-		IsSafeDrop: false,
+		IsSafeDrop:    false,
+		PointsForDrop: adventuria.GameSettings.PointsForDrop(),
 	}
 	err := user.OnBeforeDrop().Trigger(onBeforeDropEvent)
 	if err != nil {
@@ -74,7 +75,7 @@ func (a *DropAction) Do(user adventuria.User, req adventuria.ActionRequest) (*ad
 	action.SetDiceRoll(0)
 
 	if !onBeforeDropEvent.IsSafeDrop && !currentCell.IsSafeDrop() {
-		user.SetPoints(user.Points() + adventuria.GameSettings.PointsForDrop())
+		user.SetPoints(user.Points() + onBeforeDropEvent.PointsForDrop)
 		user.SetDropsInARow(user.DropsInARow() + 1)
 
 		if user.IsSafeDrop() {

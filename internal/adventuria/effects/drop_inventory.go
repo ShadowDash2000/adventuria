@@ -12,19 +12,21 @@ type DropInventoryEffect struct {
 func (ef *DropInventoryEffect) Subscribe(
 	ctx adventuria.EffectContext,
 	callback adventuria.EffectCallback,
-) []event.Unsubscribe {
+) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		ctx.User.OnAfterAction().BindFunc(func(e *adventuria.OnAfterActionEvent) error {
-			err := ctx.User.Inventory().DropInventory()
-			if err != nil {
-				return err
-			}
+		ctx.User.OnAfterItemSave().BindFunc(func(e *adventuria.OnAfterItemSave) error {
+			if e.Item.IDInventory() == ctx.InvItemID {
+				err := ctx.User.Inventory().DropInventory()
+				if err != nil {
+					return err
+				}
 
-			callback()
+				callback()
+			}
 
 			return e.Next()
 		}),
-	}
+	}, nil
 }
 
 func (ef *DropInventoryEffect) Verify(_ string) error {

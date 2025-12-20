@@ -32,7 +32,7 @@ func (c *CellGame) DecodeValue(_ string) (any, error) {
 }
 
 func (c *CellGame) Roll(user adventuria.User, _ adventuria.RollWheelRequest) (*adventuria.WheelRollResult, error) {
-	if err := c.checkCustomFilter(user); err != nil {
+	if err := c.CheckCustomFilter(user); err != nil {
 		return &adventuria.WheelRollResult{
 			Success: false,
 			Error:   "internal error: can't apply custom filter",
@@ -106,7 +106,7 @@ func (c *CellGame) OnCellReached(ctx *adventuria.CellReachedContext) error {
 	return nil
 }
 
-func (c *CellGame) checkCustomFilter(user adventuria.User) error {
+func (c *CellGame) CheckCustomFilter(user adventuria.User) error {
 	needToUpdate := false
 	customFilter := user.LastAction().CustomGameFilter()
 	var filter adventuria.GameFilterRecord

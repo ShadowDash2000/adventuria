@@ -3,6 +3,7 @@ package effects
 import (
 	"adventuria/internal/adventuria"
 	"adventuria/pkg/event"
+	"errors"
 )
 
 type JailEscapeEffect struct {
@@ -12,17 +13,23 @@ type JailEscapeEffect struct {
 func (ef *JailEscapeEffect) Subscribe(
 	ctx adventuria.EffectContext,
 	callback adventuria.EffectCallback,
-) []event.Unsubscribe {
+) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		ctx.User.OnAfterAction().BindFunc(func(e *adventuria.OnAfterActionEvent) error {
-			ctx.User.SetIsInJail(false)
-			ctx.User.SetDropsInARow(0)
+		ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) error {
+			if e.InvItemId == ctx.InvItemID {
+				if !ctx.User.IsInJail() {
+					return errors.New("jailEscape: user isn't in jail")
+				}
 
-			callback()
+				ctx.User.SetIsInJail(false)
+				ctx.User.SetDropsInARow(0)
+
+				callback()
+			}
 
 			return e.Next()
 		}),
-	}
+	}, nil
 }
 
 func (ef *JailEscapeEffect) Verify(_ string) error {

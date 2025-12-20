@@ -43,13 +43,16 @@ func NewItemFromInventoryRecord(user User, invItemRecord *core.Record) (Item, er
 	item.bindHooks()
 
 	if item.IsActive() {
-		item.awake()
+		if err = item.awake(); err != nil {
+			item.Close()
+			return nil, err
+		}
 	}
 
 	return item, nil
 }
 
-func (i *ItemBase) awake() {
+func (i *ItemBase) awake() error {
 	appliedEffects := make(map[string]struct{}, i.AppliedEffectsCount())
 	for _, appliedEffectId := range i.AppliedEffects() {
 		appliedEffects[appliedEffectId] = struct{}{}
@@ -61,7 +64,7 @@ func (i *ItemBase) awake() {
 			continue
 		}
 
-		unsubs := effect.Subscribe(
+		unsubs, err := effect.Subscribe(
 			EffectContext{
 				User:      i.user,
 				InvItemID: i.invItemRecord.Id,
@@ -78,9 +81,14 @@ func (i *ItemBase) awake() {
 		if len(unsubs) > 0 {
 			i.effectsUnsubGroup[effect.ID()] = event.UnsubGroup{Fns: unsubs}
 		}
+		if err != nil {
+			i.sleep()
+			return err
+		}
 	}
 
 	i.isAwake = true
+	return nil
 }
 
 func (i *ItemBase) sleep() {
@@ -170,8 +178,10 @@ func (i *ItemBase) Use() (OnUseSuccess, OnUseFail, error) {
 		return nil, nil, errors.New("item is already active")
 	}
 
+	if err := i.awake(); err != nil {
+		return nil, nil, err
+	}
 	i.setIsActive(true)
-	i.awake()
 
 	return func() error {
 			// if item is not awake, then it was removed from inventory

@@ -36,3 +36,8 @@ type CellCreator func() Cell
 func RegisterCells(cells map[CellType]CellCreator) {
 	maps.Insert(cellsList, maps.All(cells))
 }
+
+func IsCellTypeExist(t CellType) bool {
+	_, ok := cellsList[t]
+	return ok
+}

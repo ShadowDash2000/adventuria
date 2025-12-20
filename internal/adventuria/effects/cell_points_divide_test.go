@@ -31,6 +31,11 @@ func Test_CellPointsDivide(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	_, err = user.Move(1)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	const points = 100
 	user.SetPoints(points)
 
@@ -40,11 +45,6 @@ func Test_CellPointsDivide(t *testing.T) {
 	}
 
 	err = game.UseItem(user.ID(), invItemId, adventuria.UseItemRequest{})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	_, err = user.Move(1)
 	if err != nil {
 		t.Fatal(err)
 	}

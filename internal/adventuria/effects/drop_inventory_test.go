@@ -16,7 +16,7 @@ func Test_DropInventory(t *testing.T) {
 	cells.WithBaseCells()
 	WithBaseEffects()
 
-	game, err := tests.NewGameTest()
+	_, err := tests.NewGameTest()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -36,17 +36,12 @@ func Test_DropInventory(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	invItemId, err := user.Inventory().AddItemById(item.Id)
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	_, err = user.Inventory().AddItemById(fillerItem.Id)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = game.UseItem(user.ID(), invItemId, adventuria.UseItemRequest{})
+	_, err = user.Inventory().AddItemById(item.Id)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -72,8 +67,9 @@ func createDropInventoryItem() (*core.Record, error) {
 	record.Set("effects", []string{effectRecord.Id})
 	record.Set("icon", icon)
 	record.Set("order", 1)
-	record.Set("isUsingSlot", true)
-	record.Set("canDrop", true)
+	record.Set("isUsingSlot", false)
+	record.Set("canDrop", false)
+	record.Set("isActiveByDefault", true)
 	err = adventuria.PocketBase.Save(record)
 	if err != nil {
 		return nil, err

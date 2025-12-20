@@ -15,7 +15,7 @@ type ChangeDicesEffect struct {
 func (ef *ChangeDicesEffect) Subscribe(
 	ctx adventuria.EffectContext,
 	callback adventuria.EffectCallback,
-) []event.Unsubscribe {
+) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
 		ctx.User.OnBeforeRoll().BindFunc(func(e *adventuria.OnBeforeRollEvent) error {
 			dicesAny, _ := ef.DecodeValue(ef.GetString("value"))
@@ -30,7 +30,7 @@ func (ef *ChangeDicesEffect) Subscribe(
 
 			return e.Next()
 		}),
-	}
+	}, nil
 }
 
 func (ef *ChangeDicesEffect) Verify(value string) error {

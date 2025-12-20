@@ -36,6 +36,11 @@ func Test_NoTimeLimit(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	_, err = user.Move(1)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	if user.LastAction().CustomGameFilter().MinCampaignTime != -1 ||
 		user.LastAction().CustomGameFilter().MaxCampaignTime != -1 {
 		t.Fatalf(
@@ -63,7 +68,7 @@ func createNoTimeLimitItem() (*core.Record, error) {
 	record.Set("icon", icon)
 	record.Set("order", 1)
 	record.Set("isUsingSlot", true)
-	record.Set("canDrop", false)
+	record.Set("canDrop", true)
 	record.Set("isActiveByDefault", true)
 
 	err = adventuria.PocketBase.Save(record)

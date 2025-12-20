@@ -13,7 +13,7 @@ type ReplaceDiceRollEffect struct {
 func (ef *ReplaceDiceRollEffect) Subscribe(
 	ctx adventuria.EffectContext,
 	callback adventuria.EffectCallback,
-) []event.Unsubscribe {
+) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
 		ctx.User.OnBeforeRollMove().BindFunc(func(e *adventuria.OnBeforeRollMoveEvent) error {
 			e.N = ef.GetInt("value")
@@ -22,7 +22,7 @@ func (ef *ReplaceDiceRollEffect) Subscribe(
 
 			return e.Next()
 		}),
-	}
+	}, nil
 }
 
 func (ef *ReplaceDiceRollEffect) Verify(value string) error {

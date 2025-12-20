@@ -2,8 +2,6 @@ package cells
 
 import (
 	"adventuria/internal/adventuria"
-	"adventuria/internal/adventuria/actions"
-	"adventuria/internal/adventuria/effects"
 	"adventuria/internal/adventuria/tests"
 	"testing"
 
@@ -12,9 +10,7 @@ import (
 )
 
 func Test_TeleportCell(t *testing.T) {
-	actions.WithBaseActions()
 	WithBaseCells()
-	effects.WithBaseEffects()
 
 	_, err := tests.NewGameTest()
 	if err != nil {

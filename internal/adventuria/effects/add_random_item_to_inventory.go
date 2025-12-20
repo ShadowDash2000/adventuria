@@ -19,7 +19,7 @@ type AddRandomItemToInventoryEffect struct {
 func (ef *AddRandomItemToInventoryEffect) Subscribe(
 	ctx adventuria.EffectContext,
 	callback adventuria.EffectCallback,
-) []event.Unsubscribe {
+) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
 		ctx.User.OnAfterAction().BindFunc(func(e *adventuria.OnAfterActionEvent) error {
 			if e.ActionType == "buyItem" {
@@ -34,7 +34,7 @@ func (ef *AddRandomItemToInventoryEffect) Subscribe(
 
 			return e.Next()
 		}),
-	}
+	}, nil
 }
 
 func (ef *AddRandomItemToInventoryEffect) Verify(value string) error {

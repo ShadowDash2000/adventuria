@@ -2,8 +2,10 @@ package effects
 
 import (
 	"adventuria/internal/adventuria"
+	"adventuria/internal/adventuria/cells"
 	"adventuria/pkg/event"
 	"errors"
+	"fmt"
 	"slices"
 
 	"github.com/pocketbase/pocketbase/core"
@@ -16,12 +18,18 @@ type AddGameTagEffect struct {
 func (ef *AddGameTagEffect) Subscribe(
 	ctx adventuria.EffectContext,
 	callback adventuria.EffectCallback,
-) []event.Unsubscribe {
+) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
 		ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) error {
 			if ctx.InvItemID == e.InvItemId {
-				if !adventuria.GameActions.CanDo(ctx.User, "rollWheel") {
-					return errors.New("addGameTag: can't add tag while rollWheel isn't available")
+				cell, ok := ctx.User.CurrentCell()
+				if !ok {
+					return errors.New("addGameTag: current cell not found")
+				}
+
+				cellGame, ok := cell.(*cells.CellGame)
+				if !ok {
+					return errors.New("addGameTag: current cell isn't game cell")
 				}
 
 				if tagID, ok := e.Request["tag_id"].(string); ok {
@@ -36,6 +44,9 @@ func (ef *AddGameTagEffect) Subscribe(
 					}
 
 					filter.Tags = append(filter.Tags, tagID)
+					if err := cellGame.CheckCustomFilter(ctx.User); err != nil {
+						return fmt.Errorf("addGameTag: %w", err)
+					}
 
 					callback()
 				} else {
@@ -45,7 +56,7 @@ func (ef *AddGameTagEffect) Subscribe(
 
 			return e.Next()
 		}),
-	}
+	}, nil
 }
 
 func (ef *AddGameTagEffect) fetchGameTagByID(tagID string) (*core.Record, error) {

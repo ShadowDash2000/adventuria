@@ -13,7 +13,7 @@ type TimerIncrementEffect struct {
 func (ef *TimerIncrementEffect) Subscribe(
 	ctx adventuria.EffectContext,
 	callback adventuria.EffectCallback,
-) []event.Unsubscribe {
+) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
 		ctx.User.OnAfterAction().BindFunc(func(e *adventuria.OnAfterActionEvent) error {
 			if i := ef.GetInt("value"); i != 0 {
@@ -27,7 +27,7 @@ func (ef *TimerIncrementEffect) Subscribe(
 
 			return e.Next()
 		}),
-	}
+	}, nil
 }
 
 func (ef *TimerIncrementEffect) Verify(value string) error {

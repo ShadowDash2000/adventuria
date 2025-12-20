@@ -6,18 +6,18 @@ import (
 	"strconv"
 )
 
-type PointsIncrementEffect struct {
+type DropPointsDivideEffect struct {
 	adventuria.EffectBase
 }
 
-func (ef *PointsIncrementEffect) Subscribe(
+func (ef *DropPointsDivideEffect) Subscribe(
 	ctx adventuria.EffectContext,
 	callback adventuria.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		ctx.User.OnAfterAction().BindFunc(func(e *adventuria.OnAfterActionEvent) error {
+		ctx.User.OnBeforeDrop().BindFunc(func(e *adventuria.OnBeforeDropEvent) error {
 			if i := ef.GetInt("value"); i != 0 {
-				ctx.User.SetPoints(ctx.User.Points() + i)
+				e.PointsForDrop = e.PointsForDrop / i
 
 				callback()
 			}
@@ -27,11 +27,11 @@ func (ef *PointsIncrementEffect) Subscribe(
 	}, nil
 }
 
-func (ef *PointsIncrementEffect) Verify(value string) error {
+func (ef *DropPointsDivideEffect) Verify(value string) error {
 	_, err := ef.DecodeValue(value)
 	return err
 }
 
-func (ef *PointsIncrementEffect) DecodeValue(value string) (any, error) {
+func (ef *DropPointsDivideEffect) DecodeValue(value string) (any, error) {
 	return strconv.Atoi(value)
 }

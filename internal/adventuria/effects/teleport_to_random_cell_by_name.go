@@ -19,7 +19,7 @@ type TeleportToRandomCellByNameEffect struct {
 func (ef *TeleportToRandomCellByNameEffect) Subscribe(
 	ctx adventuria.EffectContext,
 	callback adventuria.EffectCallback,
-) []event.Unsubscribe {
+) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
 		ctx.User.OnAfterItemSave().BindFunc(func(e *adventuria.OnAfterItemSave) error {
 			if e.Item.IDInventory() == ctx.InvItemID {
@@ -34,7 +34,7 @@ func (ef *TeleportToRandomCellByNameEffect) Subscribe(
 
 			return e.Next()
 		}),
-	}
+	}, nil
 }
 
 func (ef *TeleportToRandomCellByNameEffect) Verify(value string) error {

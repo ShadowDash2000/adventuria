@@ -31,6 +31,11 @@ func Test_ChangeMaxGamePrice(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	_, err = user.Move(1)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	invItemId, err := user.Inventory().AddItemById(item.Id)
 	if err != nil {
 		t.Fatal(err)

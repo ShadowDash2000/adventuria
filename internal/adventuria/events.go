@@ -13,7 +13,8 @@ type OnAfterRerollEvent struct {
 
 type OnBeforeDropEvent struct {
 	event.Event
-	IsSafeDrop bool
+	IsSafeDrop    bool
+	PointsForDrop int
 }
 type OnAfterDropEvent struct {
 	event.Event

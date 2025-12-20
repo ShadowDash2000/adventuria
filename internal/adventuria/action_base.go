@@ -66,7 +66,13 @@ func NewActionRecordFromRecord(record *core.Record) ActionRecord {
 
 func (a *ActionRecordBase) SetProxyRecord(record *core.Record) {
 	a.BaseRecordProxy.SetProxyRecord(record)
-	a.UnmarshalJSONField("game_filter", &a.gameFilter)
+	if a.GetString("game_filter") == "null" {
+		a.gameFilter = CustomGameFilter{}
+	} else {
+		if err := a.UnmarshalJSONField("game_filter", &a.gameFilter); err != nil {
+			PocketBase.Logger().Error("Failed to unmarshal game_filter", "err", err)
+		}
+	}
 }
 
 func (a *ActionRecordBase) ID() string {
@@ -169,7 +175,7 @@ func NewLastUserAction(userId string) (*LastUserActionRecord, error) {
 }
 
 func (a *LastUserActionRecord) bindHooks() {
-	a.hookIds = make([]string, 4)
+	a.hookIds = make([]string, 5)
 
 	a.hookIds[0] = PocketBase.OnRecordAfterCreateSuccess(CollectionActions).BindFunc(func(e *core.RecordEvent) error {
 		userId := e.Record.GetString("user")
@@ -213,7 +219,13 @@ func (a *LastUserActionRecord) bindHooks() {
 
 		return e.Next()
 	})
-	a.hookIds[3] = PocketBase.OnRecordUpdate(CollectionActions).BindFunc(func(e *core.RecordEvent) error {
+	a.hookIds[3] = PocketBase.OnRecordCreate(CollectionActions).BindFunc(func(e *core.RecordEvent) error {
+		if e.Record.Id == a.ID() {
+			e.Record.Set("game_filter", a.gameFilter)
+		}
+		return e.Next()
+	})
+	a.hookIds[4] = PocketBase.OnRecordUpdate(CollectionActions).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == a.ID() {
 			e.Record.Set("game_filter", a.gameFilter)
 		}
@@ -225,7 +237,8 @@ func (a *LastUserActionRecord) Close() {
 	PocketBase.OnRecordAfterCreateSuccess(CollectionActions).Unbind(a.hookIds[0])
 	PocketBase.OnRecordAfterUpdateSuccess(CollectionActions).Unbind(a.hookIds[1])
 	PocketBase.OnRecordAfterDeleteSuccess(CollectionActions).Unbind(a.hookIds[2])
-	PocketBase.OnRecordUpdate(CollectionActions).Unbind(a.hookIds[3])
+	PocketBase.OnRecordCreate(CollectionActions).Unbind(a.hookIds[3])
+	PocketBase.OnRecordUpdate(CollectionActions).Unbind(a.hookIds[4])
 }
 
 func getLastUserAction(userId string) (*LastUserActionRecord, error) {

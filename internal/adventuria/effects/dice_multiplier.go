@@ -13,7 +13,7 @@ type DiceMultiplierEffect struct {
 func (ef *DiceMultiplierEffect) Subscribe(
 	ctx adventuria.EffectContext,
 	callback adventuria.EffectCallback,
-) []event.Unsubscribe {
+) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
 		ctx.User.OnBeforeRollMove().BindFunc(func(e *adventuria.OnBeforeRollMoveEvent) error {
 			if i := ef.GetInt("value"); i != 0 {
@@ -24,7 +24,7 @@ func (ef *DiceMultiplierEffect) Subscribe(
 
 			return e.Next()
 		}),
-	}
+	}, nil
 }
 
 func (ef *DiceMultiplierEffect) Verify(value string) error {

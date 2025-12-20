@@ -12,7 +12,7 @@ type SafeDropEffect struct {
 func (ef *SafeDropEffect) Subscribe(
 	ctx adventuria.EffectContext,
 	callback adventuria.EffectCallback,
-) []event.Unsubscribe {
+) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
 		ctx.User.OnBeforeDrop().BindFunc(func(e *adventuria.OnBeforeDropEvent) error {
 			e.IsSafeDrop = true
@@ -21,7 +21,7 @@ func (ef *SafeDropEffect) Subscribe(
 
 			return e.Next()
 		}),
-	}
+	}, nil
 }
 
 func (ef *SafeDropEffect) Verify(_ string) error {
