@@ -4,9 +4,10 @@ import (
 	"adventuria/internal/adventuria"
 	"adventuria/internal/adventuria/cells"
 	"adventuria/pkg/event"
-	"errors"
 	"fmt"
+	"slices"
 	"strconv"
+	"strings"
 )
 
 type ChangeMaxGamePriceEffect struct {
@@ -17,36 +18,95 @@ func (ef *ChangeMaxGamePriceEffect) Subscribe(
 	ctx adventuria.EffectContext,
 	callback adventuria.EffectCallback,
 ) ([]event.Unsubscribe, error) {
-	return []event.Unsubscribe{
-		ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) error {
-			if e.InvItemId == ctx.InvItemID {
-				if ok := adventuria.GameActions.CanDo(ctx.User, "rollWheel"); !ok {
-					return errors.New("noTimeLimit: user can't do rollWheel action")
-				}
+	valAny, err := ef.DecodeValue(ef.GetString("value"))
+	if err != nil {
+		return nil, err
+	}
 
-				cell, ok := ctx.User.CurrentCell()
-				if !ok {
-					return errors.New("changeMinGamePrice: current cell not found")
-				}
+	val := valAny.(ChangeMaxGamePriceEffectValue)
 
-				cellGame, ok := cell.(*cells.CellGame)
-				if !ok {
-					return errors.New("changeMinGamePrice: current cell isn't game cell")
-				}
-
-				if i := ef.GetInt("value"); i != 0 {
-					ctx.User.LastAction().CustomGameFilter().MaxPrice = i
-					if err := cellGame.CheckCustomFilter(ctx.User); err != nil {
-						return fmt.Errorf("changeMinGamePrice: %w", err)
+	switch val.Type {
+	case "usable":
+		return []event.Unsubscribe{
+			ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) error {
+				if e.InvItemId == ctx.InvItemID {
+					ok, err := ef.tryToApplyEffect(ctx.User)
+					if err != nil {
+						return fmt.Errorf("changeMaxGamePrice: %w", err)
 					}
 
+					if ok {
+						callback()
+					}
+				}
+
+				return e.Next()
+			}),
+		}, nil
+	case "unusable":
+		return []event.Unsubscribe{
+			ctx.User.OnAfterMove().BindFunc(func(e *adventuria.OnAfterMoveEvent) error {
+				ok, err := ef.tryToApplyEffect(ctx.User)
+				if err != nil {
+					return fmt.Errorf("changeMaxGamePrice: %w", err)
+				}
+
+				if ok {
 					callback()
 				}
-			}
 
-			return e.Next()
-		}),
-	}, nil
+				return e.Next()
+			}),
+			ctx.User.OnAfterItemSave().BindFunc(func(e *adventuria.OnAfterItemSave) error {
+				if e.Item.IDInventory() != ctx.InvItemID {
+					return e.Next()
+				}
+
+				ok, err := ef.tryToApplyEffect(ctx.User)
+				if err != nil {
+					return fmt.Errorf("changeMaxGamePrice: %w", err)
+				}
+
+				if ok {
+					callback()
+				}
+
+				return e.Next()
+			}),
+		}, nil
+	default:
+		return nil, nil
+	}
+}
+
+func (ef *ChangeMaxGamePriceEffect) tryToApplyEffect(user adventuria.User) (bool, error) {
+	if !adventuria.GameActions.CanDo(user, "rollWheel") {
+		return false, nil
+	}
+
+	cell, ok := user.CurrentCell()
+	if !ok {
+		return false, nil
+	}
+
+	cellGame, ok := cell.(*cells.CellGame)
+	if !ok {
+		return false, nil
+	}
+
+	valAny, err := ef.DecodeValue(ef.GetString("value"))
+	if err != nil {
+		return false, err
+	}
+
+	val := valAny.(ChangeMaxGamePriceEffectValue)
+
+	user.LastAction().CustomGameFilter().MaxPrice = val.Price
+	if err = cellGame.CheckCustomFilter(user); err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
 
 func (ef *ChangeMaxGamePriceEffect) Verify(value string) error {
@@ -54,6 +114,32 @@ func (ef *ChangeMaxGamePriceEffect) Verify(value string) error {
 	return err
 }
 
+type ChangeMaxGamePriceEffectValue struct {
+	Price int
+	Type  string
+}
+
 func (ef *ChangeMaxGamePriceEffect) DecodeValue(value string) (any, error) {
-	return strconv.Atoi(value)
+	vals := strings.Split(value, ";")
+	if len(vals) != 2 {
+		return nil, fmt.Errorf("changeMaxGamePrice: invalid value: %s", value)
+	}
+
+	var (
+		res   ChangeMaxGamePriceEffectValue
+		err   error
+		types = []string{"usable", "unusable"}
+	)
+
+	res.Price, err = strconv.Atoi(vals[0])
+	if err != nil {
+		return nil, fmt.Errorf("changeMaxGamePrice: invalid value: %s", value)
+	}
+
+	if !slices.Contains(types, vals[1]) {
+		return nil, fmt.Errorf("changeMaxGamePrice: invalid event: %s", vals[1])
+	}
+	res.Type = vals[1]
+
+	return res, nil
 }
