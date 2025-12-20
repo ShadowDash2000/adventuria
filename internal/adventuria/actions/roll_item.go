@@ -12,7 +12,15 @@ type RollItemAction struct {
 }
 
 func (a *RollItemAction) CanDo(user adventuria.User) bool {
-	return user.ItemWheelsCount() > 0
+	if user.ItemWheelsCount() <= 0 {
+		return false
+	}
+
+	if adventuria.GameActions.CanDo(user, "done") {
+		return false
+	}
+
+	return true
 }
 
 func (a *RollItemAction) Do(user adventuria.User, _ adventuria.ActionRequest) (*adventuria.ActionResult, error) {
