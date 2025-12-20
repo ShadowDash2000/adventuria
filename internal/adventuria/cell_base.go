@@ -63,6 +63,10 @@ func (c *CellBase) Points() int {
 	return c.GetInt("points")
 }
 
+func (c *CellBase) Coins() int {
+	return c.GetInt("coins")
+}
+
 func (c *CellBase) Description() string {
 	return c.GetString("description")
 }

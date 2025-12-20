@@ -35,6 +35,7 @@ func (a *DoneAction) Do(user adventuria.User, req adventuria.ActionRequest) (*ad
 
 	onBeforeDoneEvent := &adventuria.OnBeforeDoneEvent{
 		CellPoints: currentCell.Points(),
+		CellCoins:  currentCell.Coins(),
 	}
 	err := user.OnBeforeDone().Trigger(onBeforeDoneEvent)
 	if err != nil {
@@ -53,6 +54,7 @@ func (a *DoneAction) Do(user adventuria.User, req adventuria.ActionRequest) (*ad
 	user.SetDropsInARow(0)
 	user.SetIsInJail(false)
 	user.SetPoints(user.Points() + onBeforeDoneEvent.CellPoints)
+	user.SetBalance(user.Balance() + onBeforeDoneEvent.CellCoins)
 
 	onAfterDoneEvent := &adventuria.OnAfterDoneEvent{}
 	err = user.OnAfterDone().Trigger(onAfterDoneEvent)

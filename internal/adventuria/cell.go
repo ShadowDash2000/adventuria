@@ -19,6 +19,7 @@ type Cell interface {
 	Icon() string
 	Name() string
 	Points() int
+	Coins() int
 	Description() string
 	Color() string
 	CantDrop() bool
