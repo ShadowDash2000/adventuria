@@ -27,6 +27,7 @@ func WithBaseEffects() {
 		"changeGameById":             adventuria.NewEffect(&ChangeGameByIdEffect{}),
 		"chooseGame":                 adventuria.NewEffect(&ChooseGameEffect{}),
 		"dropPointsDivide":           adventuria.NewEffect(&DropPointsDivideEffect{}),
+		"returnToPrevCell":           adventuria.NewEffect(&ReturnToPrevCellEffect{}),
 	})
 
 	adventuria.RegisterPersistentEffects(map[string]adventuria.PersistentEffectCreator{
