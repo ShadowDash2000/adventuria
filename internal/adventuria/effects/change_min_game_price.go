@@ -4,7 +4,6 @@ import (
 	"adventuria/internal/adventuria"
 	"adventuria/internal/adventuria/cells"
 	"adventuria/pkg/event"
-	"errors"
 	"fmt"
 	"strconv"
 )
@@ -18,26 +17,38 @@ func (ef *ChangeMinGamePriceEffect) Subscribe(
 	callback adventuria.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) error {
+		ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*event.Result, error) {
 			if e.InvItemId == ctx.InvItemID {
 				if ok := adventuria.GameActions.CanDo(ctx.User, "rollWheel"); !ok {
-					return errors.New("noTimeLimit: user can't do rollWheel action")
+					return &event.Result{
+						Success: false,
+						Error:   "user can't perform rollWheel action",
+					}, nil
 				}
 
 				cell, ok := ctx.User.CurrentCell()
 				if !ok {
-					return errors.New("changeMinGamePrice: current cell not found")
+					return &event.Result{
+						Success: false,
+						Error:   "current cell not found",
+					}, nil
 				}
 
 				cellGame, ok := cell.(*cells.CellGame)
 				if !ok {
-					return errors.New("changeMinGamePrice: current cell isn't game cell")
+					return &event.Result{
+						Success: false,
+						Error:   "current cell isn't game cell",
+					}, nil
 				}
 
 				if i := ef.GetInt("value"); i != 0 {
 					ctx.User.LastAction().CustomGameFilter().MinPrice = i
 					if err := cellGame.CheckCustomFilter(ctx.User); err != nil {
-						return fmt.Errorf("changeMinGamePrice: %w", err)
+						return &event.Result{
+							Success: false,
+							Error:   "internal error: can't apply custom filter",
+						}, fmt.Errorf("changeMinGamePrice: %w", err)
 					}
 
 					callback()

@@ -28,6 +28,8 @@ func WithBaseEffects() {
 		"chooseGame":                 adventuria.NewEffect(&ChooseGameEffect{}),
 		"dropPointsDivide":           adventuria.NewEffect(&DropPointsDivideEffect{}),
 		"returnToPrevCell":           adventuria.NewEffect(&ReturnToPrevCellEffect{}),
+		"noCoinsForDone":             adventuria.NewEffect(&NoCoinsForDoneEffect{}),
+		"dropBlocked":                adventuria.NewEffect(&DropBlockedEffect{}),
 	})
 
 	adventuria.RegisterPersistentEffects(map[string]adventuria.PersistentEffectCreator{

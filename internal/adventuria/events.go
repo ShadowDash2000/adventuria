@@ -14,6 +14,7 @@ type OnAfterRerollEvent struct {
 type OnBeforeDropEvent struct {
 	event.Event
 	IsSafeDrop    bool
+	IsDropBlocked bool
 	PointsForDrop int
 }
 type OnAfterDropEvent struct {
@@ -59,6 +60,10 @@ type OnAfterItemUseEvent struct {
 	event.Event
 	InvItemId string
 	Request   UseItemRequest
+}
+type OnBeforeItemAdd struct {
+	event.Event
+	ItemRecord ItemRecord
 }
 type OnAfterItemAdd struct {
 	event.Event

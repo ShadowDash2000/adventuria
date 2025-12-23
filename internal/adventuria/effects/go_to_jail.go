@@ -3,6 +3,7 @@ package effects
 import (
 	"adventuria/internal/adventuria"
 	"adventuria/pkg/event"
+	"fmt"
 )
 
 type GoToJailEffect struct {
@@ -14,25 +15,24 @@ func (ef *GoToJailEffect) Subscribe(
 	callback adventuria.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		ctx.User.OnAfterItemSave().BindFunc(func(e *adventuria.OnAfterItemSave) error {
+		ctx.User.OnAfterItemSave().BindFunc(func(e *adventuria.OnAfterItemSave) (*event.Result, error) {
 			if e.Item.IDInventory() == ctx.InvItemID {
 				_, err := ctx.User.MoveToClosestCellType("jail")
 				if err != nil {
-					return err
+					return &event.Result{
+						Success: false,
+						Error:   "internal error: can't move to jail cell",
+					}, fmt.Errorf("goToJailEffect: %w", err)
 				}
 
 				ctx.User.SetIsInJail(true)
 
-				err = ctx.User.OnAfterGoToJail().Trigger(&adventuria.OnAfterGoToJailEvent{})
-				if err != nil {
-					adventuria.PocketBase.Logger().Error(
-						"goToJailEffect: failed to trigger onAfterGoToJail event",
-						"error",
-						err,
-					)
-				}
-
 				callback()
+
+				res, err := ctx.User.OnAfterGoToJail().Trigger(&adventuria.OnAfterGoToJailEvent{})
+				if err != nil {
+					return res, err
+				}
 			}
 
 			return e.Next()

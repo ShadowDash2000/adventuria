@@ -42,9 +42,12 @@ func (i *InventoryBase) bindHooks() {
 			}
 			i.items[e.Record.Id] = item
 
-			_ = i.user.OnAfterItemSave().Trigger(&OnAfterItemSave{
+			_, err = i.user.OnAfterItemSave().Trigger(&OnAfterItemSave{
 				Item: item,
 			})
+			if err != nil {
+				PocketBase.Logger().Error("Failed to trigger OnAfterItemSave event", "err", err)
+			}
 		}
 		return e.Next()
 	})
@@ -111,18 +114,34 @@ func (i *InventoryBase) HasEmptySlots() bool {
 }
 
 func (i *InventoryBase) AddItem(item ItemRecord) (string, error) {
-	record := core.NewRecord(GameCollections.Get(CollectionInventory))
-	record.Set("user", i.user.ID())
-	record.Set("item", item.ID())
-	record.Set("isActive", item.IsActiveByDefault())
-	err := PocketBase.Save(record)
+	res, err := i.user.OnBeforeItemAdd().Trigger(&OnBeforeItemAdd{
+		ItemRecord: item,
+	})
+	if res != nil && !res.Success {
+		return "", errors.New(res.Error)
+	}
 	if err != nil {
 		return "", err
 	}
 
-	_ = i.user.OnAfterItemAdd().Trigger(&OnAfterItemAdd{
+	record := core.NewRecord(GameCollections.Get(CollectionInventory))
+	record.Set("user", i.user.ID())
+	record.Set("item", item.ID())
+	record.Set("isActive", item.IsActiveByDefault())
+	err = PocketBase.Save(record)
+	if err != nil {
+		return "", err
+	}
+
+	res, err = i.user.OnAfterItemAdd().Trigger(&OnAfterItemAdd{
 		ItemRecord: item,
 	})
+	if res != nil && !res.Success {
+		return "", errors.New(res.Error)
+	}
+	if err != nil {
+		return "", err
+	}
 
 	return record.Id, nil
 }

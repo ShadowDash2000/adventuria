@@ -3,6 +3,7 @@ package adventuria
 import (
 	"adventuria/pkg/collections"
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -122,9 +123,15 @@ func (g *Game) DoAction(actionType ActionType, userId string, req ActionRequest)
 		return res, nil
 	}
 
-	err = user.OnAfterAction().Trigger(&OnAfterActionEvent{
+	eventRes, err := user.OnAfterAction().Trigger(&OnAfterActionEvent{
 		ActionType: actionType,
 	})
+	if eventRes != nil && !eventRes.Success {
+		return &ActionResult{
+			Success: false,
+			Error:   eventRes.Error,
+		}, fmt.Errorf("doAction(): %w", err)
+	}
 	if err != nil {
 		return &ActionResult{
 			Success: false,
@@ -164,10 +171,14 @@ func (g *Game) UseItem(userId, itemId string, req UseItemRequest) error {
 		return err
 	}
 
-	err = user.OnAfterItemUse().Trigger(&OnAfterItemUseEvent{
+	eventRes, err := user.OnAfterItemUse().Trigger(&OnAfterItemUseEvent{
 		InvItemId: itemId,
 		Request:   req,
 	})
+	if eventRes != nil && !eventRes.Success {
+		onUseFail()
+		return errors.New(eventRes.Error)
+	}
 	if err != nil {
 		onUseFail()
 		return err
@@ -177,9 +188,12 @@ func (g *Game) UseItem(userId, itemId string, req UseItemRequest) error {
 		return err
 	}
 
-	err = user.OnAfterAction().Trigger(&OnAfterActionEvent{
+	eventRes, err = user.OnAfterAction().Trigger(&OnAfterActionEvent{
 		ActionType: "useItem",
 	})
+	if eventRes != nil && !eventRes.Success {
+		return errors.New(eventRes.Error)
+	}
 	if err != nil {
 		return err
 	}

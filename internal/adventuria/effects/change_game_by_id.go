@@ -19,10 +19,13 @@ func (ef *ChangeGameByIdEffect) Subscribe(
 	}
 
 	return []event.Unsubscribe{
-		ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) error {
+		ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*event.Result, error) {
 			if e.InvItemId == ctx.InvItemID {
 				if ok := adventuria.GameActions.CanDo(ctx.User, "done"); !ok {
-					return errors.New("changeGameById: user can't do done action")
+					return &event.Result{
+						Success: false,
+						Error:   "user can't perform done action",
+					}, nil
 				}
 
 				ctx.User.LastAction().SetGame(ef.GetString("value"))
@@ -32,7 +35,7 @@ func (ef *ChangeGameByIdEffect) Subscribe(
 
 			return e.Next()
 		}),
-		ctx.User.OnAfterMove().BindFunc(func(e *adventuria.OnAfterMoveEvent) error {
+		ctx.User.OnAfterMove().BindFunc(func(e *adventuria.OnAfterMoveEvent) (*event.Result, error) {
 			callback()
 			return e.Next()
 		}),

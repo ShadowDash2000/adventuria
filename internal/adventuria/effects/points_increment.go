@@ -15,7 +15,7 @@ func (ef *PointsIncrementEffect) Subscribe(
 	callback adventuria.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		ctx.User.OnAfterAction().BindFunc(func(e *adventuria.OnAfterActionEvent) error {
+		ctx.User.OnAfterAction().BindFunc(func(e *adventuria.OnAfterActionEvent) (*event.Result, error) {
 			if i := ef.GetInt("value"); i != 0 {
 				ctx.User.SetPoints(ctx.User.Points() + i)
 

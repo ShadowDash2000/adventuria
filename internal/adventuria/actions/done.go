@@ -37,13 +37,18 @@ func (a *DoneAction) Do(user adventuria.User, req adventuria.ActionRequest) (*ad
 		CellPoints: currentCell.Points(),
 		CellCoins:  currentCell.Coins(),
 	}
-	err := user.OnBeforeDone().Trigger(onBeforeDoneEvent)
+	res, err := user.OnBeforeDone().Trigger(onBeforeDoneEvent)
+	if res != nil && !res.Success {
+		return &adventuria.ActionResult{
+			Success: false,
+			Error:   res.Error,
+		}, err
+	}
 	if err != nil {
-		adventuria.PocketBase.Logger().Error(
-			"done.do(): failed to trigger onBeforeDone event",
-			"error",
-			err,
-		)
+		return &adventuria.ActionResult{
+			Success: false,
+			Error:   "internal error: failed to trigger onBeforeDone event",
+		}, err
 	}
 
 	action := user.LastAction()
@@ -57,13 +62,18 @@ func (a *DoneAction) Do(user adventuria.User, req adventuria.ActionRequest) (*ad
 	user.SetBalance(user.Balance() + onBeforeDoneEvent.CellCoins)
 
 	onAfterDoneEvent := &adventuria.OnAfterDoneEvent{}
-	err = user.OnAfterDone().Trigger(onAfterDoneEvent)
+	res, err = user.OnAfterDone().Trigger(onAfterDoneEvent)
+	if res != nil && !res.Success {
+		return &adventuria.ActionResult{
+			Success: false,
+			Error:   res.Error,
+		}, err
+	}
 	if err != nil {
-		adventuria.PocketBase.Logger().Error(
-			"done.do(): failed to trigger onAfterDone event",
-			"error",
-			err,
-		)
+		return &adventuria.ActionResult{
+			Success: false,
+			Error:   "internal error: failed to trigger onAfterDoneEvent event",
+		}, err
 	}
 
 	return &adventuria.ActionResult{

@@ -15,7 +15,7 @@ func (ef *CellPointsDivideEffect) Subscribe(
 	callback adventuria.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		ctx.User.OnBeforeDone().BindFunc(func(e *adventuria.OnBeforeDoneEvent) error {
+		ctx.User.OnBeforeDone().BindFunc(func(e *adventuria.OnBeforeDoneEvent) (*event.Result, error) {
 			if i := ef.GetInt("value"); i != 0 {
 				e.CellPoints = e.CellPoints / i
 
@@ -24,7 +24,7 @@ func (ef *CellPointsDivideEffect) Subscribe(
 
 			return e.Next()
 		}),
-		ctx.User.OnAfterMove().BindFunc(func(e *adventuria.OnAfterMoveEvent) error {
+		ctx.User.OnAfterMove().BindFunc(func(e *adventuria.OnAfterMoveEvent) (*event.Result, error) {
 			callback()
 			return e.Next()
 		}),

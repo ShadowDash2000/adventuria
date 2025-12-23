@@ -1,30 +1,38 @@
 package event
 
 type Resolver interface {
-	Next() error
+	Next() (*Result, error)
 
-	nextFunc() func() error
-	setNextFunc(f func() error)
+	nextFunc() func() (*Result, error)
+	setNextFunc(f func() (*Result, error))
+}
+
+type Result struct {
+	Success bool   `json:"success"`
+	Data    any    `json:"data,omitempty"`
+	Error   string `json:"error,omitempty"`
 }
 
 type Event struct {
-	next func() error
+	next func() (*Result, error)
 }
 
 // Next calls the next hook handler.
-func (e *Event) Next() error {
+func (e *Event) Next() (*Result, error) {
 	if e.next != nil {
 		return e.next()
 	}
-	return nil
+	return &Result{
+		Success: true,
+	}, nil
 }
 
 // nextFunc returns the function that Next calls.
-func (e *Event) nextFunc() func() error {
+func (e *Event) nextFunc() func() (*Result, error) {
 	return e.next
 }
 
 // setNextFunc sets the function that Next calls.
-func (e *Event) setNextFunc(fn func() error) {
+func (e *Event) setNextFunc(fn func() (*Result, error)) {
 	e.next = fn
 }

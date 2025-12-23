@@ -28,15 +28,17 @@ func (ef *ChangeMaxGamePriceEffect) Subscribe(
 	switch val.Type {
 	case "usable":
 		return []event.Unsubscribe{
-			ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) error {
+			ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*event.Result, error) {
 				if e.InvItemId == ctx.InvItemID {
-					ok, err := ef.tryToApplyEffect(ctx.User)
+					res, err := ef.tryToApplyEffect(ctx.User)
 					if err != nil {
-						return fmt.Errorf("changeMaxGamePrice: %w", err)
+						return res, err
 					}
 
-					if ok {
+					if res.Success {
 						callback()
+					} else {
+						return res, nil
 					}
 				}
 
@@ -45,30 +47,34 @@ func (ef *ChangeMaxGamePriceEffect) Subscribe(
 		}, nil
 	case "unusable":
 		return []event.Unsubscribe{
-			ctx.User.OnAfterMove().BindFunc(func(e *adventuria.OnAfterMoveEvent) error {
-				ok, err := ef.tryToApplyEffect(ctx.User)
+			ctx.User.OnAfterMove().BindFunc(func(e *adventuria.OnAfterMoveEvent) (*event.Result, error) {
+				res, err := ef.tryToApplyEffect(ctx.User)
 				if err != nil {
-					return fmt.Errorf("changeMaxGamePrice: %w", err)
+					return res, err
 				}
 
-				if ok {
+				if res.Success {
 					callback()
+				} else {
+					return res, nil
 				}
 
 				return e.Next()
 			}),
-			ctx.User.OnAfterItemSave().BindFunc(func(e *adventuria.OnAfterItemSave) error {
+			ctx.User.OnAfterItemSave().BindFunc(func(e *adventuria.OnAfterItemSave) (*event.Result, error) {
 				if e.Item.IDInventory() != ctx.InvItemID {
 					return e.Next()
 				}
 
-				ok, err := ef.tryToApplyEffect(ctx.User)
+				res, err := ef.tryToApplyEffect(ctx.User)
 				if err != nil {
-					return fmt.Errorf("changeMaxGamePrice: %w", err)
+					return res, err
 				}
 
-				if ok {
+				if res.Success {
 					callback()
+				} else {
+					return res, nil
 				}
 
 				return e.Next()
@@ -79,34 +85,51 @@ func (ef *ChangeMaxGamePriceEffect) Subscribe(
 	}
 }
 
-func (ef *ChangeMaxGamePriceEffect) tryToApplyEffect(user adventuria.User) (bool, error) {
+func (ef *ChangeMaxGamePriceEffect) tryToApplyEffect(user adventuria.User) (*event.Result, error) {
 	if !adventuria.GameActions.CanDo(user, "rollWheel") {
-		return false, nil
+		return &event.Result{
+			Success: false,
+			Error:   "user can't perform roll wheel action",
+		}, nil
 	}
 
 	cell, ok := user.CurrentCell()
 	if !ok {
-		return false, nil
+		return &event.Result{
+			Success: false,
+			Error:   "current cell not found",
+		}, nil
 	}
 
 	cellGame, ok := cell.(*cells.CellGame)
 	if !ok {
-		return false, nil
+		return &event.Result{
+			Success: false,
+			Error:   "current cell isn't game cell",
+		}, nil
 	}
 
 	valAny, err := ef.DecodeValue(ef.GetString("value"))
 	if err != nil {
-		return false, err
+		return &event.Result{
+			Success: false,
+			Error:   "internal error: invalid value in \"change_max_game_price\" effect",
+		}, fmt.Errorf("changeMaxGamePrice: %w", err)
 	}
 
 	val := valAny.(ChangeMaxGamePriceEffectValue)
 
 	user.LastAction().CustomGameFilter().MaxPrice = val.Price
 	if err = cellGame.CheckCustomFilter(user); err != nil {
-		return false, err
+		return &event.Result{
+			Success: false,
+			Error:   "internal error: can't apply custom filter",
+		}, fmt.Errorf("changeMaxGamePrice: %w", err)
 	}
 
-	return true, nil
+	return &event.Result{
+		Success: true,
+	}, nil
 }
 
 func (ef *ChangeMaxGamePriceEffect) Verify(value string) error {

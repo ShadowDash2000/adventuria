@@ -3,6 +3,7 @@ package effects
 import (
 	"adventuria/internal/adventuria"
 	"adventuria/pkg/event"
+	"fmt"
 )
 
 type ReturnToPrevCellEffect struct {
@@ -14,7 +15,7 @@ func (ef *ReturnToPrevCellEffect) Subscribe(
 	callback adventuria.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) error {
+		ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*event.Result, error) {
 			if e.InvItemId != ctx.InvItemID {
 				return e.Next()
 			}
@@ -26,7 +27,10 @@ func (ef *ReturnToPrevCellEffect) Subscribe(
 
 			_, err := ctx.User.Move(-latestDiceRoll)
 			if err != nil {
-				return err
+				return &event.Result{
+					Success: false,
+					Error:   "internal error: can't move to previous cell",
+				}, fmt.Errorf("returnToPrevCell: %w", err)
 			}
 
 			ctx.User.LastAction().SetCanMove(true)

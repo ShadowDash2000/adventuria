@@ -3,7 +3,6 @@ package effects
 import (
 	"adventuria/internal/adventuria"
 	"adventuria/pkg/event"
-	"errors"
 	"fmt"
 	"slices"
 )
@@ -17,27 +16,39 @@ func (ef *ChooseGameEffect) Subscribe(
 	callback adventuria.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) error {
+		ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*event.Result, error) {
 			if ctx.InvItemID == e.InvItemId {
 				if ok := adventuria.GameActions.CanDo(ctx.User, "done"); !ok {
-					return errors.New("chooseGame: user can't do done action")
+					return &event.Result{
+						Success: false,
+						Error:   "user can't perform done action",
+					}, nil
 				}
 
 				if gameId, ok := e.Request["game_id"].(string); ok {
 					itemsList, err := ctx.User.LastAction().ItemsList()
 					if err != nil {
-						return fmt.Errorf("chooseGame: %w", err)
+						return &event.Result{
+							Success: false,
+							Error:   "internal error: can't unmarshal items list in \"choose_game\" effect",
+						}, fmt.Errorf("chooseGame: %w", err)
 					}
 
 					if !slices.Contains(itemsList, gameId) {
-						return errors.New("chooseGame: game_id not found in items list")
+						return &event.Result{
+							Success: false,
+							Error:   "game_id not found in items list",
+						}, nil
 					}
 
 					ctx.User.LastAction().SetGame(gameId)
 
 					callback()
 				} else {
-					return errors.New("chooseGame: game_id not found")
+					return &event.Result{
+						Success: false,
+						Error:   "request error: game_id not specified",
+					}, nil
 				}
 			}
 

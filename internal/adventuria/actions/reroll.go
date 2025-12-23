@@ -48,13 +48,18 @@ func (a *RerollAction) Do(user adventuria.User, req adventuria.ActionRequest) (*
 	action.SetGame("")
 	action.SetDiceRoll(0)
 
-	err = user.OnAfterReroll().Trigger(&adventuria.OnAfterRerollEvent{})
+	res, err := user.OnAfterReroll().Trigger(&adventuria.OnAfterRerollEvent{})
+	if res != nil && !res.Success {
+		return &adventuria.ActionResult{
+			Success: false,
+			Error:   res.Error,
+		}, err
+	}
 	if err != nil {
-		adventuria.PocketBase.Logger().Error(
-			"reroll.do(): failed to trigger onAfterReroll event",
-			"error",
-			err,
-		)
+		return &adventuria.ActionResult{
+			Success: false,
+			Error:   "internal error: failed to trigger onAfterRerollEvent event",
+		}, err
 	}
 
 	return &adventuria.ActionResult{

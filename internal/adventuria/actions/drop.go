@@ -47,15 +47,28 @@ func (a *DropAction) Do(user adventuria.User, req adventuria.ActionRequest) (*ad
 
 	onBeforeDropEvent := &adventuria.OnBeforeDropEvent{
 		IsSafeDrop:    false,
+		IsDropBlocked: false,
 		PointsForDrop: adventuria.GameSettings.PointsForDrop(),
 	}
-	err := user.OnBeforeDrop().Trigger(onBeforeDropEvent)
+	res, err := user.OnBeforeDrop().Trigger(onBeforeDropEvent)
+	if res != nil && !res.Success {
+		return &adventuria.ActionResult{
+			Success: false,
+			Error:   res.Error,
+		}, err
+	}
 	if err != nil {
-		adventuria.PocketBase.Logger().Error(
-			"drop.do(): failed to trigger onBeforeDrop event",
-			"error",
-			err,
-		)
+		return &adventuria.ActionResult{
+			Success: false,
+			Error:   "internal error: failed to trigger onBeforeDropEvent event",
+		}, err
+	}
+
+	if onBeforeDropEvent.IsDropBlocked {
+		return &adventuria.ActionResult{
+			Success: false,
+			Error:   "drop is not allowed",
+		}, nil
 	}
 
 	action := user.LastAction()
@@ -91,23 +104,34 @@ func (a *DropAction) Do(user adventuria.User, req adventuria.ActionRequest) (*ad
 
 			user.SetIsInJail(true)
 
-			err = user.OnAfterGoToJail().Trigger(&adventuria.OnAfterGoToJailEvent{})
+			res, err = user.OnAfterGoToJail().Trigger(&adventuria.OnAfterGoToJailEvent{})
+			if res != nil && !res.Success {
+				return &adventuria.ActionResult{
+					Success: false,
+					Error:   res.Error,
+				}, err
+			}
 			if err != nil {
-				adventuria.PocketBase.Logger().Error(
-					"drop.do(): failed to trigger onAfterGoToJail event",
-					"error",
-					err,
-				)
+				return &adventuria.ActionResult{
+					Success: false,
+					Error:   "internal error: failed to trigger onAfterGoToJailEvent event",
+				}, err
 			}
 		}
 	}
 
-	err = user.OnAfterDrop().Trigger(&adventuria.OnAfterDropEvent{})
+	res, err = user.OnAfterDrop().Trigger(&adventuria.OnAfterDropEvent{})
+	if res != nil && !res.Success {
+		return &adventuria.ActionResult{
+			Success: false,
+			Error:   res.Error,
+		}, err
+	}
 	if err != nil {
 		return &adventuria.ActionResult{
 			Success: false,
-			Error:   "internal error",
-		}, fmt.Errorf("drop.do(): %w", err)
+			Error:   "internal error: failed to trigger onAfterDropEvent event",
+		}, err
 	}
 
 	return &adventuria.ActionResult{

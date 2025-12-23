@@ -6,6 +6,7 @@ import (
 	"adventuria/internal/adventuria/games/hltb"
 	"adventuria/internal/adventuria/games/igdb"
 	"adventuria/internal/adventuria/games/steam"
+	"adventuria/pkg/event"
 	"context"
 	"log"
 )
@@ -36,7 +37,7 @@ func (p *GamesParser) Parse(ctx context.Context) {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	unsub := adventuria.GameSettings.OnKillParser().BindFunc(func(e *adventuria.OnKillParserEvent) error {
+	unsub := adventuria.GameSettings.OnKillParser().BindFunc(func(e *adventuria.OnKillParserEvent) (*event.Result, error) {
 		cancel()
 		return e.Next()
 	})

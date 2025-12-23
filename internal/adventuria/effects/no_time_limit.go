@@ -16,30 +16,34 @@ func (ef *NoTimeLimitEffect) Subscribe(
 	callback adventuria.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		ctx.User.OnAfterMove().BindFunc(func(e *adventuria.OnAfterMoveEvent) error {
-			ok, err := ef.tryToApplyEffect(ctx.User)
+		ctx.User.OnAfterMove().BindFunc(func(e *adventuria.OnAfterMoveEvent) (*event.Result, error) {
+			res, err := ef.tryToApplyEffect(ctx.User)
 			if err != nil {
-				return fmt.Errorf("noTimeLimit: %w", err)
+				return res, err
 			}
 
-			if ok {
+			if res.Success {
 				callback()
+			} else {
+				return res, nil
 			}
 
 			return e.Next()
 		}),
-		ctx.User.OnAfterItemSave().BindFunc(func(e *adventuria.OnAfterItemSave) error {
+		ctx.User.OnAfterItemSave().BindFunc(func(e *adventuria.OnAfterItemSave) (*event.Result, error) {
 			if e.Item.IDInventory() != ctx.InvItemID {
 				return e.Next()
 			}
 
-			ok, err := ef.tryToApplyEffect(ctx.User)
+			res, err := ef.tryToApplyEffect(ctx.User)
 			if err != nil {
-				return fmt.Errorf("noTimeLimit: %w", err)
+				return res, err
 			}
 
-			if ok {
+			if res.Success {
 				callback()
+			} else {
+				return res, nil
 			}
 
 			return e.Next()
@@ -47,28 +51,42 @@ func (ef *NoTimeLimitEffect) Subscribe(
 	}, nil
 }
 
-func (ef *NoTimeLimitEffect) tryToApplyEffect(user adventuria.User) (bool, error) {
+func (ef *NoTimeLimitEffect) tryToApplyEffect(user adventuria.User) (*event.Result, error) {
 	if !adventuria.GameActions.CanDo(user, "rollWheel") {
-		return false, nil
+		return &event.Result{
+			Success: false,
+			Error:   "user can't perform roll wheel action",
+		}, nil
 	}
 
 	cell, ok := user.CurrentCell()
 	if !ok {
-		return false, nil
+		return &event.Result{
+			Success: false,
+			Error:   "current cell not found",
+		}, nil
 	}
 
 	cellGame, ok := cell.(*cells.CellGame)
 	if !ok {
-		return false, nil
+		return &event.Result{
+			Success: false,
+			Error:   "current cell isn't game cell",
+		}, nil
 	}
 
 	user.LastAction().CustomGameFilter().MinCampaignTime = -1
 	user.LastAction().CustomGameFilter().MaxCampaignTime = -1
 	if err := cellGame.CheckCustomFilter(user); err != nil {
-		return false, err
+		return &event.Result{
+			Success: false,
+			Error:   "internal error: can't apply custom filter in \"no_time_limit\" effect",
+		}, fmt.Errorf("noTimeLimit: %w", err)
 	}
 
-	return true, nil
+	return &event.Result{
+		Success: true,
+	}, nil
 }
 
 func (ef *NoTimeLimitEffect) Verify(_ string) error {

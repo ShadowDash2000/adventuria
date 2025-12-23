@@ -3,7 +3,6 @@ package effects
 import (
 	"adventuria/internal/adventuria"
 	"adventuria/pkg/event"
-	"errors"
 )
 
 type JailEscapeEffect struct {
@@ -15,10 +14,13 @@ func (ef *JailEscapeEffect) Subscribe(
 	callback adventuria.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) error {
+		ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*event.Result, error) {
 			if e.InvItemId == ctx.InvItemID {
 				if !ctx.User.IsInJail() {
-					return errors.New("jailEscape: user isn't in jail")
+					return &event.Result{
+						Success: false,
+						Error:   "user isn't in jail",
+					}, nil
 				}
 
 				ctx.User.SetIsInJail(false)

@@ -65,6 +65,7 @@ type UserEvent interface {
 	OnAfterAction() *event.Hook[*OnAfterActionEvent]
 	OnAfterMove() *event.Hook[*OnAfterMoveEvent]
 	OnBeforeCurrentCell() *event.Hook[*OnBeforeCurrentCellEvent]
+	OnBeforeItemAdd() *event.Hook[*OnBeforeItemAdd]
 	OnAfterItemAdd() *event.Hook[*OnAfterItemAdd]
 	OnAfterItemSave() *event.Hook[*OnAfterItemSave]
 }

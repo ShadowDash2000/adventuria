@@ -5,29 +5,27 @@ import (
 	"adventuria/pkg/event"
 )
 
-type RollReverseEffect struct {
+type NoCoinsForDoneEffect struct {
 	adventuria.EffectBase
 }
 
-func (ef *RollReverseEffect) Subscribe(
+func (ef *NoCoinsForDoneEffect) Subscribe(
 	ctx adventuria.EffectContext,
 	callback adventuria.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		ctx.User.OnBeforeRollMove().BindFunc(func(e *adventuria.OnBeforeRollMoveEvent) (*event.Result, error) {
-			e.N *= -1
-
+		ctx.User.OnBeforeDone().BindFunc(func(e *adventuria.OnBeforeDoneEvent) (*event.Result, error) {
+			e.CellCoins = 0
 			callback()
-
 			return e.Next()
 		}),
 	}, nil
 }
 
-func (ef *RollReverseEffect) Verify(_ string) error {
+func (ef *NoCoinsForDoneEffect) Verify(_ string) error {
 	return nil
 }
 
-func (ef *RollReverseEffect) DecodeValue(_ string) (any, error) {
+func (ef *NoCoinsForDoneEffect) DecodeValue(_ string) (any, error) {
 	return nil, nil
 }

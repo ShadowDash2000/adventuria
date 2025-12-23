@@ -4,7 +4,6 @@ import (
 	"adventuria/internal/adventuria"
 	"adventuria/internal/adventuria/cells"
 	"adventuria/pkg/event"
-	"errors"
 	"fmt"
 	"slices"
 
@@ -20,37 +19,55 @@ func (ef *AddGameTagEffect) Subscribe(
 	callback adventuria.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) error {
+		ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*event.Result, error) {
 			if ctx.InvItemID == e.InvItemId {
 				cell, ok := ctx.User.CurrentCell()
 				if !ok {
-					return errors.New("addGameTag: current cell not found")
+					return &event.Result{
+						Success: false,
+						Error:   "current cell not found",
+					}, nil
 				}
 
 				cellGame, ok := cell.(*cells.CellGame)
 				if !ok {
-					return errors.New("addGameTag: current cell isn't game cell")
+					return &event.Result{
+						Success: false,
+						Error:   "current cell isn't game cell",
+					}, nil
 				}
 
 				if tagID, ok := e.Request["tag_id"].(string); ok {
 					_, err := ef.fetchGameTagByID(tagID)
 					if err != nil {
-						return err
+						return &event.Result{
+							Success: false,
+							Error:   "tag_id not found",
+						}, fmt.Errorf("addGameTag: %w", err)
 					}
 
 					filter := ctx.User.LastAction().CustomGameFilter()
 					if index := slices.Index(filter.Tags, tagID); index != -1 {
-						return errors.New("addGameTag: tag already exists")
+						return &event.Result{
+							Success: false,
+							Error:   "tag already exists",
+						}, nil
 					}
 
 					filter.Tags = append(filter.Tags, tagID)
-					if err := cellGame.CheckCustomFilter(ctx.User); err != nil {
-						return fmt.Errorf("addGameTag: %w", err)
+					if err = cellGame.CheckCustomFilter(ctx.User); err != nil {
+						return &event.Result{
+							Success: false,
+							Error:   "internal error: can't apply custom filter",
+						}, fmt.Errorf("addGameTag: %w", err)
 					}
 
 					callback()
 				} else {
-					return errors.New("addGameTag: tag_id not found")
+					return &event.Result{
+						Success: false,
+						Error:   "tag_id not found",
+					}, nil
 				}
 			}
 

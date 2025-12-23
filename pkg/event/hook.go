@@ -5,7 +5,7 @@ import (
 )
 
 type Handler[T Resolver] struct {
-	Func func(T) error
+	Func func(T) (*Result, error)
 	id   string
 	once bool
 }
@@ -25,13 +25,13 @@ func (h *Hook[T]) Bind(handler *Handler[T]) Unsubscribe {
 	}
 }
 
-func (h *Hook[T]) BindFunc(fn func(e T) error) Unsubscribe {
+func (h *Hook[T]) BindFunc(fn func(e T) (*Result, error)) Unsubscribe {
 	return h.Bind(&Handler[T]{
 		Func: fn,
 	})
 }
 
-func (h *Hook[T]) BindFuncOnce(fn func(e T) error) Unsubscribe {
+func (h *Hook[T]) BindFuncOnce(fn func(e T) (*Result, error)) Unsubscribe {
 	return h.Bind(&Handler[T]{
 		Func: fn,
 		once: true,
@@ -49,7 +49,7 @@ func (h *Hook[T]) Unbind(idsToRemove ...string) {
 	}
 }
 
-func (h *Hook[T]) Trigger(event T, oneOffHandlerFuncs ...func(T) error) error {
+func (h *Hook[T]) Trigger(event T, oneOffHandlerFuncs ...func(T) (*Result, error)) (*Result, error) {
 	handlers := make([]*Handler[T], 0, len(h.handlers))
 	handlers = append(handlers, h.handlers...)
 	for _, fn := range oneOffHandlerFuncs {
@@ -63,7 +63,7 @@ func (h *Hook[T]) Trigger(event T, oneOffHandlerFuncs ...func(T) error) error {
 	for i := len(handlers) - 1; i >= 0; i-- {
 		handler := handlers[i]
 		old := event.nextFunc()
-		event.setNextFunc(func() error {
+		event.setNextFunc(func() (*Result, error) {
 			if handler.once && handler.id != "" {
 				onceIds = append(onceIds, handler.id)
 			}
@@ -73,13 +73,13 @@ func (h *Hook[T]) Trigger(event T, oneOffHandlerFuncs ...func(T) error) error {
 
 	}
 
-	err := event.Next()
+	res, err := event.Next()
 
 	if len(onceIds) > 0 {
 		h.Unbind(onceIds...)
 	}
 
-	return err
+	return res, err
 }
 
 func generateHookId() string {

@@ -35,13 +35,18 @@ func (a *RollWheelAction) Do(user adventuria.User, req adventuria.ActionRequest)
 	onBeforeWheelRollEvent := &adventuria.OnBeforeWheelRollEvent{
 		CurrentCell: currentCell.(adventuria.CellWheel),
 	}
-	err := user.OnBeforeWheelRoll().Trigger(onBeforeWheelRollEvent)
+	eventRes, err := user.OnBeforeWheelRoll().Trigger(onBeforeWheelRollEvent)
+	if eventRes != nil && !eventRes.Success {
+		return &adventuria.ActionResult{
+			Success: false,
+			Error:   eventRes.Error,
+		}, err
+	}
 	if err != nil {
-		adventuria.PocketBase.Logger().Error(
-			"roll_wheel.do(): failed to trigger onBeforeWheelRoll event",
-			"error",
-			err,
-		)
+		return &adventuria.ActionResult{
+			Success: false,
+			Error:   "internal error: failed to trigger onBeforeWheelRollEvent event",
+		}, err
 	}
 
 	res, err := onBeforeWheelRollEvent.CurrentCell.Roll(user, adventuria.RollWheelRequest(req))
@@ -59,13 +64,18 @@ func (a *RollWheelAction) Do(user adventuria.User, req adventuria.ActionRequest)
 	onAfterWheelRollEvent := &adventuria.OnAfterWheelRollEvent{
 		ItemId: res.WinnerId,
 	}
-	err = user.OnAfterWheelRoll().Trigger(onAfterWheelRollEvent)
+	eventRes, err = user.OnAfterWheelRoll().Trigger(onAfterWheelRollEvent)
+	if eventRes != nil && !eventRes.Success {
+		return &adventuria.ActionResult{
+			Success: false,
+			Error:   eventRes.Error,
+		}, err
+	}
 	if err != nil {
-		adventuria.PocketBase.Logger().Error(
-			"roll_wheel.do(): failed to trigger onAfterWheelRoll event",
-			"error",
-			err,
-		)
+		return &adventuria.ActionResult{
+			Success: false,
+			Error:   "internal error: failed to trigger onAfterWheelRollEvent event",
+		}, err
 	}
 
 	return &adventuria.ActionResult{

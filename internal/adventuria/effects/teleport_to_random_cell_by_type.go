@@ -17,14 +17,17 @@ func (ef *TeleportToRandomCellByTypeEffect) Subscribe(
 	callback adventuria.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		ctx.User.OnAfterItemSave().BindFunc(func(e *adventuria.OnAfterItemSave) error {
+		ctx.User.OnAfterItemSave().BindFunc(func(e *adventuria.OnAfterItemSave) (*event.Result, error) {
 			if e.Item.IDInventory() == ctx.InvItemID {
 				cellTypesAny, _ := ef.DecodeValue(ef.GetString("value"))
 				_, err := ctx.User.MoveToClosestCellType(
 					adventuria.CellType(helper.RandomItemFromSlice(cellTypesAny.([]string))),
 				)
 				if err != nil {
-					return err
+					return &event.Result{
+						Success: false,
+						Error:   "",
+					}, fmt.Errorf("teleportToRandomCellByTypeEffect: %w", err)
 				}
 
 				callback()

@@ -61,7 +61,10 @@ func (s *Settings) bindHooks() {
 	})
 	PocketBase.OnRecordUpdate(CollectionSettings).BindFunc(func(e *core.RecordEvent) error {
 		if ok := e.Record.GetBool("kill_parser"); ok {
-			_ = s.onKillParser.Trigger(&OnKillParserEvent{})
+			_, err := s.onKillParser.Trigger(&OnKillParserEvent{})
+			if err != nil {
+				PocketBase.Logger().Error("Failed to trigger kill parser event", "err", err)
+			}
 			e.Record.Set("kill_parser", false)
 		}
 		return e.Next()

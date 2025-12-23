@@ -21,12 +21,15 @@ func (ef *AddRandomItemToInventoryEffect) Subscribe(
 	callback adventuria.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		ctx.User.OnAfterAction().BindFunc(func(e *adventuria.OnAfterActionEvent) error {
+		ctx.User.OnAfterAction().BindFunc(func(e *adventuria.OnAfterActionEvent) (*event.Result, error) {
 			if e.ActionType == "buyItem" {
 				idsAny, _ := ef.DecodeValue(ef.GetString("value"))
 				_, err := ctx.User.Inventory().AddItemById(helper.RandomItemFromSlice(idsAny.([]string)))
 				if err != nil {
-					return err
+					return &event.Result{
+						Success: false,
+						Error:   "failed to add item to inventory",
+					}, fmt.Errorf("addRandomItemToInventory: %w", err)
 				}
 
 				callback()

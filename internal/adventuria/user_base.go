@@ -38,6 +38,7 @@ type UserBase struct {
 	onAfterAction       *event.Hook[*OnAfterActionEvent]
 	onAfterMove         *event.Hook[*OnAfterMoveEvent]
 	onBeforeCurrentCell *event.Hook[*OnBeforeCurrentCellEvent]
+	onBeforeItemAdd     *event.Hook[*OnBeforeItemAdd]
 	onAfterItemAdd      *event.Hook[*OnAfterItemAdd]
 	onAfterItemSave     *event.Hook[*OnAfterItemSave]
 }
@@ -254,7 +255,10 @@ func (u *UserBase) Move(steps int) ([]*OnAfterMoveEvent, error) {
 		Laps:           lapsPassed,
 	}
 
-	err := u.OnAfterMove().Trigger(&onAfterMoveEvent)
+	res, err := u.OnAfterMove().Trigger(&onAfterMoveEvent)
+	if res != nil && !res.Success {
+		return nil, errors.New(res.Error)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -271,9 +275,12 @@ func (u *UserBase) Move(steps int) ([]*OnAfterMoveEvent, error) {
 
 	// Check if we're not moving backwards and passed new lap(-s)
 	if steps > 0 && lapsPassed > 0 {
-		err = u.OnNewLap().Trigger(&OnNewLapEvent{
+		res, err = u.OnNewLap().Trigger(&OnNewLapEvent{
 			Laps: lapsPassed,
 		})
+		if res != nil && !res.Success {
+			return nil, errors.New(res.Error)
+		}
 		if err != nil {
 			return nil, err
 		}
@@ -385,6 +392,7 @@ func (u *UserBase) initHooks() {
 	u.onAfterAction = &event.Hook[*OnAfterActionEvent]{}
 	u.onAfterMove = &event.Hook[*OnAfterMoveEvent]{}
 	u.onBeforeCurrentCell = &event.Hook[*OnBeforeCurrentCellEvent]{}
+	u.onBeforeItemAdd = &event.Hook[*OnBeforeItemAdd]{}
 	u.onAfterItemAdd = &event.Hook[*OnAfterItemAdd]{}
 	u.onAfterItemSave = &event.Hook[*OnAfterItemSave]{}
 }
@@ -463,6 +471,10 @@ func (u *UserBase) OnAfterMove() *event.Hook[*OnAfterMoveEvent] {
 
 func (u *UserBase) OnBeforeCurrentCell() *event.Hook[*OnBeforeCurrentCellEvent] {
 	return u.onBeforeCurrentCell
+}
+
+func (u *UserBase) OnBeforeItemAdd() *event.Hook[*OnBeforeItemAdd] {
+	return u.onBeforeItemAdd
 }
 
 func (u *UserBase) OnAfterItemAdd() *event.Hook[*OnAfterItemAdd] {

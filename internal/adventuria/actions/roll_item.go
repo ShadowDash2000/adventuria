@@ -57,25 +57,35 @@ func (a *RollItemAction) Do(user adventuria.User, _ adventuria.ActionRequest) (*
 	onAfterItemRollEvent := &adventuria.OnAfterItemRollEvent{
 		ItemId: res.WinnerId,
 	}
-	err = user.OnAfterItemRoll().Trigger(onAfterItemRollEvent)
+	eventRes, err := user.OnAfterItemRoll().Trigger(onAfterItemRollEvent)
+	if eventRes != nil && !eventRes.Success {
+		return &adventuria.ActionResult{
+			Success: false,
+			Error:   eventRes.Error,
+		}, err
+	}
 	if err != nil {
-		adventuria.PocketBase.Logger().Error(
-			"roll_item.do(): failed to trigger onAfterItemRoll event",
-			"error",
-			err,
-		)
+		return &adventuria.ActionResult{
+			Success: false,
+			Error:   "internal error: failed to trigger onAfterItemRollEvent event",
+		}, err
 	}
 
 	onAfterWheelRollEvent := &adventuria.OnAfterWheelRollEvent{
 		ItemId: res.WinnerId,
 	}
-	err = user.OnAfterWheelRoll().Trigger(onAfterWheelRollEvent)
+	eventRes, err = user.OnAfterWheelRoll().Trigger(onAfterWheelRollEvent)
+	if eventRes != nil && !eventRes.Success {
+		return &adventuria.ActionResult{
+			Success: false,
+			Error:   eventRes.Error,
+		}, err
+	}
 	if err != nil {
-		adventuria.PocketBase.Logger().Error(
-			"roll_item.do(): failed to trigger onAfterWheelRoll event",
-			"error",
-			err,
-		)
+		return &adventuria.ActionResult{
+			Success: false,
+			Error:   "internal error: failed to trigger onAfterWheelRollEvent event",
+		}, err
 	}
 
 	return &adventuria.ActionResult{

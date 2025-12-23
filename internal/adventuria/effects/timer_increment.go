@@ -3,6 +3,7 @@ package effects
 import (
 	"adventuria/internal/adventuria"
 	"adventuria/pkg/event"
+	"fmt"
 	"strconv"
 )
 
@@ -15,11 +16,14 @@ func (ef *TimerIncrementEffect) Subscribe(
 	callback adventuria.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		ctx.User.OnAfterAction().BindFunc(func(e *adventuria.OnAfterActionEvent) error {
+		ctx.User.OnAfterAction().BindFunc(func(e *adventuria.OnAfterActionEvent) (*event.Result, error) {
 			if i := ef.GetInt("value"); i != 0 {
 				err := ctx.User.Timer().AddSecondsTimeLimit(i)
 				if err != nil {
-					return err
+					return &event.Result{
+						Success: false,
+						Error:   "internal error: failed to increment timer",
+					}, fmt.Errorf("timerIncrementEffect: %w", err)
 				}
 
 				callback()

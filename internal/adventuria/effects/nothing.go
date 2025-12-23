@@ -18,14 +18,14 @@ func (ef *NothingEffect) Subscribe(
 	switch ef.GetString("value") {
 	case "onAfterItemAdd":
 		return []event.Unsubscribe{
-			ctx.User.OnAfterItemAdd().BindFunc(func(e *adventuria.OnAfterItemAdd) error {
+			ctx.User.OnAfterItemAdd().BindFunc(func(e *adventuria.OnAfterItemAdd) (*event.Result, error) {
 				callback()
 				return e.Next()
 			}),
 		}, nil
 	case "onAfterItemUse":
 		return []event.Unsubscribe{
-			ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) error {
+			ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*event.Result, error) {
 				if e.InvItemId == ctx.InvItemID {
 					callback()
 				}
@@ -34,7 +34,7 @@ func (ef *NothingEffect) Subscribe(
 		}, nil
 	case "onBeforeDone":
 		return []event.Unsubscribe{
-			ctx.User.OnBeforeDone().BindFunc(func(e *adventuria.OnBeforeDoneEvent) error {
+			ctx.User.OnBeforeDone().BindFunc(func(e *adventuria.OnBeforeDoneEvent) (*event.Result, error) {
 				callback()
 				return e.Next()
 			}),

@@ -28,13 +28,18 @@ func (a *RollDiceAction) Do(user adventuria.User, _ adventuria.ActionRequest) (*
 	onBeforeRollEvent := &adventuria.OnBeforeRollEvent{
 		Dices: []*adventuria.Dice{adventuria.DiceTypeD6, adventuria.DiceTypeD6},
 	}
-	err := user.OnBeforeRoll().Trigger(onBeforeRollEvent)
+	res, err := user.OnBeforeRoll().Trigger(onBeforeRollEvent)
+	if res != nil && !res.Success {
+		return &adventuria.ActionResult{
+			Success: false,
+			Error:   res.Error,
+		}, err
+	}
 	if err != nil {
-		adventuria.PocketBase.Logger().Error(
-			"roll_dice.do(): failed to trigger onBeforeRoll event",
-			"error",
-			err,
-		)
+		return &adventuria.ActionResult{
+			Success: false,
+			Error:   "internal error: failed to trigger onBeforeRollEvent event",
+		}, err
 	}
 
 	onBeforeRollMoveEvent := &adventuria.OnBeforeRollMoveEvent{
@@ -49,13 +54,18 @@ func (a *RollDiceAction) Do(user adventuria.User, _ adventuria.ActionRequest) (*
 		onBeforeRollMoveEvent.N += diceRolls[i].Roll
 	}
 
-	err = user.OnBeforeRollMove().Trigger(onBeforeRollMoveEvent)
+	res, err = user.OnBeforeRollMove().Trigger(onBeforeRollMoveEvent)
+	if res != nil && !res.Success {
+		return &adventuria.ActionResult{
+			Success: false,
+			Error:   res.Error,
+		}, err
+	}
 	if err != nil {
-		adventuria.PocketBase.Logger().Error(
-			"roll_dice.do(): failed to trigger onBeforeRollMove event",
-			"error",
-			err,
-		)
+		return &adventuria.ActionResult{
+			Success: false,
+			Error:   "internal error: failed to trigger onBeforeRollMoveEvent event",
+		}, err
 	}
 
 	moveRes, err := user.Move(onBeforeRollMoveEvent.N)
@@ -72,13 +82,18 @@ func (a *RollDiceAction) Do(user adventuria.User, _ adventuria.ActionRequest) (*
 		Dices: onBeforeRollEvent.Dices,
 		N:     onBeforeRollMoveEvent.N,
 	}
-	err = user.OnAfterRoll().Trigger(onAfterRollEvent)
+	res, err = user.OnAfterRoll().Trigger(onAfterRollEvent)
+	if res != nil && !res.Success {
+		return &adventuria.ActionResult{
+			Success: false,
+			Error:   res.Error,
+		}, err
+	}
 	if err != nil {
-		adventuria.PocketBase.Logger().Error(
-			"roll_dice.do(): failed to trigger onAfterRoll event",
-			"error",
-			err,
-		)
+		return &adventuria.ActionResult{
+			Success: false,
+			Error:   "internal error: failed to trigger onAfterRollEvent event",
+		}, err
 	}
 
 	return &adventuria.ActionResult{
