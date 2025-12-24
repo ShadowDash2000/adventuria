@@ -30,6 +30,7 @@ func WithBaseEffects() {
 		"returnToPrevCell":           adventuria.NewEffect(&ReturnToPrevCellEffect{}),
 		"noCoinsForDone":             adventuria.NewEffect(&NoCoinsForDoneEffect{}),
 		"dropBlock":                  adventuria.NewEffect(&DropBlockedEffect{}),
+		"stayOnCellAfterDone":        adventuria.NewEffect(&StayOnCellAfterDoneEffect{}),
 	})
 
 	adventuria.RegisterPersistentEffects(map[string]adventuria.PersistentEffectCreator{

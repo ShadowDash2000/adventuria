@@ -156,6 +156,10 @@ func (a *ActionRecordBase) CustomGameFilter() *CustomGameFilter {
 	return &a.gameFilter
 }
 
+func (a *ActionRecordBase) ClearCustomGameFilter() {
+	a.gameFilter = CustomGameFilter{}
+}
+
 var _ cache.Closable = (*LastUserActionRecord)(nil)
 
 type LastUserActionRecord struct {
@@ -210,9 +214,9 @@ func (a *LastUserActionRecord) bindHooks() {
 				a.SetCanMove(true)
 
 				return e.Next()
-			} else {
-				return err
 			}
+
+			return err
 		}
 
 		a.SetProxyRecord(record)

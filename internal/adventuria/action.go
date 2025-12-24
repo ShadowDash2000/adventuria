@@ -36,6 +36,7 @@ type ActionRecord interface {
 	CanMove() bool
 	SetCanMove(bool)
 	CustomGameFilter() *CustomGameFilter
+	ClearCustomGameFilter()
 }
 
 type CustomGameFilter struct {

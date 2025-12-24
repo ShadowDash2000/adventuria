@@ -133,6 +133,7 @@ func (g *Game) DoAction(actionType ActionType, userId string, req ActionRequest)
 		}, fmt.Errorf("doAction(): %w", err)
 	}
 	if err != nil {
+		PocketBase.Logger().Error("Failed to trigger onAfterActionEvent", "error", err)
 		return &ActionResult{
 			Success: false,
 			Error:   "internal error",
@@ -141,6 +142,7 @@ func (g *Game) DoAction(actionType ActionType, userId string, req ActionRequest)
 
 	err = PocketBase.Save(user.LastAction().ProxyRecord())
 	if err != nil {
+		PocketBase.Logger().Error("Failed to save latest user action", "error", err)
 		return &ActionResult{
 			Success: false,
 			Error:   "internal error",
@@ -149,6 +151,7 @@ func (g *Game) DoAction(actionType ActionType, userId string, req ActionRequest)
 
 	err = PocketBase.Save(user.ProxyRecord())
 	if err != nil {
+		PocketBase.Logger().Error("Failed to save user", "error", err)
 		return &ActionResult{
 			Success: false,
 			Error:   "internal error",
