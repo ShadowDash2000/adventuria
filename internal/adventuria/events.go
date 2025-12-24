@@ -10,12 +10,15 @@ type OnAfterChooseGameEvent struct {
 type OnAfterRerollEvent struct {
 	event.Event
 }
-
 type OnBeforeDropEvent struct {
 	event.Event
 	IsSafeDrop    bool
 	IsDropBlocked bool
 	PointsForDrop int
+}
+type OnBeforeDropCheckEvent struct {
+	event.Event
+	IsDropBlocked bool
 }
 type OnAfterDropEvent struct {
 	event.Event

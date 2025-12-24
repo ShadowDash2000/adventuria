@@ -22,6 +22,7 @@ type UserBase struct {
 	onAfterChooseGame   *event.Hook[*OnAfterChooseGameEvent]
 	onAfterReroll       *event.Hook[*OnAfterRerollEvent]
 	onBeforeDrop        *event.Hook[*OnBeforeDropEvent]
+	onBeforeDropCheck   *event.Hook[*OnBeforeDropCheckEvent]
 	onAfterDrop         *event.Hook[*OnAfterDropEvent]
 	onAfterGoToJail     *event.Hook[*OnAfterGoToJailEvent]
 	onBeforeDone        *event.Hook[*OnBeforeDoneEvent]
@@ -376,6 +377,7 @@ func (u *UserBase) initHooks() {
 	u.onAfterChooseGame = &event.Hook[*OnAfterChooseGameEvent]{}
 	u.onAfterReroll = &event.Hook[*OnAfterRerollEvent]{}
 	u.onBeforeDrop = &event.Hook[*OnBeforeDropEvent]{}
+	u.onBeforeDropCheck = &event.Hook[*OnBeforeDropCheckEvent]{}
 	u.onAfterDrop = &event.Hook[*OnAfterDropEvent]{}
 	u.onAfterGoToJail = &event.Hook[*OnAfterGoToJailEvent]{}
 	u.onBeforeDone = &event.Hook[*OnBeforeDoneEvent]{}
@@ -407,6 +409,10 @@ func (u *UserBase) OnAfterReroll() *event.Hook[*OnAfterRerollEvent] {
 
 func (u *UserBase) OnBeforeDrop() *event.Hook[*OnBeforeDropEvent] {
 	return u.onBeforeDrop
+}
+
+func (u *UserBase) OnBeforeDropCheck() *event.Hook[*OnBeforeDropCheckEvent] {
+	return u.onBeforeDropCheck
 }
 
 func (u *UserBase) OnAfterDrop() *event.Hook[*OnAfterDropEvent] {

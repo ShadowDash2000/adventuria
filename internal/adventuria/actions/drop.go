@@ -22,6 +22,18 @@ func (a *DropAction) CanDo(user adventuria.User) bool {
 		return false
 	}
 
+	onBeforeDropCheckEvent := &adventuria.OnBeforeDropCheckEvent{
+		IsDropBlocked: false,
+	}
+	_, err := user.OnBeforeDropCheck().Trigger(onBeforeDropCheckEvent)
+	if err != nil {
+		return false
+	}
+
+	if onBeforeDropCheckEvent.IsDropBlocked {
+		return false
+	}
+
 	return user.LastAction().Type() == ActionTypeRollWheel
 }
 

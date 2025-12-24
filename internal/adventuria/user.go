@@ -49,6 +49,7 @@ type UserEvent interface {
 	OnAfterChooseGame() *event.Hook[*OnAfterChooseGameEvent]
 	OnAfterReroll() *event.Hook[*OnAfterRerollEvent]
 	OnBeforeDrop() *event.Hook[*OnBeforeDropEvent]
+	OnBeforeDropCheck() *event.Hook[*OnBeforeDropCheckEvent]
 	OnAfterDrop() *event.Hook[*OnAfterDropEvent]
 	OnAfterGoToJail() *event.Hook[*OnAfterGoToJailEvent]
 	OnBeforeDone() *event.Hook[*OnBeforeDoneEvent]
