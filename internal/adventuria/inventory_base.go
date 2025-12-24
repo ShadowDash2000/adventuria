@@ -114,14 +114,21 @@ func (i *InventoryBase) HasEmptySlots() bool {
 }
 
 func (i *InventoryBase) AddItem(item ItemRecord) (string, error) {
-	res, err := i.user.OnBeforeItemAdd().Trigger(&OnBeforeItemAdd{
-		ItemRecord: item,
-	})
+	onBeforeItemAddEvent := OnBeforeItemAdd{
+		ItemRecord:    item,
+		ShouldAddItem: true,
+	}
+
+	res, err := i.user.OnBeforeItemAdd().Trigger(&onBeforeItemAddEvent)
 	if res != nil && !res.Success {
 		return "", errors.New(res.Error)
 	}
 	if err != nil {
 		return "", err
+	}
+
+	if !onBeforeItemAddEvent.ShouldAddItem {
+		return "", nil
 	}
 
 	record := core.NewRecord(GameCollections.Get(CollectionInventory))

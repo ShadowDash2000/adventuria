@@ -31,6 +31,7 @@ func WithBaseEffects() {
 		"noCoinsForDone":             adventuria.NewEffect(&NoCoinsForDoneEffect{}),
 		"dropBlock":                  adventuria.NewEffect(&DropBlockedEffect{}),
 		"stayOnCellAfterDone":        adventuria.NewEffect(&StayOnCellAfterDoneEffect{}),
+		"debuffBlock":                adventuria.NewEffect(&DebuffBlockEffect{}),
 	})
 
 	adventuria.RegisterPersistentEffects(map[string]adventuria.PersistentEffectCreator{

@@ -66,7 +66,8 @@ type OnAfterItemUseEvent struct {
 }
 type OnBeforeItemAdd struct {
 	event.Event
-	ItemRecord ItemRecord
+	ItemRecord    ItemRecord
+	ShouldAddItem bool
 }
 type OnAfterItemAdd struct {
 	event.Event
