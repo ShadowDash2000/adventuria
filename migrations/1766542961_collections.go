@@ -853,6 +853,20 @@ func init() {
 						"type": "text"
 					},
 					{
+						"autogeneratePattern": "",
+						"hidden": false,
+						"id": "text4034435380",
+						"max": 0,
+						"min": 0,
+						"name": "youtube",
+						"pattern": "",
+						"presentable": false,
+						"primaryKey": false,
+						"required": false,
+						"system": false,
+						"type": "text"
+					},
+					{
 						"hidden": false,
 						"id": "bool897480825",
 						"name": "is_stream_live",
@@ -1160,19 +1174,6 @@ func init() {
 						"maxSelect": 1,
 						"minSelect": 0,
 						"name": "filter",
-						"presentable": false,
-						"required": false,
-						"system": false,
-						"type": "relation"
-					},
-					{
-						"cascadeDelete": false,
-						"collectionId": "pbc_91682242",
-						"hidden": false,
-						"id": "relation3883146966",
-						"maxSelect": 999,
-						"minSelect": 0,
-						"name": "audioPresets",
 						"presentable": false,
 						"required": false,
 						"system": false,
@@ -2639,7 +2640,7 @@ func init() {
 					{
 						"autogeneratePattern": "",
 						"hidden": false,
-						"id": "_clone_AjFp",
+						"id": "_clone_h0GT",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -2652,7 +2653,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_dxWJ",
+						"id": "_clone_FPwn",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_id",
@@ -2664,7 +2665,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_TxkG",
+						"id": "_clone_ZMPf",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_price",
@@ -2886,7 +2887,7 @@ func init() {
 					{
 						"autogeneratePattern": "",
 						"hidden": false,
-						"id": "_clone_CQEQ",
+						"id": "_clone_5dZm",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -2899,7 +2900,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_Ctkw",
+						"id": "_clone_p0pY",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_id",
@@ -2911,7 +2912,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_TBy3",
+						"id": "_clone_wYNN",
 						"max": null,
 						"min": 0,
 						"name": "hltb_id",
@@ -2923,7 +2924,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_CU8V",
+						"id": "_clone_DZw7",
 						"max": null,
 						"min": 0,
 						"name": "hltb_campaign_time",
@@ -3147,12 +3148,12 @@ func init() {
 				],
 				"id": "pbc_3123535012",
 				"indexes": [],
-				"listRule": null,
+				"listRule": "",
 				"name": "game_filters",
 				"system": false,
 				"type": "base",
 				"updateRule": null,
-				"viewRule": null
+				"viewRule": ""
 			},
 			{
 				"createRule": null,
@@ -3175,7 +3176,7 @@ func init() {
 					{
 						"autogeneratePattern": "",
 						"hidden": false,
-						"id": "_clone_Qs8t",
+						"id": "_clone_55dq",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -3188,7 +3189,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_vEaO",
+						"id": "_clone_9EDW",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_id",
@@ -3200,7 +3201,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_DWvP",
+						"id": "_clone_N42U",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_price",
@@ -3242,7 +3243,7 @@ func init() {
 					{
 						"autogeneratePattern": "",
 						"hidden": false,
-						"id": "_clone_4DzL",
+						"id": "_clone_S3jj",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -3255,7 +3256,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_EbII",
+						"id": "_clone_73UJ",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_id",
@@ -3267,7 +3268,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_inB7",
+						"id": "_clone_PVFn",
 						"max": null,
 						"min": 0,
 						"name": "hltb_id",
@@ -3279,7 +3280,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_h2ic",
+						"id": "_clone_Ot2r",
 						"max": null,
 						"min": 0,
 						"name": "hltb_campaign_time",
