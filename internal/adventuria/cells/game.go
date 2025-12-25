@@ -32,13 +32,6 @@ func (c *CellGame) DecodeValue(_ string) (any, error) {
 }
 
 func (c *CellGame) Roll(user adventuria.User, _ adventuria.RollWheelRequest) (*adventuria.WheelRollResult, error) {
-	if err := c.CheckCustomFilter(user); err != nil {
-		return &adventuria.WheelRollResult{
-			Success: false,
-			Error:   "internal error: can't apply custom filter",
-		}, fmt.Errorf("game.roll(): can't apply custom filter: %w", err)
-	}
-
 	items, err := user.LastAction().ItemsList()
 	if err != nil {
 		return &adventuria.WheelRollResult{
@@ -81,33 +74,16 @@ func (c *CellGame) Roll(user adventuria.User, _ adventuria.RollWheelRequest) (*a
 	}, nil
 }
 
-func (c *CellGame) OnCellReached(ctx *adventuria.CellReachedContext) error {
-	var filter adventuria.GameFilterRecord
-
-	if c.Filter() != "" {
-		filterRecord, err := adventuria.PocketBase.FindRecordById(
-			adventuria.GameCollections.Get(adventuria.CollectionGameFilters),
-			c.Filter(),
-		)
-		if err != nil {
-			return err
-		}
-
-		filter = adventuria.NewGameFilterFromRecord(filterRecord)
-	}
-
-	res, err := FetchRecordsByFilter(filter)
-	if err != nil {
-		return err
-	}
-
-	ctx.User.LastAction().SetItemsList(res)
-
-	return nil
+func (c *CellGame) RefreshItems(user adventuria.User) error {
+	return c.checkCustomFilter(user, true)
 }
 
-func (c *CellGame) CheckCustomFilter(user adventuria.User) error {
-	needToUpdate := false
+func (c *CellGame) OnCellReached(ctx *adventuria.CellReachedContext) error {
+	return c.checkCustomFilter(ctx.User, true)
+}
+
+func (c *CellGame) checkCustomFilter(user adventuria.User, forceUpdate bool) error {
+	needToUpdate := forceUpdate
 	customFilter := user.LastAction().CustomGameFilter()
 	var filter adventuria.GameFilterRecord
 	if c.Filter() != "" {
@@ -174,7 +150,7 @@ func (c *CellGame) CheckCustomFilter(user adventuria.User) error {
 	}
 
 	if needToUpdate {
-		res, err := FetchRecordsByFilter(filter)
+		res, err := fetchRecordsByFilter(filter)
 		if err != nil {
 			return err
 		}
@@ -185,13 +161,13 @@ func (c *CellGame) CheckCustomFilter(user adventuria.User) error {
 	return nil
 }
 
-func FetchRecordsByFilter(filter adventuria.GameFilterRecord) ([]string, error) {
+func fetchRecordsByFilter(filter adventuria.GameFilterRecord) ([]string, error) {
 	q := adventuria.PocketBase.RecordQuery(adventuria.GameCollections.Get(adventuria.CollectionGames)).
 		Limit(20).
 		OrderBy("random()")
 
 	if filter != nil {
-		q = SetFilters(filter, q)
+		q = setFilters(filter, q)
 	}
 
 	var records []*core.Record
@@ -208,7 +184,7 @@ func FetchRecordsByFilter(filter adventuria.GameFilterRecord) ([]string, error) 
 	return res, nil
 }
 
-func SetFilters(filter adventuria.GameFilterRecord, q *dbx.SelectQuery) *dbx.SelectQuery {
+func setFilters(filter adventuria.GameFilterRecord, q *dbx.SelectQuery) *dbx.SelectQuery {
 	if len(filter.Platforms()) > 0 {
 		q = q.AndWhere(dbx.OrLike("platforms", filter.Platforms()...))
 	}

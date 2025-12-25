@@ -77,10 +77,10 @@ func (ef *NoTimeLimitEffect) tryToApplyEffect(user adventuria.User) (*event.Resu
 
 	user.LastAction().CustomGameFilter().MinCampaignTime = -1
 	user.LastAction().CustomGameFilter().MaxCampaignTime = -1
-	if err := cellGame.CheckCustomFilter(user); err != nil {
+	if err := cellGame.RefreshItems(user); err != nil {
 		return &event.Result{
 			Success: false,
-			Error:   "internal error: can't apply custom filter in \"no_time_limit\" effect",
+			Error:   "internal error: can't refresh cell items in \"no_time_limit\" effect",
 		}, fmt.Errorf("noTimeLimit: %w", err)
 	}
 

@@ -32,6 +32,22 @@ func (a *RerollAction) Do(user adventuria.User, req adventuria.ActionRequest) (*
 		}
 	}
 
+	cell, ok := user.CurrentCell()
+	if !ok {
+		return &adventuria.ActionResult{
+			Success: false,
+			Error:   "internal error: current cell not found",
+		}, fmt.Errorf("reroll.do(): current cell not found")
+	}
+
+	cellWheel, ok := cell.(adventuria.CellWheel)
+	if !ok {
+		return &adventuria.ActionResult{
+			Success: false,
+			Error:   "internal error: current cell isn't wheel cell",
+		}, fmt.Errorf("reroll.do(): current cell isn't wheel cell")
+	}
+
 	action := user.LastAction()
 	action.SetType(ActionTypeReroll)
 	action.SetComment(comment)
@@ -47,6 +63,14 @@ func (a *RerollAction) Do(user adventuria.User, req adventuria.ActionRequest) (*
 	action.SetComment("")
 	action.SetGame("")
 	action.SetDiceRoll(0)
+
+	err = cellWheel.RefreshItems(user)
+	if err != nil {
+		return &adventuria.ActionResult{
+			Success: false,
+			Error:   "internal error: can't refresh items on cell",
+		}, fmt.Errorf("reroll.do(): %w", err)
+	}
 
 	res, err := user.OnAfterReroll().Trigger(&adventuria.OnAfterRerollEvent{})
 	if res != nil && !res.Success {

@@ -55,10 +55,10 @@ func (ef *AddGameTagEffect) Subscribe(
 					}
 
 					filter.Tags = append(filter.Tags, tagID)
-					if err = cellGame.CheckCustomFilter(ctx.User); err != nil {
+					if err = cellGame.RefreshItems(ctx.User); err != nil {
 						return &event.Result{
 							Success: false,
-							Error:   "internal error: can't apply custom filter",
+							Error:   "internal error: can't refresh cell items",
 						}, fmt.Errorf("addGameTag: %w", err)
 					}
 
