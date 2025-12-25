@@ -3,7 +3,7 @@ package games
 import "github.com/pocketbase/pocketbase/core"
 
 type Genre struct {
-	IdDb     uint64
+	IdDb     string
 	Name     string
 	Checksum string
 }
@@ -13,7 +13,7 @@ type GenreRecord interface {
 	UpdatableRecord
 
 	ID() string
-	SetIdDb(uint64)
+	SetIdDb(string)
 	Name() string
 	SetName(string)
 }

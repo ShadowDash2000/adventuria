@@ -43,7 +43,7 @@ func Test_ChangeGameById(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if index := slices.Index(itemsList, user.LastAction().Game()); index != -1 {
+	if index := slices.Index(itemsList, user.LastAction().Activity()); index != -1 {
 		itemsList = slices.Delete(itemsList, index, index+1)
 	}
 
@@ -63,8 +63,8 @@ func Test_ChangeGameById(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if user.LastAction().Game() != gameId {
-		t.Fatalf("Test_ChangeGameById(): Game id = %s, want = %s", user.LastAction().Game(), gameId)
+	if user.LastAction().Activity() != gameId {
+		t.Fatalf("Test_ChangeGameById(): Activity id = %s, want = %s", user.LastAction().Activity(), gameId)
 	}
 }
 
@@ -80,7 +80,7 @@ func createChangeGameByIdItem(gameId string) (*core.Record, error) {
 	}
 
 	record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionItems))
-	record.Set("name", "Change Game By Id")
+	record.Set("name", "Change Activity By Id")
 	record.Set("effects", []string{effectRecord.Id})
 	record.Set("icon", icon)
 	record.Set("order", 1)
@@ -98,7 +98,7 @@ func createChangeGameByIdItem(gameId string) (*core.Record, error) {
 
 func createChangeGameByIdEffect(gameId string) (*core.Record, error) {
 	record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionEffects))
-	record.Set("name", "Change Game By Id")
+	record.Set("name", "Change Activity By Id")
 	record.Set("type", "changeGameById")
 	record.Set("value", gameId)
 	err := adventuria.PocketBase.Save(record)

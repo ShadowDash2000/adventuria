@@ -41,7 +41,7 @@ func (ef *ChooseGameEffect) Subscribe(
 						}, nil
 					}
 
-					ctx.User.LastAction().SetGame(gameId)
+					ctx.User.LastAction().SetActivity(gameId)
 
 					callback()
 				} else {

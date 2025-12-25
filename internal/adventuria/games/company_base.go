@@ -16,12 +16,12 @@ func (c *CompanyRecordBase) ID() string {
 	return c.Id
 }
 
-func (c *CompanyRecordBase) IdDb() uint64 {
-	return uint64(c.GetInt("id_db"))
+func (c *CompanyRecordBase) IdDb() string {
+	return c.GetString("id_db")
 }
 
-func (c *CompanyRecordBase) SetIdDb(id uint64) {
-	c.Set("id_db", int(id))
+func (c *CompanyRecordBase) SetIdDb(id string) {
+	c.Set("id_db", id)
 }
 
 func (c *CompanyRecordBase) Name() string {

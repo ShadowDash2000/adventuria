@@ -3,7 +3,7 @@ package games
 import "github.com/pocketbase/pocketbase/core"
 
 type Company struct {
-	IdDb     uint64
+	IdDb     string
 	Name     string
 	Checksum string
 }
@@ -13,8 +13,8 @@ type CompanyRecord interface {
 	UpdatableRecord
 
 	ID() string
-	IdDb() uint64
-	SetIdDb(uint64)
+	IdDb() string
+	SetIdDb(string)
 	Name() string
 	SetName(string)
 }

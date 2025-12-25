@@ -43,7 +43,7 @@ func (ef *ChangeMinGamePriceEffect) Subscribe(
 				}
 
 				if i := ef.GetInt("value"); i != 0 {
-					ctx.User.LastAction().CustomGameFilter().MinPrice = i
+					ctx.User.LastAction().CustomActivityFilter().MinPrice = i
 					if err := cellGame.RefreshItems(ctx.User); err != nil {
 						return &event.Result{
 							Success: false,

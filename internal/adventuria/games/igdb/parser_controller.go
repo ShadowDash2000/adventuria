@@ -98,10 +98,11 @@ func (p *ParserController) parseGames(ctx context.Context, limit uint64) error {
 
 		records := make([]games.UpdatableRecord, len(msg.Games))
 		for i, game := range msg.Games {
-			record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionGames))
+			record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionActivities))
 
 			gameRecord := games.NewGameFromRecord(record)
 			gameRecord.SetIdDb(game.IdDb)
+			gameRecord.SetType(adventuria.ActivityTypeGame)
 			gameRecord.SetName(game.Name)
 			gameRecord.SetSlug(game.Slug)
 			gameRecord.SetReleaseDate(game.ReleaseDate)
@@ -391,14 +392,14 @@ func (p *ParserController) batchUpdate(records []games.UpdatableRecord) error {
 	return nil
 }
 
-func (p *ParserController) obtainChecksums(updatables []games.UpdatableRecord) (map[uint64]*core.Record, error) {
+func (p *ParserController) obtainChecksums(updatables []games.UpdatableRecord) (map[string]*core.Record, error) {
 	if len(updatables) == 0 {
 		return nil, nil
 	}
 
 	idsDb := make([]any, len(updatables))
 	for i, updatable := range updatables {
-		idsDb[i] = int(updatable.IdDb())
+		idsDb[i] = updatable.IdDb()
 	}
 
 	var records []*core.Record
@@ -412,9 +413,9 @@ func (p *ParserController) obtainChecksums(updatables []games.UpdatableRecord) (
 		return nil, err
 	}
 
-	checksums := make(map[uint64]*core.Record, len(records))
+	checksums := make(map[string]*core.Record, len(records))
 	for _, record := range records {
-		checksums[uint64(record.GetInt("id_db"))] = record
+		checksums[record.GetString("id_db")] = record
 	}
 
 	return checksums, nil

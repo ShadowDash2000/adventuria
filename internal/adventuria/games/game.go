@@ -1,12 +1,14 @@
 package games
 
 import (
+	"adventuria/internal/adventuria"
+
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/tools/types"
 )
 
 type Game struct {
-	IdDb        uint64
+	IdDb        string
 	Name        string
 	Slug        string
 	ReleaseDate types.DateTime
@@ -21,36 +23,12 @@ type Game struct {
 }
 
 type GameRecord interface {
-	core.RecordProxy
+	adventuria.ActivityRecord
 	UpdatableRecord
+}
 
-	ID() string
-	IdDb() uint64
-	SetIdDb(uint64)
-	Name() string
-	SetName(string)
-	Slug() string
-	SetSlug(string)
-	ReleaseDate() types.DateTime
-	SetReleaseDate(types.DateTime)
-	Platforms() []string
-	SetPlatforms([]string)
-	Developers() []string
-	SetDevelopers([]string)
-	Publishers() []string
-	SetPublishers([]string)
-	Genres() []string
-	SetGenres([]string)
-	Tags() []string
-	SetTags([]string)
-	SteamAppId() uint64
-	SetSteamAppId(uint64)
-	SteamAppPrice() uint
-	SetSteamAppPrice(uint)
-	HltbId() int
-	SetHltbId(int)
-	Campaign() float64
-	SetCampaign(float64)
-	Cover() string
-	SetCover(string)
+func NewGameFromRecord(record *core.Record) GameRecord {
+	a := &adventuria.ActivityRecordBase{}
+	a.SetProxyRecord(record)
+	return a
 }

@@ -184,8 +184,9 @@ func (g *GameTest) createTestGames() error {
 	}
 
 	for i, game := range games {
-		record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionGames))
+		record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionActivities))
 		record.Set("id_db", game.idDb)
+		record.Set("type", adventuria.ActivityTypeGame)
 		record.Set("name", game.name)
 		record.Set("slug", game.slug)
 		record.Set("release_date", game.releaseDate)

@@ -16,12 +16,12 @@ func (t *TagRecordBase) ID() string {
 	return t.Id
 }
 
-func (t *TagRecordBase) IdDb() uint64 {
-	return uint64(t.GetInt("id_db"))
+func (t *TagRecordBase) IdDb() string {
+	return t.GetString("id_db")
 }
 
-func (t *TagRecordBase) SetIdDb(id uint64) {
-	t.Set("id_db", int(id))
+func (t *TagRecordBase) SetIdDb(id string) {
+	t.Set("id_db", id)
 }
 
 func (t *TagRecordBase) Name() string {

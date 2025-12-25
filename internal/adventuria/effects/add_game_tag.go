@@ -46,7 +46,7 @@ func (ef *AddGameTagEffect) Subscribe(
 						}, fmt.Errorf("addGameTag: %w", err)
 					}
 
-					filter := ctx.User.LastAction().CustomGameFilter()
+					filter := ctx.User.LastAction().CustomActivityFilter()
 					if index := slices.Index(filter.Tags, tagID); index != -1 {
 						return &event.Result{
 							Success: false,

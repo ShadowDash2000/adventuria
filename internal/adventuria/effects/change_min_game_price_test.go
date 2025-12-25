@@ -46,8 +46,8 @@ func Test_ChangeMinGamePrice(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if user.LastAction().CustomGameFilter().MinPrice != 20 {
-		t.Fatalf("Test_ChangeMaxGamePrice(): Min price is %d, expected 20", user.LastAction().CustomGameFilter().MinPrice)
+	if user.LastAction().CustomActivityFilter().MinPrice != 20 {
+		t.Fatalf("Test_ChangeMaxGamePrice(): Min price is %d, expected 20", user.LastAction().CustomActivityFilter().MinPrice)
 	}
 }
 
@@ -63,7 +63,7 @@ func createChangeMinGamePriceItem() (*core.Record, error) {
 	}
 
 	record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionItems))
-	record.Set("name", "Change Min Game Price")
+	record.Set("name", "Change Min Activity Price")
 	record.Set("effects", []string{effectRecord.Id})
 	record.Set("icon", icon)
 	record.Set("order", 1)
@@ -81,7 +81,7 @@ func createChangeMinGamePriceItem() (*core.Record, error) {
 
 func createChangeMinGamePriceEffect() (*core.Record, error) {
 	record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionEffects))
-	record.Set("name", "Change Min Game Price")
+	record.Set("name", "Change Min Activity Price")
 	record.Set("type", "changeMinGamePrice")
 	record.Set("value", 20)
 	err := adventuria.PocketBase.Save(record)

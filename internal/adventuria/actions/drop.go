@@ -96,7 +96,7 @@ func (a *DropAction) Do(user adventuria.User, req adventuria.ActionRequest) (*ad
 	action.ProxyRecord().MarkAsNew()
 	action.ProxyRecord().Set("id", "")
 	action.SetComment("")
-	action.SetGame("")
+	action.SetActivity("")
 	action.SetDiceRoll(0)
 
 	if !onBeforeDropEvent.IsSafeDrop && !currentCell.IsSafeDrop() {

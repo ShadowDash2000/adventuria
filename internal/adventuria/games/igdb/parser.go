@@ -65,7 +65,7 @@ func (p *Parser) ParsePlatforms(ctx context.Context, count, limit uint64) (<-cha
 				res := ParsePlatformsMessage{Platforms: make([]games.Platform, len(platforms))}
 				for i, platform := range platforms {
 					res.Platforms[i] = games.Platform{
-						IdDb:     platform.GetId(),
+						IdDb:     strconv.FormatUint(platform.GetId(), 10),
 						Name:     platform.GetName(),
 						Checksum: platform.GetChecksum(),
 					}
@@ -113,7 +113,7 @@ func (p *Parser) ParseCompanies(ctx context.Context, count, limit uint64) (<-cha
 				res := ParseCompaniesMessage{Companies: make([]games.Company, len(companies))}
 				for i, company := range companies {
 					res.Companies[i] = games.Company{
-						IdDb:     company.GetId(),
+						IdDb:     strconv.FormatUint(company.GetId(), 10),
 						Name:     company.GetName(),
 						Checksum: company.GetChecksum(),
 					}
@@ -140,7 +140,7 @@ func (p *Parser) FetchCompaniesByIDs(ctx context.Context, ids []uint64) ([]games
 	res := make([]games.Company, len(comps))
 	for i, c := range comps {
 		res[i] = games.Company{
-			IdDb:     c.GetId(),
+			IdDb:     strconv.FormatUint(c.GetId(), 10),
 			Name:     c.GetName(),
 			Checksum: c.GetChecksum(),
 		}
@@ -162,7 +162,7 @@ func (p *Parser) FetchKeywordsByIDs(ctx context.Context, ids []uint64) ([]games.
 	res := make([]games.Tag, len(tags))
 	for i, tag := range tags {
 		res[i] = games.Tag{
-			IdDb:     tag.GetId(),
+			IdDb:     strconv.FormatUint(tag.GetId(), 10),
 			Name:     tag.GetName(),
 			Checksum: tag.GetChecksum(),
 		}
@@ -268,7 +268,7 @@ func (p *Parser) ParseGames(ctx context.Context, count, offset, limit uint64) (<
 					}
 
 					res.Games[i] = games.Game{
-						IdDb:        game.GetId(),
+						IdDb:        strconv.FormatUint(game.GetId(), 10),
 						Name:        game.GetName(),
 						Slug:        game.GetSlug(),
 						ReleaseDate: releaseDate,
@@ -489,7 +489,7 @@ func (p *Parser) ParseGenres(ctx context.Context, count, limit uint64) (<-chan P
 				res := ParseGenresMessage{Genres: make([]games.Genre, len(genres))}
 				for i, genre := range genres {
 					res.Genres[i] = games.Genre{
-						IdDb:     genre.GetId(),
+						IdDb:     strconv.FormatUint(genre.GetId(), 10),
 						Name:     genre.GetName(),
 						Checksum: genre.Checksum,
 					}

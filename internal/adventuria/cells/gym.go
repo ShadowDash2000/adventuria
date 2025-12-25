@@ -6,13 +6,13 @@ import (
 	"fmt"
 )
 
-type CellCinema struct {
+type CellGym struct {
 	adventuria.CellWheel
 }
 
-func NewCellCinema() adventuria.CellCreator {
+func NewCellGym() adventuria.CellCreator {
 	return func() adventuria.Cell {
-		return &CellCinema{
+		return &CellGym{
 			&adventuria.CellWheelBase{
 				CellBase: adventuria.CellBase{},
 			},
@@ -20,28 +20,28 @@ func NewCellCinema() adventuria.CellCreator {
 	}
 }
 
-func (c *CellCinema) Verify(_ string) error {
+func (c *CellGym) Verify(_ string) error {
 	return nil
 }
 
-func (c *CellCinema) DecodeValue(_ string) (any, error) {
+func (c *CellGym) DecodeValue(_ string) (any, error) {
 	return nil, nil
 }
 
-func (c *CellCinema) Roll(user adventuria.User, _ adventuria.RollWheelRequest) (*adventuria.WheelRollResult, error) {
+func (c *CellGym) Roll(user adventuria.User, _ adventuria.RollWheelRequest) (*adventuria.WheelRollResult, error) {
 	items, err := user.LastAction().ItemsList()
 	if err != nil {
 		return &adventuria.WheelRollResult{
 			Success: false,
 			Error:   "internal error: can't unmarshal items list",
-		}, fmt.Errorf("cinema.roll(): can't unmarshal items list: %w", err)
+		}, fmt.Errorf("gym.roll(): can't unmarshal items list: %w", err)
 	}
 
 	if len(items) == 0 {
 		return &adventuria.WheelRollResult{
 			Success: false,
 			Error:   "internal error: no items to roll",
-		}, fmt.Errorf("cinema.roll(): no items to roll")
+		}, fmt.Errorf("gym.roll(): no items to roll")
 	}
 
 	records, err := adventuria.PocketBase.FindRecordsByIds(
@@ -52,7 +52,7 @@ func (c *CellCinema) Roll(user adventuria.User, _ adventuria.RollWheelRequest) (
 		return &adventuria.WheelRollResult{
 			Success: false,
 			Error:   "internal error: can't fetch records",
-		}, fmt.Errorf("cinema.roll(): can't fetch records: %w", err)
+		}, fmt.Errorf("gym.roll(): can't fetch records: %w", err)
 	}
 
 	var fillerItems []adventuria.WheelItem
@@ -71,19 +71,19 @@ func (c *CellCinema) Roll(user adventuria.User, _ adventuria.RollWheelRequest) (
 	}, nil
 }
 
-func (c *CellCinema) RefreshItems(user adventuria.User) error {
+func (c *CellGym) RefreshItems(user adventuria.User) error {
 	return c.refreshItems(user)
 }
 
-func (c *CellCinema) OnCellReached(ctx *adventuria.CellReachedContext) error {
+func (c *CellGym) OnCellReached(ctx *adventuria.CellReachedContext) error {
 	return c.refreshItems(ctx.User)
 }
 
-func (c *CellCinema) refreshItems(user adventuria.User) error {
+func (c *CellGym) refreshItems(user adventuria.User) error {
 	filter, err := newActivityFilterById(c.Filter())
 	if err != nil {
 		return err
 	}
-	filter.SetType(adventuria.ActivityTypeMovie)
+	filter.SetType(adventuria.ActivityTypeGym)
 	return updateActivitiesFromFilter(user, filter, true)
 }

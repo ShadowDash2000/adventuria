@@ -41,12 +41,12 @@ func Test_NoTimeLimit(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if user.LastAction().CustomGameFilter().MinCampaignTime != -1 ||
-		user.LastAction().CustomGameFilter().MaxCampaignTime != -1 {
+	if user.LastAction().CustomActivityFilter().MinCampaignTime != -1 ||
+		user.LastAction().CustomActivityFilter().MaxCampaignTime != -1 {
 		t.Fatalf(
 			"Test_NoTimeLimit(): Min/Max campaign time is %f/%f, expected -1/-1",
-			user.LastAction().CustomGameFilter().MinCampaignTime,
-			user.LastAction().CustomGameFilter().MaxCampaignTime,
+			user.LastAction().CustomActivityFilter().MinCampaignTime,
+			user.LastAction().CustomActivityFilter().MaxCampaignTime,
 		)
 	}
 }

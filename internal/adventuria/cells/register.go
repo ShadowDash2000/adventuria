@@ -10,6 +10,7 @@ const (
 	CellTypeShop     adventuria.CellType = "shop"
 	CellTypeTeleport adventuria.CellType = "teleport"
 	CellTypeCinema   adventuria.CellType = "cinema"
+	CellTypeGym      adventuria.CellType = "gym"
 )
 
 func WithBaseCells() {
@@ -21,5 +22,6 @@ func WithBaseCells() {
 		CellTypeShop:     NewCellShop(),
 		CellTypeTeleport: NewCellTeleport(),
 		CellTypeCinema:   NewCellCinema(),
+		CellTypeGym:      NewCellGym(),
 	})
 }

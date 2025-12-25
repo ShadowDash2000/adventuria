@@ -75,8 +75,8 @@ func (ef *NoTimeLimitEffect) tryToApplyEffect(user adventuria.User) (*event.Resu
 		}, nil
 	}
 
-	user.LastAction().CustomGameFilter().MinCampaignTime = -1
-	user.LastAction().CustomGameFilter().MaxCampaignTime = -1
+	user.LastAction().CustomActivityFilter().MinCampaignTime = -1
+	user.LastAction().CustomActivityFilter().MaxCampaignTime = -1
 	if err := cellGame.RefreshItems(user); err != nil {
 		return &event.Result{
 			Success: false,

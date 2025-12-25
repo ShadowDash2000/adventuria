@@ -28,7 +28,7 @@ func (ef *ChangeGameByIdEffect) Subscribe(
 					}, nil
 				}
 
-				ctx.User.LastAction().SetGame(ef.GetString("value"))
+				ctx.User.LastAction().SetActivity(ef.GetString("value"))
 
 				callback()
 			}
@@ -44,7 +44,7 @@ func (ef *ChangeGameByIdEffect) Subscribe(
 
 func (ef *ChangeGameByIdEffect) Verify(gameId string) error {
 	_, err := adventuria.PocketBase.FindRecordById(
-		adventuria.GameCollections.Get(adventuria.CollectionGames),
+		adventuria.GameCollections.Get(adventuria.CollectionActivities),
 		gameId,
 	)
 	return err

@@ -5,10 +5,12 @@ import (
 	"github.com/pocketbase/pocketbase/tools/types"
 )
 
-type GameFilterRecord interface {
+type ActivityFilterRecord interface {
 	core.RecordProxy
 
 	ID() string
+	Type() ActivityType
+	SetType(ActivityType)
 	Name() string
 	Platforms() []string
 	SetPlatforms([]string)

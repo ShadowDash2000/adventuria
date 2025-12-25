@@ -46,11 +46,11 @@ func (ef *StayOnCellAfterDoneEffect) Subscribe(
 			lastAction.ProxyRecord().MarkAsNew()
 			lastAction.ProxyRecord().Set("id", "")
 			lastAction.SetComment("")
-			lastAction.SetGame("")
+			lastAction.SetActivity("")
 			lastAction.SetDiceRoll(0)
 			lastAction.SetCanMove(false)
 			lastAction.SetType("rollDice")
-			lastAction.ClearCustomGameFilter()
+			lastAction.ClearCustomActivityFilter()
 
 			callback()
 

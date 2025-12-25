@@ -23,8 +23,8 @@ type ActionRecord interface {
 	setCell(string)
 	Comment() string
 	SetComment(string)
-	Game() string
-	SetGame(string)
+	Activity() string
+	SetActivity(string)
 	Type() ActionType
 	SetType(ActionType)
 	DiceRoll() int
@@ -35,11 +35,11 @@ type ActionRecord interface {
 	SetItemsList([]string)
 	CanMove() bool
 	SetCanMove(bool)
-	CustomGameFilter() *CustomGameFilter
-	ClearCustomGameFilter()
+	CustomActivityFilter() *CustomActivityFilter
+	ClearCustomActivityFilter()
 }
 
-type CustomGameFilter struct {
+type CustomActivityFilter struct {
 	Platforms       []string
 	Developers      []string
 	Publishers      []string

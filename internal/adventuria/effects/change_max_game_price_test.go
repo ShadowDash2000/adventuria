@@ -46,8 +46,8 @@ func Test_ChangeMaxGamePriceUsable(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if user.LastAction().CustomGameFilter().MaxPrice != 20 {
-		t.Fatalf("Test_ChangeMaxGamePrice(): Max price is %d, expected 20", user.LastAction().CustomGameFilter().MaxPrice)
+	if user.LastAction().CustomActivityFilter().MaxPrice != 20 {
+		t.Fatalf("Test_ChangeMaxGamePrice(): Max price is %d, expected 20", user.LastAction().CustomActivityFilter().MaxPrice)
 	}
 }
 
@@ -63,7 +63,7 @@ func createChangeMaxGamePriceUsableItem() (*core.Record, error) {
 	}
 
 	record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionItems))
-	record.Set("name", "Change Max Game Price Usable")
+	record.Set("name", "Change Max Activity Price Usable")
 	record.Set("effects", []string{effectRecord.Id})
 	record.Set("icon", icon)
 	record.Set("order", 1)
@@ -81,7 +81,7 @@ func createChangeMaxGamePriceUsableItem() (*core.Record, error) {
 
 func createChangeMaxGamePriceUsableEffect() (*core.Record, error) {
 	record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionEffects))
-	record.Set("name", "Change Max Game Price Usable")
+	record.Set("name", "Change Max Activity Price Usable")
 	record.Set("type", "changeMaxGamePrice")
 	record.Set("value", "20;usable")
 	err := adventuria.PocketBase.Save(record)
@@ -122,8 +122,8 @@ func Test_ChangeMaxGamePriceUnusable(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if user.LastAction().CustomGameFilter().MaxPrice != 20 {
-		t.Fatalf("Test_ChangeMaxGamePrice(): Max price is %d, expected 20", user.LastAction().CustomGameFilter().MaxPrice)
+	if user.LastAction().CustomActivityFilter().MaxPrice != 20 {
+		t.Fatalf("Test_ChangeMaxGamePrice(): Max price is %d, expected 20", user.LastAction().CustomActivityFilter().MaxPrice)
 	}
 }
 
@@ -139,7 +139,7 @@ func createChangeMaxGamePriceUnusableItem() (*core.Record, error) {
 	}
 
 	record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionItems))
-	record.Set("name", "Change Max Game Price Unusable")
+	record.Set("name", "Change Max Activity Price Unusable")
 	record.Set("effects", []string{effectRecord.Id})
 	record.Set("icon", icon)
 	record.Set("order", 1)
@@ -157,7 +157,7 @@ func createChangeMaxGamePriceUnusableItem() (*core.Record, error) {
 
 func createChangeMaxGamePriceUnusableEffect() (*core.Record, error) {
 	record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionEffects))
-	record.Set("name", "Change Max Game Price Unusable")
+	record.Set("name", "Change Max Activity Price Unusable")
 	record.Set("type", "changeMaxGamePrice")
 	record.Set("value", "20;unusable")
 	err := adventuria.PocketBase.Save(record)

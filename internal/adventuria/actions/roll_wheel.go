@@ -59,7 +59,7 @@ func (a *RollWheelAction) Do(user adventuria.User, req adventuria.ActionRequest)
 
 	action := user.LastAction()
 	action.SetType(ActionTypeRollWheel)
-	action.SetGame(res.WinnerId)
+	action.SetActivity(res.WinnerId)
 
 	onAfterWheelRollEvent := &adventuria.OnAfterWheelRollEvent{
 		ItemId: res.WinnerId,

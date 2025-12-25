@@ -119,7 +119,7 @@ func (ef *ChangeMaxGamePriceEffect) tryToApplyEffect(user adventuria.User) (*eve
 
 	val := valAny.(ChangeMaxGamePriceEffectValue)
 
-	user.LastAction().CustomGameFilter().MaxPrice = val.Price
+	user.LastAction().CustomActivityFilter().MaxPrice = val.Price
 	if err = cellGame.RefreshItems(user); err != nil {
 		return &event.Result{
 			Success: false,

@@ -57,8 +57,8 @@ func Test_AddGameTag(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if !slices.Contains(user.LastAction().CustomGameFilter().Tags, tag.Id) {
-		t.Fatalf("Test_AddGameTag(): Tag not added to user, want = %s, got = %s", tag.Id, user.LastAction().CustomGameFilter().Tags)
+	if !slices.Contains(user.LastAction().CustomActivityFilter().Tags, tag.Id) {
+		t.Fatalf("Test_AddGameTag(): Tag not added to user, want = %s, got = %s", tag.Id, user.LastAction().CustomActivityFilter().Tags)
 	}
 }
 
@@ -74,7 +74,7 @@ func createAddGameTagItem() (*core.Record, error) {
 	}
 
 	record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionItems))
-	record.Set("name", "Add Game Tag")
+	record.Set("name", "Add Activity Tag")
 	record.Set("effects", []string{effectRecord.Id})
 	record.Set("icon", icon)
 	record.Set("order", 1)
@@ -90,7 +90,7 @@ func createAddGameTagItem() (*core.Record, error) {
 
 func createAddGameTagEffect() (*core.Record, error) {
 	record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionEffects))
-	record.Set("name", "Add Game Tag")
+	record.Set("name", "Add Activity Tag")
 	record.Set("type", "addGameTag")
 	err := adventuria.PocketBase.Save(record)
 	if err != nil {

@@ -16,12 +16,12 @@ func (c *PlatformRecordBase) ID() string {
 	return c.Id
 }
 
-func (c *PlatformRecordBase) IdDb() uint64 {
-	return uint64(c.GetInt("id_db"))
+func (c *PlatformRecordBase) IdDb() string {
+	return c.GetString("id_db")
 }
 
-func (c *PlatformRecordBase) SetIdDb(id uint64) {
-	c.Set("id_db", int(id))
+func (c *PlatformRecordBase) SetIdDb(id string) {
+	c.Set("id_db", id)
 }
 
 func (c *PlatformRecordBase) Name() string {

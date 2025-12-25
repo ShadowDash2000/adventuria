@@ -16,12 +16,12 @@ func (g *GenreRecordBase) ID() string {
 	return g.Id
 }
 
-func (g *GenreRecordBase) IdDb() uint64 {
-	return uint64(g.GetInt("id_db"))
+func (g *GenreRecordBase) IdDb() string {
+	return g.GetString("id_db")
 }
 
-func (g *GenreRecordBase) SetIdDb(id uint64) {
-	g.Set("id_db", int(id))
+func (g *GenreRecordBase) SetIdDb(id string) {
+	g.Set("id_db", id)
 }
 
 func (g *GenreRecordBase) Name() string {

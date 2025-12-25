@@ -46,7 +46,7 @@ func (a *ActionBase) setType(t ActionType) {
 
 type ActionRecordBase struct {
 	core.BaseRecordProxy
-	gameFilter CustomGameFilter
+	activityFilter CustomActivityFilter
 }
 
 func NewActionRecord() ActionRecord {
@@ -66,11 +66,11 @@ func NewActionRecordFromRecord(record *core.Record) ActionRecord {
 
 func (a *ActionRecordBase) SetProxyRecord(record *core.Record) {
 	a.BaseRecordProxy.SetProxyRecord(record)
-	if a.GetString("game_filter") == "null" {
-		a.gameFilter = CustomGameFilter{}
+	if a.GetString("custom_activity_filter") == "null" {
+		a.activityFilter = CustomActivityFilter{}
 	} else {
-		if err := a.UnmarshalJSONField("game_filter", &a.gameFilter); err != nil {
-			PocketBase.Logger().Error("Failed to unmarshal game_filter", "err", err)
+		if err := a.UnmarshalJSONField("custom_activity_filter", &a.activityFilter); err != nil {
+			PocketBase.Logger().Error("Failed to unmarshal custom_activity_filter", "err", err)
 		}
 	}
 }
@@ -103,12 +103,12 @@ func (a *ActionRecordBase) SetComment(comment string) {
 	a.Set("comment", comment)
 }
 
-func (a *ActionRecordBase) Game() string {
-	return a.GetString("game")
+func (a *ActionRecordBase) Activity() string {
+	return a.GetString("activity")
 }
 
-func (a *ActionRecordBase) SetGame(id string) {
-	a.Set("game", id)
+func (a *ActionRecordBase) SetActivity(id string) {
+	a.Set("activity", id)
 }
 
 func (a *ActionRecordBase) Type() ActionType {
@@ -152,12 +152,12 @@ func (a *ActionRecordBase) SetCanMove(b bool) {
 	a.Set("can_move", b)
 }
 
-func (a *ActionRecordBase) CustomGameFilter() *CustomGameFilter {
-	return &a.gameFilter
+func (a *ActionRecordBase) CustomActivityFilter() *CustomActivityFilter {
+	return &a.activityFilter
 }
 
-func (a *ActionRecordBase) ClearCustomGameFilter() {
-	a.gameFilter = CustomGameFilter{}
+func (a *ActionRecordBase) ClearCustomActivityFilter() {
+	a.activityFilter = CustomActivityFilter{}
 }
 
 var _ cache.Closable = (*LastUserActionRecord)(nil)
@@ -225,13 +225,13 @@ func (a *LastUserActionRecord) bindHooks() {
 	})
 	a.hookIds[3] = PocketBase.OnRecordCreate(CollectionActions).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == a.ID() {
-			e.Record.Set("game_filter", a.gameFilter)
+			e.Record.Set("custom_activity_filter", a.activityFilter)
 		}
 		return e.Next()
 	})
 	a.hookIds[4] = PocketBase.OnRecordUpdate(CollectionActions).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == a.ID() {
-			e.Record.Set("game_filter", a.gameFilter)
+			e.Record.Set("custom_activity_filter", a.activityFilter)
 		}
 		return e.Next()
 	})
