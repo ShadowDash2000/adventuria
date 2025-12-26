@@ -16,7 +16,8 @@ func (a *RollWheelAction) CanDo(user adventuria.User) bool {
 		return false
 	}
 
-	if _, ok = currentCell.(adventuria.CellWheel); !ok {
+	_, ok = adventuria.ActivityTypes[adventuria.ActivityType(currentCell.Type())]
+	if !ok {
 		return false
 	}
 

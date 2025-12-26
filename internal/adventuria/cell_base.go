@@ -98,3 +98,7 @@ func (c *CellBase) Verify(_ string) error {
 func (c *CellBase) DecodeValue(_ string) (any, error) {
 	panic("implement me")
 }
+
+func (c *CellBase) Value() string {
+	return c.GetString("value")
+}

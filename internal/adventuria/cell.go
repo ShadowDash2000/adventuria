@@ -28,6 +28,7 @@ type Cell interface {
 	OnCellReached(*CellReachedContext) error
 	Verify(string) error
 	DecodeValue(string) (any, error)
+	Value() string
 }
 
 var cellsList = map[CellType]CellCreator{}

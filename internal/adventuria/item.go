@@ -15,6 +15,20 @@ type ItemRecord interface {
 	Price() int
 }
 
+type ItemType string
+
+var (
+	ItemTypeBuff    ItemType = "buff"
+	ItemTypeDebuff  ItemType = "debuff"
+	ItemTypeNeutral ItemType = "neutral"
+)
+
+var ItemTypes = map[ItemType]bool{
+	ItemTypeBuff:    true,
+	ItemTypeDebuff:  true,
+	ItemTypeNeutral: true,
+}
+
 type Item interface {
 	ItemRecord
 	cache.Closable

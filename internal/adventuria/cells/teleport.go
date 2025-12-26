@@ -21,7 +21,7 @@ func (c *CellTeleport) OnCellReached(ctx *adventuria.CellReachedContext) error {
 	if err := adventuria.PocketBase.Save(ctx.User.LastAction().ProxyRecord()); err != nil {
 		return err
 	}
-	res, err := ctx.User.MoveToCellName(c.GetString("value"))
+	res, err := ctx.User.MoveToCellName(c.Value())
 	if err != nil {
 		return err
 	}

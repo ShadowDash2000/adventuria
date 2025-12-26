@@ -48,3 +48,9 @@ const (
 	ActivityTypeMovie ActivityType = "movie"
 	ActivityTypeGym   ActivityType = "gym"
 )
+
+var ActivityTypes = map[ActivityType]bool{
+	ActivityTypeGame:  true,
+	ActivityTypeMovie: true,
+	ActivityTypeGym:   true,
+}

@@ -109,6 +109,13 @@ func (ef *ChangeMaxGamePriceEffect) tryToApplyEffect(user adventuria.User) (*eve
 		}, nil
 	}
 
+	if cell.Type() != "game" {
+		return &event.Result{
+			Success: false,
+			Error:   "current cell isn't game cell",
+		}, nil
+	}
+
 	valAny, err := ef.DecodeValue(ef.GetString("value"))
 	if err != nil {
 		return &event.Result{

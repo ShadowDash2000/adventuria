@@ -75,6 +75,13 @@ func (ef *NoTimeLimitEffect) tryToApplyEffect(user adventuria.User) (*event.Resu
 		}, nil
 	}
 
+	if cell.Type() != "game" {
+		return &event.Result{
+			Success: false,
+			Error:   "current cell isn't game cell",
+		}, nil
+	}
+
 	user.LastAction().CustomActivityFilter().MinCampaignTime = -1
 	user.LastAction().CustomActivityFilter().MaxCampaignTime = -1
 	if err := cellGame.RefreshItems(user); err != nil {

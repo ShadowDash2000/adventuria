@@ -42,6 +42,13 @@ func (ef *ChangeMinGamePriceEffect) Subscribe(
 					}, nil
 				}
 
+				if cell.Type() != "game" {
+					return &event.Result{
+						Success: false,
+						Error:   "current cell isn't game cell",
+					}, nil
+				}
+
 				if i := ef.GetInt("value"); i != 0 {
 					ctx.User.LastAction().CustomActivityFilter().MinPrice = i
 					if err := cellGame.RefreshItems(ctx.User); err != nil {

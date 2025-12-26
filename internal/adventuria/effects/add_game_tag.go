@@ -37,6 +37,13 @@ func (ef *AddGameTagEffect) Subscribe(
 					}, nil
 				}
 
+				if cell.Type() != "game" {
+					return &event.Result{
+						Success: false,
+						Error:   "current cell isn't game cell",
+					}, nil
+				}
+
 				if tagID, ok := e.Request["tag_id"].(string); ok {
 					_, err := ef.fetchGameTagByID(tagID)
 					if err != nil {
