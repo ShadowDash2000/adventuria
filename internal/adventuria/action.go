@@ -45,6 +45,7 @@ type CustomActivityFilter struct {
 	Publishers      []string
 	Genres          []string
 	Tags            []string
+	Themes          []string
 	MinPrice        int
 	MaxPrice        int
 	ReleaseDateFrom types.DateTime

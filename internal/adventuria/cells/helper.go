@@ -54,6 +54,10 @@ func updateActivitiesFromFilter(user adventuria.User, filter adventuria.Activity
 		filter.SetTags(append(filter.Tags(), customFilter.Tags...))
 		needToUpdate = true
 	}
+	if len(customFilter.Themes) > 0 {
+		filter.SetThemes(append(filter.Themes(), customFilter.Themes...))
+		needToUpdate = true
+	}
 	if customFilter.MinPrice != 0 {
 		filter.SetMinPrice(customFilter.MinPrice)
 		needToUpdate = true
@@ -141,6 +145,9 @@ func setFilters(filter adventuria.ActivityFilterRecord, q *dbx.SelectQuery) *dbx
 	}
 	if len(filter.Tags()) > 0 {
 		q = q.AndWhere(dbx.OrLike("tags", filter.Tags()...))
+	}
+	if len(filter.Themes()) > 0 {
+		q = q.AndWhere(dbx.OrLike("themes", filter.Themes()...))
 	}
 	if len(filter.Games()) > 0 {
 		q = q.AndWhere(dbx.OrLike("id", filter.Games()...))

@@ -79,6 +79,14 @@ func (a *ActivityFilterBase) SetTags(tags []string) {
 	a.Set("tags", tags)
 }
 
+func (a *ActivityFilterBase) Themes() []string {
+	return a.GetStringSlice("themes")
+}
+
+func (a *ActivityFilterBase) SetThemes(themes []string) {
+	a.Set("themes", themes)
+}
+
 func (a *ActivityFilterBase) MinPrice() int {
 	return a.GetInt("min_price")
 }
