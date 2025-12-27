@@ -96,6 +96,10 @@ func (p *ParserController) parseGames(ctx context.Context, limit uint64) error {
 			return err
 		}
 
+		if err = p.saveThemesFromGames(ctx, msg.Games); err != nil {
+			return err
+		}
+
 		records := make([]games.UpdatableRecord, len(msg.Games))
 		for i, game := range msg.Games {
 			record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionActivities))
@@ -152,6 +156,12 @@ func (p *ParserController) parseGames(ctx context.Context, limit uint64) error {
 				return err
 			}
 			gameRecord.SetTags(tagIds)
+
+			themeIds, err := p.collectionReferenceToIds(game.Themes)
+			if err != nil {
+				return err
+			}
+			gameRecord.SetThemes(themeIds)
 
 			records[i] = gameRecord
 		}
@@ -249,6 +259,43 @@ func (p *ParserController) saveKeywordsFromGames(ctx context.Context, gs []games
 	}
 
 	return p.batchUpdate(tagRecords)
+}
+
+func (p *ParserController) saveThemesFromGames(ctx context.Context, gs []games.Game) error {
+	uniq := make(map[uint64]struct{})
+	for _, g := range gs {
+		for _, id := range g.Themes.Ids {
+			uniq[id] = struct{}{}
+		}
+	}
+
+	if len(uniq) == 0 {
+		return nil
+	}
+
+	ids := make([]uint64, 0, len(uniq))
+	for id := range uniq {
+		ids = append(ids, id)
+	}
+
+	themes, err := p.parser.FetchThemesByIDs(ctx, ids)
+	if err != nil {
+		return err
+	}
+
+	themeRecords := make([]games.UpdatableRecord, len(themes))
+	for i, tag := range themes {
+		record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionThemes))
+
+		themeRecord := games.NewThemeFromRecord(record)
+		themeRecord.SetIdDb(tag.IdDb)
+		themeRecord.SetName(tag.Name)
+		themeRecord.SetChecksum(tag.Checksum)
+
+		themeRecords[i] = themeRecord
+	}
+
+	return p.batchUpdate(themeRecords)
 }
 
 func (p *ParserController) parsePlatforms(ctx context.Context, limit uint64) error {

@@ -171,6 +171,28 @@ func (p *Parser) FetchKeywordsByIDs(ctx context.Context, ids []uint64) ([]games.
 	return res, nil
 }
 
+func (p *Parser) FetchThemesByIDs(ctx context.Context, ids []uint64) ([]games.Theme, error) {
+	if len(ids) == 0 {
+		return nil, nil
+	}
+
+	themes, err := p.client.Themes.GetByIDs(ctx, ids)
+	if err != nil {
+		return nil, err
+	}
+
+	res := make([]games.Theme, len(themes))
+	for i, theme := range themes {
+		res[i] = games.Theme{
+			IdDb:     strconv.FormatUint(theme.GetId(), 10),
+			Name:     theme.GetName(),
+			Checksum: theme.GetChecksum(),
+		}
+	}
+
+	return res, nil
+}
+
 type ParseGamesMessage struct {
 	Games []games.Game
 	Err   error
@@ -267,6 +289,11 @@ func (p *Parser) ParseGames(ctx context.Context, count, offset, limit uint64) (<
 						keywordIds[i] = keyword.GetId()
 					}
 
+					themeIds := make([]uint64, len(game.GetThemes()))
+					for i, theme := range game.GetThemes() {
+						themeIds[i] = theme.GetId()
+					}
+
 					res.Games[i] = games.Game{
 						IdDb:        strconv.FormatUint(game.GetId(), 10),
 						Name:        game.GetName(),
@@ -291,6 +318,10 @@ func (p *Parser) ParseGames(ctx context.Context, count, offset, limit uint64) (<
 						Tags: games.CollectionReference{
 							Ids:        keywordIds,
 							Collection: adventuria.CollectionTags,
+						},
+						Themes: games.CollectionReference{
+							Ids:        themeIds,
+							Collection: adventuria.CollectionThemes,
 						},
 						SteamAppId: steamAppIds[game.GetId()],
 						Cover:      covers[game.GetId()],

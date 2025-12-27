@@ -29,6 +29,8 @@ type ActivityRecord interface {
 	SetGenres([]string)
 	Tags() []string
 	SetTags([]string)
+	Themes() []string
+	SetThemes([]string)
 	SteamAppId() uint64
 	SetSteamAppId(uint64)
 	SteamAppPrice() uint

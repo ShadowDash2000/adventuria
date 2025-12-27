@@ -99,6 +99,14 @@ func (a *ActivityRecordBase) SetTags(ids []string) {
 	a.Set("tags", ids)
 }
 
+func (a *ActivityRecordBase) Themes() []string {
+	return a.GetStringSlice("themes")
+}
+
+func (a *ActivityRecordBase) SetThemes(ids []string) {
+	a.Set("themes", ids)
+}
+
 func (a *ActivityRecordBase) SteamAppId() uint64 {
 	return uint64(a.GetInt("steam_app_id"))
 }

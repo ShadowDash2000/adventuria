@@ -17,6 +17,7 @@ type Game struct {
 	Publishers  CollectionReference
 	Genres      CollectionReference
 	Tags        CollectionReference
+	Themes      CollectionReference
 	SteamAppId  uint64
 	Cover       string
 	Checksum    string
