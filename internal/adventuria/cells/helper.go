@@ -161,10 +161,10 @@ func setFilters(filter adventuria.ActivityFilterRecord, q *dbx.SelectQuery) *dbx
 	}
 
 	if filter.MinCampaignTime() > 0 {
-		q = q.AndWhere(dbx.NewExp("campaign_time > {:time}", dbx.Params{"time": filter.MinCampaignTime()}))
+		q = q.AndWhere(dbx.NewExp("hltb_campaign_time > {:time}", dbx.Params{"time": filter.MinCampaignTime()}))
 	}
 	if filter.MaxCampaignTime() > 0 {
-		q = q.AndWhere(dbx.NewExp("campaign_time < {:time}", dbx.Params{"time": filter.MaxCampaignTime()}))
+		q = q.AndWhere(dbx.NewExp("hltb_campaign_time < {:time}", dbx.Params{"time": filter.MaxCampaignTime()}))
 	}
 
 	return q
