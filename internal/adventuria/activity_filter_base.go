@@ -39,6 +39,14 @@ func (a *ActivityFilterBase) SetPlatforms(platforms []string) {
 	a.Set("platforms", platforms)
 }
 
+func (a *ActivityFilterBase) PlatformsStrict() bool {
+	return a.GetBool("platforms_strict")
+}
+
+func (a *ActivityFilterBase) SetPlatformsStrict(strict bool) {
+	a.Set("platforms_strict", strict)
+}
+
 func (a *ActivityFilterBase) Developers() []string {
 	return a.GetStringSlice("developers")
 }

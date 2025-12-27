@@ -14,6 +14,8 @@ type ActivityFilterRecord interface {
 	Name() string
 	Platforms() []string
 	SetPlatforms([]string)
+	PlatformsStrict() bool
+	SetPlatformsStrict(bool)
 	Developers() []string
 	SetDevelopers([]string)
 	Publishers() []string

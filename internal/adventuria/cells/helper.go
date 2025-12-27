@@ -2,6 +2,7 @@ package cells
 
 import (
 	"adventuria/internal/adventuria"
+	"fmt"
 
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
@@ -119,7 +120,15 @@ func setFilters(filter adventuria.ActivityFilterRecord, q *dbx.SelectQuery) *dbx
 	}
 
 	if len(filter.Platforms()) > 0 {
-		q = q.AndWhere(dbx.OrLike("platforms", filter.Platforms()...))
+		if filter.PlatformsStrict() {
+			exps := make([]dbx.Expression, len(filter.Platforms()))
+			for i, platform := range filter.Platforms() {
+				exps[i] = dbx.Like("platforms", fmt.Sprintf("[\"%s\"]", platform))
+			}
+			q = q.AndWhere(dbx.Or(exps...))
+		} else {
+			q = q.AndWhere(dbx.OrLike("platforms", filter.Platforms()...))
+		}
 	}
 	if len(filter.Developers()) > 0 {
 		q = q.AndWhere(dbx.OrLike("developers", filter.Developers()...))
