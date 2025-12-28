@@ -33,6 +33,7 @@ type User interface {
 	MoveToClosestCellType(cellType CellType) ([]*OnAfterMoveEvent, error)
 	MoveToCellId(cellId string) ([]*OnAfterMoveEvent, error)
 	MoveToCellName(cellName string) ([]*OnAfterMoveEvent, error)
+	MoveToClosestCellByNames(cellNames ...string) ([]*OnAfterMoveEvent, error)
 	Inventory() Inventory
 	LastAction() ActionRecord
 	Timer() Timer

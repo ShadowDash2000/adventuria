@@ -9,7 +9,7 @@ const (
 	CellTypeItem     adventuria.CellType = "item"
 	CellTypeShop     adventuria.CellType = "shop"
 	CellTypeTeleport adventuria.CellType = "teleport"
-	CellTypeCinema   adventuria.CellType = "cinema"
+	CellTypeCinema   adventuria.CellType = "movie"
 	CellTypeGym      adventuria.CellType = "gym"
 	CellTypeRollItem adventuria.CellType = "rollItem"
 )

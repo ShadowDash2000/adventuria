@@ -333,6 +333,42 @@ func (u *UserBase) MoveToCellName(cellName string) ([]*OnAfterMoveEvent, error) 
 	return u.Move(cellPos - u.CurrentCellOrder())
 }
 
+func (u *UserBase) MoveToClosestCellByNames(cellNames ...string) ([]*OnAfterMoveEvent, error) {
+	if len(cellNames) == 0 {
+		return nil, errors.New("moveToClosestCellByNames: cellNames is empty")
+	}
+
+	cellsOrder := make([]int, len(cellNames))
+	for i, cellName := range cellNames {
+		cellOrder, ok := GameCells.GetOrderByName(cellName)
+		if !ok {
+			return nil, errors.New("moveToClosestCellByNames: cell not found")
+		}
+		cellsOrder[i] = cellOrder
+	}
+
+	var (
+		closest     int
+		minDistance int
+		found       bool
+	)
+	currentCellOrder := u.CurrentCellOrder()
+	for order := range cellsOrder {
+		distance := abs(order - currentCellOrder)
+		if !found || distance < minDistance {
+			closest = order
+			minDistance = distance
+			found = true
+		}
+	}
+
+	if !found {
+		return nil, errors.New("moveToClosestCellByNames: cell not found")
+	}
+
+	return u.Move(closest - u.CurrentCellOrder())
+}
+
 func (u *UserBase) Inventory() Inventory {
 	return u.inventory
 }
