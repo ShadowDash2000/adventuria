@@ -21,7 +21,7 @@ func WithBaseEffects() {
 		"changeMinGamePrice":          adventuria.NewEffect(&ChangeMinGamePriceEffect{}),
 		"changeMaxGamePrice":          adventuria.NewEffect(&ChangeMaxGamePriceEffect{}),
 		"noTimeLimit":                 adventuria.NewEffect(&NoTimeLimitEffect{}),
-		"addGameTag":                  adventuria.NewEffect(&AddGameTagEffect{}),
+		"addGameGenre":                adventuria.NewEffect(&AddGameGenreEffect{}),
 		"replaceDiceRoll":             adventuria.NewEffect(&ReplaceDiceRollEffect{}),
 		"addRandomItemToInventory":    adventuria.NewEffect(&AddRandomItemToInventoryEffect{}),
 		"goToJail":                    adventuria.NewEffect(&GoToJailEffect{}),

@@ -12,7 +12,7 @@ import (
 	"github.com/pocketbase/pocketbase/tools/filesystem"
 )
 
-func Test_AddGameTag(t *testing.T) {
+func Test_AddGameGenre(t *testing.T) {
 	actions.WithBaseActions()
 	cells.WithBaseCells()
 	WithBaseEffects()
@@ -22,7 +22,7 @@ func Test_AddGameTag(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	item, err := createAddGameTagItem()
+	item, err := createAddGameGenreItem()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -42,8 +42,8 @@ func Test_AddGameTag(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	tag, err := adventuria.PocketBase.FindFirstRecordByFilter(
-		adventuria.GameCollections.Get(adventuria.CollectionTags),
+	genre, err := adventuria.PocketBase.FindFirstRecordByFilter(
+		adventuria.GameCollections.Get(adventuria.CollectionGenres),
 		"",
 	)
 	if err != nil {
@@ -51,19 +51,19 @@ func Test_AddGameTag(t *testing.T) {
 	}
 
 	err = game.UseItem(user.ID(), invItemId, adventuria.UseItemRequest{
-		"tag_id": tag.Id,
+		"genre_id": genre.Id,
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if !slices.Contains(user.LastAction().CustomActivityFilter().Tags, tag.Id) {
-		t.Fatalf("Test_AddGameTag(): Tag not added to user, want = %s, got = %s", tag.Id, user.LastAction().CustomActivityFilter().Tags)
+	if !slices.Contains(user.LastAction().CustomActivityFilter().Genres, genre.Id) {
+		t.Fatalf("Test_AddGameGenre(): Genre not added to user, want = %s, got = %s", genre.Id, user.LastAction().CustomActivityFilter().Genres)
 	}
 }
 
-func createAddGameTagItem() (*core.Record, error) {
-	effectRecord, err := createAddGameTagEffect()
+func createAddGameGenreItem() (*core.Record, error) {
+	effectRecord, err := createAddGameGenreEffect()
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +74,7 @@ func createAddGameTagItem() (*core.Record, error) {
 	}
 
 	record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionItems))
-	record.Set("name", "Add Activity Tag")
+	record.Set("name", "Add Game Genre")
 	record.Set("effects", []string{effectRecord.Id})
 	record.Set("icon", icon)
 	record.Set("order", 1)
@@ -88,10 +88,10 @@ func createAddGameTagItem() (*core.Record, error) {
 	return record, nil
 }
 
-func createAddGameTagEffect() (*core.Record, error) {
+func createAddGameGenreEffect() (*core.Record, error) {
 	record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionEffects))
-	record.Set("name", "Add Activity Tag")
-	record.Set("type", "addGameTag")
+	record.Set("name", "Add Game Genre")
+	record.Set("type", "addGameGenre")
 	err := adventuria.PocketBase.Save(record)
 	if err != nil {
 		return nil, err

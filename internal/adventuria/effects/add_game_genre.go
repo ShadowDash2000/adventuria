@@ -6,15 +6,13 @@ import (
 	"adventuria/pkg/event"
 	"fmt"
 	"slices"
-
-	"github.com/pocketbase/pocketbase/core"
 )
 
-type AddGameTagEffect struct {
+type AddGameGenreEffect struct {
 	adventuria.EffectBase
 }
 
-func (ef *AddGameTagEffect) Subscribe(
+func (ef *AddGameGenreEffect) Subscribe(
 	ctx adventuria.EffectContext,
 	callback adventuria.EffectCallback,
 ) ([]event.Unsubscribe, error) {
@@ -44,36 +42,59 @@ func (ef *AddGameTagEffect) Subscribe(
 					}, nil
 				}
 
-				if tagID, ok := e.Request["tag_id"].(string); ok {
-					_, err := ef.fetchGameTagByID(tagID)
+				if filterId := cell.Filter(); filterId != "" {
+					filterRecord, err := adventuria.PocketBase.FindRecordById(
+						adventuria.CollectionActivityFilter,
+						filterId,
+					)
 					if err != nil {
 						return &event.Result{
 							Success: false,
-							Error:   "tag_id not found",
-						}, fmt.Errorf("addGameTag: %w", err)
+							Error:   "filter not found",
+						}, fmt.Errorf("addGameGenre: %w", err)
+					}
+
+					if len(filterRecord.GetStringSlice("activities")) > 0 {
+						return &event.Result{
+							Success: false,
+							Error:   "current cell filter has activities, can't add genre",
+						}, nil
+					}
+				}
+
+				if genreId, ok := e.Request["genre_id"].(string); ok {
+					_, err := adventuria.PocketBase.FindRecordById(
+						adventuria.CollectionGenres,
+						genreId,
+					)
+					if err != nil {
+						return &event.Result{
+							Success: false,
+							Error:   "genre_id not found",
+						}, fmt.Errorf("addGameGenre: %w", err)
 					}
 
 					filter := ctx.User.LastAction().CustomActivityFilter()
-					if index := slices.Index(filter.Tags, tagID); index != -1 {
+					if index := slices.Index(filter.Tags, genreId); index != -1 {
 						return &event.Result{
 							Success: false,
-							Error:   "tag already exists",
+							Error:   "genre already exists",
 						}, nil
 					}
 
-					filter.Tags = append(filter.Tags, tagID)
+					filter.Genres = append(filter.Genres, genreId)
 					if err = cellGame.RefreshItems(ctx.User); err != nil {
 						return &event.Result{
 							Success: false,
 							Error:   "internal error: can't refresh cell items",
-						}, fmt.Errorf("addGameTag: %w", err)
+						}, fmt.Errorf("addGameGenre: %w", err)
 					}
 
 					callback()
 				} else {
 					return &event.Result{
 						Success: false,
-						Error:   "tag_id not found",
+						Error:   "genre_id not found",
 					}, nil
 				}
 			}
@@ -83,17 +104,10 @@ func (ef *AddGameTagEffect) Subscribe(
 	}, nil
 }
 
-func (ef *AddGameTagEffect) fetchGameTagByID(tagID string) (*core.Record, error) {
-	return adventuria.PocketBase.FindRecordById(
-		adventuria.GameCollections.Get(adventuria.CollectionTags),
-		tagID,
-	)
-}
-
-func (ef *AddGameTagEffect) Verify(_ string) error {
+func (ef *AddGameGenreEffect) Verify(_ string) error {
 	return nil
 }
 
-func (ef *AddGameTagEffect) DecodeValue(_ string) (any, error) {
+func (ef *AddGameGenreEffect) DecodeValue(_ string) (any, error) {
 	return nil, nil
 }
