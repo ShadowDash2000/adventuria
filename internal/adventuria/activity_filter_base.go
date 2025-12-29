@@ -135,10 +135,10 @@ func (a *ActivityFilterBase) SetMaxCampaignTime(maxCampaignTime float64) {
 	a.Set("max_campaign_time", maxCampaignTime)
 }
 
-func (a *ActivityFilterBase) Games() []string {
-	return a.GetStringSlice("games")
+func (a *ActivityFilterBase) Activities() []string {
+	return a.GetStringSlice("activities")
 }
 
-func (a *ActivityFilterBase) SetGames(games []string) {
-	a.Set("games", games)
+func (a *ActivityFilterBase) SetActivities(activities []string) {
+	a.Set("activities", activities)
 }

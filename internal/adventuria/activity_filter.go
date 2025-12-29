@@ -38,6 +38,6 @@ type ActivityFilterRecord interface {
 	SetMinCampaignTime(float64)
 	MaxCampaignTime() float64
 	SetMaxCampaignTime(float64)
-	Games() []string
-	SetGames([]string)
+	Activities() []string
+	SetActivities([]string)
 }
