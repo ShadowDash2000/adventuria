@@ -150,7 +150,11 @@ func setFilters(filter adventuria.ActivityFilterRecord, q *dbx.SelectQuery) *dbx
 		q = q.AndWhere(dbx.OrLike("themes", filter.Themes()...))
 	}
 	if len(filter.Activities()) > 0 {
-		q = q.AndWhere(dbx.OrLike("id", filter.Activities()...))
+		exp := make([]dbx.Expression, len(filter.Activities()))
+		for i, id := range filter.Activities() {
+			exp[i] = dbx.HashExp{"id": id}
+		}
+		q = q.AndWhere(dbx.Or(exp...))
 	}
 
 	if filter.MinPrice() > 0 {
