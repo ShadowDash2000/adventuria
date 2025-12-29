@@ -36,10 +36,21 @@ func (ef *NothingEffect) Subscribe(
 				return e.Next()
 			}),
 		}, nil
-	case "onBeforeDone":
+	case "onBeforeGameDone":
 		return []event.Unsubscribe{
 			ctx.User.OnBeforeDone().BindFunc(func(e *adventuria.OnBeforeDoneEvent) (*event.Result, error) {
-				callback()
+				currentCell, ok := ctx.User.CurrentCell()
+				if !ok {
+					return &event.Result{
+						Success: false,
+						Error:   "current cell not found",
+					}, errors.New("nothing.onBeforeGameDone(): current cell not found")
+				}
+
+				if currentCell.Type() == "game" {
+					callback()
+				}
+
 				return e.Next()
 			}),
 		}, nil
@@ -52,7 +63,7 @@ func (ef *NothingEffect) Verify(v string) error {
 	events := []string{
 		"onAfterItemAdd",
 		"onAfterItemUse",
-		"onBeforeDone",
+		"onBeforeGameDone",
 	}
 
 	if ok := slices.Contains(events, v); !ok {
