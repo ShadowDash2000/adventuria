@@ -8,7 +8,11 @@ import (
 )
 
 type NoTimeLimitEffect struct {
-	adventuria.EffectBase
+	adventuria.EffectRecord
+}
+
+func (ef *NoTimeLimitEffect) CanUse(_ adventuria.EffectContext) bool {
+	return true
 }
 
 func (ef *NoTimeLimitEffect) Subscribe(

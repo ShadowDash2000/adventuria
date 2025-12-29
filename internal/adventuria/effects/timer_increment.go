@@ -8,7 +8,11 @@ import (
 )
 
 type TimerIncrementEffect struct {
-	adventuria.EffectBase
+	adventuria.EffectRecord
+}
+
+func (ef *TimerIncrementEffect) CanUse(_ adventuria.EffectContext) bool {
+	return true
 }
 
 func (ef *TimerIncrementEffect) Subscribe(

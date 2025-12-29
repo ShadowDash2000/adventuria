@@ -7,7 +7,11 @@ import (
 )
 
 type ReturnToPrevCellEffect struct {
-	adventuria.EffectBase
+	adventuria.EffectRecord
+}
+
+func (ef *ReturnToPrevCellEffect) CanUse(_ adventuria.EffectContext) bool {
+	return true
 }
 
 func (ef *ReturnToPrevCellEffect) Subscribe(

@@ -3,13 +3,13 @@ package cells
 import "adventuria/internal/adventuria"
 
 type CellItem struct {
-	adventuria.CellBase
+	adventuria.CellRecord
 }
 
 func NewCellItem() adventuria.CellCreator {
 	return func() adventuria.Cell {
 		return &CellItem{
-			adventuria.CellBase{},
+			adventuria.CellRecord{},
 		}
 	}
 }

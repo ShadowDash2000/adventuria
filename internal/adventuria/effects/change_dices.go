@@ -9,7 +9,11 @@ import (
 )
 
 type ChangeDicesEffect struct {
-	adventuria.EffectBase
+	adventuria.EffectRecord
+}
+
+func (ef *ChangeDicesEffect) CanUse(_ adventuria.EffectContext) bool {
+	return true
 }
 
 func (ef *ChangeDicesEffect) Subscribe(

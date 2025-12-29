@@ -6,7 +6,11 @@ import (
 )
 
 type SafeDropEffect struct {
-	adventuria.EffectBase
+	adventuria.EffectRecord
+}
+
+func (ef *SafeDropEffect) CanUse(_ adventuria.EffectContext) bool {
+	return true
 }
 
 func (ef *SafeDropEffect) Subscribe(

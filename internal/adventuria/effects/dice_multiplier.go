@@ -7,7 +7,11 @@ import (
 )
 
 type DiceMultiplierEffect struct {
-	adventuria.EffectBase
+	adventuria.EffectRecord
+}
+
+func (ef *DiceMultiplierEffect) CanUse(_ adventuria.EffectContext) bool {
+	return true
 }
 
 func (ef *DiceMultiplierEffect) Subscribe(

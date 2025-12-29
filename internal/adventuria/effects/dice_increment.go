@@ -7,7 +7,11 @@ import (
 )
 
 type DiceIncrementEffect struct {
-	adventuria.EffectBase
+	adventuria.EffectRecord
+}
+
+func (ef *DiceIncrementEffect) CanUse(_ adventuria.EffectContext) bool {
+	return true
 }
 
 func (ef *DiceIncrementEffect) Subscribe(

@@ -6,7 +6,11 @@ import (
 )
 
 type NoCoinsForDoneEffect struct {
-	adventuria.EffectBase
+	adventuria.EffectRecord
+}
+
+func (ef *NoCoinsForDoneEffect) CanUse(_ adventuria.EffectContext) bool {
+	return true
 }
 
 func (ef *NoCoinsForDoneEffect) Subscribe(

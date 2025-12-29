@@ -2,6 +2,7 @@ package adventuria
 
 import (
 	"adventuria/pkg/event"
+	"fmt"
 	"maps"
 
 	"github.com/pocketbase/pocketbase/core"
@@ -12,6 +13,7 @@ type Effect interface {
 	ID() string
 	Name() string
 	Type() string
+	CanUse(EffectContext) bool
 	Subscribe(EffectContext, EffectCallback) ([]event.Unsubscribe, error)
 	Verify(string) error
 	DecodeValue(string) (any, error)
@@ -39,4 +41,30 @@ func RegisterEffects(effects map[string]EffectCreator) {
 
 func RegisterPersistentEffects(effects map[string]PersistentEffectCreator) {
 	maps.Insert(persistentEffectsList, maps.All(effects))
+}
+
+func NewEffectFromRecord(record *core.Record) (Effect, error) {
+	t := record.GetString("type")
+
+	effectCreator, ok := effectsList[t]
+	if !ok {
+		return nil, fmt.Errorf("unknown effect type: %s", t)
+	}
+
+	effect := effectCreator(record)
+
+	return effect, nil
+}
+
+func NewEffect(e Effect) EffectCreator {
+	return func(record *core.Record) Effect {
+		e.SetProxyRecord(record)
+		return e
+	}
+}
+
+func NewPersistentEffect(e PersistentEffect) PersistentEffectCreator {
+	return func() PersistentEffect {
+		return e
+	}
 }

@@ -13,7 +13,11 @@ import (
 )
 
 type TeleportToRandomCellByNameEffect struct {
-	adventuria.EffectBase
+	adventuria.EffectRecord
+}
+
+func (ef *TeleportToRandomCellByNameEffect) CanUse(_ adventuria.EffectContext) bool {
+	return true
 }
 
 func (ef *TeleportToRandomCellByNameEffect) Subscribe(

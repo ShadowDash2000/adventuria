@@ -12,13 +12,13 @@ import (
 const shopMaxItems = 6
 
 type CellShop struct {
-	adventuria.CellBase
+	adventuria.CellRecord
 }
 
 func NewCellShop() adventuria.CellCreator {
 	return func() adventuria.Cell {
 		return &CellShop{
-			adventuria.CellBase{},
+			adventuria.CellRecord{},
 		}
 	}
 }

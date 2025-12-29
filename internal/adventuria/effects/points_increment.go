@@ -7,7 +7,11 @@ import (
 )
 
 type PointsIncrementEffect struct {
-	adventuria.EffectBase
+	adventuria.EffectRecord
+}
+
+func (ef *PointsIncrementEffect) CanUse(_ adventuria.EffectContext) bool {
+	return true
 }
 
 func (ef *PointsIncrementEffect) Subscribe(

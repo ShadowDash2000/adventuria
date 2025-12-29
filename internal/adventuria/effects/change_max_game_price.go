@@ -11,7 +11,29 @@ import (
 )
 
 type ChangeMaxGamePriceEffect struct {
-	adventuria.EffectBase
+	adventuria.EffectRecord
+}
+
+func (ef *ChangeMaxGamePriceEffect) CanUse(ctx adventuria.EffectContext) bool {
+	if !adventuria.GameActions.CanDo(ctx.User, "rollWheel") {
+		return false
+	}
+
+	cell, ok := ctx.User.CurrentCell()
+	if !ok {
+		return false
+	}
+
+	_, ok = cell.(*cells.CellGame)
+	if !ok {
+		return false
+	}
+
+	if cell.Type() != "game" {
+		return false
+	}
+
+	return true
 }
 
 func (ef *ChangeMaxGamePriceEffect) Subscribe(
@@ -86,13 +108,6 @@ func (ef *ChangeMaxGamePriceEffect) Subscribe(
 }
 
 func (ef *ChangeMaxGamePriceEffect) tryToApplyEffect(user adventuria.User) (*event.Result, error) {
-	if !adventuria.GameActions.CanDo(user, "rollWheel") {
-		return &event.Result{
-			Success: false,
-			Error:   "user can't perform roll wheel action",
-		}, nil
-	}
-
 	cell, ok := user.CurrentCell()
 	if !ok {
 		return &event.Result{
@@ -103,13 +118,6 @@ func (ef *ChangeMaxGamePriceEffect) tryToApplyEffect(user adventuria.User) (*eve
 
 	cellGame, ok := cell.(*cells.CellGame)
 	if !ok {
-		return &event.Result{
-			Success: false,
-			Error:   "current cell isn't game cell",
-		}, nil
-	}
-
-	if cell.Type() != "game" {
 		return &event.Result{
 			Success: false,
 			Error:   "current cell isn't game cell",

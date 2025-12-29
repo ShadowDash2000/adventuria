@@ -7,7 +7,11 @@ import (
 )
 
 type DropInventoryEffect struct {
-	adventuria.EffectBase
+	adventuria.EffectRecord
+}
+
+func (ef *DropInventoryEffect) CanUse(_ adventuria.EffectContext) bool {
+	return true
 }
 
 func (ef *DropInventoryEffect) Subscribe(

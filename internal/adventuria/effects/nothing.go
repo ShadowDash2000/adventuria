@@ -8,7 +8,11 @@ import (
 )
 
 type NothingEffect struct {
-	adventuria.EffectBase
+	adventuria.EffectRecord
+}
+
+func (ef *NothingEffect) CanUse(_ adventuria.EffectContext) bool {
+	return true
 }
 
 func (ef *NothingEffect) Subscribe(

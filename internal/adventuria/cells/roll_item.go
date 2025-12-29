@@ -9,16 +9,16 @@ import (
 	"github.com/pocketbase/pocketbase/core"
 )
 
+var _ adventuria.CellWheel = (*CellRollItem)(nil)
+
 type CellRollItem struct {
-	adventuria.CellWheel
+	adventuria.CellRecord
 }
 
 func NewCellRollItem() adventuria.CellCreator {
 	return func() adventuria.Cell {
 		return &CellRollItem{
-			&adventuria.CellWheelBase{
-				CellBase: adventuria.CellBase{},
-			},
+			adventuria.CellRecord{},
 		}
 	}
 }

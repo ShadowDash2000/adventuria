@@ -7,7 +7,11 @@ import (
 )
 
 type CellPointsDivideEffect struct {
-	adventuria.EffectBase
+	adventuria.EffectRecord
+}
+
+func (ef *CellPointsDivideEffect) CanUse(_ adventuria.EffectContext) bool {
+	return true
 }
 
 func (ef *CellPointsDivideEffect) Subscribe(

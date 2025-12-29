@@ -6,7 +6,11 @@ import (
 )
 
 type DropBlockedEffect struct {
-	adventuria.EffectBase
+	adventuria.EffectRecord
+}
+
+func (ef *DropBlockedEffect) CanUse(_ adventuria.EffectContext) bool {
+	return true
 }
 
 func (ef *DropBlockedEffect) Subscribe(

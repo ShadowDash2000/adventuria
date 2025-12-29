@@ -7,7 +7,11 @@ import (
 )
 
 type StayOnCellAfterDoneEffect struct {
-	adventuria.EffectBase
+	adventuria.EffectRecord
+}
+
+func (ef *StayOnCellAfterDoneEffect) CanUse(_ adventuria.EffectContext) bool {
+	return true
 }
 
 func (ef *StayOnCellAfterDoneEffect) Subscribe(

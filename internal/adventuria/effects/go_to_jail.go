@@ -7,7 +7,11 @@ import (
 )
 
 type GoToJailEffect struct {
-	adventuria.EffectBase
+	adventuria.EffectRecord
+}
+
+func (ef *GoToJailEffect) CanUse(_ adventuria.EffectContext) bool {
+	return true
 }
 
 func (ef *GoToJailEffect) Subscribe(

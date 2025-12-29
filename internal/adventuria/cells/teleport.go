@@ -6,13 +6,13 @@ import (
 )
 
 type CellTeleport struct {
-	adventuria.CellBase
+	adventuria.CellRecord
 }
 
 func NewCellTeleport() adventuria.CellCreator {
 	return func() adventuria.Cell {
 		return &CellTeleport{
-			adventuria.CellBase{},
+			adventuria.CellRecord{},
 		}
 	}
 }

@@ -9,7 +9,43 @@ import (
 )
 
 type AddGameGenreEffect struct {
-	adventuria.EffectBase
+	adventuria.EffectRecord
+}
+
+func (ef *AddGameGenreEffect) CanUse(ctx adventuria.EffectContext) bool {
+	if !adventuria.GameActions.CanDo(ctx.User, "rollWheel") {
+		return false
+	}
+
+	cell, ok := ctx.User.CurrentCell()
+	if !ok {
+		return false
+	}
+
+	_, ok = cell.(*cells.CellGame)
+	if !ok {
+		return false
+	}
+
+	if cell.Type() != "game" {
+		return false
+	}
+
+	if filterId := cell.Filter(); filterId != "" {
+		filterRecord, err := adventuria.PocketBase.FindRecordById(
+			adventuria.CollectionActivityFilter,
+			filterId,
+		)
+		if err != nil {
+			return false
+		}
+
+		if len(filterRecord.GetStringSlice("activities")) > 0 {
+			return false
+		}
+	}
+
+	return true
 }
 
 func (ef *AddGameGenreEffect) Subscribe(
@@ -33,33 +69,6 @@ func (ef *AddGameGenreEffect) Subscribe(
 						Success: false,
 						Error:   "current cell isn't game cell",
 					}, nil
-				}
-
-				if cell.Type() != "game" {
-					return &event.Result{
-						Success: false,
-						Error:   "current cell isn't game cell",
-					}, nil
-				}
-
-				if filterId := cell.Filter(); filterId != "" {
-					filterRecord, err := adventuria.PocketBase.FindRecordById(
-						adventuria.CollectionActivityFilter,
-						filterId,
-					)
-					if err != nil {
-						return &event.Result{
-							Success: false,
-							Error:   "filter not found",
-						}, fmt.Errorf("addGameGenre: %w", err)
-					}
-
-					if len(filterRecord.GetStringSlice("activities")) > 0 {
-						return &event.Result{
-							Success: false,
-							Error:   "current cell filter has activities, can't add genre",
-						}, nil
-					}
 				}
 
 				if genreId, ok := e.Request["genre_id"].(string); ok {

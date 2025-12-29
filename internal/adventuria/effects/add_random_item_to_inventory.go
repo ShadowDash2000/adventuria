@@ -13,7 +13,11 @@ import (
 )
 
 type AddRandomItemToInventoryEffect struct {
-	adventuria.EffectBase
+	adventuria.EffectRecord
+}
+
+func (ef *AddRandomItemToInventoryEffect) CanUse(_ adventuria.EffectContext) bool {
+	return true
 }
 
 func (ef *AddRandomItemToInventoryEffect) Subscribe(

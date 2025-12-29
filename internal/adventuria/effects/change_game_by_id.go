@@ -7,7 +7,11 @@ import (
 )
 
 type ChangeGameByIdEffect struct {
-	adventuria.EffectBase
+	adventuria.EffectRecord
+}
+
+func (ef *ChangeGameByIdEffect) CanUse(_ adventuria.EffectContext) bool {
+	return true
 }
 
 func (ef *ChangeGameByIdEffect) Subscribe(

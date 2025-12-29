@@ -6,16 +6,16 @@ import (
 	"fmt"
 )
 
+var _ adventuria.CellWheel = (*CellGame)(nil)
+
 type CellGame struct {
-	adventuria.CellWheel
+	adventuria.CellRecord
 }
 
 func NewCellGame() adventuria.CellCreator {
 	return func() adventuria.Cell {
 		return &CellGame{
-			&adventuria.CellWheelBase{
-				CellBase: adventuria.CellBase{},
-			},
+			adventuria.CellRecord{},
 		}
 	}
 }

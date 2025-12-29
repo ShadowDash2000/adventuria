@@ -9,7 +9,11 @@ import (
 )
 
 type TeleportToRandomCellByTypeEffect struct {
-	adventuria.EffectBase
+	adventuria.EffectRecord
+}
+
+func (ef *TeleportToRandomCellByTypeEffect) CanUse(_ adventuria.EffectContext) bool {
+	return true
 }
 
 func (ef *TeleportToRandomCellByTypeEffect) Subscribe(

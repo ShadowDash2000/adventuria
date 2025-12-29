@@ -5,9 +5,7 @@ import (
 	"adventuria/pkg/event"
 )
 
-type StatsEffect struct {
-	adventuria.PersistentEffectBase
-}
+type StatsEffect struct{}
 
 func (ef *StatsEffect) Subscribe(user adventuria.User) []event.Unsubscribe {
 	return []event.Unsubscribe{

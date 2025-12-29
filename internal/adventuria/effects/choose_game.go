@@ -8,7 +8,11 @@ import (
 )
 
 type ChooseGameEffect struct {
-	adventuria.EffectBase
+	adventuria.EffectRecord
+}
+
+func (ef *ChooseGameEffect) CanUse(ctx adventuria.EffectContext) bool {
+	return adventuria.GameActions.CanDo(ctx.User, "done")
 }
 
 func (ef *ChooseGameEffect) Subscribe(
@@ -18,13 +22,6 @@ func (ef *ChooseGameEffect) Subscribe(
 	return []event.Unsubscribe{
 		ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*event.Result, error) {
 			if ctx.InvItemID == e.InvItemId {
-				if ok := adventuria.GameActions.CanDo(ctx.User, "done"); !ok {
-					return &event.Result{
-						Success: false,
-						Error:   "user can't perform done action",
-					}, nil
-				}
-
 				if gameId, ok := e.Request["game_id"].(string); ok {
 					itemsList, err := ctx.User.LastAction().ItemsList()
 					if err != nil {

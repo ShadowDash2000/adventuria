@@ -6,7 +6,11 @@ import (
 )
 
 type JailEscapeEffect struct {
-	adventuria.EffectBase
+	adventuria.EffectRecord
+}
+
+func (ef *JailEscapeEffect) CanUse(ctx adventuria.EffectContext) bool {
+	return ctx.User.IsInJail()
 }
 
 func (ef *JailEscapeEffect) Subscribe(
@@ -16,13 +20,6 @@ func (ef *JailEscapeEffect) Subscribe(
 	return []event.Unsubscribe{
 		ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*event.Result, error) {
 			if e.InvItemId == ctx.InvItemID {
-				if !ctx.User.IsInJail() {
-					return &event.Result{
-						Success: false,
-						Error:   "user isn't in jail",
-					}, nil
-				}
-
 				ctx.User.SetIsInJail(false)
 				ctx.User.SetDropsInARow(0)
 

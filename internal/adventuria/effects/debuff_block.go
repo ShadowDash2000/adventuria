@@ -6,7 +6,11 @@ import (
 )
 
 type DebuffBlockEffect struct {
-	adventuria.EffectBase
+	adventuria.EffectRecord
+}
+
+func (ef *DebuffBlockEffect) CanUse(_ adventuria.EffectContext) bool {
+	return true
 }
 
 func (ef *DebuffBlockEffect) Subscribe(

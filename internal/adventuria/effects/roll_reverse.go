@@ -6,7 +6,11 @@ import (
 )
 
 type RollReverseEffect struct {
-	adventuria.EffectBase
+	adventuria.EffectRecord
+}
+
+func (ef *RollReverseEffect) CanUse(_ adventuria.EffectContext) bool {
+	return true
 }
 
 func (ef *RollReverseEffect) Subscribe(

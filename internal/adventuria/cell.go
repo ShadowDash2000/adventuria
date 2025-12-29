@@ -1,6 +1,7 @@
 package adventuria
 
 import (
+	"fmt"
 	"maps"
 
 	"github.com/pocketbase/pocketbase/core"
@@ -42,4 +43,18 @@ func RegisterCells(cells map[CellType]CellCreator) {
 func IsCellTypeExist(t CellType) bool {
 	_, ok := cellsList[t]
 	return ok
+}
+
+func NewCellFromRecord(record *core.Record) (Cell, error) {
+	t := CellType(record.GetString("type"))
+
+	cellCreator, ok := cellsList[t]
+	if !ok {
+		return nil, fmt.Errorf("unknown cell type: %s", t)
+	}
+
+	cell := cellCreator()
+	cell.SetProxyRecord(record)
+
+	return cell, nil
 }

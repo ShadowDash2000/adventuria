@@ -173,6 +173,18 @@ func (i *ItemBase) addAppliedEffect(effect Effect) {
 	)
 }
 
+func (i *ItemBase) CanUse() bool {
+	for _, effect := range i.effects {
+		if !effect.CanUse(EffectContext{
+			User:      i.user,
+			InvItemID: i.invItemRecord.Id,
+		}) {
+			return false
+		}
+	}
+	return true
+}
+
 func (i *ItemBase) Use() (OnUseSuccess, OnUseFail, error) {
 	if i.IsActive() {
 		return nil, nil, errors.New("item is already active")

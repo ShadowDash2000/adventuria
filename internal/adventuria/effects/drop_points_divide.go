@@ -7,7 +7,11 @@ import (
 )
 
 type DropPointsDivideEffect struct {
-	adventuria.EffectBase
+	adventuria.EffectRecord
+}
+
+func (ef *DropPointsDivideEffect) CanUse(_ adventuria.EffectContext) bool {
+	return true
 }
 
 func (ef *DropPointsDivideEffect) Subscribe(

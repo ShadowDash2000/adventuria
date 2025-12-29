@@ -7,7 +7,11 @@ import (
 )
 
 type ReplaceDiceRollEffect struct {
-	adventuria.EffectBase
+	adventuria.EffectRecord
+}
+
+func (ef *ReplaceDiceRollEffect) CanUse(_ adventuria.EffectContext) bool {
+	return true
 }
 
 func (ef *ReplaceDiceRollEffect) Subscribe(

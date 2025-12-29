@@ -37,6 +37,7 @@ type Item interface {
 	IsActive() bool
 	EffectsCount() int
 	AppliedEffectsCount() int
+	CanUse() bool
 	Use() (OnUseSuccess, OnUseFail, error)
 	Drop() error
 }

@@ -5,9 +5,7 @@ import (
 	"adventuria/pkg/event"
 )
 
-type GiveWheelOnNewLapEffect struct {
-	adventuria.PersistentEffectBase
-}
+type GiveWheelOnNewLapEffect struct{}
 
 func (ef *GiveWheelOnNewLapEffect) Subscribe(user adventuria.User) []event.Unsubscribe {
 	return []event.Unsubscribe{

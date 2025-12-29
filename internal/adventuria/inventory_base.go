@@ -32,7 +32,7 @@ func NewInventory(user User, maxSlots int) (Inventory, error) {
 }
 
 func (i *InventoryBase) bindHooks() {
-	i.hookIds = make([]string, 2)
+	i.hookIds = make([]string, 3)
 
 	i.hookIds[0] = PocketBase.OnRecordAfterCreateSuccess(CollectionInventory).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.GetString("user") == i.user.ID() {
@@ -57,11 +57,19 @@ func (i *InventoryBase) bindHooks() {
 		}
 		return e.Next()
 	})
+	i.hookIds[2] = PocketBase.OnRecordEnrich(CollectionInventory).BindFunc(func(e *core.RecordEnrichEvent) error {
+		if _, ok := i.items[e.Record.Id]; ok {
+			e.Record.WithCustomData(true)
+			e.Record.Set("can_use", i.CanUseItem(e.Record.Id))
+		}
+		return e.Next()
+	})
 }
 
 func (i *InventoryBase) Close() {
 	PocketBase.OnRecordAfterCreateSuccess(CollectionInventory).Unbind(i.hookIds[0])
 	PocketBase.OnRecordAfterDeleteSuccess(CollectionInventory).Unbind(i.hookIds[1])
+	PocketBase.OnRecordEnrich(CollectionInventory).Unbind(i.hookIds[2])
 	for _, item := range i.items {
 		item.Close()
 	}
@@ -185,10 +193,23 @@ func (i *InventoryBase) MustAddItemById(itemId string) (string, error) {
 	return i.AddItem(item)
 }
 
+func (i *InventoryBase) CanUseItem(itemId string) bool {
+	item, ok := i.items[itemId]
+	if !ok {
+		return false
+	}
+
+	return item.CanUse()
+}
+
 func (i *InventoryBase) UseItem(itemId string) (OnUseSuccess, OnUseFail, error) {
 	item, ok := i.items[itemId]
 	if !ok {
 		return nil, nil, errors.New("inventory item not found")
+	}
+
+	if !item.CanUse() {
+		return nil, nil, errors.New("item cannot be used")
 	}
 
 	return item.Use()

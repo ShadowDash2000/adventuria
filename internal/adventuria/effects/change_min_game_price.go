@@ -9,7 +9,29 @@ import (
 )
 
 type ChangeMinGamePriceEffect struct {
-	adventuria.EffectBase
+	adventuria.EffectRecord
+}
+
+func (ef *ChangeMinGamePriceEffect) CanUse(ctx adventuria.EffectContext) bool {
+	if ok := adventuria.GameActions.CanDo(ctx.User, "rollWheel"); !ok {
+		return false
+	}
+
+	cell, ok := ctx.User.CurrentCell()
+	if !ok {
+		return false
+	}
+
+	_, ok = cell.(*cells.CellGame)
+	if !ok {
+		return false
+	}
+
+	if cell.Type() != "game" {
+		return false
+	}
+
+	return true
 }
 
 func (ef *ChangeMinGamePriceEffect) Subscribe(
@@ -19,13 +41,6 @@ func (ef *ChangeMinGamePriceEffect) Subscribe(
 	return []event.Unsubscribe{
 		ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*event.Result, error) {
 			if e.InvItemId == ctx.InvItemID {
-				if ok := adventuria.GameActions.CanDo(ctx.User, "rollWheel"); !ok {
-					return &event.Result{
-						Success: false,
-						Error:   "user can't perform rollWheel action",
-					}, nil
-				}
-
 				cell, ok := ctx.User.CurrentCell()
 				if !ok {
 					return &event.Result{
@@ -36,13 +51,6 @@ func (ef *ChangeMinGamePriceEffect) Subscribe(
 
 				cellGame, ok := cell.(*cells.CellGame)
 				if !ok {
-					return &event.Result{
-						Success: false,
-						Error:   "current cell isn't game cell",
-					}, nil
-				}
-
-				if cell.Type() != "game" {
 					return &event.Result{
 						Success: false,
 						Error:   "current cell isn't game cell",

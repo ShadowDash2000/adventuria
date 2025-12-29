@@ -12,7 +12,11 @@ import (
 )
 
 type TeleportToClosestCellByNameEffect struct {
-	adventuria.EffectBase
+	adventuria.EffectRecord
+}
+
+func (ef *TeleportToClosestCellByNameEffect) CanUse(_ adventuria.EffectContext) bool {
+	return true
 }
 
 func (ef *TeleportToClosestCellByNameEffect) Subscribe(
