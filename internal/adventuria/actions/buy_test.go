@@ -21,13 +21,9 @@ func Test_Buy(t *testing.T) {
 		t.Fatalf("Test_Buy(): Error creating game: %s", err)
 	}
 
-	var itemId string
-	for i := 0; i < 3; i++ {
-		item, err := createCellPointsDivideItem()
-		if err != nil {
-			t.Fatal(err)
-		}
-		itemId = item.Id
+	item, err := createCellPointsDivideItem()
+	if err != nil {
+		t.Fatal(err)
 	}
 
 	user, err := adventuria.GameUsers.GetByName("user1")
@@ -48,7 +44,7 @@ func Test_Buy(t *testing.T) {
 	}
 
 	res, err := game.DoAction(ActionTypeBuyItem, user.ID(), adventuria.ActionRequest{
-		"item_id": itemId,
+		"item_id": item.Id,
 	})
 	if err != nil {
 		t.Fatalf("Test_Buy(): Error performing action: %s", err)
