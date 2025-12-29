@@ -40,6 +40,12 @@ func (ef *AddGameGenreEffect) CanUse(ctx adventuria.EffectContext) bool {
 			return false
 		}
 
+		if len(filterRecord.GetStringSlice("developers")) > 0 {
+			return false
+		}
+		if len(filterRecord.GetStringSlice("publishers")) > 0 {
+			return false
+		}
 		if len(filterRecord.GetStringSlice("activities")) > 0 {
 			return false
 		}
