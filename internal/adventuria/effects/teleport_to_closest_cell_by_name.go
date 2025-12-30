@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/pocketbase/dbx"
-	"github.com/pocketbase/pocketbase/core"
 )
 
 type TeleportToClosestCellByNameEffect struct {
@@ -55,7 +54,9 @@ func (ef *TeleportToClosestCellByNameEffect) Verify(value string) error {
 		exp[i] = dbx.HashExp{"name": name}
 	}
 
-	var records []*core.Record
+	var records []struct {
+		Id string `db:"id"`
+	}
 	err = adventuria.PocketBase.RecordQuery(adventuria.GameCollections.Get(adventuria.CollectionCells)).
 		Where(dbx.Or(exp...)).
 		Select("id").

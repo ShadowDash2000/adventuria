@@ -6,7 +6,6 @@ import (
 	"fmt"
 
 	"github.com/pocketbase/dbx"
-	"github.com/pocketbase/pocketbase/core"
 )
 
 var _ adventuria.CellWheel = (*CellRollItem)(nil)
@@ -88,7 +87,9 @@ func (c *CellRollItem) OnCellReached(ctx *adventuria.CellReachedContext) error {
 }
 
 func (c *CellRollItem) refreshItems(user adventuria.User) error {
-	var records []*core.Record
+	var records []struct {
+		Id string `db:"id"`
+	}
 	err := adventuria.PocketBase.
 		RecordQuery(adventuria.GameCollections.Get(adventuria.CollectionItems)).
 		Where(dbx.HashExp{"type": c.Value()}).
@@ -98,12 +99,12 @@ func (c *CellRollItem) refreshItems(user adventuria.User) error {
 		return fmt.Errorf("roll_item.refreshItems(): %w", err)
 	}
 
-	var items []string
-	for _, record := range records {
-		items = append(items, record.GetString("id"))
+	ids := make([]string, len(records))
+	for i, record := range records {
+		ids[i] = record.Id
 	}
 
-	user.LastAction().SetItemsList(items)
+	user.LastAction().SetItemsList(ids)
 
 	return nil
 }

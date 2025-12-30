@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/pocketbase/dbx"
-	"github.com/pocketbase/pocketbase/core"
 )
 
 type TeleportToRandomCellByNameEffect struct {
@@ -56,7 +55,9 @@ func (ef *TeleportToRandomCellByNameEffect) Verify(value string) error {
 		namesAny[i] = name
 	}
 
-	var records []*core.Record
+	var records []struct {
+		Id string `db:"id"`
+	}
 	err = adventuria.PocketBase.RecordQuery(adventuria.GameCollections.Get(adventuria.CollectionCells)).
 		Where(dbx.In("name", namesAny...)).
 		Select("id").

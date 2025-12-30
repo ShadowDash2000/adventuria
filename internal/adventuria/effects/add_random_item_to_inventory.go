@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/pocketbase/dbx"
-	"github.com/pocketbase/pocketbase/core"
 )
 
 type AddRandomItemToInventoryEffect struct {
@@ -56,7 +55,9 @@ func (ef *AddRandomItemToInventoryEffect) Verify(value string) error {
 		idsAny[i] = id
 	}
 
-	var records []*core.Record
+	var records []struct {
+		Id string `db:"id"`
+	}
 	err = adventuria.PocketBase.RecordQuery(adventuria.GameCollections.Get(adventuria.CollectionItems)).
 		Where(dbx.In("id", idsAny...)).
 		Select("id").
