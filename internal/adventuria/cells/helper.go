@@ -149,6 +149,13 @@ func setFilters(filter adventuria.ActivityFilterRecord, q *dbx.SelectQuery) *dbx
 	if len(filter.Themes()) > 0 {
 		q = q.AndWhere(dbx.OrLike("themes", filter.Themes()...))
 	}
+	if len(filter.GameTypes()) > 0 {
+		exp := make([]dbx.Expression, len(filter.GameTypes()))
+		for i, id := range filter.GameTypes() {
+			exp[i] = dbx.HashExp{"game_type": id}
+		}
+		q = q.AndWhere(dbx.Or(exp...))
+	}
 	if len(filter.Activities()) > 0 {
 		exp := make([]dbx.Expression, len(filter.Activities()))
 		for i, id := range filter.Activities() {

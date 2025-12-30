@@ -54,12 +54,15 @@ func (p *ParserController) Parse(ctx context.Context, limit uint64) {
 		adventuria.PocketBase.Logger().Error("Failed to parse genres", "error", err)
 		return
 	}
-	if err := p.parseGames(ctx, limit); err != nil {
+	if err := p.parseGameTypes(ctx); err != nil {
+		adventuria.PocketBase.Logger().Error("Failed to parse game types", "error", err)
+	}
+	if err := p.parseGames(ctx, limit, adventuria.GameSettings.IgdbForceUpdateGames()); err != nil {
 		adventuria.PocketBase.Logger().Error("Failed to parse games", "error", err)
 	}
 }
 
-func (p *ParserController) parseGames(ctx context.Context, limit uint64) error {
+func (p *ParserController) parseGames(ctx context.Context, limit uint64, forceUpdate bool) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
@@ -163,10 +166,16 @@ func (p *ParserController) parseGames(ctx context.Context, limit uint64) error {
 			}
 			gameRecord.SetThemes(themeIds)
 
+			gameTypeId, err := p.collectionReferenceToId(game.GameType)
+			if err != nil {
+				return err
+			}
+			gameRecord.SetGameType(gameTypeId)
+
 			records[i] = gameRecord
 		}
 
-		err = p.batchUpdate(records)
+		err = p.batchUpdate(records, forceUpdate)
 		if err != nil {
 			return err
 		}
@@ -216,7 +225,7 @@ func (p *ParserController) saveCompaniesFromGames(ctx context.Context, gs []game
 			compRecords[i] = companyRecord
 		}
 
-		if err = p.batchUpdate(compRecords); err != nil {
+		if err = p.batchUpdate(compRecords, false); err != nil {
 			return err
 		}
 	}
@@ -258,7 +267,7 @@ func (p *ParserController) saveKeywordsFromGames(ctx context.Context, gs []games
 		tagRecords[i] = tagRecord
 	}
 
-	return p.batchUpdate(tagRecords)
+	return p.batchUpdate(tagRecords, false)
 }
 
 func (p *ParserController) saveThemesFromGames(ctx context.Context, gs []games.Game) error {
@@ -295,7 +304,7 @@ func (p *ParserController) saveThemesFromGames(ctx context.Context, gs []games.G
 		themeRecords[i] = themeRecord
 	}
 
-	return p.batchUpdate(themeRecords)
+	return p.batchUpdate(themeRecords, false)
 }
 
 func (p *ParserController) parsePlatforms(ctx context.Context, limit uint64) error {
@@ -324,7 +333,7 @@ func (p *ParserController) parsePlatforms(ctx context.Context, limit uint64) err
 			records[i] = platformRecord
 		}
 
-		err = p.batchUpdate(records)
+		err = p.batchUpdate(records, false)
 		if err != nil {
 			return err
 		}
@@ -359,7 +368,7 @@ func (p *ParserController) parseCompanies(ctx context.Context, limit uint64) err
 			records[i] = companyRecord
 		}
 
-		err = p.batchUpdate(records)
+		err = p.batchUpdate(records, false)
 		if err != nil {
 			return err
 		}
@@ -394,7 +403,7 @@ func (p *ParserController) parseGenres(ctx context.Context, limit uint64) error 
 			records[i] = genreRecord
 		}
 
-		err = p.batchUpdate(records)
+		err = p.batchUpdate(records, false)
 		if err != nil {
 			return err
 		}
@@ -403,7 +412,36 @@ func (p *ParserController) parseGenres(ctx context.Context, limit uint64) error 
 	return nil
 }
 
-func (p *ParserController) batchUpdate(records []games.UpdatableRecord) error {
+func (p *ParserController) parseGameTypes(ctx context.Context) error {
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	gameTypes, err := p.parser.FetchGameTypesAll(ctx)
+	if err != nil {
+		return err
+	}
+
+	records := make([]games.UpdatableRecord, len(gameTypes))
+	for i, gameType := range gameTypes {
+		record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionGameTypes))
+
+		gameTypeRecord := games.NewGameTypeFromRecord(record)
+		gameTypeRecord.SetIdDb(gameType.IdDb)
+		gameTypeRecord.SetName(gameType.Name)
+		gameTypeRecord.SetChecksum(gameType.Checksum)
+
+		records[i] = gameTypeRecord
+	}
+
+	err = p.batchUpdate(records, false)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (p *ParserController) batchUpdate(records []games.UpdatableRecord, forceUpdate bool) error {
 	checksums, err := p.obtainChecksums(records)
 	if err != nil {
 		return err
@@ -411,7 +449,7 @@ func (p *ParserController) batchUpdate(records []games.UpdatableRecord) error {
 
 	for _, record := range records {
 		if extRecord, ok := checksums[record.IdDb()]; ok {
-			if extRecord.GetString("checksum") == record.Checksum() {
+			if !forceUpdate && extRecord.GetString("checksum") == record.Checksum() {
 				continue
 			}
 
@@ -466,6 +504,21 @@ func (p *ParserController) obtainChecksums(updatables []games.UpdatableRecord) (
 	}
 
 	return checksums, nil
+}
+
+func (p *ParserController) collectionReferenceToId(reference games.CollectionReferenceSingle) (string, error) {
+	var record core.Record
+	err := adventuria.PocketBase.
+		RecordQuery(adventuria.GameCollections.Get(reference.Collection)).
+		Where(
+			dbx.HashExp{"id_db": reference.Id},
+		).
+		One(&record)
+	if err != nil {
+		return "", err
+	}
+
+	return record.Id, nil
 }
 
 func (p *ParserController) collectionReferenceToIds(reference games.CollectionReference) ([]string, error) {

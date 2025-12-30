@@ -26,6 +26,8 @@ type ActivityFilterRecord interface {
 	SetTags([]string)
 	Themes() []string
 	SetThemes([]string)
+	GameTypes() []string
+	SetGameTypes([]string)
 	MinPrice() int
 	SetMinPrice(int)
 	MaxPrice() int

@@ -51,6 +51,14 @@ func (a *ActivityRecordBase) SetSlug(slug string) {
 	a.Set("slug", slug)
 }
 
+func (a *ActivityRecordBase) GameType() string {
+	return a.GetString("game_type")
+}
+
+func (a *ActivityRecordBase) SetGameType(gameType string) {
+	a.Set("game_type", gameType)
+}
+
 func (a *ActivityRecordBase) ReleaseDate() types.DateTime {
 	return a.GetDateTime("releaseDate")
 }

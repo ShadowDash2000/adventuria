@@ -193,6 +193,29 @@ func (p *Parser) FetchThemesByIDs(ctx context.Context, ids []uint64) ([]games.Th
 	return res, nil
 }
 
+func (p *Parser) FetchGameTypesAll(ctx context.Context) ([]games.GameType, error) {
+	count, err := p.client.GameTypes.Count(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	gameTypes, err := p.client.GameTypes.Paginated(ctx, 0, count)
+	if err != nil {
+		return nil, err
+	}
+
+	res := make([]games.GameType, len(gameTypes))
+	for i, gameType := range gameTypes {
+		res[i] = games.GameType{
+			IdDb:     strconv.FormatUint(gameType.GetId(), 10),
+			Name:     gameType.GetType(),
+			Checksum: gameType.GetChecksum(),
+		}
+	}
+
+	return res, nil
+}
+
 type ParseGamesMessage struct {
 	Games []games.Game
 	Err   error
@@ -295,9 +318,13 @@ func (p *Parser) ParseGames(ctx context.Context, count, offset, limit uint64) (<
 					}
 
 					res.Games[i] = games.Game{
-						IdDb:        strconv.FormatUint(game.GetId(), 10),
-						Name:        game.GetName(),
-						Slug:        game.GetSlug(),
+						IdDb: strconv.FormatUint(game.GetId(), 10),
+						Name: game.GetName(),
+						Slug: game.GetSlug(),
+						GameType: games.CollectionReferenceSingle{
+							Id:         game.GetGameType().GetId(),
+							Collection: adventuria.CollectionGameTypes,
+						},
 						ReleaseDate: releaseDate,
 						Platforms: games.CollectionReference{
 							Ids:        platformIds,

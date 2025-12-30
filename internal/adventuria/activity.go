@@ -17,6 +17,8 @@ type ActivityRecord interface {
 	SetName(string)
 	Slug() string
 	SetSlug(string)
+	GameType() string
+	SetGameType(string)
 	ReleaseDate() types.DateTime
 	SetReleaseDate(types.DateTime)
 	Platforms() []string

@@ -207,3 +207,7 @@ func (s *Settings) DisableHLTBParser() bool {
 func (s *Settings) OnKillParser() *event.Hook[*OnKillParserEvent] {
 	return s.onKillParser
 }
+
+func (s *Settings) IgdbForceUpdateGames() bool {
+	return s.GetBool("igdb_force_update_games")
+}

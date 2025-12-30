@@ -87,6 +87,14 @@ func (a *ActivityFilterBase) SetThemes(themes []string) {
 	a.Set("themes", themes)
 }
 
+func (a *ActivityFilterBase) GameTypes() []string {
+	return a.GetStringSlice("game_types")
+}
+
+func (a *ActivityFilterBase) SetGameTypes(gameType []string) {
+	a.Set("game_types", gameType)
+}
+
 func (a *ActivityFilterBase) MinPrice() int {
 	return a.GetInt("min_price")
 }

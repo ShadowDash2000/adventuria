@@ -16,6 +16,7 @@ const (
 	CollectionGenres         = "genres"
 	CollectionTags           = "tags"
 	CollectionThemes         = "themes"
+	CollectionGameTypes      = "game_types"
 	CollectionActivityFilter = "activity_filter"
 	CollectionHowLongToBeat  = "howlongtobeat"
 	CollectionSteamSpy       = "steam_spy"

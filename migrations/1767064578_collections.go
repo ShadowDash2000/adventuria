@@ -1859,6 +1859,15 @@ func init() {
 						"required": false,
 						"system": false,
 						"type": "bool"
+					},
+					{
+						"hidden": false,
+						"id": "bool3586201991",
+						"name": "igdb_force_update_games",
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "bool"
 					}
 				],
 				"id": "pbc_2769025244",
@@ -2490,6 +2499,19 @@ func init() {
 						"type": "relation"
 					},
 					{
+						"cascadeDelete": false,
+						"collectionId": "pbc_2511585327",
+						"hidden": false,
+						"id": "relation1741372165",
+						"maxSelect": 1,
+						"minSelect": 0,
+						"name": "game_type",
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "relation"
+					},
+					{
 						"hidden": false,
 						"id": "number1276789363",
 						"max": null,
@@ -2701,7 +2723,7 @@ func init() {
 					{
 						"autogeneratePattern": "",
 						"hidden": false,
-						"id": "_clone_VBBr",
+						"id": "_clone_9UKu",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -2714,7 +2736,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_70FQ",
+						"id": "_clone_xgSE",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_id",
@@ -2726,7 +2748,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_mni0",
+						"id": "_clone_NBaz",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_price",
@@ -2952,7 +2974,7 @@ func init() {
 					{
 						"autogeneratePattern": "",
 						"hidden": false,
-						"id": "_clone_XucM",
+						"id": "_clone_k4VJ",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -2965,7 +2987,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_UtB9",
+						"id": "_clone_XRFN",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_id",
@@ -2977,7 +2999,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_i0Vo",
+						"id": "_clone_4ydC",
 						"max": null,
 						"min": 0,
 						"name": "hltb_id",
@@ -2989,7 +3011,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_iQTl",
+						"id": "_clone_6mOR",
 						"max": null,
 						"min": 0,
 						"name": "hltb_campaign_time",
@@ -3098,6 +3120,19 @@ func init() {
 						"required": false,
 						"system": false,
 						"type": "bool"
+					},
+					{
+						"cascadeDelete": false,
+						"collectionId": "pbc_2511585327",
+						"hidden": false,
+						"id": "relation1795420351",
+						"maxSelect": 999,
+						"minSelect": 0,
+						"name": "game_types",
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "relation"
 					},
 					{
 						"cascadeDelete": false,
@@ -3278,7 +3313,7 @@ func init() {
 					{
 						"autogeneratePattern": "",
 						"hidden": false,
-						"id": "_clone_MUgi",
+						"id": "_clone_Qzgj",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -3291,7 +3326,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_uybO",
+						"id": "_clone_nri8",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_id",
@@ -3303,7 +3338,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_D0XX",
+						"id": "_clone_sJ2D",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_price",
@@ -3345,7 +3380,7 @@ func init() {
 					{
 						"autogeneratePattern": "",
 						"hidden": false,
-						"id": "_clone_zNmp",
+						"id": "_clone_PZfO",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -3358,7 +3393,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_gIFK",
+						"id": "_clone_uUBK",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_id",
@@ -3370,7 +3405,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_VBhY",
+						"id": "_clone_Cflr",
 						"max": null,
 						"min": 0,
 						"name": "hltb_id",
@@ -3382,7 +3417,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_8ai3",
+						"id": "_clone_dgbV",
 						"max": null,
 						"min": 0,
 						"name": "hltb_campaign_time",
@@ -3839,6 +3874,98 @@ func init() {
 				],
 				"listRule": "",
 				"name": "themes",
+				"system": false,
+				"type": "base",
+				"updateRule": null,
+				"viewRule": ""
+			},
+			{
+				"createRule": null,
+				"deleteRule": null,
+				"fields": [
+					{
+						"autogeneratePattern": "[a-z0-9]{15}",
+						"hidden": false,
+						"id": "text3208210256",
+						"max": 15,
+						"min": 15,
+						"name": "id",
+						"pattern": "^[a-z0-9]+$",
+						"presentable": false,
+						"primaryKey": true,
+						"required": true,
+						"system": true,
+						"type": "text"
+					},
+					{
+						"hidden": false,
+						"id": "autodate2990389176",
+						"name": "created",
+						"onCreate": true,
+						"onUpdate": false,
+						"presentable": false,
+						"system": false,
+						"type": "autodate"
+					},
+					{
+						"hidden": false,
+						"id": "autodate3332085495",
+						"name": "updated",
+						"onCreate": true,
+						"onUpdate": true,
+						"presentable": false,
+						"system": false,
+						"type": "autodate"
+					},
+					{
+						"autogeneratePattern": "",
+						"hidden": false,
+						"id": "text596198703",
+						"max": 0,
+						"min": 0,
+						"name": "id_db",
+						"pattern": "",
+						"presentable": false,
+						"primaryKey": false,
+						"required": true,
+						"system": false,
+						"type": "text"
+					},
+					{
+						"autogeneratePattern": "",
+						"hidden": false,
+						"id": "text1579384326",
+						"max": 0,
+						"min": 0,
+						"name": "name",
+						"pattern": "",
+						"presentable": false,
+						"primaryKey": false,
+						"required": true,
+						"system": false,
+						"type": "text"
+					},
+					{
+						"autogeneratePattern": "",
+						"hidden": false,
+						"id": "text3731873690",
+						"max": 0,
+						"min": 0,
+						"name": "checksum",
+						"pattern": "",
+						"presentable": false,
+						"primaryKey": false,
+						"required": true,
+						"system": false,
+						"type": "text"
+					}
+				],
+				"id": "pbc_2511585327",
+				"indexes": [
+					"CREATE UNIQUE INDEX ` + "`" + `idx_6imnUib349` + "`" + ` ON ` + "`" + `game_types` + "`" + ` (` + "`" + `id_db` + "`" + `)"
+				],
+				"listRule": "",
+				"name": "game_types",
 				"system": false,
 				"type": "base",
 				"updateRule": null,
