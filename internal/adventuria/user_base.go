@@ -4,6 +4,7 @@ import (
 	"adventuria/pkg/event"
 	"errors"
 	"fmt"
+	"sync"
 
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
@@ -16,6 +17,7 @@ type UserBase struct {
 	timer              Timer
 	stats              Stats
 	inAction           bool
+	mu                 sync.RWMutex
 	hookIds            []string
 	pEffectsUnsubGroup []event.UnsubGroup
 
@@ -402,10 +404,14 @@ func (u *UserBase) SetIsStreamLive(isLive bool) {
 }
 
 func (u *UserBase) isInAction() bool {
+	u.mu.RLock()
+	defer u.mu.RUnlock()
 	return u.inAction
 }
 
 func (u *UserBase) setIsInAction(b bool) {
+	u.mu.Lock()
+	defer u.mu.Unlock()
 	u.inAction = b
 }
 
