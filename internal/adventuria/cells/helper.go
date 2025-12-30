@@ -3,6 +3,7 @@ package cells
 import (
 	"adventuria/internal/adventuria"
 	"fmt"
+	"math/rand/v2"
 
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
@@ -97,25 +98,36 @@ func updateActivitiesFromFilter(user adventuria.User, filter adventuria.Activity
 
 func fetchActivitiesByFilter(filter adventuria.ActivityFilterRecord) ([]string, error) {
 	q := adventuria.PocketBase.RecordQuery(adventuria.GameCollections.Get(adventuria.CollectionActivities)).
-		Limit(20).
-		OrderBy("random()")
+		Select("id")
 
 	if filter != nil {
 		q = setFilters(filter, q)
 	}
 
-	var records []*core.Record
+	var records []struct {
+		Id string `db:"id"`
+	}
+
 	err := q.All(&records)
 	if err != nil {
 		return nil, err
 	}
 
-	res := make([]string, len(records))
+	ids := make([]string, len(records))
 	for i, record := range records {
-		res[i] = record.Id
+		ids[i] = record.Id
 	}
 
-	return res, nil
+	rand.Shuffle(len(ids), func(i, j int) {
+		ids[i], ids[j] = ids[j], ids[i]
+	})
+
+	count := 20
+	if len(ids) < count {
+		count = len(ids)
+	}
+
+	return ids[:count], nil
 }
 
 func setFilters(filter adventuria.ActivityFilterRecord, q *dbx.SelectQuery) *dbx.SelectQuery {
