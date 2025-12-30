@@ -98,14 +98,13 @@ func (a *DropAction) Do(user adventuria.User, req adventuria.ActionRequest) (*ad
 	action.SetComment("")
 	action.SetActivity("")
 	action.SetDiceRoll(0)
+	action.SetCanMove(true)
 
 	if !onBeforeDropEvent.IsSafeDrop && !currentCell.IsSafeDrop() {
 		user.SetPoints(user.Points() + onBeforeDropEvent.PointsForDrop)
 		user.SetDropsInARow(user.DropsInARow() + 1)
 
-		if user.IsSafeDrop() {
-			action.SetCanMove(true)
-		} else {
+		if !user.IsSafeDrop() {
 			user.SetIsInJail(true)
 
 			_, err = user.MoveToClosestCellType("jail")
