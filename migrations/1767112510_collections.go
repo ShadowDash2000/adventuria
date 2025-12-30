@@ -679,7 +679,7 @@ func init() {
 						"type": "autodate"
 					},
 					{
-						"hidden": true,
+						"hidden": false,
 						"id": "autodate3332085495",
 						"name": "updated",
 						"onCreate": true,
@@ -2723,7 +2723,7 @@ func init() {
 					{
 						"autogeneratePattern": "",
 						"hidden": false,
-						"id": "_clone_9UKu",
+						"id": "_clone_TTGv",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -2736,7 +2736,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_xgSE",
+						"id": "_clone_FHus",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_id",
@@ -2748,7 +2748,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_NBaz",
+						"id": "_clone_6qTs",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_price",
@@ -2974,7 +2974,7 @@ func init() {
 					{
 						"autogeneratePattern": "",
 						"hidden": false,
-						"id": "_clone_k4VJ",
+						"id": "_clone_lXAY",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -2987,7 +2987,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_XRFN",
+						"id": "_clone_AwXD",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_id",
@@ -2999,7 +2999,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_4ydC",
+						"id": "_clone_mwX2",
 						"max": null,
 						"min": 0,
 						"name": "hltb_id",
@@ -3011,7 +3011,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_6mOR",
+						"id": "_clone_Wa6x",
 						"max": null,
 						"min": 0,
 						"name": "hltb_campaign_time",
@@ -3313,7 +3313,7 @@ func init() {
 					{
 						"autogeneratePattern": "",
 						"hidden": false,
-						"id": "_clone_Qzgj",
+						"id": "_clone_tV72",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -3326,7 +3326,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_nri8",
+						"id": "_clone_iV5N",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_id",
@@ -3338,7 +3338,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_sJ2D",
+						"id": "_clone_tKiy",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_price",
@@ -3380,7 +3380,7 @@ func init() {
 					{
 						"autogeneratePattern": "",
 						"hidden": false,
-						"id": "_clone_PZfO",
+						"id": "_clone_csmM",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -3393,7 +3393,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_uUBK",
+						"id": "_clone_GSD5",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_id",
@@ -3405,7 +3405,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_Cflr",
+						"id": "_clone_l3PL",
 						"max": null,
 						"min": 0,
 						"name": "hltb_id",
@@ -3417,7 +3417,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_dgbV",
+						"id": "_clone_t8Xf",
 						"max": null,
 						"min": 0,
 						"name": "hltb_campaign_time",
