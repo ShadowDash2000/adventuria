@@ -97,8 +97,34 @@ func updateActivitiesFromFilter(user adventuria.User, filter adventuria.Activity
 }
 
 func fetchActivitiesByFilter(filter adventuria.ActivityFilterRecord) ([]string, error) {
+	countQuery := adventuria.PocketBase.RecordQuery(adventuria.GameCollections.Get(adventuria.CollectionActivities))
+	if filter != nil {
+		countQuery = setFilters(filter, countQuery)
+	}
+
+	var totalCount int
+	err := countQuery.Select("count(id)").Row(&totalCount)
+	if err != nil {
+		return nil, err
+	}
+
+	if totalCount == 0 {
+		return []string{}, nil
+	}
+
+	const maxPoolSize = 20000
+	limit := totalCount
+	offset := 0
+
+	if totalCount > maxPoolSize {
+		limit = maxPoolSize
+		offset = rand.N(totalCount - maxPoolSize + 1)
+	}
+
 	q := adventuria.PocketBase.RecordQuery(adventuria.GameCollections.Get(adventuria.CollectionActivities)).
-		Select("id")
+		Select("id").
+		Limit(int64(limit)).
+		Offset(int64(offset))
 
 	if filter != nil {
 		q = setFilters(filter, q)
@@ -107,27 +133,26 @@ func fetchActivitiesByFilter(filter adventuria.ActivityFilterRecord) ([]string, 
 	var records []struct {
 		Id string `db:"id"`
 	}
-
-	err := q.All(&records)
+	err = q.All(&records)
 	if err != nil {
 		return nil, err
 	}
 
-	ids := make([]string, len(records))
-	for i, record := range records {
-		ids[i] = record.Id
-	}
-
-	rand.Shuffle(len(ids), func(i, j int) {
-		ids[i], ids[j] = ids[j], ids[i]
+	rand.Shuffle(len(records), func(i, j int) {
+		records[i], records[j] = records[j], records[i]
 	})
 
-	count := 20
-	if len(ids) < count {
-		count = len(ids)
+	resultLimit := 20
+	if len(records) < resultLimit {
+		resultLimit = len(records)
 	}
 
-	return ids[:count], nil
+	res := make([]string, resultLimit)
+	for i := 0; i < resultLimit; i++ {
+		res[i] = records[i].Id
+	}
+
+	return res, nil
 }
 
 func setFilters(filter adventuria.ActivityFilterRecord, q *dbx.SelectQuery) *dbx.SelectQuery {
