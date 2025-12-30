@@ -352,7 +352,7 @@ func (p *Parser) ParseGames(ctx context.Context, count, offset, limit uint64) (<
 						},
 						SteamAppId: steamAppIds[game.GetId()],
 						Cover:      covers[game.GetId()],
-						Checksum:   strconv.FormatUint(game.GetId(), 10),
+						Checksum:   game.GetChecksum(),
 					}
 				}
 
