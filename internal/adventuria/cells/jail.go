@@ -19,7 +19,12 @@ func NewCellJail() adventuria.CellCreator {
 }
 
 func (c *CellJail) OnCellReached(ctx *adventuria.CellReachedContext) error {
-	if !ctx.User.IsInJail() {
+	if ctx.User.IsInJail() {
+		ctx.User.LastAction().SetCanMove(false)
+		if err := c.refreshItems(ctx.User); err != nil {
+			return err
+		}
+	} else {
 		ctx.User.LastAction().SetCanMove(true)
 	}
 	return nil
