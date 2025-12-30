@@ -92,7 +92,10 @@ func (c *CellRollItem) refreshItems(user adventuria.User) error {
 	}
 	err := adventuria.PocketBase.
 		RecordQuery(adventuria.GameCollections.Get(adventuria.CollectionItems)).
-		Where(dbx.HashExp{"type": c.Value()}).
+		Where(dbx.And(
+			dbx.HashExp{"type": c.Value()},
+			dbx.NewExp("isRollable = true"),
+		)).
 		Select("id").
 		All(&records)
 	if err != nil {
