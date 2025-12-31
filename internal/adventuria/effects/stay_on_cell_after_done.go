@@ -28,6 +28,15 @@ func (ef *StayOnCellAfterDoneEffect) Subscribe(
 				}, nil
 			}
 
+			// we can "done" only on wheel cell, so we won't need unnesseccary checks
+			cellWheel, ok := cell.(adventuria.CellWheel)
+			if !ok {
+				return &event.Result{
+					Success: false,
+					Error:   "current cell isn't wheel cell",
+				}, nil
+			}
+
 			lastAction := ctx.User.LastAction()
 			err := adventuria.PocketBase.Save(lastAction.ProxyRecord())
 			if err != nil {
@@ -37,13 +46,11 @@ func (ef *StayOnCellAfterDoneEffect) Subscribe(
 				}, fmt.Errorf("stayOnCellAfterDone: %w", err)
 			}
 
-			err = cell.OnCellReached(&adventuria.CellReachedContext{
-				User: ctx.User,
-			})
+			err = cellWheel.RefreshItems(ctx.User)
 			if err != nil {
 				return &event.Result{
 					Success: false,
-					Error:   "internal error: failed to trigger onCellReached event",
+					Error:   "internal error: failed to refresh items",
 				}, fmt.Errorf("stayOnCellAfterDone: %w", err)
 			}
 
