@@ -10,8 +10,8 @@ type ReturnToPrevCellEffect struct {
 	adventuria.EffectRecord
 }
 
-func (ef *ReturnToPrevCellEffect) CanUse(_ adventuria.EffectContext) bool {
-	return true
+func (ef *ReturnToPrevCellEffect) CanUse(e adventuria.EffectContext) bool {
+	return !adventuria.GameActions.CanDo(e.User, "done")
 }
 
 func (ef *ReturnToPrevCellEffect) Subscribe(
