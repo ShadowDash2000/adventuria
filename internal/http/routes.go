@@ -2,8 +2,6 @@ package http
 
 import (
 	"adventuria/internal/adventuria"
-	"adventuria/pkg/etag"
-	"os"
 
 	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/core"
@@ -12,10 +10,6 @@ import (
 
 func Route(game *adventuria.Game, router *router.Router[*core.RequestEvent]) {
 	handlers := New(game)
-
-	gs := router.Group("")
-	gs.BindFunc(apis.WrapStdMiddleware(etag.Etag))
-	gs.GET("/{path...}", apis.Static(os.DirFS("./static"), false))
 
 	g := router.Group("/api")
 
