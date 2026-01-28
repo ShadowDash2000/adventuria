@@ -272,3 +272,17 @@ func (g *Game) GetAvailableActions(userId string) ([]ActionType, error) {
 func (g *Game) Context() context.Context {
 	return g.ctx
 }
+
+func (g *Game) GetItemEffectVariants(userId, invItemId, effectId string) (any, error) {
+	user, err := GameUsers.GetByID(userId)
+	if err != nil {
+		return nil, err
+	}
+
+	invItem, ok := user.Inventory().GetItemById(invItemId)
+	if !ok {
+		return nil, errors.New("inventory item not found")
+	}
+
+	return invItem.GetEffectVariants(effectId)
+}

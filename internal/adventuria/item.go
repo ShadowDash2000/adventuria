@@ -40,6 +40,7 @@ type Item interface {
 	CanUse() bool
 	Use() (OnUseSuccess, OnUseFail, error)
 	Drop() error
+	GetEffectVariants(effectId string) (any, error)
 }
 
 type OnUseSuccess func() error

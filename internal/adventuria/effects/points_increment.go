@@ -39,3 +39,7 @@ func (ef *PointsIncrementEffect) Verify(value string) error {
 func (ef *PointsIncrementEffect) DecodeValue(value string) (any, error) {
 	return strconv.Atoi(value)
 }
+
+func (ef *PointsIncrementEffect) GetVariants(ctx adventuria.EffectContext) any {
+	return nil
+}

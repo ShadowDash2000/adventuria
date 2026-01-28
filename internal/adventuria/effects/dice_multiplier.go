@@ -39,3 +39,7 @@ func (ef *DiceMultiplierEffect) Verify(value string) error {
 func (ef *DiceMultiplierEffect) DecodeValue(value string) (any, error) {
 	return strconv.Atoi(value)
 }
+
+func (ef *DiceMultiplierEffect) GetVariants(ctx adventuria.EffectContext) any {
+	return nil
+}

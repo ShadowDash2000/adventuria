@@ -38,3 +38,7 @@ func (ef *JailEscapeEffect) Verify(_ string) error {
 func (ef *JailEscapeEffect) DecodeValue(_ string) (any, error) {
 	return nil, nil
 }
+
+func (ef *JailEscapeEffect) GetVariants(ctx adventuria.EffectContext) any {
+	return nil
+}

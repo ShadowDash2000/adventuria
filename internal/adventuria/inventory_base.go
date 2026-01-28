@@ -255,3 +255,8 @@ func (i *InventoryBase) DropInventory() error {
 	}
 	return nil
 }
+
+func (i *InventoryBase) GetItemById(invItemId string) (Item, bool) {
+	item, ok := i.items[invItemId]
+	return item, ok
+}

@@ -210,3 +210,17 @@ func (c *Cells) GetById(id string) (Cell, bool) {
 func (c *Cells) Count() int {
 	return c.cells.Count()
 }
+
+func (c *Cells) GetDistanceByIds(firstId, secondId string) (int, bool) {
+	var (
+		firstCellOrder, secondCellOrder int
+		ok                              bool
+	)
+	if firstCellOrder, ok = c.GetOrderById(firstId); !ok {
+		return 0, false
+	} else if secondCellOrder, ok = c.GetOrderById(secondId); !ok {
+		return 0, false
+	}
+
+	return abs(firstCellOrder - secondCellOrder), true
+}

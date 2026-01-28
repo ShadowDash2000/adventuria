@@ -17,4 +17,5 @@ type Inventory interface {
 	DropItem(string) error
 	DropRandomItem() error
 	DropInventory() error
+	GetItemById(invItemId string) (Item, bool)
 }

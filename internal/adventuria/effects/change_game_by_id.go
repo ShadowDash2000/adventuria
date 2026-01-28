@@ -57,3 +57,7 @@ func (ef *ChangeGameByIdEffect) Verify(gameId string) error {
 func (ef *ChangeGameByIdEffect) DecodeValue(_ string) (any, error) {
 	return nil, nil
 }
+
+func (ef *ChangeGameByIdEffect) GetVariants(ctx adventuria.EffectContext) any {
+	return nil
+}

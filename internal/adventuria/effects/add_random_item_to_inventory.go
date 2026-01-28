@@ -76,3 +76,7 @@ func (ef *AddRandomItemToInventoryEffect) Verify(value string) error {
 func (ef *AddRandomItemToInventoryEffect) DecodeValue(value string) (any, error) {
 	return strings.Split(value, ";"), nil
 }
+
+func (ef *AddRandomItemToInventoryEffect) GetVariants(ctx adventuria.EffectContext) any {
+	return nil
+}

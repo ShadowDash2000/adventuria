@@ -12,7 +12,7 @@ type ItemBase struct {
 	isAwake           bool
 	user              User
 	invItemRecord     core.BaseRecordProxy
-	effects           []Effect
+	effects           map[string]Effect
 	effectsUnsubGroup map[string]event.UnsubGroup
 	hookIds           []string
 }
@@ -23,14 +23,14 @@ func NewItemFromInventoryRecord(user User, invItemRecord *core.Record) (Item, er
 		return nil, err
 	}
 
-	var effects []Effect
+	effects := make(map[string]Effect)
 	for _, effectRecord := range itemRecord.ExpandedAll("effects") {
 		effect, err := NewEffectFromRecord(effectRecord)
 		if err != nil {
 			return nil, err
 		}
 
-		effects = append(effects, effect)
+		effects[effect.ID()] = effect
 	}
 
 	item := &ItemBase{
@@ -217,4 +217,16 @@ func (i *ItemBase) Drop() error {
 	}
 
 	return PocketBase.Delete(i.invItemRecord.ProxyRecord())
+}
+
+func (i *ItemBase) GetEffectVariants(effectId string) (any, error) {
+	effect, ok := i.effects[effectId]
+	if !ok {
+		return nil, errors.New("effect not found")
+	}
+
+	return effect.GetVariants(EffectContext{
+		User:      i.user,
+		InvItemID: i.invItemRecord.Id,
+	}), nil
 }

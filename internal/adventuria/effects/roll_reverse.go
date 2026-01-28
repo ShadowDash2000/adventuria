@@ -35,3 +35,7 @@ func (ef *RollReverseEffect) Verify(_ string) error {
 func (ef *RollReverseEffect) DecodeValue(_ string) (any, error) {
 	return nil, nil
 }
+
+func (ef *RollReverseEffect) GetVariants(ctx adventuria.EffectContext) any {
+	return nil
+}

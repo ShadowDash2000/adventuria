@@ -36,3 +36,7 @@ func (ef *DropBlockedEffect) Verify(_ string) error {
 func (ef *DropBlockedEffect) DecodeValue(_ string) (any, error) {
 	return nil, nil
 }
+
+func (ef *DropBlockedEffect) GetVariants(ctx adventuria.EffectContext) any {
+	return nil
+}

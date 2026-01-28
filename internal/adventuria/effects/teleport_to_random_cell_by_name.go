@@ -76,3 +76,7 @@ func (ef *TeleportToRandomCellByNameEffect) Verify(value string) error {
 func (ef *TeleportToRandomCellByNameEffect) DecodeValue(value string) (any, error) {
 	return strings.Split(value, ";"), nil
 }
+
+func (ef *TeleportToRandomCellByNameEffect) GetVariants(ctx adventuria.EffectContext) any {
+	return nil
+}

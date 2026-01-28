@@ -55,3 +55,7 @@ func (ef *ChangeDicesEffect) Verify(value string) error {
 func (ef *ChangeDicesEffect) DecodeValue(value string) (any, error) {
 	return strings.Split(value, ";"), nil
 }
+
+func (ef *ChangeDicesEffect) GetVariants(ctx adventuria.EffectContext) any {
+	return nil
+}

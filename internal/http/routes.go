@@ -45,4 +45,5 @@ func Route(game *adventuria.Game, router *router.Router[*core.RequestEvent]) {
 
 	gab.POST("/use-item", handlers.UseItemHandler)
 	gab.POST("/drop-item", handlers.DropItemHandler)
+	gab.POST("/get-item-effect-variants", handlers.GetItemEffectVariants)
 }

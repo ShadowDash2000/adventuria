@@ -44,3 +44,7 @@ func (ef *DropInventoryEffect) Verify(_ string) error {
 func (ef *DropInventoryEffect) DecodeValue(_ string) (any, error) {
 	return nil, nil
 }
+
+func (ef *DropInventoryEffect) GetVariants(ctx adventuria.EffectContext) any {
+	return nil
+}

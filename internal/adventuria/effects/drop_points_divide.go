@@ -39,3 +39,7 @@ func (ef *DropPointsDivideEffect) Verify(value string) error {
 func (ef *DropPointsDivideEffect) DecodeValue(value string) (any, error) {
 	return strconv.Atoi(value)
 }
+
+func (ef *DropPointsDivideEffect) GetVariants(ctx adventuria.EffectContext) any {
+	return nil
+}

@@ -39,3 +39,7 @@ func (ef *DiceIncrementEffect) Verify(value string) error {
 func (ef *DiceIncrementEffect) DecodeValue(value string) (any, error) {
 	return strconv.Atoi(value)
 }
+
+func (ef *DiceIncrementEffect) GetVariants(ctx adventuria.EffectContext) any {
+	return nil
+}

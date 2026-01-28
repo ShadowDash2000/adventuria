@@ -33,3 +33,7 @@ func (ef *NoCoinsForDoneEffect) Verify(_ string) error {
 func (ef *NoCoinsForDoneEffect) DecodeValue(_ string) (any, error) {
 	return nil, nil
 }
+
+func (ef *NoCoinsForDoneEffect) GetVariants(ctx adventuria.EffectContext) any {
+	return nil
+}

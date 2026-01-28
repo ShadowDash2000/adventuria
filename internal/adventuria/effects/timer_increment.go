@@ -46,3 +46,7 @@ func (ef *TimerIncrementEffect) Verify(value string) error {
 func (ef *TimerIncrementEffect) DecodeValue(value string) (any, error) {
 	return strconv.Atoi(value)
 }
+
+func (ef *TimerIncrementEffect) GetVariants(ctx adventuria.EffectContext) any {
+	return nil
+}

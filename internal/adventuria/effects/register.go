@@ -33,6 +33,7 @@ func WithBaseEffects() {
 		"dropBlock":                   adventuria.NewEffect(&DropBlockedEffect{}),
 		"stayOnCellAfterDone":         adventuria.NewEffect(&StayOnCellAfterDoneEffect{}),
 		"debuffBlock":                 adventuria.NewEffect(&DebuffBlockEffect{}),
+		"paidMovementInRadius":        adventuria.NewEffect(&PaidMovementInRadiusEffect{}),
 	})
 
 	adventuria.RegisterPersistentEffects(map[string]adventuria.PersistentEffectCreator{

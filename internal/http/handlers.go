@@ -264,3 +264,21 @@ func (h *Handlers) GetAvailableActions(e *core.RequestEvent) error {
 
 	return e.JSON(http.StatusOK, actions)
 }
+
+func (h *Handlers) GetItemEffectVariants(e *core.RequestEvent) error {
+	req := struct {
+		InvItemId string `json:"inv_item_id"`
+		EffectId  string `json:"effect_id"`
+	}{}
+
+	if err := e.BindBody(&req); err != nil {
+		return e.JSON(http.StatusBadRequest, err.Error())
+	}
+
+	effectVariants, err := h.Game.GetItemEffectVariants(e.Auth.Id, req.InvItemId, req.EffectId)
+	if err != nil {
+		return e.JSON(http.StatusInternalServerError, err.Error())
+	}
+
+	return e.JSON(http.StatusOK, effectVariants)
+}

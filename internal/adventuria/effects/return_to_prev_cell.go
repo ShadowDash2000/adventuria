@@ -53,3 +53,7 @@ func (ef *ReturnToPrevCellEffect) Verify(_ string) error {
 func (ef *ReturnToPrevCellEffect) DecodeValue(_ string) (any, error) {
 	return nil, nil
 }
+
+func (ef *ReturnToPrevCellEffect) GetVariants(ctx adventuria.EffectContext) any {
+	return nil
+}

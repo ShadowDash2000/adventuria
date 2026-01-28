@@ -61,3 +61,7 @@ func (ef *ChooseGameEffect) Verify(_ string) error {
 func (ef *ChooseGameEffect) DecodeValue(_ string) (any, error) {
 	return nil, nil
 }
+
+func (ef *ChooseGameEffect) GetVariants(ctx adventuria.EffectContext) any {
+	return nil
+}

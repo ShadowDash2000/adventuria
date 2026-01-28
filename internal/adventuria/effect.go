@@ -16,7 +16,7 @@ type Effect interface {
 	CanUse(EffectContext) bool
 	Subscribe(EffectContext, EffectCallback) ([]event.Unsubscribe, error)
 	Verify(string) error
-	DecodeValue(string) (any, error)
+	GetVariants(EffectContext) any
 }
 
 type EffectContext struct {

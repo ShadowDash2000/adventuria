@@ -37,3 +37,7 @@ func (ef *ReplaceDiceRollEffect) Verify(value string) error {
 func (ef *ReplaceDiceRollEffect) DecodeValue(value string) (any, error) {
 	return strconv.Atoi(value)
 }
+
+func (ef *ReplaceDiceRollEffect) GetVariants(ctx adventuria.EffectContext) any {
+	return nil
+}

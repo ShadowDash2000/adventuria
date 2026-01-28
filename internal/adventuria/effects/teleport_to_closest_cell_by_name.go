@@ -75,3 +75,7 @@ func (ef *TeleportToClosestCellByNameEffect) Verify(value string) error {
 func (ef *TeleportToClosestCellByNameEffect) DecodeValue(value string) (any, error) {
 	return strings.Split(value, ";"), nil
 }
+
+func (ef *TeleportToClosestCellByNameEffect) GetVariants(ctx adventuria.EffectContext) any {
+	return nil
+}
