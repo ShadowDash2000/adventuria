@@ -70,6 +70,10 @@ func (ef *ChangeMaxGamePriceEffect) Subscribe(
 	case "unusable":
 		return []event.Unsubscribe{
 			ctx.User.OnAfterMove().BindFunc(func(e *adventuria.OnAfterMoveEvent) (*event.Result, error) {
+				if !ef.CanUse(ctx) {
+					return e.Next()
+				}
+
 				res, err := ef.tryToApplyEffect(ctx.User)
 				if err != nil {
 					return res, err
@@ -85,6 +89,10 @@ func (ef *ChangeMaxGamePriceEffect) Subscribe(
 			}),
 			ctx.User.OnAfterItemSave().BindFunc(func(e *adventuria.OnAfterItemSave) (*event.Result, error) {
 				if e.Item.IDInventory() != ctx.InvItemID {
+					return e.Next()
+				}
+
+				if !ef.CanUse(ctx) {
 					return e.Next()
 				}
 
