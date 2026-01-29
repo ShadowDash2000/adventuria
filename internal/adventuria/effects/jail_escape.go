@@ -22,6 +22,7 @@ func (ef *JailEscapeEffect) Subscribe(
 			if e.InvItemId == ctx.InvItemID {
 				ctx.User.SetIsInJail(false)
 				ctx.User.SetDropsInARow(0)
+				ctx.User.LastAction().SetCanMove(true)
 
 				callback()
 			}
