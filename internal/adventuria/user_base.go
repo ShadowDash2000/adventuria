@@ -355,7 +355,7 @@ func (u *UserBase) MoveToClosestCellByNames(cellNames ...string) ([]*OnAfterMove
 		found       bool
 	)
 	currentCellOrder := u.CurrentCellOrder()
-	for order := range cellsOrder {
+	for _, order := range cellsOrder {
 		distance := abs(order - currentCellOrder)
 		if !found || distance < minDistance {
 			closest = order
