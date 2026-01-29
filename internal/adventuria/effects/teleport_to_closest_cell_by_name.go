@@ -25,8 +25,8 @@ func (ef *TeleportToClosestCellByNameEffect) Subscribe(
 	return []event.Unsubscribe{
 		ctx.User.OnAfterItemSave().BindFunc(func(e *adventuria.OnAfterItemSave) (*event.Result, error) {
 			if e.Item.IDInventory() == ctx.InvItemID {
-				namesAny, _ := ef.DecodeValue(ef.GetString("value"))
-				_, err := ctx.User.MoveToClosestCellByNames(namesAny.([]string)...)
+				cellNames, _ := ef.DecodeValue(ef.GetString("value"))
+				_, err := ctx.User.MoveToClosestCellByNames(cellNames...)
 				if err != nil {
 					return &event.Result{
 						Success: false,
@@ -43,11 +43,10 @@ func (ef *TeleportToClosestCellByNameEffect) Subscribe(
 }
 
 func (ef *TeleportToClosestCellByNameEffect) Verify(value string) error {
-	decodedValue, err := ef.DecodeValue(value)
+	names, err := ef.DecodeValue(value)
 	if err != nil {
 		return fmt.Errorf("teleportToClosestCellByName: %w", err)
 	}
-	names := decodedValue.([]string)
 
 	exp := make([]dbx.Expression, len(names))
 	for i, name := range names {
@@ -72,10 +71,10 @@ func (ef *TeleportToClosestCellByNameEffect) Verify(value string) error {
 	return nil
 }
 
-func (ef *TeleportToClosestCellByNameEffect) DecodeValue(value string) (any, error) {
+func (ef *TeleportToClosestCellByNameEffect) DecodeValue(value string) ([]string, error) {
 	return strings.Split(value, ";"), nil
 }
 
-func (ef *TeleportToClosestCellByNameEffect) GetVariants(ctx adventuria.EffectContext) any {
+func (ef *TeleportToClosestCellByNameEffect) GetVariants(_ adventuria.EffectContext) any {
 	return nil
 }

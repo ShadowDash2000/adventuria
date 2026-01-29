@@ -26,8 +26,8 @@ func (ef *AddRandomItemToInventoryEffect) Subscribe(
 	return []event.Unsubscribe{
 		ctx.User.OnAfterAction().BindFunc(func(e *adventuria.OnAfterActionEvent) (*event.Result, error) {
 			if e.ActionType == "buyItem" {
-				idsAny, _ := ef.DecodeValue(ef.GetString("value"))
-				_, err := ctx.User.Inventory().AddItemById(helper.RandomItemFromSlice(idsAny.([]string)))
+				ids, _ := ef.DecodeValue(ef.GetString("value"))
+				_, err := ctx.User.Inventory().AddItemById(helper.RandomItemFromSlice(ids))
 				if err != nil {
 					return &event.Result{
 						Success: false,
@@ -44,11 +44,10 @@ func (ef *AddRandomItemToInventoryEffect) Subscribe(
 }
 
 func (ef *AddRandomItemToInventoryEffect) Verify(value string) error {
-	decodedValue, err := ef.DecodeValue(value)
+	ids, err := ef.DecodeValue(value)
 	if err != nil {
 		return fmt.Errorf("addRandomItemToInventory: %w", err)
 	}
-	ids := decodedValue.([]string)
 
 	idsAny := make([]any, len(ids))
 	for i, id := range ids {
@@ -73,10 +72,10 @@ func (ef *AddRandomItemToInventoryEffect) Verify(value string) error {
 	return nil
 }
 
-func (ef *AddRandomItemToInventoryEffect) DecodeValue(value string) (any, error) {
+func (ef *AddRandomItemToInventoryEffect) DecodeValue(value string) ([]string, error) {
 	return strings.Split(value, ";"), nil
 }
 
-func (ef *AddRandomItemToInventoryEffect) GetVariants(ctx adventuria.EffectContext) any {
+func (ef *AddRandomItemToInventoryEffect) GetVariants(_ adventuria.EffectContext) any {
 	return nil
 }

@@ -26,8 +26,8 @@ func (ef *TeleportToRandomCellByNameEffect) Subscribe(
 	return []event.Unsubscribe{
 		ctx.User.OnAfterItemSave().BindFunc(func(e *adventuria.OnAfterItemSave) (*event.Result, error) {
 			if e.Item.IDInventory() == ctx.InvItemID {
-				namesAny, _ := ef.DecodeValue(ef.GetString("value"))
-				_, err := ctx.User.MoveToCellName(helper.RandomItemFromSlice(namesAny.([]string)))
+				cellNames, _ := ef.DecodeValue(ef.GetString("value"))
+				_, err := ctx.User.MoveToCellName(helper.RandomItemFromSlice(cellNames))
 				if err != nil {
 					return &event.Result{
 						Success: false,
@@ -44,11 +44,10 @@ func (ef *TeleportToRandomCellByNameEffect) Subscribe(
 }
 
 func (ef *TeleportToRandomCellByNameEffect) Verify(value string) error {
-	decodedValue, err := ef.DecodeValue(value)
+	names, err := ef.DecodeValue(value)
 	if err != nil {
 		return fmt.Errorf("teleportToRandomCellByName: %w", err)
 	}
-	names := decodedValue.([]string)
 
 	namesAny := make([]any, len(names))
 	for i, name := range names {
@@ -73,10 +72,10 @@ func (ef *TeleportToRandomCellByNameEffect) Verify(value string) error {
 	return nil
 }
 
-func (ef *TeleportToRandomCellByNameEffect) DecodeValue(value string) (any, error) {
+func (ef *TeleportToRandomCellByNameEffect) DecodeValue(value string) ([]string, error) {
 	return strings.Split(value, ";"), nil
 }
 
-func (ef *TeleportToRandomCellByNameEffect) GetVariants(ctx adventuria.EffectContext) any {
+func (ef *TeleportToRandomCellByNameEffect) GetVariants(_ adventuria.EffectContext) any {
 	return nil
 }
