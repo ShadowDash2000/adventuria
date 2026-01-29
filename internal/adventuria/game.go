@@ -220,9 +220,23 @@ func (g *Game) DropItem(userId, itemId string) error {
 		return err
 	}
 
+	item, ok := user.Inventory().GetItemById(itemId)
+	if !ok {
+		return errors.New("item not found in inventory")
+	}
+
 	err = user.Inventory().DropItem(itemId)
 	if err != nil {
 		return err
+	}
+
+	if itemPrice := item.Price(); itemPrice > 0 {
+		user.SetBalance(user.Balance() + itemPrice/2)
+
+		err = PocketBase.Save(user.ProxyRecord())
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
