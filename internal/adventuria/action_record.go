@@ -78,12 +78,16 @@ func (a *ActionRecordBase) SetDiceRoll(roll int) {
 	a.Set("diceRoll", roll)
 }
 
-func (a *ActionRecordBase) ItemsUsed() []string {
-	return a.GetStringSlice("itemsUsed")
+func (a *ActionRecordBase) UsedItems() []string {
+	return a.GetStringSlice("used_items")
 }
 
-func (a *ActionRecordBase) SetItemsUsed(items []string) {
-	a.Set("itemsUsed", items)
+func (a *ActionRecordBase) UsedItemAppend(itemId string) {
+	a.Set("used_items", append(a.UsedItems(), itemId))
+}
+
+func (a *ActionRecordBase) SetUsedItems(items []string) {
+	a.Set("used_items", items)
 }
 
 func (a *ActionRecordBase) ItemsList() ([]string, error) {
@@ -109,4 +113,15 @@ func (a *ActionRecordBase) CustomActivityFilter() *CustomActivityFilter {
 
 func (a *ActionRecordBase) ClearCustomActivityFilter() {
 	a.activityFilter = CustomActivityFilter{}
+}
+
+// MarkAsNew resets the action record to a new state
+// Note: after calling this method, the record will be saved as a new record
+func (a *ActionRecordBase) MarkAsNew() {
+	a.ProxyRecord().MarkAsNew()
+	a.ProxyRecord().Set("id", "")
+	a.SetComment("")
+	a.SetActivity("")
+	a.SetDiceRoll(0)
+	a.SetUsedItems([]string{})
 }

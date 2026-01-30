@@ -93,11 +93,7 @@ func (a *DropAction) Do(user adventuria.User, req adventuria.ActionRequest) (*ad
 			Error:   "internal error: can't save action record",
 		}, fmt.Errorf("drop.do(): %w", err)
 	}
-	action.ProxyRecord().MarkAsNew()
-	action.ProxyRecord().Set("id", "")
-	action.SetComment("")
-	action.SetActivity("")
-	action.SetDiceRoll(0)
+	//action.MarkAsNew()
 	action.SetCanMove(true)
 
 	if !onBeforeDropEvent.IsSafeDrop && !currentCell.IsSafeDrop() {

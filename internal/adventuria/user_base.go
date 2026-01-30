@@ -243,6 +243,11 @@ func (u *UserBase) Move(steps int) ([]*OnAfterMoveEvent, error) {
 
 	u.setCellsPassed(totalSteps)
 
+	err := PocketBase.Save(u.lastAction)
+	if err != nil {
+		return nil, err
+	}
+
 	u.lastAction.SetProxyRecord(core.NewRecord(GameCollections.Get(CollectionActions)))
 	u.lastAction.SetUser(u.ID())
 	u.lastAction.SetType(ActionTypeMove)

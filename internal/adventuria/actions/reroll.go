@@ -58,11 +58,7 @@ func (a *RerollAction) Do(user adventuria.User, req adventuria.ActionRequest) (*
 			Error:   "internal error: can't save action record",
 		}, fmt.Errorf("reroll.do(): %w", err)
 	}
-	action.ProxyRecord().MarkAsNew()
-	action.ProxyRecord().Set("id", "")
-	action.SetComment("")
-	action.SetActivity("")
-	action.SetDiceRoll(0)
+	action.MarkAsNew()
 
 	err = cellWheel.RefreshItems(user)
 	if err != nil {

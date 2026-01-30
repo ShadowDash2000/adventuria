@@ -74,6 +74,7 @@ func (i *ItemBase) awake() error {
 				i.unsubEffectByID(effect.ID())
 
 				if i.AppliedEffectsCount() == i.EffectsCount() {
+					i.user.LastAction().UsedItemAppend(i.itemRecord.Id)
 					i.sleep()
 					PocketBase.Delete(i.invItemRecord.ProxyRecord())
 				}

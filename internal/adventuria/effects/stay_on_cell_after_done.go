@@ -54,11 +54,7 @@ func (ef *StayOnCellAfterDoneEffect) Subscribe(
 				}, fmt.Errorf("stayOnCellAfterDone: %w", err)
 			}
 
-			lastAction.ProxyRecord().MarkAsNew()
-			lastAction.ProxyRecord().Set("id", "")
-			lastAction.SetComment("")
-			lastAction.SetActivity("")
-			lastAction.SetDiceRoll(0)
+			lastAction.MarkAsNew()
 			lastAction.SetCanMove(false)
 			lastAction.SetType("rollDice")
 			lastAction.ClearCustomActivityFilter()

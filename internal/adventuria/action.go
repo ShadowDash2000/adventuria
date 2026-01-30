@@ -29,14 +29,16 @@ type ActionRecord interface {
 	SetType(ActionType)
 	DiceRoll() int
 	SetDiceRoll(int)
-	ItemsUsed() []string
-	SetItemsUsed([]string)
+	UsedItems() []string
+	UsedItemAppend(string)
+	SetUsedItems([]string)
 	ItemsList() ([]string, error)
 	SetItemsList([]string)
 	CanMove() bool
 	SetCanMove(bool)
 	CustomActivityFilter() *CustomActivityFilter
 	ClearCustomActivityFilter()
+	MarkAsNew()
 }
 
 type CustomActivityFilter struct {
