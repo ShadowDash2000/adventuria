@@ -33,6 +33,24 @@ func (ef *ChangeMaxGamePriceEffect) CanUse(ctx adventuria.EffectContext) bool {
 		return false
 	}
 
+	if cell.IsCustomFilterNotAllowed() {
+		return false
+	}
+
+	if filterId := cell.Filter(); filterId != "" {
+		filterRecord, err := adventuria.PocketBase.FindRecordById(
+			adventuria.CollectionActivityFilter,
+			filterId,
+		)
+		if err != nil {
+			return false
+		}
+
+		if len(filterRecord.GetStringSlice("activities")) > 0 {
+			return false
+		}
+	}
+
 	return true
 }
 
@@ -143,6 +161,7 @@ func (ef *ChangeMaxGamePriceEffect) tryToApplyEffect(user adventuria.User) (*eve
 	val := valAny.(ChangeMaxGamePriceEffectValue)
 
 	user.LastAction().CustomActivityFilter().MaxPrice = val.Price
+	user.LastAction().CustomActivityFilter().MinPrice = 0
 	if err = cellGame.RefreshItems(user); err != nil {
 		return &event.Result{
 			Success: false,

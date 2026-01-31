@@ -31,6 +31,24 @@ func (ef *ChangeMinGamePriceEffect) CanUse(ctx adventuria.EffectContext) bool {
 		return false
 	}
 
+	if cell.IsCustomFilterNotAllowed() {
+		return false
+	}
+
+	if filterId := cell.Filter(); filterId != "" {
+		filterRecord, err := adventuria.PocketBase.FindRecordById(
+			adventuria.CollectionActivityFilter,
+			filterId,
+		)
+		if err != nil {
+			return false
+		}
+
+		if len(filterRecord.GetStringSlice("activities")) > 0 {
+			return false
+		}
+	}
+
 	return true
 }
 
@@ -59,6 +77,7 @@ func (ef *ChangeMinGamePriceEffect) Subscribe(
 
 				if i := ef.GetInt("value"); i != 0 {
 					ctx.User.LastAction().CustomActivityFilter().MinPrice = i
+					ctx.User.LastAction().CustomActivityFilter().MaxPrice = 0
 					if err := cellGame.RefreshItems(ctx.User); err != nil {
 						return &event.Result{
 							Success: false,
@@ -84,6 +103,6 @@ func (ef *ChangeMinGamePriceEffect) DecodeValue(value string) (any, error) {
 	return strconv.Atoi(value)
 }
 
-func (ef *ChangeMinGamePriceEffect) GetVariants(ctx adventuria.EffectContext) any {
+func (ef *ChangeMinGamePriceEffect) GetVariants(_ adventuria.EffectContext) any {
 	return nil
 }

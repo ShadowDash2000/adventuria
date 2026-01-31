@@ -68,6 +68,10 @@ func (c *CellRecord) IsSafeDrop() bool {
 	return c.GetBool("isSafeDrop")
 }
 
+func (c *CellRecord) IsCustomFilterNotAllowed() bool {
+	return c.GetBool("is_custom_filter_not_allowed")
+}
+
 func (c *CellRecord) Value() string {
 	return c.GetString("value")
 }

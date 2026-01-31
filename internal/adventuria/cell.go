@@ -26,6 +26,7 @@ type Cell interface {
 	CantDrop() bool
 	CantReroll() bool
 	IsSafeDrop() bool
+	IsCustomFilterNotAllowed() bool
 	OnCellReached(*CellReachedContext) error
 	Verify(string) error
 	DecodeValue(string) (any, error)
