@@ -43,6 +43,10 @@ docker-compose up --build -d
 TWITCH_CLIENT_ID=***
 TWITCH_CLIENT_SECRET=***
 ```
+Ключ YouTube API используется для получения статуса стримов с YouTube.
+```
+YOUTUBE_API_KEY=***
+```
 Строка из этого параметра применяется в качестве "where = ..." для фильтрации игр при парсинге.
 Переменные для фильтрации https://api-docs.igdb.com/#game
 ```

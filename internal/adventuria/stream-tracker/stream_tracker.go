@@ -12,62 +12,106 @@ import (
 )
 
 type StreamTracker struct {
-	client *streamlive.StreamLive
-	users  map[string]string // twitch_login -> user_id
+	client       *streamlive.StreamLive
+	started      bool
+	twitchUsers  map[string]string // twitch_login -> user_id
+	youtubeUsers map[string]string // youtube_channel_id -> user_id
 }
 
 func NewStreamTracker() (*StreamTracker, error) {
-	twitchClientId, ok := os.LookupEnv("TWITCH_CLIENT_ID")
-	if !ok {
-		return nil, errors.New("stream_tracker: TWITCH_CLIENT_ID not found")
+	var clients []streamlive.Client
+
+	twitchClientId, twitchClientIdOk := os.LookupEnv("TWITCH_CLIENT_ID")
+	twitchClientSecret, twitchClientSecretOk := os.LookupEnv("TWITCH_CLIENT_SECRET")
+	if twitchClientIdOk && twitchClientSecretOk {
+		clients = append(clients, streamlive.NewTwitch(twitchClientId, twitchClientSecret))
 	}
-	twitchClientSecret, ok := os.LookupEnv("TWITCH_CLIENT_SECRET")
-	if !ok {
-		return nil, errors.New("stream_tracker: TWITCH_CLIENT_SECRET not found")
+
+	youtubeApiKey, youtubeApiKeyOk := os.LookupEnv("YOUTUBE_API_KEY")
+	if youtubeApiKeyOk {
+		clients = append(clients, streamlive.NewYouTube(youtubeApiKey))
+	}
+
+	if len(clients) == 0 {
+		return nil, errors.New("stream_tracker: no clients found, expected at least one")
 	}
 
 	return &StreamTracker{
-		client: streamlive.New(
-			streamlive.NewTwitch(twitchClientId, twitchClientSecret),
-		),
+		client: streamlive.New(clients...),
 	}, nil
 }
 
 func (s *StreamTracker) bindHooks() {
 	adventuria.PocketBase.OnRecordAfterCreateSuccess(adventuria.CollectionUsers).BindFunc(func(e *core.RecordEvent) error {
-		login := e.Record.GetString("twitch")
-		if login != "" {
-			s.client.AddLogin(login)
-			s.users[login] = e.Record.Id
+		if client, ok := s.client.GetClient(streamlive.TwitchClientName); ok {
+			s.updateUserLogin(client, s.twitchUsers, e.Record.Id, e.Record.GetString("twitch"))
+		}
+		if client, ok := s.client.GetClient(streamlive.YouTubeClientName); ok {
+			s.updateUserLogin(client, s.youtubeUsers, e.Record.Id, e.Record.GetString("youtube_channel_id"))
 		}
 		return e.Next()
 	})
 	adventuria.PocketBase.OnRecordAfterUpdateSuccess(adventuria.CollectionUsers).BindFunc(func(e *core.RecordEvent) error {
-		newLogin := e.Record.GetString("twitch")
-		for prevLogin, userId := range s.users {
-			if userId != e.Record.Id {
-				continue
-			}
-
-			if newLogin != prevLogin {
-				s.client.RemoveLogin(prevLogin)
-				delete(s.users, prevLogin)
-
-				if newLogin != "" {
-					s.client.AddLogin(newLogin)
-					s.users[newLogin] = userId
-				}
-			}
-			break
+		if client, ok := s.client.GetClient(streamlive.TwitchClientName); ok {
+			s.updateUserLogin(client, s.twitchUsers, e.Record.Id, e.Record.GetString("twitch"))
 		}
+		if client, ok := s.client.GetClient(streamlive.YouTubeClientName); ok {
+			s.updateUserLogin(client, s.youtubeUsers, e.Record.Id, e.Record.GetString("youtube_channel_id"))
+		}
+
 		return e.Next()
 	})
 	adventuria.PocketBase.OnRecordAfterDeleteSuccess(adventuria.CollectionUsers).BindFunc(func(e *core.RecordEvent) error {
-		login := e.Record.GetString("twitch")
-		s.client.RemoveLogin(login)
-		delete(s.users, login)
+		twitchLogin := e.Record.GetString("twitch")
+		if twitchClient, ok := s.client.GetClient(streamlive.TwitchClientName); ok {
+			twitchClient.RemoveLogin(twitchLogin)
+		}
+		delete(s.twitchUsers, twitchLogin)
+
+		youtubeChannelId := e.Record.GetString("youtube_channel_id")
+		if youtubeClient, ok := s.client.GetClient(streamlive.YouTubeClientName); ok {
+			youtubeClient.RemoveLogin(youtubeChannelId)
+		}
+		delete(s.youtubeUsers, youtubeChannelId)
+
 		return e.Next()
 	})
+}
+
+func (s *StreamTracker) updateUserLogin(client streamlive.Client, users map[string]string, userId string, newLogin string) {
+	if client == nil || users == nil {
+		return
+	}
+
+	var prevLogin string
+	for login, id := range users {
+		if id == userId {
+			prevLogin = login
+			break
+		}
+	}
+
+	if prevLogin == newLogin {
+		return
+	}
+	if prevLogin != "" {
+		client.RemoveLogin(prevLogin)
+		delete(users, prevLogin)
+	}
+	if newLogin != "" {
+		client.AddLogin(newLogin)
+		users[newLogin] = userId
+	}
+}
+
+func (s *StreamTracker) userIdForChannel(channel string) (string, bool) {
+	if userId, ok := s.twitchUsers[channel]; ok {
+		return userId, true
+	}
+	if userId, ok := s.youtubeUsers[channel]; ok {
+		return userId, true
+	}
+	return "", false
 }
 
 func (s *StreamTracker) fetchUsers() ([]*core.Record, error) {
@@ -75,7 +119,7 @@ func (s *StreamTracker) fetchUsers() ([]*core.Record, error) {
 }
 
 func (s *StreamTracker) Start(ctx context.Context) error {
-	if s.users != nil {
+	if s.started {
 		panic("stream_tracker: already started")
 	}
 
@@ -84,7 +128,8 @@ func (s *StreamTracker) Start(ctx context.Context) error {
 		return err
 	}
 
-	s.users = make(map[string]string, len(users))
+	s.twitchUsers = make(map[string]string, len(users))
+	s.youtubeUsers = make(map[string]string, len(users))
 
 	s.bindHooks()
 	s.client.OnStreamChange(s.onStreamChange)
@@ -93,23 +138,39 @@ func (s *StreamTracker) Start(ctx context.Context) error {
 		return e.Next()
 	})
 
-	var logins []string
+	twitchClient, _ := s.client.GetClient(streamlive.TwitchClientName)
+	youtubeClient, _ := s.client.GetClient(streamlive.YouTubeClientName)
 	for _, user := range users {
 		twitchLogin := user.GetString("twitch")
-		if twitchLogin == "" {
-			continue
+		if twitchLogin != "" {
+			if twitchClient != nil {
+				twitchClient.AddLogin(twitchLogin)
+			}
+			s.twitchUsers[twitchLogin] = user.Id
 		}
-		logins = append(logins, twitchLogin)
-		s.users[twitchLogin] = user.Id
+
+		youtubeChannelId := user.GetString("youtube_channel_id")
+		if youtubeChannelId != "" {
+			if youtubeClient != nil {
+				youtubeClient.AddLogin(youtubeChannelId)
+			}
+			s.youtubeUsers[youtubeChannelId] = user.Id
+		}
 	}
 
-	s.client.StartTracking(ctx, logins, 3*time.Minute)
+	s.client.StartTracking(ctx, 3*time.Minute)
+	s.started = true
 
 	return nil
 }
 
 func (s *StreamTracker) onStreamChange(e *streamlive.StreamChangeEvent) error {
-	user, err := adventuria.GameUsers.GetByID(s.users[e.Channel])
+	userId, ok := s.userIdForChannel(e.Channel)
+	if !ok {
+		return e.Next()
+	}
+
+	user, err := adventuria.GameUsers.GetByID(userId)
 	if err != nil {
 		return err
 	}

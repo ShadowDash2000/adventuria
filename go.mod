@@ -5,7 +5,7 @@ go 1.25.6
 require (
 	git.nite07.com/shadod/go-igdb v1.0.1
 	github.com/ShadowDash2000/howlongtobeat v1.1.4
-	github.com/ShadowDash2000/is-stream-live v0.0.6
+	github.com/ShadowDash2000/is-stream-live v0.3.0
 	github.com/ShadowDash2000/steam-store-go v0.0.13
 	github.com/joho/godotenv v1.5.1
 	github.com/pocketbase/dbx v1.11.0
