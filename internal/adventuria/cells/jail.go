@@ -24,6 +24,11 @@ func (c *CellJail) OnCellReached(ctx *adventuria.CellReachedContext) error {
 		if err := c.refreshItems(ctx.User); err != nil {
 			return err
 		}
+
+		_, err := ctx.User.OnAfterGoToJail().Trigger(&adventuria.OnAfterGoToJailEvent{})
+		if err != nil {
+			return err
+		}
 	} else {
 		ctx.User.LastAction().SetCanMove(true)
 	}

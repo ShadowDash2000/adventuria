@@ -110,20 +110,6 @@ func (a *DropAction) Do(user adventuria.User, req adventuria.ActionRequest) (*ad
 					Error:   "internal error",
 				}, fmt.Errorf("drop.do(): %w", err)
 			}
-
-			res, err = user.OnAfterGoToJail().Trigger(&adventuria.OnAfterGoToJailEvent{})
-			if res != nil && !res.Success {
-				return &adventuria.ActionResult{
-					Success: false,
-					Error:   res.Error,
-				}, err
-			}
-			if err != nil {
-				return &adventuria.ActionResult{
-					Success: false,
-					Error:   "internal error: failed to trigger onAfterGoToJailEvent event",
-				}, err
-			}
 		}
 	}
 
