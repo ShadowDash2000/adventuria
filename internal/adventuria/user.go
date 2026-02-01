@@ -55,6 +55,7 @@ type UserEvent interface {
 	OnAfterGoToJail() *event.Hook[*OnAfterGoToJailEvent]
 	OnBeforeDone() *event.Hook[*OnBeforeDoneEvent]
 	OnAfterDone() *event.Hook[*OnAfterDoneEvent]
+	OnBeforeRerollCheck() *event.Hook[*OnBeforeRerollCheckEvent]
 	OnBeforeRoll() *event.Hook[*OnBeforeRollEvent]
 	OnBeforeRollMove() *event.Hook[*OnBeforeRollMoveEvent]
 	OnAfterRoll() *event.Hook[*OnAfterRollEvent]

@@ -56,15 +56,17 @@ func NewEffectFromRecord(record *core.Record) (Effect, error) {
 	return effect, nil
 }
 
-func NewEffect(e Effect) EffectCreator {
+func NewEffect(newEffectFn func() Effect) EffectCreator {
 	return func(record *core.Record) Effect {
+		e := newEffectFn()
 		e.SetProxyRecord(record)
 		return e
 	}
 }
 
-func NewPersistentEffect(e PersistentEffect) PersistentEffectCreator {
+func NewPersistentEffect(newEffectFn func() PersistentEffect) PersistentEffectCreator {
 	return func() PersistentEffect {
+		e := newEffectFn()
 		return e
 	}
 }

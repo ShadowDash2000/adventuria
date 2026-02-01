@@ -3,14 +3,21 @@ package effects
 import (
 	"adventuria/internal/adventuria"
 	"adventuria/pkg/event"
-	"errors"
 )
 
 type ChangeGameByIdEffect struct {
 	adventuria.EffectRecord
 }
 
-func (ef *ChangeGameByIdEffect) CanUse(_ adventuria.EffectContext) bool {
+func (ef *ChangeGameByIdEffect) CanUse(ctx adventuria.EffectContext) bool {
+	if ok := adventuria.GameActions.CanDo(ctx.User, "drop"); !ok {
+		return false
+	}
+
+	if ok := adventuria.GameActions.CanDo(ctx.User, "done"); !ok {
+		return false
+	}
+
 	return true
 }
 
@@ -18,22 +25,10 @@ func (ef *ChangeGameByIdEffect) Subscribe(
 	ctx adventuria.EffectContext,
 	callback adventuria.EffectCallback,
 ) ([]event.Unsubscribe, error) {
-	if ok := adventuria.GameActions.CanDo(ctx.User, "done"); !ok {
-		return nil, errors.New("changeGameById: user can't do done action")
-	}
-
 	return []event.Unsubscribe{
 		ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*event.Result, error) {
 			if e.InvItemId == ctx.InvItemID {
-				if ok := adventuria.GameActions.CanDo(ctx.User, "done"); !ok {
-					return &event.Result{
-						Success: false,
-						Error:   "user can't perform done action",
-					}, nil
-				}
-
 				ctx.User.LastAction().SetActivity(ef.GetString("value"))
-
 				callback()
 			}
 
@@ -54,10 +49,6 @@ func (ef *ChangeGameByIdEffect) Verify(gameId string) error {
 	return err
 }
 
-func (ef *ChangeGameByIdEffect) DecodeValue(_ string) (any, error) {
-	return nil, nil
-}
-
-func (ef *ChangeGameByIdEffect) GetVariants(ctx adventuria.EffectContext) any {
+func (ef *ChangeGameByIdEffect) GetVariants(_ adventuria.EffectContext) any {
 	return nil
 }

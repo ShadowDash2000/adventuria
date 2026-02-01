@@ -20,6 +20,10 @@ type OnBeforeDropCheckEvent struct {
 	event.Event
 	IsDropBlocked bool
 }
+type OnBeforeRerollCheckEvent struct {
+	event.Event
+	IsRerollBlocked bool
+}
 type OnAfterDropEvent struct {
 	event.Event
 }

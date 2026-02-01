@@ -17,6 +17,18 @@ func (a *RerollAction) CanDo(user adventuria.User) bool {
 		}
 	}
 
+	onBeforeRerollCheckEvent := &adventuria.OnBeforeRerollCheckEvent{
+		IsRerollBlocked: false,
+	}
+	_, err := user.OnBeforeRerollCheck().Trigger(onBeforeRerollCheckEvent)
+	if err != nil {
+		return false
+	}
+
+	if onBeforeRerollCheckEvent.IsRerollBlocked {
+		return false
+	}
+
 	return user.LastAction().Type() == ActionTypeRollWheel
 }
 

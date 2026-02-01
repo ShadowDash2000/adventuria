@@ -5,21 +5,21 @@ import (
 	"adventuria/pkg/event"
 )
 
-type DropBlockedEffect struct {
+type RerollBlockedEffect struct {
 	adventuria.EffectRecord
 }
 
-func (ef *DropBlockedEffect) CanUse(_ adventuria.EffectContext) bool {
+func (ef *RerollBlockedEffect) CanUse(_ adventuria.EffectContext) bool {
 	return true
 }
 
-func (ef *DropBlockedEffect) Subscribe(
+func (ef *RerollBlockedEffect) Subscribe(
 	ctx adventuria.EffectContext,
 	callback adventuria.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		ctx.User.OnBeforeDropCheck().BindFunc(func(e *adventuria.OnBeforeDropCheckEvent) (*event.Result, error) {
-			e.IsDropBlocked = true
+		ctx.User.OnBeforeRerollCheck().BindFunc(func(e *adventuria.OnBeforeRerollCheckEvent) (*event.Result, error) {
+			e.IsRerollBlocked = true
 			return e.Next()
 		}),
 		ctx.User.OnAfterDone().BindFunc(func(e *adventuria.OnAfterDoneEvent) (*event.Result, error) {
@@ -29,10 +29,10 @@ func (ef *DropBlockedEffect) Subscribe(
 	}, nil
 }
 
-func (ef *DropBlockedEffect) Verify(_ string) error {
+func (ef *RerollBlockedEffect) Verify(_ string) error {
 	return nil
 }
 
-func (ef *DropBlockedEffect) GetVariants(_ adventuria.EffectContext) any {
+func (ef *RerollBlockedEffect) GetVariants(_ adventuria.EffectContext) any {
 	return nil
 }
