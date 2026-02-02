@@ -86,13 +86,13 @@ func (t *TimerBase) Stop() error {
 	return PocketBase.Save(t)
 }
 
-// GetTimeLeft returns time.Duration in seconds
-func (t *TimerBase) GetTimeLeft() time.Duration {
+// GetTimeLeft returns the time left in seconds
+func (t *TimerBase) GetTimeLeft() int64 {
 	timeLeft := t.TimeLimit() - t.TimePassed()
 	if t.IsActive() {
 		timeLeft -= time.Now().Sub(t.StartTime().Time())
 	}
-	return timeLeft / time.Second
+	return int64(timeLeft / time.Second)
 }
 
 func (t *TimerBase) IsTimeExceeded() bool {
@@ -123,6 +123,7 @@ func (t *TimerBase) SetTimePassed(tp time.Duration) {
 	t.Set("timePassed", int(tp/time.Second))
 }
 
+// TimeLimit returns time.Duration in seconds
 func (t *TimerBase) TimeLimit() time.Duration {
 	return time.Duration(t.GetInt("timeLimit")) * time.Second
 }

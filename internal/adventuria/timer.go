@@ -11,7 +11,7 @@ type Timer interface {
 	core.RecordProxy
 	Start() error
 	Stop() error
-	GetTimeLeft() time.Duration
+	GetTimeLeft() int64
 	IsTimeExceeded() bool
 	UserId() string
 	IsActive() bool
