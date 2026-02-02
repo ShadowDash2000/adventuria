@@ -9,14 +9,6 @@ type CellTeleport struct {
 	adventuria.CellRecord
 }
 
-func NewCellTeleport() adventuria.CellCreator {
-	return func() adventuria.Cell {
-		return &CellTeleport{
-			adventuria.CellRecord{},
-		}
-	}
-}
-
 func (c *CellTeleport) OnCellReached(ctx *adventuria.CellReachedContext) error {
 	if err := adventuria.PocketBase.Save(ctx.User.LastAction().ProxyRecord()); err != nil {
 		return err

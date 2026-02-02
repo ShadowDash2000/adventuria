@@ -20,26 +20,29 @@ func NewCellVerifier() *CellVerifier {
 
 func (cf *CellVerifier) bindHooks() {
 	PocketBase.OnRecordCreate(CollectionCells).BindFunc(func(e *core.RecordEvent) error {
-		if err := cf.Verify(e.Record.GetString("type"), e.Record.GetString("value")); err != nil {
+		if err := cf.Verify(e.Record); err != nil {
 			return err
 		}
 		return e.Next()
 	})
 	PocketBase.OnRecordUpdate(CollectionCells).BindFunc(func(e *core.RecordEvent) error {
-		if err := cf.Verify(e.Record.GetString("type"), e.Record.GetString("value")); err != nil {
+		if err := cf.Verify(e.Record); err != nil {
 			return err
 		}
 		return e.Next()
 	})
 }
 
-func (cf *CellVerifier) Verify(cellType, value string) error {
+func (cf *CellVerifier) Verify(record *core.Record) error {
+	cellType := record.GetString("type")
+	cellValue := record.GetString("value")
+
 	cellCreator, ok := cellsList[CellType(cellType)]
 	if !ok {
 		return errors.New("unknown cell type")
 	}
 
-	cell := cellCreator()
+	cell := cellCreator.New(record)
 
-	return cell.Verify(value)
+	return cell.Verify(cellValue)
 }

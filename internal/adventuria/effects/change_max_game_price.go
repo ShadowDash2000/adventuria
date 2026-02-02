@@ -2,7 +2,6 @@ package effects
 
 import (
 	"adventuria/internal/adventuria"
-	"adventuria/internal/adventuria/cells"
 	"adventuria/pkg/event"
 	"fmt"
 	"slices"
@@ -20,11 +19,6 @@ func (ef *ChangeMaxGamePriceEffect) CanUse(ctx adventuria.EffectContext) bool {
 	}
 
 	cell, ok := ctx.User.CurrentCell()
-	if !ok {
-		return false
-	}
-
-	_, ok = cell.(*cells.CellGame)
 	if !ok {
 		return false
 	}
@@ -142,7 +136,7 @@ func (ef *ChangeMaxGamePriceEffect) tryToApplyEffect(user adventuria.User) (*eve
 		}, nil
 	}
 
-	cellGame, ok := cell.(*cells.CellGame)
+	cellGame, ok := cell.(adventuria.CellWheel)
 	if !ok {
 		return &event.Result{
 			Success: false,

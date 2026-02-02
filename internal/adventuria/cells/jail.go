@@ -5,14 +5,14 @@ import (
 )
 
 type CellJail struct {
-	CellGame
+	CellActivity
 }
 
 func NewCellJail() adventuria.CellCreator {
 	return func() adventuria.Cell {
 		return &CellJail{
-			CellGame: CellGame{
-				CellRecord: adventuria.CellRecord{},
+			CellActivity{
+				activityType: adventuria.ActivityTypeGame,
 			},
 		}
 	}

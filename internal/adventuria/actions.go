@@ -48,3 +48,27 @@ func (a *Actions) AvailableActions(user User) iter.Seq[ActionType] {
 		}
 	}
 }
+
+func (a *Actions) HasActionsInCategory(user User, category string) bool {
+	for _, action := range a.actions {
+		if !action.CanDo(ActionContext{User: user}) {
+			continue
+		}
+		if action.InCategory(category) {
+			return true
+		}
+	}
+	return false
+}
+
+func (a *Actions) HasActionsInCategories(user User, categories []string) bool {
+	for _, action := range a.actions {
+		if !action.CanDo(ActionContext{User: user}) {
+			continue
+		}
+		if action.InCategories(categories) {
+			return true
+		}
+	}
+	return false
+}

@@ -1,11 +1,14 @@
 package adventuria
 
 import (
+	"slices"
+
 	"github.com/pocketbase/pocketbase/core"
 )
 
 type CellRecord struct {
 	core.BaseRecordProxy
+	t CellType
 }
 
 func (c *CellRecord) ID() string {
@@ -17,11 +20,23 @@ func (c *CellRecord) Sort() int {
 }
 
 func (c *CellRecord) Type() CellType {
-	return CellType(c.GetString("type"))
+	return c.t
 }
 
-func (c *CellRecord) SetType(t CellType) {
-	c.Set("type", t)
+func (c *CellRecord) setType(t CellType) {
+	c.t = t
+}
+
+func (c *CellRecord) Categories() []string {
+	if def, ok := cellsList[c.Type()]; ok {
+		return def.Categories
+	}
+
+	return nil
+}
+
+func (c *CellRecord) InCategory(category string) bool {
+	return slices.Contains(c.Categories(), category)
 }
 
 func (c *CellRecord) Filter() string {

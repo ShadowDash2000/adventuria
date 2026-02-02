@@ -10,21 +10,13 @@ type RollWheelAction struct {
 	adventuria.ActionBase
 }
 
-var cellTypesWithWheelRoll = map[adventuria.CellType]struct{}{
-	"game":  {},
-	"movie": {},
-	"gym":   {},
-	"jail":  {},
-}
-
 func (a *RollWheelAction) CanDo(ctx adventuria.ActionContext) bool {
 	currentCell, ok := ctx.User.CurrentCell()
 	if !ok {
 		return false
 	}
 
-	_, ok = cellTypesWithWheelRoll[currentCell.Type()]
-	if !ok {
+	if !currentCell.InCategory("activity") {
 		return false
 	}
 

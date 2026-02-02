@@ -2,7 +2,6 @@ package effects
 
 import (
 	"adventuria/internal/adventuria"
-	"adventuria/internal/adventuria/cells"
 	"adventuria/pkg/event"
 	"fmt"
 )
@@ -11,7 +10,20 @@ type NoTimeLimitEffect struct {
 	adventuria.EffectRecord
 }
 
-func (ef *NoTimeLimitEffect) CanUse(_ adventuria.EffectContext) bool {
+func (ef *NoTimeLimitEffect) CanUse(ctx adventuria.EffectContext) bool {
+	if !adventuria.GameActions.CanDo(ctx.User, "rollWheel") {
+		return false
+	}
+
+	cell, ok := ctx.User.CurrentCell()
+	if !ok {
+		return false
+	}
+
+	if cell.Type() != "game" {
+		return false
+	}
+
 	return true
 }
 
@@ -21,6 +33,10 @@ func (ef *NoTimeLimitEffect) Subscribe(
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
 		ctx.User.OnAfterMove().BindFunc(func(e *adventuria.OnAfterMoveEvent) (*event.Result, error) {
+			if !ef.CanUse(ctx) {
+				return e.Next()
+			}
+
 			res, err := ef.tryToApplyEffect(ctx.User)
 			if err != nil {
 				return res, err
@@ -36,6 +52,10 @@ func (ef *NoTimeLimitEffect) Subscribe(
 		}),
 		ctx.User.OnAfterItemSave().BindFunc(func(e *adventuria.OnAfterItemSave) (*event.Result, error) {
 			if e.Item.IDInventory() != ctx.InvItemID {
+				return e.Next()
+			}
+
+			if !ef.CanUse(ctx) {
 				return e.Next()
 			}
 
@@ -56,13 +76,6 @@ func (ef *NoTimeLimitEffect) Subscribe(
 }
 
 func (ef *NoTimeLimitEffect) tryToApplyEffect(user adventuria.User) (*event.Result, error) {
-	if !adventuria.GameActions.CanDo(user, "rollWheel") {
-		return &event.Result{
-			Success: false,
-			Error:   "user can't perform roll wheel action",
-		}, nil
-	}
-
 	cell, ok := user.CurrentCell()
 	if !ok {
 		return &event.Result{
@@ -71,15 +84,8 @@ func (ef *NoTimeLimitEffect) tryToApplyEffect(user adventuria.User) (*event.Resu
 		}, nil
 	}
 
-	cellGame, ok := cell.(*cells.CellGame)
+	cellGame, ok := cell.(adventuria.CellWheel)
 	if !ok {
-		return &event.Result{
-			Success: false,
-			Error:   "current cell isn't game cell",
-		}, nil
-	}
-
-	if cell.Type() != "game" {
 		return &event.Result{
 			Success: false,
 			Error:   "current cell isn't game cell",

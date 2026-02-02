@@ -6,14 +6,6 @@ type CellStart struct {
 	adventuria.CellRecord
 }
 
-func NewCellStart() adventuria.CellCreator {
-	return func() adventuria.Cell {
-		return &CellStart{
-			adventuria.CellRecord{},
-		}
-	}
-}
-
 func (c *CellStart) OnCellReached(ctx *adventuria.CellReachedContext) error {
 	ctx.User.LastAction().SetCanMove(true)
 	return nil

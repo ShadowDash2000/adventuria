@@ -14,8 +14,7 @@ type TeleportToRandomCellByTypeEffect struct {
 }
 
 func (ef *TeleportToRandomCellByTypeEffect) CanUse(ctx adventuria.EffectContext) bool {
-	canRollWheel := adventuria.GameActions.CanDo(ctx.User, "rollWheel")
-	if canRollWheel {
+	if adventuria.GameActions.HasActionsInCategories(ctx.User, []string{"wheel_roll", "on_cell"}) {
 		return false
 	}
 

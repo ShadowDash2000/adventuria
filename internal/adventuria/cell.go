@@ -2,7 +2,6 @@ package adventuria
 
 import (
 	"fmt"
-	"maps"
 
 	"github.com/pocketbase/pocketbase/core"
 )
@@ -14,7 +13,9 @@ type Cell interface {
 	ID() string
 	Sort() int
 	Type() CellType
-	SetType(CellType)
+	setType(CellType)
+	Categories() []string
+	InCategory(string) bool
 	Filter() string
 	AudioPresets() []string
 	Icon() string
@@ -42,12 +43,20 @@ type CellLeftContext struct {
 	User User
 }
 
-var cellsList = map[CellType]CellCreator{}
+var cellsList = map[CellType]CellDef{}
 
 type CellCreator func() Cell
 
-func RegisterCells(cells map[CellType]CellCreator) {
-	maps.Insert(cellsList, maps.All(cells))
+type CellDef struct {
+	Type       CellType
+	Categories []string
+	New        func(record *core.Record) Cell
+}
+
+func RegisterCells(cells []CellDef) {
+	for _, cellDef := range cells {
+		cellsList[cellDef.Type] = cellDef
+	}
 }
 
 func IsCellTypeExist(t CellType) bool {
@@ -55,15 +64,27 @@ func IsCellTypeExist(t CellType) bool {
 	return ok
 }
 
+func NewCell(t CellType, newCellFn CellCreator, categories ...string) CellDef {
+	return CellDef{
+		Type:       t,
+		Categories: categories,
+		New: func(record *core.Record) Cell {
+			c := newCellFn()
+			c.setType(t)
+			return c
+		},
+	}
+}
+
 func NewCellFromRecord(record *core.Record) (Cell, error) {
 	t := CellType(record.GetString("type"))
 
-	cellCreator, ok := cellsList[t]
+	cellDef, ok := cellsList[t]
 	if !ok {
 		return nil, fmt.Errorf("unknown cell type: %s", t)
 	}
 
-	cell := cellCreator()
+	cell := cellDef.New(record)
 	cell.SetProxyRecord(record)
 
 	return cell, nil

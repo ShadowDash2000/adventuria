@@ -14,14 +14,6 @@ type CellRollItem struct {
 	adventuria.CellRecord
 }
 
-func NewCellRollItem() adventuria.CellCreator {
-	return func() adventuria.Cell {
-		return &CellRollItem{
-			adventuria.CellRecord{},
-		}
-	}
-}
-
 func (c *CellRollItem) Verify(val string) error {
 	_, ok := adventuria.ItemTypes[adventuria.ItemType(val)]
 	if !ok {

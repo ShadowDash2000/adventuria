@@ -15,14 +15,6 @@ type CellShop struct {
 	adventuria.CellRecord
 }
 
-func NewCellShop() adventuria.CellCreator {
-	return func() adventuria.Cell {
-		return &CellShop{
-			adventuria.CellRecord{},
-		}
-	}
-}
-
 func (c *CellShop) OnCellReached(ctx *adventuria.CellReachedContext) error {
 	var records []*core.Record
 	err := adventuria.PocketBase.RecordQuery(adventuria.GameCollections.Get(adventuria.CollectionItems)).

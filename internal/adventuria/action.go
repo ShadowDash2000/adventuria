@@ -7,6 +7,9 @@ import (
 
 type Action interface {
 	Type() ActionType
+	Categories() []string
+	InCategory(string) bool
+	InCategories(categories []string) bool
 	CanDo(ActionContext) bool
 	Do(ActionContext, ActionRequest) (*ActionResult, error)
 
@@ -75,22 +78,29 @@ type ActionResult struct {
 	Error   string `json:"error,omitempty"`
 }
 
-var actionsList = map[ActionType]ActionCreator{
+var actionsList = map[ActionType]ActionDef{
 	ActionTypeNone: NewAction(ActionTypeNone, &NoneAction{}),
 }
 
-type ActionCreator func() Action
+type ActionDef struct {
+	Type       ActionType
+	Categories []string
+	New        func() Action
+}
 
-func RegisterActions(actions []ActionCreator) {
-	for _, actionCreator := range actions {
-		action := actionCreator()
-		actionsList[action.Type()] = actionCreator
+func RegisterActions(actions []ActionDef) {
+	for _, actionDef := range actions {
+		actionsList[actionDef.Type] = actionDef
 	}
 }
 
-func NewAction(t ActionType, a Action) ActionCreator {
-	return func() Action {
-		a.setType(t)
-		return a
+func NewAction(t ActionType, a Action, categories ...string) ActionDef {
+	return ActionDef{
+		Type:       t,
+		Categories: categories,
+		New: func() Action {
+			a.setType(t)
+			return a
+		},
 	}
 }

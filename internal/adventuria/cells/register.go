@@ -2,28 +2,49 @@ package cells
 
 import "adventuria/internal/adventuria"
 
-const (
-	CellTypeGame     adventuria.CellType = "game"
-	CellTypeStart    adventuria.CellType = "start"
-	CellTypeJail     adventuria.CellType = "jail"
-	CellTypeItem     adventuria.CellType = "item"
-	CellTypeShop     adventuria.CellType = "shop"
-	CellTypeTeleport adventuria.CellType = "teleport"
-	CellTypeCinema   adventuria.CellType = "movie"
-	CellTypeGym      adventuria.CellType = "gym"
-	CellTypeRollItem adventuria.CellType = "rollItem"
-)
-
 func WithBaseCells() {
-	adventuria.RegisterCells(map[adventuria.CellType]adventuria.CellCreator{
-		CellTypeGame:     NewCellGame(),
-		CellTypeStart:    NewCellStart(),
-		CellTypeJail:     NewCellJail(),
-		CellTypeItem:     NewCellItem(),
-		CellTypeShop:     NewCellShop(),
-		CellTypeTeleport: NewCellTeleport(),
-		CellTypeCinema:   NewCellCinema(),
-		CellTypeGym:      NewCellGym(),
-		CellTypeRollItem: NewCellRollItem(),
+	adventuria.RegisterCells([]adventuria.CellDef{
+		adventuria.NewCell(
+			"game",
+			NewCellActivity(adventuria.ActivityTypeGame),
+			"wheel", "activity",
+		),
+		adventuria.NewCell(
+			"movie",
+			NewCellActivity(adventuria.ActivityTypeMovie),
+			"wheel", "activity",
+		),
+		adventuria.NewCell(
+			"gym",
+			NewCellActivity(adventuria.ActivityTypeGym),
+			"wheel", "activity",
+		),
+		adventuria.NewCell(
+			"start",
+			func() adventuria.Cell { return &CellStart{} },
+		),
+		adventuria.NewCell(
+			"jail",
+			NewCellJail(),
+			"wheel", "activity",
+		),
+		adventuria.NewCell(
+			"item",
+			func() adventuria.Cell { return &CellItem{} },
+			"wheel",
+		),
+		adventuria.NewCell(
+			"shop",
+			func() adventuria.Cell { return &CellShop{} },
+		),
+		adventuria.NewCell(
+			"teleport",
+			func() adventuria.Cell { return &CellTeleport{} },
+		),
+		adventuria.NewCell(
+			"rollItem",
+			func() adventuria.Cell { return &CellRollItem{} },
+			"wheel",
+		),
 	})
 }

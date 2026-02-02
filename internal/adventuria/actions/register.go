@@ -15,15 +15,15 @@ const (
 )
 
 func WithBaseActions() {
-	adventuria.RegisterActions([]adventuria.ActionCreator{
-		adventuria.NewAction(ActionTypeRollDice, &RollDiceAction{}),
-		adventuria.NewAction(ActionTypeDone, &DoneAction{}),
-		adventuria.NewAction(ActionTypeReroll, &RerollAction{}),
-		adventuria.NewAction(ActionTypeDrop, &DropAction{}),
-		adventuria.NewAction(ActionTypeRollWheel, &RollWheelAction{}),
-		adventuria.NewAction(ActionTypeRollItem, &RollItemAction{}),
-		adventuria.NewAction(ActionTypeBuyItem, &BuyAction{}),
-		adventuria.NewAction(ActionTypeUpdateComment, &UpdateCommentAction{}),
-		adventuria.NewAction(ActionTypeRollItemOnCell, &RollItemOnCellAction{}),
+	adventuria.RegisterActions([]adventuria.ActionDef{
+		adventuria.NewAction("rollDice", &RollDiceAction{}),
+		adventuria.NewAction("done", &DoneAction{}),
+		adventuria.NewAction("reroll", &RerollAction{}),
+		adventuria.NewAction("drop", &DropAction{}),
+		adventuria.NewAction("rollWheel", &RollWheelAction{}, "wheel_roll", "on_cell"),
+		adventuria.NewAction("rollItem", &RollItemAction{}, "wheel_roll"),
+		adventuria.NewAction("buyItem", &BuyAction{}),
+		adventuria.NewAction("update_comment", &UpdateCommentAction{}),
+		adventuria.NewAction("rollItemOnCell", &RollItemOnCellAction{}, "wheel_roll", "on_cell"),
 	})
 }
