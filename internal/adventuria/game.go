@@ -298,3 +298,24 @@ func (g *Game) GetItemEffectVariants(userId, invItemId, effectId string) (any, e
 
 	return invItem.GetEffectVariants(effectId)
 }
+
+func (g *Game) GetActionVariants(userId, actionType string) (any, error) {
+	user, err := GameUsers.GetByID(userId)
+	if err != nil {
+		return nil, err
+	}
+
+	if ok := GameActions.CanDo(user, ActionType(actionType)); !ok {
+		return &ActionResult{
+			Success: false,
+			Error:   "request error: cannot do action",
+		}, nil
+	}
+
+	variants := GameActions.GetVariants(user, ActionType(actionType))
+	if variants == nil {
+		return nil, errors.New("action variants not found")
+	}
+
+	return variants, nil
+}

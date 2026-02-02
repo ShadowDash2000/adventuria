@@ -3,6 +3,7 @@ package cells
 import (
 	"adventuria/internal/adventuria"
 	"adventuria/pkg/helper"
+	"encoding/json"
 	"fmt"
 
 	"github.com/pocketbase/dbx"
@@ -14,10 +15,19 @@ type CellRollItem struct {
 	adventuria.CellRecord
 }
 
-func (c *CellRollItem) Verify(val string) error {
-	_, ok := adventuria.ItemTypes[adventuria.ItemType(val)]
+type cellRollItemValue struct {
+	ItemsType adventuria.ItemType `json:"items_type"`
+}
+
+func (c *CellRollItem) Verify(value string) error {
+	var decodedValue cellRollItemValue
+	if err := json.Unmarshal([]byte(value), &decodedValue); err != nil {
+		return fmt.Errorf("roll_item.refreshItems: invalid JSON: %w", err)
+	}
+
+	_, ok := adventuria.ItemTypes[decodedValue.ItemsType]
 	if !ok {
-		return fmt.Errorf("roll_item: unknown item type %s", val)
+		return fmt.Errorf("roll_item: unknown item type %s", decodedValue.ItemsType)
 	}
 
 	return nil
@@ -79,13 +89,18 @@ func (c *CellRollItem) OnCellLeft(_ *adventuria.CellLeftContext) error {
 }
 
 func (c *CellRollItem) refreshItems(user adventuria.User) error {
+	var decodedValue cellRollItemValue
+	if err := c.UnmarshalJSONField("value", &decodedValue); err != nil {
+		return fmt.Errorf("roll_item.refreshItems: invalid JSON: %w", err)
+	}
+
 	var records []struct {
 		Id string `db:"id"`
 	}
 	err := adventuria.PocketBase.
 		RecordQuery(adventuria.GameCollections.Get(adventuria.CollectionItems)).
 		Where(dbx.And(
-			dbx.HashExp{"type": c.Value()},
+			dbx.HashExp{"type": decodedValue.ItemsType},
 			dbx.NewExp("isRollable = true"),
 		)).
 		Select("id").

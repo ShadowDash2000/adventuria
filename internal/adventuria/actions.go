@@ -72,3 +72,10 @@ func (a *Actions) HasActionsInCategories(user User, categories []string) bool {
 	}
 	return false
 }
+
+func (a *Actions) GetVariants(user User, t ActionType) any {
+	if action, ok := a.actions[t]; ok {
+		return action.GetVariants(ActionContext{User: user})
+	}
+	return nil
+}

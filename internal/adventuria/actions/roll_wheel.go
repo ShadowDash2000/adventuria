@@ -83,3 +83,7 @@ func (a *RollWheelAction) Do(ctx adventuria.ActionContext, req adventuria.Action
 		Data:    res,
 	}, nil
 }
+
+func (a *RollWheelAction) GetVariants(_ adventuria.ActionContext) any {
+	return nil
+}

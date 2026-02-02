@@ -12,6 +12,7 @@ type Action interface {
 	InCategories(categories []string) bool
 	CanDo(ActionContext) bool
 	Do(ActionContext, ActionRequest) (*ActionResult, error)
+	GetVariants(ActionContext) any
 
 	setType(ActionType)
 }

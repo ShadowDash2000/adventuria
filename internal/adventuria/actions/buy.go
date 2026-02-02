@@ -2,12 +2,20 @@ package actions
 
 import (
 	"adventuria/internal/adventuria"
+	"encoding/json"
 	"fmt"
 	"slices"
+
+	"github.com/pocketbase/dbx"
+	"github.com/pocketbase/pocketbase/core"
 )
 
 type BuyAction struct {
 	adventuria.ActionBase
+}
+
+type cellShopValue struct {
+	PriceMultiplier float32 `json:"price_multiplier"`
 }
 
 func (a *BuyAction) CanDo(ctx adventuria.ActionContext) bool {
@@ -16,7 +24,7 @@ func (a *BuyAction) CanDo(ctx adventuria.ActionContext) bool {
 		return false
 	}
 
-	if currentCell.Type() != "shop" {
+	if !currentCell.InCategory("shop") {
 		return false
 	}
 
@@ -65,8 +73,29 @@ func (a *BuyAction) Do(ctx adventuria.ActionContext, req adventuria.ActionReques
 		}, fmt.Errorf("buy.do(): can't get item record: %w", err)
 	}
 
+	currentCell, ok := ctx.User.CurrentCell()
+	if !ok {
+		return &adventuria.ActionResult{
+			Success: false,
+			Error:   "internal error: current cell not found",
+		}, fmt.Errorf("buy.do(): current cell not found")
+	}
+
+	var decodedValue cellShopValue
+	if err = json.Unmarshal([]byte(currentCell.Value()), &decodedValue); err != nil {
+		return &adventuria.ActionResult{
+			Success: false,
+			Error:   "internal error: can't decode cell value",
+		}, fmt.Errorf("buy.do(): can't decode cell value: %w", err)
+	}
+
 	item := adventuria.NewItemFromRecord(itemRecord)
-	if ctx.User.Balance() < item.Price() {
+	price := item.Price()
+	if decodedValue.PriceMultiplier != 0 {
+		price = int(float32(price) * decodedValue.PriceMultiplier)
+	}
+
+	if ctx.User.Balance() < price {
 		return &adventuria.ActionResult{
 			Success: false,
 			Error:   "not enough money",
@@ -86,10 +115,52 @@ func (a *BuyAction) Do(ctx adventuria.ActionContext, req adventuria.ActionReques
 	}
 
 	ctx.User.LastAction().SetItemsList(ids)
-	ctx.User.SetBalance(ctx.User.Balance() - item.Price())
+	ctx.User.SetBalance(ctx.User.Balance() - price)
 
 	return &adventuria.ActionResult{
 		Success: true,
 		Data:    invItemId,
 	}, nil
+}
+
+func (a *BuyAction) GetVariants(ctx adventuria.ActionContext) any {
+	currentCell, ok := ctx.User.CurrentCell()
+	if !ok {
+		return nil
+	}
+
+	var decodedValue cellShopValue
+	if err := json.Unmarshal([]byte(currentCell.Value()), &decodedValue); err != nil {
+		return nil
+	}
+
+	ids, err := ctx.User.LastAction().ItemsList()
+	if err != nil {
+		return nil
+	}
+
+	exp := make([]dbx.Expression, len(ids))
+	for i, id := range ids {
+		exp[i] = dbx.HashExp{"id": id}
+	}
+
+	var records []*core.Record
+	err = adventuria.PocketBase.
+		RecordQuery(adventuria.CollectionItems).
+		Where(dbx.Or(exp...)).
+		All(&records)
+	if err != nil {
+		return nil
+	}
+
+	for _, record := range records {
+		price := record.GetInt("price")
+		record.Set("price", int(float32(price)*decodedValue.PriceMultiplier))
+	}
+
+	return struct {
+		Items []*core.Record `,json:"items"`
+	}{
+		Items: records,
+	}
 }

@@ -80,3 +80,7 @@ func (a *DoneAction) Do(ctx adventuria.ActionContext, req adventuria.ActionReque
 		Success: true,
 	}, nil
 }
+
+func (a *DoneAction) GetVariants(_ adventuria.ActionContext) any {
+	return nil
+}

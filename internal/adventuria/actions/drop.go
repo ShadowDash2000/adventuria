@@ -130,3 +130,7 @@ func (a *DropAction) Do(ctx adventuria.ActionContext, req adventuria.ActionReque
 		Success: true,
 	}, nil
 }
+
+func (a *DropAction) GetVariants(_ adventuria.ActionContext) any {
+	return nil
+}

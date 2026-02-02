@@ -105,3 +105,7 @@ func (a *RollDiceAction) Do(ctx adventuria.ActionContext, _ adventuria.ActionReq
 		},
 	}, nil
 }
+
+func (a *RollDiceAction) GetVariants(_ adventuria.ActionContext) any {
+	return nil
+}

@@ -282,3 +282,14 @@ func (h *Handlers) GetItemEffectVariants(e *core.RequestEvent) error {
 
 	return e.JSON(http.StatusOK, effectVariants)
 }
+
+func (h *Handlers) GetActionVariants(e *core.RequestEvent) error {
+	action := e.Request.URL.Query().Get("action")
+
+	actions, err := h.Game.GetActionVariants(e.Auth.Id, action)
+	if err != nil {
+		return e.JSON(http.StatusInternalServerError, err.Error())
+	}
+
+	return e.JSON(http.StatusOK, actions)
+}

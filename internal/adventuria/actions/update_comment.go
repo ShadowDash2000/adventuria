@@ -84,3 +84,7 @@ func (a *UpdateCommentAction) Do(ctx adventuria.ActionContext, req adventuria.Ac
 		Success: true,
 	}, nil
 }
+
+func (a *UpdateCommentAction) GetVariants(_ adventuria.ActionContext) any {
+	return nil
+}

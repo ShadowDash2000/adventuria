@@ -59,3 +59,7 @@ func (a *RollItemOnCellAction) Do(ctx adventuria.ActionContext, req adventuria.A
 		Data:    res,
 	}, nil
 }
+
+func (a *RollItemOnCellAction) GetVariants(_ adventuria.ActionContext) any {
+	return nil
+}

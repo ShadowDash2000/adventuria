@@ -132,11 +132,12 @@ func (g *GameTest) createTestCells() error {
 		name     string
 		points   int
 		sort     int
+		value    string
 	}{
-		{"start", "Cell 1 (start)", 10, 100},
-		{"game", "Cell 2 (game)", 20, 200},
-		{"game", "Cell 3 (game)", 30, 300},
-		{"shop", "Cell 4 (shop)", 0, 400},
+		{"start", "Cell 1 (start)", 10, 100, ""},
+		{"game", "Cell 2 (game)", 20, 200, ""},
+		{"game", "Cell 3 (game)", 30, 300, ""},
+		{"shop", "Cell 4 (shop)", 0, 400, "{}"},
 	}
 
 	icon, err := filesystem.NewFileFromBytes(Placeholder, "icon")
@@ -151,6 +152,7 @@ func (g *GameTest) createTestCells() error {
 		record.Set("name", cell.name)
 		record.Set("points", cell.points)
 		record.Set("sort", cell.sort)
+		record.Set("value", cell.value)
 		record.Set("icon", icon)
 		err := adventuria.PocketBase.Save(record)
 		if err != nil {

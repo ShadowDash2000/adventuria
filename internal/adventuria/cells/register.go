@@ -29,13 +29,14 @@ func WithBaseCells() {
 			"wheel", "activity",
 		),
 		adventuria.NewCell(
-			"item",
-			func() adventuria.Cell { return &CellItem{} },
-			"wheel",
+			"casino",
+			func() adventuria.Cell { return &CellCasino{} },
+			"shop",
 		),
 		adventuria.NewCell(
 			"shop",
 			func() adventuria.Cell { return &CellShop{} },
+			"shop",
 		),
 		adventuria.NewCell(
 			"teleport",

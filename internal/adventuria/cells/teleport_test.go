@@ -64,7 +64,7 @@ func createTeleportCell() (*core.Record, error) {
 	record.Set("icon", icon)
 	record.Set("sort", 500)
 	record.Set("type", "teleport")
-	record.Set("value", "Cell 1 (start)")
+	record.Set("value", "{\"cell_name\": \"Cell 1 (start)\"}")
 	err = adventuria.PocketBase.Save(record)
 	if err != nil {
 		return nil, err

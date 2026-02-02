@@ -98,3 +98,7 @@ func (a *RerollAction) Do(ctx adventuria.ActionContext, req adventuria.ActionReq
 		Success: true,
 	}, nil
 }
+
+func (a *RerollAction) GetVariants(_ adventuria.ActionContext) any {
+	return nil
+}

@@ -33,6 +33,7 @@ func Route(game *adventuria.Game, router *router.Router[*core.RequestEvent]) {
 
 	gab.POST("/update-action", handlers.UpdateActionHandler)
 	gab.GET("/available-actions", handlers.GetAvailableActions)
+	gab.GET("/action-variants", handlers.GetActionVariants)
 
 	gab.POST("/reroll", handlers.RerollHandler)
 	gab.POST("/drop", handlers.DropHandler)

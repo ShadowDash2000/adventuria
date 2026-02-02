@@ -13,3 +13,7 @@ func (a *NoneAction) Do(_ ActionContext, _ ActionRequest) (*ActionResult, error)
 		Success: true,
 	}, nil
 }
+
+func (a *NoneAction) GetVariants(_ ActionContext) any {
+	return nil
+}
