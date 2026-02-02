@@ -209,6 +209,6 @@ func (ef *ChangeMaxGamePriceEffect) DecodeValue(value string) (any, error) {
 	return res, nil
 }
 
-func (ef *ChangeMaxGamePriceEffect) GetVariants(ctx adventuria.EffectContext) any {
+func (ef *ChangeMaxGamePriceEffect) GetVariants(_ adventuria.EffectContext) any {
 	return nil
 }

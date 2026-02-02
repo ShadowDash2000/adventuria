@@ -73,10 +73,6 @@ func (ef *NothingEffect) Verify(v string) error {
 	return nil
 }
 
-func (ef *NothingEffect) DecodeValue(_ string) (any, error) {
-	return nil, nil
-}
-
-func (ef *NothingEffect) GetVariants(ctx adventuria.EffectContext) any {
+func (ef *NothingEffect) GetVariants(_ adventuria.EffectContext) any {
 	return nil
 }

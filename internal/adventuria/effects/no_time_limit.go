@@ -104,10 +104,6 @@ func (ef *NoTimeLimitEffect) Verify(_ string) error {
 	return nil
 }
 
-func (ef *NoTimeLimitEffect) DecodeValue(_ string) (any, error) {
-	return nil, nil
-}
-
-func (ef *NoTimeLimitEffect) GetVariants(ctx adventuria.EffectContext) any {
+func (ef *NoTimeLimitEffect) GetVariants(_ adventuria.EffectContext) any {
 	return nil
 }

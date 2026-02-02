@@ -10,8 +10,13 @@ type ReturnToPrevCellEffect struct {
 	adventuria.EffectRecord
 }
 
-func (ef *ReturnToPrevCellEffect) CanUse(e adventuria.EffectContext) bool {
-	return !adventuria.GameActions.CanDo(e.User, "done")
+func (ef *ReturnToPrevCellEffect) CanUse(ctx adventuria.EffectContext) bool {
+	latestDiceRoll := ctx.User.LastAction().DiceRoll()
+	if latestDiceRoll == 0 {
+		return false
+	}
+
+	return !adventuria.GameActions.CanDo(ctx.User, "done")
 }
 
 func (ef *ReturnToPrevCellEffect) Subscribe(
@@ -25,10 +30,6 @@ func (ef *ReturnToPrevCellEffect) Subscribe(
 			}
 
 			latestDiceRoll := ctx.User.LastAction().DiceRoll()
-			if latestDiceRoll == 0 {
-				return e.Next()
-			}
-
 			_, err := ctx.User.Move(-latestDiceRoll)
 			if err != nil {
 				return &event.Result{
@@ -49,11 +50,6 @@ func (ef *ReturnToPrevCellEffect) Subscribe(
 func (ef *ReturnToPrevCellEffect) Verify(_ string) error {
 	return nil
 }
-
-func (ef *ReturnToPrevCellEffect) DecodeValue(_ string) (any, error) {
-	return nil, nil
-}
-
-func (ef *ReturnToPrevCellEffect) GetVariants(ctx adventuria.EffectContext) any {
+func (ef *ReturnToPrevCellEffect) GetVariants(_ adventuria.EffectContext) any {
 	return nil
 }

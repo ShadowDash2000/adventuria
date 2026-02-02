@@ -58,10 +58,6 @@ func (ef *ChooseGameEffect) Verify(_ string) error {
 	return nil
 }
 
-func (ef *ChooseGameEffect) DecodeValue(_ string) (any, error) {
-	return nil, nil
-}
-
-func (ef *ChooseGameEffect) GetVariants(ctx adventuria.EffectContext) any {
+func (ef *ChooseGameEffect) GetVariants(_ adventuria.EffectContext) any {
 	return nil
 }

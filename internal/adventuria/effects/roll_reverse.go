@@ -32,10 +32,6 @@ func (ef *RollReverseEffect) Verify(_ string) error {
 	return nil
 }
 
-func (ef *RollReverseEffect) DecodeValue(_ string) (any, error) {
-	return nil, nil
-}
-
-func (ef *RollReverseEffect) GetVariants(ctx adventuria.EffectContext) any {
+func (ef *RollReverseEffect) GetVariants(_ adventuria.EffectContext) any {
 	return nil
 }

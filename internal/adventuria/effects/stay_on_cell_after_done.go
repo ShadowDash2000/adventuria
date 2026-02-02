@@ -70,10 +70,6 @@ func (ef *StayOnCellAfterDoneEffect) Verify(_ string) error {
 	return nil
 }
 
-func (ef *StayOnCellAfterDoneEffect) DecodeValue(_ string) (any, error) {
-	return nil, nil
-}
-
-func (ef *StayOnCellAfterDoneEffect) GetVariants(ctx adventuria.EffectContext) any {
+func (ef *StayOnCellAfterDoneEffect) GetVariants(_ adventuria.EffectContext) any {
 	return nil
 }

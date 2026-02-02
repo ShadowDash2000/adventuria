@@ -56,6 +56,6 @@ func (ef *ChangeDicesEffect) DecodeValue(value string) (any, error) {
 	return strings.Split(value, ";"), nil
 }
 
-func (ef *ChangeDicesEffect) GetVariants(ctx adventuria.EffectContext) any {
+func (ef *ChangeDicesEffect) GetVariants(_ adventuria.EffectContext) any {
 	return nil
 }

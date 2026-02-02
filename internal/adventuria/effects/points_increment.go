@@ -40,6 +40,6 @@ func (ef *PointsIncrementEffect) DecodeValue(value string) (any, error) {
 	return strconv.Atoi(value)
 }
 
-func (ef *PointsIncrementEffect) GetVariants(ctx adventuria.EffectContext) any {
+func (ef *PointsIncrementEffect) GetVariants(_ adventuria.EffectContext) any {
 	return nil
 }

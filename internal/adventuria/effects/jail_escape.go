@@ -36,10 +36,6 @@ func (ef *JailEscapeEffect) Verify(_ string) error {
 	return nil
 }
 
-func (ef *JailEscapeEffect) DecodeValue(_ string) (any, error) {
-	return nil, nil
-}
-
-func (ef *JailEscapeEffect) GetVariants(ctx adventuria.EffectContext) any {
+func (ef *JailEscapeEffect) GetVariants(_ adventuria.EffectContext) any {
 	return nil
 }

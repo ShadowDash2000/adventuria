@@ -38,6 +38,6 @@ func (ef *ReplaceDiceRollEffect) DecodeValue(value string) (any, error) {
 	return strconv.Atoi(value)
 }
 
-func (ef *ReplaceDiceRollEffect) GetVariants(ctx adventuria.EffectContext) any {
+func (ef *ReplaceDiceRollEffect) GetVariants(_ adventuria.EffectContext) any {
 	return nil
 }

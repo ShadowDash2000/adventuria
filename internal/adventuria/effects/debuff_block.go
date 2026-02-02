@@ -32,10 +32,6 @@ func (ef *DebuffBlockEffect) Verify(_ string) error {
 	return nil
 }
 
-func (ef *DebuffBlockEffect) DecodeValue(_ string) (any, error) {
-	return nil, nil
-}
-
-func (ef *DebuffBlockEffect) GetVariants(ctx adventuria.EffectContext) any {
+func (ef *DebuffBlockEffect) GetVariants(_ adventuria.EffectContext) any {
 	return nil
 }

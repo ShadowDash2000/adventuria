@@ -44,6 +44,6 @@ func (ef *CellPointsDivideEffect) DecodeValue(value string) (any, error) {
 	return strconv.Atoi(value)
 }
 
-func (ef *CellPointsDivideEffect) GetVariants(ctx adventuria.EffectContext) any {
+func (ef *CellPointsDivideEffect) GetVariants(_ adventuria.EffectContext) any {
 	return nil
 }

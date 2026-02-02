@@ -123,10 +123,6 @@ func (ef *AddGameGenreEffect) Verify(_ string) error {
 	return nil
 }
 
-func (ef *AddGameGenreEffect) DecodeValue(_ string) (any, error) {
-	return nil, nil
-}
-
-func (ef *AddGameGenreEffect) GetVariants(ctx adventuria.EffectContext) any {
+func (ef *AddGameGenreEffect) GetVariants(_ adventuria.EffectContext) any {
 	return nil
 }

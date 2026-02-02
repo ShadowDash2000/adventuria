@@ -40,6 +40,6 @@ func (ef *DropPointsDivideEffect) DecodeValue(value string) (any, error) {
 	return strconv.Atoi(value)
 }
 
-func (ef *DropPointsDivideEffect) GetVariants(ctx adventuria.EffectContext) any {
+func (ef *DropPointsDivideEffect) GetVariants(_ adventuria.EffectContext) any {
 	return nil
 }

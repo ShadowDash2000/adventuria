@@ -32,10 +32,6 @@ func (ef *SafeDropEffect) Verify(_ string) error {
 	return nil
 }
 
-func (ef *SafeDropEffect) DecodeValue(_ string) (any, error) {
-	return nil, nil
-}
-
-func (ef *SafeDropEffect) GetVariants(ctx adventuria.EffectContext) any {
+func (ef *SafeDropEffect) GetVariants(_ adventuria.EffectContext) any {
 	return nil
 }
