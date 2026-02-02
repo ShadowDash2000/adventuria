@@ -14,7 +14,11 @@ type TeleportToClosestCellByNameEffect struct {
 	adventuria.EffectRecord
 }
 
-func (ef *TeleportToClosestCellByNameEffect) CanUse(_ adventuria.EffectContext) bool {
+func (ef *TeleportToClosestCellByNameEffect) CanUse(ctx adventuria.EffectContext) bool {
+	if ok := adventuria.GameActions.CanDo(ctx.User, "drop"); !ok {
+		return false
+	}
+
 	return true
 }
 

@@ -13,6 +13,10 @@ type PaidMovementInRadiusEffect struct {
 }
 
 func (ef *PaidMovementInRadiusEffect) CanUse(ctx adventuria.EffectContext) bool {
+	if ok := adventuria.GameActions.CanDo(ctx.User, "drop"); !ok {
+		return false
+	}
+
 	value, err := ef.DecodeValue(ef.GetString("value"))
 	if err != nil {
 		return false
