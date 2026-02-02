@@ -23,36 +23,6 @@ func GetRecordById(table, id string, expand []string) (*core.Record, error) {
 	return record, nil
 }
 
-func UpdateRecordsFromViewCollection(
-	records []*core.Record,
-	dstCollection *core.Collection,
-	primaryKey string,
-	fieldsToUpdate []string,
-) error {
-	var dstRecords []*core.Record
-	for _, record := range records {
-		dstRecord, err := PocketBase.FindRecordById(dstCollection, record.GetString(primaryKey))
-		if err != nil {
-			return err
-		}
-
-		for _, field := range fieldsToUpdate {
-			dstRecord.Set(field, record.Get(field))
-		}
-
-		dstRecords = append(dstRecords, dstRecord)
-	}
-
-	for _, dstRecord := range dstRecords {
-		err := PocketBase.Save(dstRecord)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
 // normalized mod (0..n-1)
 func mod(a, m int) int {
 	return ((a % m) + m) % m

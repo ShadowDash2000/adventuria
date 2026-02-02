@@ -197,7 +197,7 @@ func (i *ItemBase) Use() (OnUseSuccess, OnUseFail, error) {
 	i.setIsActive(true)
 
 	return func() error {
-			// if item is not awake, then it was removed from inventory
+			// if an item is not awake, then it was removed from inventory
 			if !i.isAwake {
 				return nil
 			}

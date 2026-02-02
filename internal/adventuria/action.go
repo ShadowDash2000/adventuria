@@ -94,8 +94,3 @@ func NewAction(t ActionType, a Action) ActionCreator {
 		return a
 	}
 }
-
-func IsActionTypeExist(t ActionType) bool {
-	_, ok := actionsList[t]
-	return ok
-}

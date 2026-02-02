@@ -69,7 +69,9 @@ func (c *Cells) fetch() error {
 	}
 
 	for _, cell := range cells {
-		c.add(cell)
+		if err = c.add(cell); err != nil {
+			PocketBase.Logger().Error("Cells: unknown cell type", "cell", cell)
+		}
 	}
 	c.sort()
 

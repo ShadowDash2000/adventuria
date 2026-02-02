@@ -48,9 +48,8 @@ func (i *Items) fetch() error {
 	}
 
 	for _, item := range items {
-		err = i.add(item)
-		if err != nil {
-			return err
+		if err = i.add(item); err != nil {
+			PocketBase.Logger().Error("Items: unknown item type", "item", item)
 		}
 	}
 
