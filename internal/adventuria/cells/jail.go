@@ -34,3 +34,13 @@ func (c *CellJail) OnCellReached(ctx *adventuria.CellReachedContext) error {
 	}
 	return nil
 }
+
+func (c *CellJail) OnCellLeft(ctx *adventuria.CellLeftContext) error {
+	// If a player somehow left a jail, we need to free them
+	if ctx.User.IsInJail() {
+		ctx.User.SetIsInJail(false)
+		ctx.User.SetDropsInARow(0)
+	}
+
+	return nil
+}

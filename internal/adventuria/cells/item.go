@@ -20,10 +20,10 @@ func (c *CellItem) OnCellReached(ctx *adventuria.CellReachedContext) error {
 	return nil
 }
 
-func (c *CellItem) Verify(_ string) error {
+func (c *CellItem) OnCellLeft(_ *adventuria.CellLeftContext) error {
 	return nil
 }
 
-func (c *CellItem) DecodeValue(_ string) (any, error) {
-	return nil, nil
+func (c *CellItem) Verify(_ string) error {
+	return nil
 }

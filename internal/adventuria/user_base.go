@@ -224,12 +224,17 @@ func (u *UserBase) SetItemWheelsCount(itemWheelsCount int) {
 	u.Set("itemWheelsCount", itemWheelsCount)
 }
 
-type CellReachedContext struct {
-	User  User
-	Moves []*OnAfterMoveEvent
-}
-
 func (u *UserBase) Move(steps int) ([]*OnAfterMoveEvent, error) {
+	prevCell, ok := u.CurrentCell()
+	if ok {
+		err := prevCell.OnCellLeft(&CellLeftContext{
+			User: u,
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	cellsPassed := u.CellsPassed()
 	cellsCount := GameCells.Count()
 

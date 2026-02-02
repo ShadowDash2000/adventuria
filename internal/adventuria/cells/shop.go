@@ -50,10 +50,10 @@ func (c *CellShop) OnCellReached(ctx *adventuria.CellReachedContext) error {
 	return nil
 }
 
-func (c *CellShop) Verify(_ string) error {
+func (c *CellShop) OnCellLeft(_ *adventuria.CellLeftContext) error {
 	return nil
 }
 
-func (c *CellShop) DecodeValue(_ string) (any, error) {
-	return nil, nil
+func (c *CellShop) Verify(_ string) error {
+	return nil
 }

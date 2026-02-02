@@ -32,6 +32,10 @@ func (c *CellTeleport) OnCellReached(ctx *adventuria.CellReachedContext) error {
 	return nil
 }
 
+func (c *CellTeleport) OnCellLeft(_ *adventuria.CellLeftContext) error {
+	return nil
+}
+
 func (c *CellTeleport) Verify(value string) error {
 	if _, err := adventuria.PocketBase.FindFirstRecordByFilter(
 		adventuria.GameCollections.Get(adventuria.CollectionCells),
@@ -41,8 +45,4 @@ func (c *CellTeleport) Verify(value string) error {
 	}
 
 	return nil
-}
-
-func (c *CellTeleport) DecodeValue(_ string) (any, error) {
-	return nil, nil
 }

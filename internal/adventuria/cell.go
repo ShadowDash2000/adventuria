@@ -28,9 +28,18 @@ type Cell interface {
 	IsSafeDrop() bool
 	IsCustomFilterNotAllowed() bool
 	OnCellReached(*CellReachedContext) error
+	OnCellLeft(*CellLeftContext) error
 	Verify(string) error
-	DecodeValue(string) (any, error)
 	Value() string
+}
+
+type CellReachedContext struct {
+	User  User
+	Moves []*OnAfterMoveEvent
+}
+
+type CellLeftContext struct {
+	User User
 }
 
 var cellsList = map[CellType]CellCreator{}

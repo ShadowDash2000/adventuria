@@ -16,7 +16,15 @@ type TeleportToRandomCellByNameEffect struct {
 }
 
 func (ef *TeleportToRandomCellByNameEffect) CanUse(ctx adventuria.EffectContext) bool {
-	if ok := adventuria.GameActions.CanDo(ctx.User, "drop"); !ok {
+	canRollWheel := adventuria.GameActions.CanDo(ctx.User, "rollWheel")
+	if canRollWheel {
+		return false
+	}
+
+	canDone := adventuria.GameActions.CanDo(ctx.User, "done")
+	canDrop := adventuria.GameActions.CanDo(ctx.User, "drop")
+
+	if canDone && !canDrop {
 		return false
 	}
 

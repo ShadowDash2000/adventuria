@@ -13,8 +13,23 @@ type PaidMovementInRadiusEffect struct {
 }
 
 func (ef *PaidMovementInRadiusEffect) CanUse(ctx adventuria.EffectContext) bool {
-	if ok := adventuria.GameActions.CanDo(ctx.User, "drop"); !ok {
+	canRollWheel := adventuria.GameActions.CanDo(ctx.User, "rollWheel")
+	if canRollWheel {
 		return false
+	}
+
+	currentCell, ok := ctx.User.CurrentCell()
+	if !ok {
+		return false
+	}
+
+	canDone := adventuria.GameActions.CanDo(ctx.User, "done")
+	canDrop := adventuria.GameActions.CanDo(ctx.User, "drop")
+
+	if canDone && !canDrop {
+		if currentCell.Type() != "jail" {
+			return false
+		}
 	}
 
 	value, err := ef.DecodeValue(ef.GetString("value"))

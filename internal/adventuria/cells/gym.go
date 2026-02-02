@@ -24,10 +24,6 @@ func (c *CellGym) Verify(_ string) error {
 	return nil
 }
 
-func (c *CellGym) DecodeValue(_ string) (any, error) {
-	return nil, nil
-}
-
 func (c *CellGym) Roll(user adventuria.User, _ adventuria.RollWheelRequest) (*adventuria.WheelRollResult, error) {
 	items, err := user.LastAction().ItemsList()
 	if err != nil {
@@ -77,6 +73,10 @@ func (c *CellGym) RefreshItems(user adventuria.User) error {
 
 func (c *CellGym) OnCellReached(ctx *adventuria.CellReachedContext) error {
 	return c.refreshItems(ctx.User)
+}
+
+func (c *CellGym) OnCellLeft(_ *adventuria.CellLeftContext) error {
+	return nil
 }
 
 func (c *CellGym) refreshItems(user adventuria.User) error {
