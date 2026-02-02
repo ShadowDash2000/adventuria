@@ -12,11 +12,11 @@ type UpdateCommentAction struct {
 	adventuria.ActionBase
 }
 
-func (a *UpdateCommentAction) CanDo(_ adventuria.User) bool {
+func (a *UpdateCommentAction) CanDo(_ adventuria.ActionContext) bool {
 	return true
 }
 
-func (a *UpdateCommentAction) Do(user adventuria.User, req adventuria.ActionRequest) (*adventuria.ActionResult, error) {
+func (a *UpdateCommentAction) Do(ctx adventuria.ActionContext, req adventuria.ActionRequest) (*adventuria.ActionResult, error) {
 	requiredFields := []string{"action_id", "comment"}
 	for _, field := range requiredFields {
 		if _, ok := req[field]; !ok {
@@ -48,7 +48,7 @@ func (a *UpdateCommentAction) Do(user adventuria.User, req adventuria.ActionRequ
 		RecordQuery(adventuria.GameCollections.Get(adventuria.CollectionActions)).
 		AndWhere(
 			dbx.HashExp{
-				"user": user.ID(),
+				"user": ctx.User.ID(),
 				"id":   actionId,
 			},
 		).

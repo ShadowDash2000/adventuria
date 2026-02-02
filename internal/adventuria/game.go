@@ -13,11 +13,10 @@ import (
 )
 
 var (
-	PocketBase core.App
-	GameUsers  *Users
-	GameCells  *Cells
-	GameItems  *Items
-	// GameCollections TODO should remove collections cache
+	PocketBase      core.App
+	GameUsers       *Users
+	GameCells       *Cells
+	GameItems       *Items
 	GameCollections *collections.Collections
 	GameSettings    *Settings
 	GameActions     *Actions

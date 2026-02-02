@@ -17,8 +17,8 @@ var cellTypesWithWheelRoll = map[adventuria.CellType]struct{}{
 	"jail":  {},
 }
 
-func (a *RollWheelAction) CanDo(user adventuria.User) bool {
-	currentCell, ok := user.CurrentCell()
+func (a *RollWheelAction) CanDo(ctx adventuria.ActionContext) bool {
+	currentCell, ok := ctx.User.CurrentCell()
 	if !ok {
 		return false
 	}
@@ -28,11 +28,11 @@ func (a *RollWheelAction) CanDo(user adventuria.User) bool {
 		return false
 	}
 
-	return !user.LastAction().CanMove() && user.LastAction().Type() != ActionTypeRollWheel
+	return !ctx.User.LastAction().CanMove() && ctx.User.LastAction().Type() != ActionTypeRollWheel
 }
 
-func (a *RollWheelAction) Do(user adventuria.User, req adventuria.ActionRequest) (*adventuria.ActionResult, error) {
-	currentCell, ok := user.CurrentCell()
+func (a *RollWheelAction) Do(ctx adventuria.ActionContext, req adventuria.ActionRequest) (*adventuria.ActionResult, error) {
+	currentCell, ok := ctx.User.CurrentCell()
 	if !ok {
 		return &adventuria.ActionResult{
 			Success: false,
@@ -43,7 +43,7 @@ func (a *RollWheelAction) Do(user adventuria.User, req adventuria.ActionRequest)
 	onBeforeWheelRollEvent := &adventuria.OnBeforeWheelRollEvent{
 		CurrentCell: currentCell.(adventuria.CellWheel),
 	}
-	eventRes, err := user.OnBeforeWheelRoll().Trigger(onBeforeWheelRollEvent)
+	eventRes, err := ctx.User.OnBeforeWheelRoll().Trigger(onBeforeWheelRollEvent)
 	if eventRes != nil && !eventRes.Success {
 		return &adventuria.ActionResult{
 			Success: false,
@@ -57,7 +57,7 @@ func (a *RollWheelAction) Do(user adventuria.User, req adventuria.ActionRequest)
 		}, err
 	}
 
-	res, err := onBeforeWheelRollEvent.CurrentCell.Roll(user, adventuria.RollWheelRequest(req))
+	res, err := onBeforeWheelRollEvent.CurrentCell.Roll(ctx.User, adventuria.RollWheelRequest(req))
 	if err != nil {
 		return &adventuria.ActionResult{
 			Success: false,
@@ -65,14 +65,14 @@ func (a *RollWheelAction) Do(user adventuria.User, req adventuria.ActionRequest)
 		}, fmt.Errorf("roll_wheel.do(): %w", err)
 	}
 
-	action := user.LastAction()
+	action := ctx.User.LastAction()
 	action.SetType(ActionTypeRollWheel)
 	action.SetActivity(res.WinnerId)
 
 	onAfterWheelRollEvent := &adventuria.OnAfterWheelRollEvent{
 		ItemId: res.WinnerId,
 	}
-	eventRes, err = user.OnAfterWheelRoll().Trigger(onAfterWheelRollEvent)
+	eventRes, err = ctx.User.OnAfterWheelRoll().Trigger(onAfterWheelRollEvent)
 	if eventRes != nil && !eventRes.Success {
 		return &adventuria.ActionResult{
 			Success: false,

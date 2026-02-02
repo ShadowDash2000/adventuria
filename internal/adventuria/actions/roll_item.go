@@ -11,19 +11,19 @@ type RollItemAction struct {
 	adventuria.ActionBase
 }
 
-func (a *RollItemAction) CanDo(user adventuria.User) bool {
-	if user.ItemWheelsCount() <= 0 {
+func (a *RollItemAction) CanDo(ctx adventuria.ActionContext) bool {
+	if ctx.User.ItemWheelsCount() <= 0 {
 		return false
 	}
 
-	if adventuria.GameActions.CanDo(user, "done") {
+	if adventuria.GameActions.CanDo(ctx.User, "done") {
 		return false
 	}
 
 	return true
 }
 
-func (a *RollItemAction) Do(user adventuria.User, _ adventuria.ActionRequest) (*adventuria.ActionResult, error) {
+func (a *RollItemAction) Do(ctx adventuria.ActionContext, _ adventuria.ActionRequest) (*adventuria.ActionResult, error) {
 	res := &adventuria.WheelRollResult{}
 
 	items := adventuria.GameItems.GetAllRollable()
@@ -44,7 +44,7 @@ func (a *RollItemAction) Do(user adventuria.User, _ adventuria.ActionRequest) (*
 
 	res.WinnerId = helper.RandomItemFromSlice(items).ID()
 
-	_, err := user.Inventory().MustAddItemById(res.WinnerId)
+	_, err := ctx.User.Inventory().MustAddItemById(res.WinnerId)
 	if err != nil {
 		return &adventuria.ActionResult{
 			Success: false,
@@ -52,12 +52,12 @@ func (a *RollItemAction) Do(user adventuria.User, _ adventuria.ActionRequest) (*
 		}, fmt.Errorf("roll_item.do(): %w", err)
 	}
 
-	user.SetItemWheelsCount(user.ItemWheelsCount() - 1)
+	ctx.User.SetItemWheelsCount(ctx.User.ItemWheelsCount() - 1)
 
 	onAfterItemRollEvent := &adventuria.OnAfterItemRollEvent{
 		ItemId: res.WinnerId,
 	}
-	eventRes, err := user.OnAfterItemRoll().Trigger(onAfterItemRollEvent)
+	eventRes, err := ctx.User.OnAfterItemRoll().Trigger(onAfterItemRollEvent)
 	if eventRes != nil && !eventRes.Success {
 		return &adventuria.ActionResult{
 			Success: false,
@@ -74,7 +74,7 @@ func (a *RollItemAction) Do(user adventuria.User, _ adventuria.ActionRequest) (*
 	onAfterWheelRollEvent := &adventuria.OnAfterWheelRollEvent{
 		ItemId: res.WinnerId,
 	}
-	eventRes, err = user.OnAfterWheelRoll().Trigger(onAfterWheelRollEvent)
+	eventRes, err = ctx.User.OnAfterWheelRoll().Trigger(onAfterWheelRollEvent)
 	if eventRes != nil && !eventRes.Success {
 		return &adventuria.ActionResult{
 			Success: false,

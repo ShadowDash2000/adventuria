@@ -4,11 +4,11 @@ type NoneAction struct {
 	ActionBase
 }
 
-func (a *NoneAction) CanDo(user User) bool {
-	return user.LastAction().Type() == ""
+func (a *NoneAction) CanDo(ctx ActionContext) bool {
+	return ctx.User.LastAction().Type() == ""
 }
 
-func (a *NoneAction) Do(_ User, _ ActionRequest) (*ActionResult, error) {
+func (a *NoneAction) Do(_ ActionContext, _ ActionRequest) (*ActionResult, error) {
 	return &ActionResult{
 		Success: true,
 	}, nil

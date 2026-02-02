@@ -9,8 +9,8 @@ type RerollAction struct {
 	adventuria.ActionBase
 }
 
-func (a *RerollAction) CanDo(user adventuria.User) bool {
-	currentCell, ok := user.CurrentCell()
+func (a *RerollAction) CanDo(ctx adventuria.ActionContext) bool {
+	currentCell, ok := ctx.User.CurrentCell()
 	if ok {
 		if currentCell.CantReroll() {
 			return false
@@ -20,7 +20,7 @@ func (a *RerollAction) CanDo(user adventuria.User) bool {
 	onBeforeRerollCheckEvent := &adventuria.OnBeforeRerollCheckEvent{
 		IsRerollBlocked: false,
 	}
-	_, err := user.OnBeforeRerollCheck().Trigger(onBeforeRerollCheckEvent)
+	_, err := ctx.User.OnBeforeRerollCheck().Trigger(onBeforeRerollCheckEvent)
 	if err != nil {
 		return false
 	}
@@ -29,10 +29,10 @@ func (a *RerollAction) CanDo(user adventuria.User) bool {
 		return false
 	}
 
-	return user.LastAction().Type() == ActionTypeRollWheel
+	return ctx.User.LastAction().Type() == ActionTypeRollWheel
 }
 
-func (a *RerollAction) Do(user adventuria.User, req adventuria.ActionRequest) (*adventuria.ActionResult, error) {
+func (a *RerollAction) Do(ctx adventuria.ActionContext, req adventuria.ActionRequest) (*adventuria.ActionResult, error) {
 	var comment string
 	if c, ok := req["comment"]; ok {
 		comment, ok = c.(string)
@@ -44,7 +44,7 @@ func (a *RerollAction) Do(user adventuria.User, req adventuria.ActionRequest) (*
 		}
 	}
 
-	cell, ok := user.CurrentCell()
+	cell, ok := ctx.User.CurrentCell()
 	if !ok {
 		return &adventuria.ActionResult{
 			Success: false,
@@ -60,7 +60,7 @@ func (a *RerollAction) Do(user adventuria.User, req adventuria.ActionRequest) (*
 		}, fmt.Errorf("reroll.do(): current cell isn't wheel cell")
 	}
 
-	action := user.LastAction()
+	action := ctx.User.LastAction()
 	action.SetType(ActionTypeReroll)
 	action.SetComment(comment)
 	err := adventuria.PocketBase.Save(action.ProxyRecord())
@@ -72,7 +72,7 @@ func (a *RerollAction) Do(user adventuria.User, req adventuria.ActionRequest) (*
 	}
 	action.MarkAsNew()
 
-	err = cellWheel.RefreshItems(user)
+	err = cellWheel.RefreshItems(ctx.User)
 	if err != nil {
 		return &adventuria.ActionResult{
 			Success: false,
@@ -80,7 +80,7 @@ func (a *RerollAction) Do(user adventuria.User, req adventuria.ActionRequest) (*
 		}, fmt.Errorf("reroll.do(): %w", err)
 	}
 
-	res, err := user.OnAfterReroll().Trigger(&adventuria.OnAfterRerollEvent{})
+	res, err := ctx.User.OnAfterReroll().Trigger(&adventuria.OnAfterRerollEvent{})
 	if res != nil && !res.Success {
 		return &adventuria.ActionResult{
 			Success: false,

@@ -10,22 +10,22 @@ type DropAction struct {
 	adventuria.ActionBase
 }
 
-func (a *DropAction) CanDo(user adventuria.User) bool {
-	currentCell, ok := user.CurrentCell()
+func (a *DropAction) CanDo(ctx adventuria.ActionContext) bool {
+	currentCell, ok := ctx.User.CurrentCell()
 	if ok {
 		if currentCell.CantDrop() {
 			return false
 		}
 	}
 
-	if user.IsInJail() {
+	if ctx.User.IsInJail() {
 		return false
 	}
 
 	onBeforeDropCheckEvent := &adventuria.OnBeforeDropCheckEvent{
 		IsDropBlocked: false,
 	}
-	_, err := user.OnBeforeDropCheck().Trigger(onBeforeDropCheckEvent)
+	_, err := ctx.User.OnBeforeDropCheck().Trigger(onBeforeDropCheckEvent)
 	if err != nil {
 		return false
 	}
@@ -34,10 +34,10 @@ func (a *DropAction) CanDo(user adventuria.User) bool {
 		return false
 	}
 
-	return user.LastAction().Type() == ActionTypeRollWheel
+	return ctx.User.LastAction().Type() == ActionTypeRollWheel
 }
 
-func (a *DropAction) Do(user adventuria.User, req adventuria.ActionRequest) (*adventuria.ActionResult, error) {
+func (a *DropAction) Do(ctx adventuria.ActionContext, req adventuria.ActionRequest) (*adventuria.ActionResult, error) {
 	var comment string
 	if c, ok := req["comment"]; ok {
 		comment, ok = c.(string)
@@ -49,7 +49,7 @@ func (a *DropAction) Do(user adventuria.User, req adventuria.ActionRequest) (*ad
 		}
 	}
 
-	currentCell, ok := user.CurrentCell()
+	currentCell, ok := ctx.User.CurrentCell()
 	if !ok {
 		return &adventuria.ActionResult{
 			Success: false,
@@ -62,7 +62,7 @@ func (a *DropAction) Do(user adventuria.User, req adventuria.ActionRequest) (*ad
 		IsDropBlocked: false,
 		PointsForDrop: adventuria.GameSettings.PointsForDrop(),
 	}
-	res, err := user.OnBeforeDrop().Trigger(onBeforeDropEvent)
+	res, err := ctx.User.OnBeforeDrop().Trigger(onBeforeDropEvent)
 	if res != nil && !res.Success {
 		return &adventuria.ActionResult{
 			Success: false,
@@ -83,7 +83,7 @@ func (a *DropAction) Do(user adventuria.User, req adventuria.ActionRequest) (*ad
 		}, nil
 	}
 
-	action := user.LastAction()
+	action := ctx.User.LastAction()
 	action.SetType(ActionTypeDrop)
 	action.SetComment(comment)
 	err = adventuria.PocketBase.Save(action.ProxyRecord())
@@ -93,17 +93,16 @@ func (a *DropAction) Do(user adventuria.User, req adventuria.ActionRequest) (*ad
 			Error:   "internal error: can't save action record",
 		}, fmt.Errorf("drop.do(): %w", err)
 	}
-	//action.MarkAsNew()
 	action.SetCanMove(true)
 
 	if !onBeforeDropEvent.IsSafeDrop && !currentCell.IsSafeDrop() {
-		user.SetPoints(user.Points() + onBeforeDropEvent.PointsForDrop)
-		user.SetDropsInARow(user.DropsInARow() + 1)
+		ctx.User.SetPoints(ctx.User.Points() + onBeforeDropEvent.PointsForDrop)
+		ctx.User.SetDropsInARow(ctx.User.DropsInARow() + 1)
 
-		if !user.IsSafeDrop() {
-			user.SetIsInJail(true)
+		if !ctx.User.IsSafeDrop() {
+			ctx.User.SetIsInJail(true)
 
-			_, err = user.MoveToClosestCellType("jail")
+			_, err = ctx.User.MoveToClosestCellType("jail")
 			if err != nil {
 				return &adventuria.ActionResult{
 					Success: false,
@@ -113,7 +112,7 @@ func (a *DropAction) Do(user adventuria.User, req adventuria.ActionRequest) (*ad
 		}
 	}
 
-	res, err = user.OnAfterDrop().Trigger(&adventuria.OnAfterDropEvent{})
+	res, err = ctx.User.OnAfterDrop().Trigger(&adventuria.OnAfterDropEvent{})
 	if res != nil && !res.Success {
 		return &adventuria.ActionResult{
 			Success: false,

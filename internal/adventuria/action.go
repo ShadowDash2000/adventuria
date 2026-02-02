@@ -7,10 +7,14 @@ import (
 
 type Action interface {
 	Type() ActionType
-	CanDo(User) bool
-	Do(User, ActionRequest) (*ActionResult, error)
+	CanDo(ActionContext) bool
+	Do(ActionContext, ActionRequest) (*ActionResult, error)
 
 	setType(ActionType)
+}
+
+type ActionContext struct {
+	User User
 }
 
 type ActionRecord interface {

@@ -10,8 +10,8 @@ type RollItemOnCellAction struct {
 	adventuria.ActionBase
 }
 
-func (a *RollItemOnCellAction) CanDo(user adventuria.User) bool {
-	currentCell, ok := user.CurrentCell()
+func (a *RollItemOnCellAction) CanDo(ctx adventuria.ActionContext) bool {
+	currentCell, ok := ctx.User.CurrentCell()
 	if !ok {
 		return false
 	}
@@ -20,11 +20,11 @@ func (a *RollItemOnCellAction) CanDo(user adventuria.User) bool {
 		return false
 	}
 
-	return !user.LastAction().CanMove() && user.LastAction().Type() != ActionTypeRollItemOnCell
+	return !ctx.User.LastAction().CanMove() && ctx.User.LastAction().Type() != ActionTypeRollItemOnCell
 }
 
-func (a *RollItemOnCellAction) Do(user adventuria.User, req adventuria.ActionRequest) (*adventuria.ActionResult, error) {
-	currentCell, ok := user.CurrentCell()
+func (a *RollItemOnCellAction) Do(ctx adventuria.ActionContext, req adventuria.ActionRequest) (*adventuria.ActionResult, error) {
+	currentCell, ok := ctx.User.CurrentCell()
 	if !ok {
 		return &adventuria.ActionResult{
 			Success: false,
@@ -34,7 +34,7 @@ func (a *RollItemOnCellAction) Do(user adventuria.User, req adventuria.ActionReq
 
 	cellWheel := currentCell.(adventuria.CellWheel)
 
-	res, err := cellWheel.Roll(user, adventuria.RollWheelRequest(req))
+	res, err := cellWheel.Roll(ctx.User, adventuria.RollWheelRequest(req))
 	if err != nil {
 		return &adventuria.ActionResult{
 			Success: false,
@@ -42,7 +42,7 @@ func (a *RollItemOnCellAction) Do(user adventuria.User, req adventuria.ActionReq
 		}, fmt.Errorf("roll_item_on_cell.do(): %w", err)
 	}
 
-	_, err = user.Inventory().MustAddItemById(res.WinnerId)
+	_, err = ctx.User.Inventory().MustAddItemById(res.WinnerId)
 	if err != nil {
 		return &adventuria.ActionResult{
 			Success: false,
@@ -50,7 +50,7 @@ func (a *RollItemOnCellAction) Do(user adventuria.User, req adventuria.ActionReq
 		}, fmt.Errorf("roll_item_on_cell.do(): can't add item to inventory: %w", err)
 	}
 
-	action := user.LastAction()
+	action := ctx.User.LastAction()
 	action.SetType(ActionTypeRollItemOnCell)
 	action.SetCanMove(true)
 

@@ -9,11 +9,11 @@ type DoneAction struct {
 	adventuria.ActionBase
 }
 
-func (a *DoneAction) CanDo(user adventuria.User) bool {
-	return user.LastAction().Type() == ActionTypeRollWheel
+func (a *DoneAction) CanDo(ctx adventuria.ActionContext) bool {
+	return ctx.User.LastAction().Type() == ActionTypeRollWheel
 }
 
-func (a *DoneAction) Do(user adventuria.User, req adventuria.ActionRequest) (*adventuria.ActionResult, error) {
+func (a *DoneAction) Do(ctx adventuria.ActionContext, req adventuria.ActionRequest) (*adventuria.ActionResult, error) {
 	var comment string
 	if c, ok := req["comment"]; ok {
 		comment, ok = c.(string)
@@ -25,7 +25,7 @@ func (a *DoneAction) Do(user adventuria.User, req adventuria.ActionRequest) (*ad
 		}
 	}
 
-	currentCell, ok := user.CurrentCell()
+	currentCell, ok := ctx.User.CurrentCell()
 	if !ok {
 		return &adventuria.ActionResult{
 			Success: false,
@@ -37,7 +37,7 @@ func (a *DoneAction) Do(user adventuria.User, req adventuria.ActionRequest) (*ad
 		CellPoints: currentCell.Points(),
 		CellCoins:  currentCell.Coins(),
 	}
-	res, err := user.OnBeforeDone().Trigger(onBeforeDoneEvent)
+	res, err := ctx.User.OnBeforeDone().Trigger(onBeforeDoneEvent)
 	if res != nil && !res.Success {
 		return &adventuria.ActionResult{
 			Success: false,
@@ -51,18 +51,18 @@ func (a *DoneAction) Do(user adventuria.User, req adventuria.ActionRequest) (*ad
 		}, err
 	}
 
-	action := user.LastAction()
+	action := ctx.User.LastAction()
 	action.SetType(ActionTypeDone)
 	action.SetComment(comment)
 	action.SetCanMove(true)
 
-	user.SetDropsInARow(0)
-	user.SetIsInJail(false)
-	user.SetPoints(user.Points() + onBeforeDoneEvent.CellPoints)
-	user.SetBalance(user.Balance() + onBeforeDoneEvent.CellCoins)
+	ctx.User.SetDropsInARow(0)
+	ctx.User.SetIsInJail(false)
+	ctx.User.SetPoints(ctx.User.Points() + onBeforeDoneEvent.CellPoints)
+	ctx.User.SetBalance(ctx.User.Balance() + onBeforeDoneEvent.CellCoins)
 
 	onAfterDoneEvent := &adventuria.OnAfterDoneEvent{}
-	res, err = user.OnAfterDone().Trigger(onAfterDoneEvent)
+	res, err = ctx.User.OnAfterDone().Trigger(onAfterDoneEvent)
 	if res != nil && !res.Success {
 		return &adventuria.ActionResult{
 			Success: false,

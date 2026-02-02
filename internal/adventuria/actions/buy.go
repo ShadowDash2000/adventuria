@@ -10,8 +10,8 @@ type BuyAction struct {
 	adventuria.ActionBase
 }
 
-func (a *BuyAction) CanDo(user adventuria.User) bool {
-	currentCell, ok := user.CurrentCell()
+func (a *BuyAction) CanDo(ctx adventuria.ActionContext) bool {
+	currentCell, ok := ctx.User.CurrentCell()
 	if !ok {
 		return false
 	}
@@ -23,7 +23,7 @@ func (a *BuyAction) CanDo(user adventuria.User) bool {
 	return true
 }
 
-func (a *BuyAction) Do(user adventuria.User, req adventuria.ActionRequest) (*adventuria.ActionResult, error) {
+func (a *BuyAction) Do(ctx adventuria.ActionContext, req adventuria.ActionRequest) (*adventuria.ActionResult, error) {
 	if _, ok := req["item_id"]; !ok {
 		return &adventuria.ActionResult{
 			Success: false,
@@ -39,7 +39,7 @@ func (a *BuyAction) Do(user adventuria.User, req adventuria.ActionRequest) (*adv
 		}, nil
 	}
 
-	ids, err := user.LastAction().ItemsList()
+	ids, err := ctx.User.LastAction().ItemsList()
 	if err != nil {
 		return &adventuria.ActionResult{
 			Success: false,
@@ -66,14 +66,14 @@ func (a *BuyAction) Do(user adventuria.User, req adventuria.ActionRequest) (*adv
 	}
 
 	item := adventuria.NewItemFromRecord(itemRecord)
-	if user.Balance() < item.Price() {
+	if ctx.User.Balance() < item.Price() {
 		return &adventuria.ActionResult{
 			Success: false,
 			Error:   "not enough money",
 		}, nil
 	}
 
-	invItemId, err := user.Inventory().AddItemById(itemId)
+	invItemId, err := ctx.User.Inventory().AddItemById(itemId)
 	if err != nil {
 		return &adventuria.ActionResult{
 			Success: false,
@@ -85,8 +85,8 @@ func (a *BuyAction) Do(user adventuria.User, req adventuria.ActionRequest) (*adv
 		ids = slices.Delete(ids, index, index+1)
 	}
 
-	user.LastAction().SetItemsList(ids)
-	user.SetBalance(user.Balance() - item.Price())
+	ctx.User.LastAction().SetItemsList(ids)
+	ctx.User.SetBalance(ctx.User.Balance() - item.Price())
 
 	return &adventuria.ActionResult{
 		Success: true,

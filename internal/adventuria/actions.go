@@ -24,14 +24,14 @@ func NewActions() *Actions {
 
 func (a *Actions) CanDo(user User, t ActionType) bool {
 	if action, ok := a.actions[t]; ok {
-		return action.CanDo(user)
+		return action.CanDo(ActionContext{User: user})
 	}
 	return false
 }
 
 func (a *Actions) Do(user User, req ActionRequest, t ActionType) (*ActionResult, error) {
 	if action, ok := a.actions[t]; ok {
-		return action.Do(user, req)
+		return action.Do(ActionContext{User: user}, req)
 	}
 	return nil, errors.New("actions: unknown action")
 }
