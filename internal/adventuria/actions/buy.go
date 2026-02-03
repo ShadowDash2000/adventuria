@@ -90,10 +90,7 @@ func (a *BuyAction) Do(ctx adventuria.ActionContext, req adventuria.ActionReques
 	}
 
 	item := adventuria.NewItemFromRecord(itemRecord)
-	price := item.Price()
-	if decodedValue.PriceMultiplier != 0 {
-		price = int(float32(price) * decodedValue.PriceMultiplier)
-	}
+	price := a.calculatePrice(item.Price(), decodedValue)
 
 	if ctx.User.Balance() < price {
 		return &adventuria.ActionResult{
@@ -153,14 +150,29 @@ func (a *BuyAction) GetVariants(ctx adventuria.ActionContext) any {
 		return nil
 	}
 
+	recordsMaps := make(map[string]*core.Record, len(records))
 	for _, record := range records {
-		price := record.GetInt("price")
-		record.Set("price", int(float32(price)*decodedValue.PriceMultiplier))
+		record.Set("price", a.calculatePrice(record.GetInt("price"), decodedValue))
+		recordsMaps[record.Id] = record
+	}
+
+	result := make([]*core.Record, len(ids))
+	for i, id := range ids {
+		if record, ok := recordsMaps[id]; ok {
+			result[i] = record
+		}
 	}
 
 	return struct {
-		Items []*core.Record `,json:"items"`
+		Items []*core.Record `json:"items"`
 	}{
-		Items: records,
+		Items: result,
 	}
+}
+
+func (a *BuyAction) calculatePrice(price int, cellShopValue cellShopValue) int {
+	if cellShopValue.PriceMultiplier != 0 {
+		price = int(float32(price) * cellShopValue.PriceMultiplier)
+	}
+	return price
 }
