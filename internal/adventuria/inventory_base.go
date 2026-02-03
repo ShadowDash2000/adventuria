@@ -79,7 +79,7 @@ func (i *InventoryBase) fetchInventory() error {
 	invItems, err := PocketBase.FindRecordsByFilter(
 		CollectionInventory,
 		"user.id = {:userId}",
-		"-created",
+		"created",
 		0,
 		0,
 		dbx.Params{"userId": i.user.ID()},
