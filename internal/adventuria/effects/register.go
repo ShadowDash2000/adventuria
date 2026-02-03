@@ -36,6 +36,7 @@ func WithBaseEffects() {
 		"debuffBlock":                 adventuria.NewEffect(func() adventuria.Effect { return &DebuffBlockEffect{} }),
 		"paidMovementInRadius":        adventuria.NewEffect(func() adventuria.Effect { return &PaidMovementInRadiusEffect{} }),
 		"coinsIncrement":              adventuria.NewEffect(func() adventuria.Effect { return &CoinsIncrementEffect{} }),
+		"discountPriceDivide":         adventuria.NewEffect(func() adventuria.Effect { return &DiscountPriceDivideEffect{} }),
 	})
 
 	adventuria.RegisterPersistentEffects(map[string]adventuria.PersistentEffectCreator{

@@ -45,6 +45,8 @@ type UserBase struct {
 	onBeforeItemAdd     *event.Hook[*OnBeforeItemAdd]
 	onAfterItemAdd      *event.Hook[*OnAfterItemAdd]
 	onAfterItemSave     *event.Hook[*OnAfterItemSave]
+	onBeforeItemBuy     *event.Hook[*OnBeforeItemBuy]
+	onBuyGetVariants    *event.Hook[*OnBuyGetVariants]
 }
 
 func NewUser(userId string) (User, error) {
@@ -451,6 +453,8 @@ func (u *UserBase) initHooks() {
 	u.onBeforeItemAdd = &event.Hook[*OnBeforeItemAdd]{}
 	u.onAfterItemAdd = &event.Hook[*OnAfterItemAdd]{}
 	u.onAfterItemSave = &event.Hook[*OnAfterItemSave]{}
+	u.onBeforeItemBuy = &event.Hook[*OnBeforeItemBuy]{}
+	u.onBuyGetVariants = &event.Hook[*OnBuyGetVariants]{}
 }
 
 func (u *UserBase) OnAfterChooseGame() *event.Hook[*OnAfterChooseGameEvent] {
@@ -547,4 +551,12 @@ func (u *UserBase) OnAfterItemAdd() *event.Hook[*OnAfterItemAdd] {
 
 func (u *UserBase) OnAfterItemSave() *event.Hook[*OnAfterItemSave] {
 	return u.onAfterItemSave
+}
+
+func (u *UserBase) OnBeforeItemBuy() *event.Hook[*OnBeforeItemBuy] {
+	return u.onBeforeItemBuy
+}
+
+func (u *UserBase) OnBuyGetVariants() *event.Hook[*OnBuyGetVariants] {
+	return u.onBuyGetVariants
 }

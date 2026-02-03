@@ -106,3 +106,13 @@ type OnBeforeCurrentCellEvent struct {
 	event.Event
 	CurrentCell Cell
 }
+type OnBeforeItemBuy struct {
+	event.Event
+	Item  ItemRecord
+	Price int
+}
+type OnBuyGetVariants struct {
+	event.Event
+	Item  ItemRecord
+	Price int
+}
