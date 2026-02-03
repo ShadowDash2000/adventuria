@@ -1,4 +1,4 @@
-FROM golang:1.25.6-alpine as builder
+FROM golang:1.25.6-alpine AS builder
 
 RUN mkdir -p "/adventuria/"
 COPY . /adventuria/
