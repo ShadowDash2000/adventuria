@@ -21,6 +21,7 @@ func (c *CellShop) OnCellReached(ctx *adventuria.CellReachedContext) error {
 		Where(dbx.And(
 			dbx.NewExp("type = \"buff\""),
 			dbx.NewExp("isRollable = true"),
+			dbx.NewExp("price > 0"),
 		)).
 		All(&records)
 	if err != nil {
