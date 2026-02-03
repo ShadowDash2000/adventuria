@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/pocketbase/pocketbase/core"
+	"github.com/pocketbase/pocketbase/tools/types"
 )
 
 type ItemBase struct {
@@ -155,6 +156,10 @@ func (i *ItemBase) setIsActive(b bool) {
 	i.invItemRecord.Set("isActive", b)
 }
 
+func (i *ItemBase) setActivated(date types.DateTime) {
+	i.invItemRecord.Set("activated", date)
+}
+
 func (i *ItemBase) EffectsCount() int {
 	return len(i.effects)
 }
@@ -201,6 +206,7 @@ func (i *ItemBase) Use() (OnUseSuccess, OnUseFail, error) {
 			if !i.isAwake {
 				return nil
 			}
+			i.setActivated(types.NowDateTime())
 			return PocketBase.Save(i.invItemRecord)
 		}, func() {
 			i.setIsActive(false)

@@ -6,6 +6,7 @@ import (
 
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
+	"github.com/pocketbase/pocketbase/tools/types"
 )
 
 type InventoryBase struct {
@@ -32,7 +33,7 @@ func NewInventory(user User, maxSlots int) (Inventory, error) {
 }
 
 func (i *InventoryBase) bindHooks() {
-	i.hookIds = make([]string, 3)
+	i.hookIds = make([]string, 4)
 
 	i.hookIds[0] = PocketBase.OnRecordAfterCreateSuccess(CollectionInventory).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.GetString("user") == i.user.ID() {
@@ -64,12 +65,19 @@ func (i *InventoryBase) bindHooks() {
 		}
 		return e.Next()
 	})
+	i.hookIds[3] = PocketBase.OnRecordCreate(CollectionInventory).BindFunc(func(e *core.RecordEvent) error {
+		if e.Record.GetBool("isActive") {
+			e.Record.Set("activated", types.NowDateTime())
+		}
+		return e.Next()
+	})
 }
 
 func (i *InventoryBase) Close() {
 	PocketBase.OnRecordAfterCreateSuccess(CollectionInventory).Unbind(i.hookIds[0])
 	PocketBase.OnRecordAfterDeleteSuccess(CollectionInventory).Unbind(i.hookIds[1])
 	PocketBase.OnRecordEnrich(CollectionInventory).Unbind(i.hookIds[2])
+	PocketBase.OnRecordCreate(CollectionInventory).Unbind(i.hookIds[3])
 	for _, item := range i.items {
 		item.Close()
 	}
@@ -79,7 +87,7 @@ func (i *InventoryBase) fetchInventory() error {
 	invItems, err := PocketBase.FindRecordsByFilter(
 		CollectionInventory,
 		"user.id = {:userId}",
-		"created",
+		"activated,created",
 		0,
 		0,
 		dbx.Params{"userId": i.user.ID()},
