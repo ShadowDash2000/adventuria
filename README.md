@@ -62,7 +62,7 @@ IGDB_PARSE_FILTER="game_type = 0 & platforms = (6)"
 Далее нужно зарегистрировать новый эффект при старте приложения:
 ```go
 adventuria.RegisterEffects(map[string]adventuria.EffectCreator{
-    "myNewEffect": adventuria.NewEffect(&MyNewEffect{}),
+    "myNewEffect": adventuria.NewEffect(func() adventuria.Effect { return &MyNewEffect{} }),
 })
 ```
 
@@ -73,9 +73,15 @@ adventuria.RegisterEffects(map[string]adventuria.EffectCreator{
 ## Клетки ♿
 
 Примеры готовых игровых клеток: `internal/adventuria/cells`.\
-В базовом варианте клетка должна имплементировать
-только один метод: `OnCellReached(ctx *adventuria.CellReachedContext) error`, который описывает то, что должно происходить
-в момент, когда игрок наступает на клетку.
+Клетки должны имплементировать следующие методы:
+```go
+// Вызывается в момент, когда игрок наступает на клетку
+OnCellReached(*CellReachedContext) error
+// Вызывается в момент, когда игрок покидает клетку
+OnCellLeft(*CellLeftContext) error
+// Вызывается при сохранении клетки в PocketBase для проверки значения в поле "value"
+Verify(string) error
+```
 В клетках можно вызывать сохранение `user` и `lastAction`, если на то есть причина. Например, если клетке нужно
 создать новый ход, то это можно сделать таким образом:
 
@@ -87,11 +93,10 @@ if err != nil {
     return err
 }
 // Помечаем record экшена, как новый, чтобы создать новую запись
-action.ProxyRecord().MarkAsNew()
-action.ProxyRecord().Set("id", "")
+action.MarkAsNew()
 ```
 
-После выполнения `OnCellReached`, так же сохраняются поля `user` и его `lastAction`.
+После выполнения `OnCellReached` и `OnCellLeft`, так же сохраняются поля `user` и его `lastAction`.
 
 > [!WARNING]
 > Если клетка не представляет собой цепочку вызова `action`, то в `OnCellReached` обязательно нужно
@@ -102,8 +107,15 @@ action.ProxyRecord().Set("id", "")
 Примеры реализации действий: `internal/adventuria/actions`.\
 В своей основе действия нужны для манипуляции над данными игрока, например, чтобы завершить прохождение игры на клетке,
 дропнуть, купить предмет в магазине и т.д. Действия обязаны имплементировать два метода:
-- `CanDo(User) bool`
-- `Do(User, ActionRequest) (*ActionResult, error)`
+```go
+CanDo(ActionContext) bool
+Do(ActionContext, ActionRequest) (*ActionResult, error)
+// Этот метод используется для получения JSON'а фронтом.
+// В некоторых случаях перед выдачей ответа нужно модифицировать данные.
+// Например, в магазине предметов требуется применить активные эффекты для
+// скидки на товары (internal/adventuria/actions/buy.go).
+GetVariants(ActionContext) any
+```
 
 После выполнения `Do()` так же, вызывается сохранение `user` и его `lastAction`.
 
