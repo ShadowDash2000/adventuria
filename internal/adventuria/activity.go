@@ -48,7 +48,8 @@ type ActivityRecord interface {
 type ActivityType string
 
 const (
-	ActivityTypeGame  ActivityType = "game"
-	ActivityTypeMovie ActivityType = "movie"
-	ActivityTypeGym   ActivityType = "gym"
+	ActivityTypeGame    ActivityType = "game"
+	ActivityTypeMovie   ActivityType = "movie"
+	ActivityTypeGym     ActivityType = "gym"
+	ActivityTypeKaraoke ActivityType = "karaoke"
 )

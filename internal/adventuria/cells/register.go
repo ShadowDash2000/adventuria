@@ -20,6 +20,11 @@ func WithBaseCells() {
 			"wheel", "activity",
 		),
 		adventuria.NewCell(
+			"karaoke",
+			NewCellActivity(adventuria.ActivityTypeKaraoke),
+			"wheel", "activity",
+		),
+		adventuria.NewCell(
 			"start",
 			func() adventuria.Cell { return &CellStart{} },
 		),
