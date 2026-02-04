@@ -2,7 +2,6 @@ package actions
 
 import (
 	"adventuria/internal/adventuria"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"slices"
@@ -172,8 +171,12 @@ func decodeCellShopValue(ctx adventuria.ActionContext) (*cellShopValue, error) {
 	}
 
 	var decodedValue *cellShopValue
-	if err := json.Unmarshal([]byte(currentCell.Value()), &decodedValue); err != nil {
-		return nil, err
+	if err := currentCell.UnmarshalValue(&decodedValue); err != nil {
+		return decodedValue, err
+	}
+
+	if decodedValue == nil {
+		decodedValue = &cellShopValue{}
 	}
 
 	return decodedValue, nil

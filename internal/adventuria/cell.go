@@ -32,6 +32,7 @@ type Cell interface {
 	OnCellLeft(*CellLeftContext) error
 	Verify(string) error
 	Value() string
+	UnmarshalValue(result any) error
 }
 
 type CellReachedContext struct {

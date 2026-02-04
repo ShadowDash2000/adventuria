@@ -90,3 +90,6 @@ func (c *CellRecord) IsCustomFilterNotAllowed() bool {
 func (c *CellRecord) Value() string {
 	return c.GetString("value")
 }
+func (c *CellRecord) UnmarshalValue(result any) error {
+	return c.UnmarshalJSONField("value", result)
+}
