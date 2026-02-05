@@ -30,17 +30,19 @@ type Cell interface {
 	IsCustomFilterNotAllowed() bool
 	OnCellReached(*CellReachedContext) error
 	OnCellLeft(*CellLeftContext) error
-	Verify(string) error
+	Verify(AppContext, string) error
 	Value() string
 	UnmarshalValue(result any) error
 }
 
 type CellReachedContext struct {
+	AppContext
 	User  User
-	Moves []*OnAfterMoveEvent
+	Moves []*MoveResult
 }
 
 type CellLeftContext struct {
+	AppContext
 	User User
 }
 

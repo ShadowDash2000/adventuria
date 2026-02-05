@@ -49,41 +49,41 @@ type UserBase struct {
 	onBuyGetVariants    *event.Hook[*OnBuyGetVariants]
 }
 
-func NewUser(userId string) (User, error) {
+func NewUser(ctx AppContext, userId string) (User, error) {
 	var err error
 	u := &UserBase{
 		stats: Stats{},
 	}
 
-	err = u.fetchUser(userId)
+	err = u.fetchUser(ctx, userId)
 	if err != nil {
 		return nil, err
 	}
 
 	u.initHooks()
 
-	u.timer, err = NewTimer(userId)
+	u.timer, err = NewTimer(ctx, userId)
 	if err != nil {
 		return nil, err
 	}
 
-	u.lastAction, err = NewLastUserAction(u.Id)
+	u.lastAction, err = NewLastUserAction(ctx, u.Id)
 	if err != nil {
 		return nil, err
 	}
 
-	u.inventory, err = NewInventory(u, u.MaxInventorySlots())
+	u.inventory, err = NewInventory(ctx, u, u.MaxInventorySlots())
 	if err != nil {
 		return nil, err
 	}
 
-	u.bindHooks()
+	u.bindHooks(ctx)
 
 	return u, nil
 }
 
-func NewUserFromName(name string) (User, error) {
-	record, err := PocketBase.FindRecordsByFilter(
+func NewUserFromName(ctx AppContext, name string) (User, error) {
+	record, err := ctx.App.FindRecordsByFilter(
 		CollectionUsers,
 		"name = {:name}",
 		"",
@@ -97,19 +97,19 @@ func NewUserFromName(name string) (User, error) {
 		return nil, err
 	}
 
-	return NewUser(record[0].Id)
+	return NewUser(ctx, record[0].Id)
 }
 
-func (u *UserBase) bindHooks() {
+func (u *UserBase) bindHooks(ctx AppContext) {
 	u.hookIds = make([]string, 3)
 
-	u.hookIds[0] = PocketBase.OnRecordAfterUpdateSuccess(CollectionUsers).BindFunc(func(e *core.RecordEvent) error {
+	u.hookIds[0] = ctx.App.OnRecordAfterUpdateSuccess(CollectionUsers).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == u.Id {
 			u.SetProxyRecord(e.Record)
 		}
 		return e.Next()
 	})
-	u.hookIds[1] = PocketBase.OnRecordUpdate(CollectionUsers).BindFunc(func(e *core.RecordEvent) error {
+	u.hookIds[1] = ctx.App.OnRecordUpdate(CollectionUsers).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == u.Id {
 			e.Record.Set("stats", u.stats)
 		}
@@ -124,7 +124,7 @@ func (u *UserBase) bindHooks() {
 		u.pEffectsUnsubGroup[i] = event.UnsubGroup{Fns: unsubs}
 		i++
 	}
-	u.hookIds[2] = PocketBase.OnTerminate().BindFunc(func(e *core.TerminateEvent) error {
+	u.hookIds[2] = ctx.App.OnTerminate().BindFunc(func(e *core.TerminateEvent) error {
 		for _, unsubGroup := range u.pEffectsUnsubGroup {
 			unsubGroup.Unsubscribe()
 		}
@@ -132,15 +132,15 @@ func (u *UserBase) bindHooks() {
 	})
 }
 
-func (u *UserBase) Close() {
-	PocketBase.OnRecordAfterUpdateSuccess(CollectionUsers).Unbind(u.hookIds[0])
-	PocketBase.OnRecordUpdate(CollectionUsers).Unbind(u.hookIds[1])
-	PocketBase.OnTerminate().Unbind(u.hookIds[2])
+func (u *UserBase) Close(ctx AppContext) {
+	ctx.App.OnRecordAfterUpdateSuccess(CollectionUsers).Unbind(u.hookIds[0])
+	ctx.App.OnRecordUpdate(CollectionUsers).Unbind(u.hookIds[1])
+	ctx.App.OnTerminate().Unbind(u.hookIds[2])
 	for _, unsubGroup := range u.pEffectsUnsubGroup {
 		unsubGroup.Unsubscribe()
 	}
-	u.inventory.Close()
-	u.lastAction.Close()
+	u.inventory.Close(ctx)
+	u.lastAction.Close(ctx)
 }
 
 func (u *UserBase) SetProxyRecord(record *core.Record) {
@@ -148,8 +148,8 @@ func (u *UserBase) SetProxyRecord(record *core.Record) {
 	u.UnmarshalJSONField("stats", &u.stats)
 }
 
-func (u *UserBase) fetchUser(userId string) error {
-	user, err := PocketBase.FindRecordById(CollectionUsers, userId)
+func (u *UserBase) fetchUser(ctx AppContext, userId string) error {
+	user, err := ctx.App.FindRecordById(CollectionUsers, userId)
 	if err != nil {
 		return err
 	}
@@ -226,11 +226,12 @@ func (u *UserBase) SetItemWheelsCount(itemWheelsCount int) {
 	u.Set("itemWheelsCount", itemWheelsCount)
 }
 
-func (u *UserBase) Move(steps int) ([]*OnAfterMoveEvent, error) {
+func (u *UserBase) Move(ctx AppContext, steps int) ([]*MoveResult, error) {
 	prevCell, ok := u.CurrentCell()
 	if ok {
 		err := prevCell.OnCellLeft(&CellLeftContext{
-			User: u,
+			AppContext: ctx,
+			User:       u,
 		})
 		if err != nil {
 			return nil, err
@@ -250,9 +251,7 @@ func (u *UserBase) Move(steps int) ([]*OnAfterMoveEvent, error) {
 	}
 
 	u.setCellsPassed(totalSteps)
-
-	err := PocketBase.Save(u.lastAction)
-	if err != nil {
+	if err := ctx.App.Save(u.ProxyRecord()); err != nil {
 		return nil, err
 	}
 
@@ -263,7 +262,12 @@ func (u *UserBase) Move(steps int) ([]*OnAfterMoveEvent, error) {
 	u.lastAction.setCell(currentCell.ID())
 	u.lastAction.SetCanMove(false)
 
+	if err := ctx.App.Save(u.lastAction.ProxyRecord()); err != nil {
+		return nil, err
+	}
+
 	onAfterMoveEvent := OnAfterMoveEvent{
+		AppContext:     ctx,
 		Steps:          steps,
 		TotalSteps:     totalSteps,
 		PrevTotalSteps: cellsPassed,
@@ -280,8 +284,17 @@ func (u *UserBase) Move(steps int) ([]*OnAfterMoveEvent, error) {
 	}
 
 	cellReachedCtx := CellReachedContext{
-		User:  u,
-		Moves: []*OnAfterMoveEvent{&onAfterMoveEvent},
+		AppContext: ctx,
+		User:       u,
+		Moves: []*MoveResult{
+			{
+				Steps:          onAfterMoveEvent.Steps,
+				TotalSteps:     onAfterMoveEvent.TotalSteps,
+				PrevTotalSteps: onAfterMoveEvent.PrevTotalSteps,
+				CurrentCell:    onAfterMoveEvent.CurrentCell,
+				Laps:           onAfterMoveEvent.Laps,
+			},
+		},
 	}
 
 	err = currentCell.OnCellReached(&cellReachedCtx)
@@ -292,7 +305,8 @@ func (u *UserBase) Move(steps int) ([]*OnAfterMoveEvent, error) {
 	// Check if we're not moving backwards and passed new lap(-s)
 	if steps > 0 && lapsPassed > 0 {
 		res, err = u.OnNewLap().Trigger(&OnNewLapEvent{
-			Laps: lapsPassed,
+			AppContext: ctx,
+			Laps:       lapsPassed,
 		})
 		if res != nil && !res.Success {
 			return nil, errors.New(res.Error)
@@ -309,7 +323,7 @@ func (u *UserBase) CurrentCellOrder() int {
 	return mod(u.CellsPassed(), GameCells.Count())
 }
 
-func (u *UserBase) MoveToClosestCellType(cellType CellType) ([]*OnAfterMoveEvent, error) {
+func (u *UserBase) MoveToClosestCellType(ctx AppContext, cellType CellType) ([]*MoveResult, error) {
 	var (
 		closest     int
 		minDistance int
@@ -329,26 +343,26 @@ func (u *UserBase) MoveToClosestCellType(cellType CellType) ([]*OnAfterMoveEvent
 		return nil, errors.New("cell not found")
 	}
 
-	return u.Move(closest - u.CurrentCellOrder())
+	return u.Move(ctx, closest-u.CurrentCellOrder())
 }
 
-func (u *UserBase) MoveToCellId(cellId string) ([]*OnAfterMoveEvent, error) {
+func (u *UserBase) MoveToCellId(ctx AppContext, cellId string) ([]*MoveResult, error) {
 	cellPos, ok := GameCells.GetOrderById(cellId)
 	if !ok {
 		return nil, fmt.Errorf("cell %s not found", cellId)
 	}
-	return u.Move(cellPos - u.CurrentCellOrder())
+	return u.Move(ctx, cellPos-u.CurrentCellOrder())
 }
 
-func (u *UserBase) MoveToCellName(cellName string) ([]*OnAfterMoveEvent, error) {
+func (u *UserBase) MoveToCellName(ctx AppContext, cellName string) ([]*MoveResult, error) {
 	cellPos, ok := GameCells.GetOrderByName(cellName)
 	if !ok {
 		return nil, fmt.Errorf("cell %s not found", cellName)
 	}
-	return u.Move(cellPos - u.CurrentCellOrder())
+	return u.Move(ctx, cellPos-u.CurrentCellOrder())
 }
 
-func (u *UserBase) MoveToClosestCellByNames(cellNames ...string) ([]*OnAfterMoveEvent, error) {
+func (u *UserBase) MoveToClosestCellByNames(ctx AppContext, cellNames ...string) ([]*MoveResult, error) {
 	if len(cellNames) == 0 {
 		return nil, errors.New("moveToClosestCellByNames: cellNames is empty")
 	}
@@ -381,7 +395,7 @@ func (u *UserBase) MoveToClosestCellByNames(cellNames ...string) ([]*OnAfterMove
 		return nil, errors.New("moveToClosestCellByNames: cell not found")
 	}
 
-	return u.Move(closest - u.CurrentCellOrder())
+	return u.Move(ctx, closest-u.CurrentCellOrder())
 }
 
 func (u *UserBase) Inventory() Inventory {

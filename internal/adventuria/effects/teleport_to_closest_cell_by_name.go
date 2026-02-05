@@ -14,13 +14,13 @@ type TeleportToClosestCellByNameEffect struct {
 	adventuria.EffectRecord
 }
 
-func (ef *TeleportToClosestCellByNameEffect) CanUse(ctx adventuria.EffectContext) bool {
-	if adventuria.GameActions.HasActionsInCategories(ctx.User, []string{"wheel_roll", "on_cell"}) {
+func (ef *TeleportToClosestCellByNameEffect) CanUse(appCtx adventuria.AppContext, ctx adventuria.EffectContext) bool {
+	if adventuria.GameActions.HasActionsInCategories(appCtx, ctx.User, []string{"wheel_roll", "on_cell"}) {
 		return false
 	}
 
-	canDone := adventuria.GameActions.CanDo(ctx.User, "done")
-	canDrop := adventuria.GameActions.CanDo(ctx.User, "drop")
+	canDone := adventuria.GameActions.CanDo(appCtx, ctx.User, "done")
+	canDrop := adventuria.GameActions.CanDo(appCtx, ctx.User, "drop")
 
 	if canDone && !canDrop {
 		return false
@@ -37,7 +37,7 @@ func (ef *TeleportToClosestCellByNameEffect) Subscribe(
 		ctx.User.OnAfterItemSave().BindFunc(func(e *adventuria.OnAfterItemSave) (*event.Result, error) {
 			if e.Item.IDInventory() == ctx.InvItemID {
 				cellNames, _ := ef.DecodeValue(ef.GetString("value"))
-				_, err := ctx.User.MoveToClosestCellByNames(cellNames...)
+				_, err := ctx.User.MoveToClosestCellByNames(e.AppContext, cellNames...)
 				if err != nil {
 					return &event.Result{
 						Success: false,
@@ -45,7 +45,7 @@ func (ef *TeleportToClosestCellByNameEffect) Subscribe(
 					}, fmt.Errorf("teleportToClosestCellByName: %w", err)
 				}
 
-				callback()
+				callback(e.AppContext)
 			}
 
 			return e.Next()
@@ -53,7 +53,7 @@ func (ef *TeleportToClosestCellByNameEffect) Subscribe(
 	}, nil
 }
 
-func (ef *TeleportToClosestCellByNameEffect) Verify(value string) error {
+func (ef *TeleportToClosestCellByNameEffect) Verify(ctx adventuria.AppContext, value string) error {
 	names, err := ef.DecodeValue(value)
 	if err != nil {
 		return fmt.Errorf("teleportToClosestCellByName: %w", err)
@@ -67,7 +67,7 @@ func (ef *TeleportToClosestCellByNameEffect) Verify(value string) error {
 	var records []struct {
 		Id string `db:"id"`
 	}
-	err = adventuria.PocketBase.RecordQuery(adventuria.GameCollections.Get(adventuria.CollectionCells)).
+	err = ctx.App.RecordQuery(adventuria.GameCollections.Get(adventuria.CollectionCells)).
 		Where(dbx.Or(exp...)).
 		Select("id").
 		All(&records)
@@ -86,6 +86,6 @@ func (ef *TeleportToClosestCellByNameEffect) DecodeValue(value string) ([]string
 	return strings.Split(value, ";"), nil
 }
 
-func (ef *TeleportToClosestCellByNameEffect) GetVariants(_ adventuria.EffectContext) any {
+func (ef *TeleportToClosestCellByNameEffect) GetVariants(_ adventuria.AppContext, _ adventuria.EffectContext) any {
 	return nil
 }

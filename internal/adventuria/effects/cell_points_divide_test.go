@@ -26,12 +26,15 @@ func Test_CellPointsDivide(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	user, err := adventuria.GameUsers.GetByName("user1")
+	ctx := adventuria.AppContext{
+		App: adventuria.PocketBase,
+	}
+	user, err := adventuria.GameUsers.GetByName(ctx, "user1")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = user.Move(1)
+	_, err = user.Move(ctx, 1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -39,12 +42,16 @@ func Test_CellPointsDivide(t *testing.T) {
 	const points = 100
 	user.SetPoints(points)
 
-	invItemId, err := user.Inventory().AddItemById(item.Id)
+	if err = ctx.App.Save(user.ProxyRecord()); err != nil {
+		t.Fatalf("Test_Buy(): Error saving user: %s", err)
+	}
+
+	invItemId, err := user.Inventory().AddItemById(ctx, item.Id)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = game.UseItem(user.ID(), invItemId, adventuria.UseItemRequest{})
+	err = game.UseItem(ctx.App, user.ID(), adventuria.UseItemRequest{InvItemId: invItemId})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -54,22 +61,22 @@ func Test_CellPointsDivide(t *testing.T) {
 		t.Fatal("Test_CellPointsDivide(): Current cell not found")
 	}
 
-	err = adventuria.PocketBase.Save(user.LastAction().ProxyRecord())
-	if err != nil {
-		t.Fatalf("Test_CellPointsDivide(): Error saving action: %s", err)
-	}
-
-	_, err = game.DoAction(actions.ActionTypeRollWheel, user.ID(), adventuria.ActionRequest{})
+	_, err = game.DoAction(ctx.App, user.ID(), actions.ActionTypeRollWheel, adventuria.ActionRequest{})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = game.DoAction(actions.ActionTypeDone, user.ID(), adventuria.ActionRequest{})
+	_, err = game.DoAction(ctx.App, user.ID(), actions.ActionTypeDone, adventuria.ActionRequest{})
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	t.Log("Test_CellPointsDivide(): Points:", user.Points())
+
+	user, err = adventuria.GameUsers.GetByName(ctx, "user1")
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	wantPoints := points + cell.Points()/2
 	if user.Points() != wantPoints {

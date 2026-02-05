@@ -2,6 +2,7 @@ package adventuria
 
 import (
 	"adventuria/pkg/collections"
+	"adventuria/pkg/event"
 	"context"
 	"errors"
 	"fmt"
@@ -21,6 +22,10 @@ var (
 	GameSettings    *Settings
 	GameActions     *Actions
 )
+
+type AppContext struct {
+	App core.App
+}
 
 type Game struct {
 	pb     *pocketbase.PocketBase
@@ -44,7 +49,7 @@ func (g *Game) Start(fn func(se *core.ServeEvent) error) error {
 	})
 
 	g.pb.OnServe().BindFunc(func(e *core.ServeEvent) error {
-		if err := g.init(); err != nil {
+		if err := g.init(AppContext{App: e.App}); err != nil {
 			return err
 		}
 		return e.Next()
@@ -60,21 +65,21 @@ func (g *Game) Start(fn func(se *core.ServeEvent) error) error {
 	return g.pb.Start()
 }
 
-func (g *Game) init() error {
+func (g *Game) init(ctx AppContext) error {
 	var err error
 
 	GameCollections = collections.NewCollections(PocketBase)
-	GameUsers = NewUsers()
+	GameUsers = NewUsers(ctx)
 	GameActions = NewActions()
-	GameCells, err = NewCells()
+	GameCells, err = NewCells(ctx)
 	if err != nil {
 		return err
 	}
-	GameItems, err = NewItems()
+	GameItems, err = NewItems(ctx)
 	if err != nil {
 		return err
 	}
-	GameSettings, err = NewSettings()
+	GameSettings, err = NewSettings(ctx)
 	if err != nil {
 		return err
 	}
@@ -84,8 +89,9 @@ func (g *Game) init() error {
 	return nil
 }
 
-func (g *Game) DoAction(actionType ActionType, userId string, req ActionRequest) (*ActionResult, error) {
-	user, err := GameUsers.GetByID(userId)
+func (g *Game) DoAction(app core.App, userId string, actionType ActionType, req ActionRequest) (*ActionResult, error) {
+	ctx := AppContext{App: app}
+	user, err := GameUsers.GetByID(ctx, userId)
 	if err != nil {
 		return &ActionResult{
 			Success: false,
@@ -101,27 +107,57 @@ func (g *Game) DoAction(actionType ActionType, userId string, req ActionRequest)
 	}
 
 	user.setIsInAction(true)
-	defer user.setIsInAction(false)
 
-	if ok := GameActions.CanDo(user, actionType); !ok {
+	if ok := GameActions.CanDo(ctx, user, actionType); !ok {
 		return &ActionResult{
 			Success: false,
 			Error:   "request error: cannot do action",
 		}, nil
 	}
 
-	res, err := GameActions.Do(user, req, actionType)
+	var (
+		res    *ActionResult
+		txUser User
+	)
+	err = ctx.App.RunInTransaction(func(txApp core.App) error {
+		ctx := AppContext{App: txApp}
+
+		txUser, err = NewUser(ctx, userId)
+		if err != nil {
+			return err
+		}
+
+		txUser.setIsInAction(true)
+
+		res, err = GameActions.Do(ctx, txUser, req, actionType)
+		if err != nil {
+			app.Logger().Error(
+				"Failed to complete user action",
+				"error", err,
+			)
+			return err
+		} else if res.Error != "" {
+			return errors.New(res.Error)
+		}
+
+		return nil
+	})
 	if err != nil {
-		PocketBase.Logger().Error("Failed to complete user action", "error", err)
+		user.setIsInAction(false)
+		if res != nil {
+			return res, err
+		}
 		return &ActionResult{
 			Success: false,
-			Error:   "internal error",
-		}, fmt.Errorf("doAction(): %w", err)
-	} else if res.Error != "" {
-		return res, nil
+			Error:   err.Error(),
+		}, err
 	}
 
-	eventRes, err := user.OnAfterAction().Trigger(&OnAfterActionEvent{
+	GameUsers.Update(txUser)
+	defer txUser.setIsInAction(false)
+
+	eventRes, err := txUser.OnAfterAction().Trigger(&OnAfterActionEvent{
+		AppContext: ctx,
 		ActionType: actionType,
 	})
 	if eventRes != nil && !eventRes.Success {
@@ -131,25 +167,25 @@ func (g *Game) DoAction(actionType ActionType, userId string, req ActionRequest)
 		}, fmt.Errorf("doAction(): %w", err)
 	}
 	if err != nil {
-		PocketBase.Logger().Error("Failed to trigger onAfterActionEvent", "error", err)
+		app.Logger().Error("Failed to trigger onAfterActionEvent", "error", err)
 		return &ActionResult{
 			Success: false,
 			Error:   "internal error",
 		}, fmt.Errorf("doAction(): %w", err)
 	}
 
-	err = PocketBase.Save(user.LastAction().ProxyRecord())
+	err = app.Save(txUser.LastAction().ProxyRecord())
 	if err != nil {
-		PocketBase.Logger().Error("Failed to save latest user action", "error", err)
+		app.Logger().Error("Failed to save latest user action", "error", err)
 		return &ActionResult{
 			Success: false,
 			Error:   "internal error",
 		}, fmt.Errorf("doAction(): %w", err)
 	}
 
-	err = PocketBase.Save(user.ProxyRecord())
+	err = app.Save(txUser.ProxyRecord())
 	if err != nil {
-		PocketBase.Logger().Error("Failed to save user", "error", err)
+		app.Logger().Error("Failed to save user", "error", err)
 		return &ActionResult{
 			Success: false,
 			Error:   "internal error",
@@ -159,37 +195,65 @@ func (g *Game) DoAction(actionType ActionType, userId string, req ActionRequest)
 	return res, nil
 }
 
-type UseItemRequest map[string]any
+type UseItemRequest struct {
+	InvItemId string         `json:"itemId"`
+	Data      map[string]any `json:"data"`
+}
 
-func (g *Game) UseItem(userId, itemId string, req UseItemRequest) error {
-	user, err := GameUsers.GetByID(userId)
+func (g *Game) UseItem(app core.App, userId string, req UseItemRequest) error {
+	ctx := AppContext{App: app}
+	user, err := GameUsers.GetByID(ctx, userId)
 	if err != nil {
 		return err
 	}
 
-	onUseSuccess, onUseFail, err := user.Inventory().UseItem(itemId)
-	if err != nil {
-		return err
-	}
+	user.setIsInAction(true)
 
-	eventRes, err := user.OnAfterItemUse().Trigger(&OnAfterItemUseEvent{
-		InvItemId: itemId,
-		Request:   req,
+	var (
+		eventRes *event.Result
+		txUser   User
+	)
+	err = ctx.App.RunInTransaction(func(txApp core.App) error {
+		ctx := AppContext{App: txApp}
+
+		txUser, err = NewUser(ctx, userId)
+		if err != nil {
+			return err
+		}
+
+		txUser.setIsInAction(true)
+
+		onUseSuccess, onUseFail, err := txUser.Inventory().UseItem(ctx, req.InvItemId)
+		if err != nil {
+			return err
+		}
+
+		eventRes, err = txUser.OnAfterItemUse().Trigger(&OnAfterItemUseEvent{
+			AppContext: ctx,
+			InvItemId:  req.InvItemId,
+			Data:       req.Data,
+		})
+		if eventRes != nil && !eventRes.Success {
+			onUseFail()
+			return errors.New(eventRes.Error)
+		}
+		if err != nil {
+			onUseFail()
+			return err
+		}
+
+		return onUseSuccess()
 	})
-	if eventRes != nil && !eventRes.Success {
-		onUseFail()
-		return errors.New(eventRes.Error)
-	}
 	if err != nil {
-		onUseFail()
+		user.setIsInAction(false)
 		return err
 	}
 
-	if err = onUseSuccess(); err != nil {
-		return err
-	}
+	GameUsers.Update(txUser)
+	defer txUser.setIsInAction(false)
 
-	eventRes, err = user.OnAfterAction().Trigger(&OnAfterActionEvent{
+	eventRes, err = txUser.OnAfterAction().Trigger(&OnAfterActionEvent{
+		AppContext: ctx,
 		ActionType: "useItem",
 	})
 	if eventRes != nil && !eventRes.Success {
@@ -199,12 +263,12 @@ func (g *Game) UseItem(userId, itemId string, req UseItemRequest) error {
 		return err
 	}
 
-	err = PocketBase.Save(user.ProxyRecord())
+	err = app.Save(txUser.ProxyRecord())
 	if err != nil {
 		return err
 	}
 
-	err = PocketBase.Save(user.LastAction().ProxyRecord())
+	err = app.Save(txUser.LastAction().ProxyRecord())
 	if err != nil {
 		return err
 	}
@@ -212,8 +276,9 @@ func (g *Game) UseItem(userId, itemId string, req UseItemRequest) error {
 	return nil
 }
 
-func (g *Game) DropItem(userId, itemId string) error {
-	user, err := GameUsers.GetByID(userId)
+func (g *Game) DropItem(app core.App, userId, itemId string) error {
+	ctx := AppContext{App: app}
+	user, err := GameUsers.GetByID(ctx, userId)
 	if err != nil {
 		return err
 	}
@@ -223,7 +288,7 @@ func (g *Game) DropItem(userId, itemId string) error {
 		return errors.New("item not found in inventory")
 	}
 
-	err = user.Inventory().DropItem(itemId)
+	err = user.Inventory().DropItem(ctx, itemId)
 	if err != nil {
 		return err
 	}
@@ -231,7 +296,7 @@ func (g *Game) DropItem(userId, itemId string) error {
 	if itemPrice := item.Price(); itemPrice > 0 {
 		user.SetBalance(user.Balance() + itemPrice/2)
 
-		err = PocketBase.Save(user.ProxyRecord())
+		err = app.Save(user.ProxyRecord())
 		if err != nil {
 			return err
 		}
@@ -240,26 +305,29 @@ func (g *Game) DropItem(userId, itemId string) error {
 	return nil
 }
 
-func (g *Game) StartTimer(userId string) error {
-	user, err := GameUsers.GetByID(userId)
+func (g *Game) StartTimer(app core.App, userId string) error {
+	ctx := AppContext{App: app}
+	user, err := GameUsers.GetByID(ctx, userId)
 	if err != nil {
 		return err
 	}
 
-	return user.Timer().Start()
+	return user.Timer().Start(ctx)
 }
 
-func (g *Game) StopTimer(userId string) error {
-	user, err := GameUsers.GetByID(userId)
+func (g *Game) StopTimer(app core.App, userId string) error {
+	ctx := AppContext{App: app}
+	user, err := GameUsers.GetByID(ctx, userId)
 	if err != nil {
 		return err
 	}
 
-	return user.Timer().Stop()
+	return user.Timer().Stop(ctx)
 }
 
-func (g *Game) GetTimeLeft(userId string) (int64, bool, types.DateTime, error) {
-	user, err := GameUsers.GetByID(userId)
+func (g *Game) GetTimeLeft(app core.App, userId string) (int64, bool, types.DateTime, error) {
+	ctx := AppContext{App: app}
+	user, err := GameUsers.GetByID(ctx, userId)
 	if err != nil {
 		return 0, false, types.DateTime{}, err
 	}
@@ -267,14 +335,15 @@ func (g *Game) GetTimeLeft(userId string) (int64, bool, types.DateTime, error) {
 	return user.Timer().GetTimeLeft(), user.Timer().IsActive(), GameSettings.NextTimerResetDate(), nil
 }
 
-func (g *Game) GetAvailableActions(userId string) ([]ActionType, error) {
-	user, err := GameUsers.GetByID(userId)
+func (g *Game) GetAvailableActions(app core.App, userId string) ([]ActionType, error) {
+	ctx := AppContext{App: app}
+	user, err := GameUsers.GetByID(ctx, userId)
 	if err != nil {
 		return nil, err
 	}
 
 	var actions []ActionType
-	for t := range GameActions.AvailableActions(user) {
+	for t := range GameActions.AvailableActions(ctx, user) {
 		actions = append(actions, t)
 	}
 
@@ -285,8 +354,9 @@ func (g *Game) Context() context.Context {
 	return g.ctx
 }
 
-func (g *Game) GetItemEffectVariants(userId, invItemId, effectId string) (any, error) {
-	user, err := GameUsers.GetByID(userId)
+func (g *Game) GetItemEffectVariants(app core.App, userId, invItemId, effectId string) (any, error) {
+	ctx := AppContext{App: app}
+	user, err := GameUsers.GetByID(ctx, userId)
 	if err != nil {
 		return nil, err
 	}
@@ -296,23 +366,24 @@ func (g *Game) GetItemEffectVariants(userId, invItemId, effectId string) (any, e
 		return nil, errors.New("inventory item not found")
 	}
 
-	return invItem.GetEffectVariants(effectId)
+	return invItem.GetEffectVariants(ctx, effectId)
 }
 
-func (g *Game) GetActionVariants(userId, actionType string) (any, error) {
-	user, err := GameUsers.GetByID(userId)
+func (g *Game) GetActionVariants(app core.App, userId, actionType string) (any, error) {
+	ctx := AppContext{App: app}
+	user, err := GameUsers.GetByID(ctx, userId)
 	if err != nil {
 		return nil, err
 	}
 
-	if ok := GameActions.CanDo(user, ActionType(actionType)); !ok {
+	if ok := GameActions.CanDo(ctx, user, ActionType(actionType)); !ok {
 		return &ActionResult{
 			Success: false,
 			Error:   "request error: cannot do action",
 		}, nil
 	}
 
-	variants := GameActions.GetVariants(user, ActionType(actionType))
+	variants := GameActions.GetVariants(ctx, user, ActionType(actionType))
 	if variants == nil {
 		return nil, errors.New("action variants not found")
 	}

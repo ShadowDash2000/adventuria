@@ -18,7 +18,7 @@ type ItemBase struct {
 	hookIds           []string
 }
 
-func NewItemFromInventoryRecord(user User, invItemRecord *core.Record) (Item, error) {
+func NewItemFromInventoryRecord(ctx AppContext, user User, invItemRecord *core.Record) (Item, error) {
 	itemRecord, err := GetRecordById(CollectionItems, invItemRecord.GetString("item"), []string{"effects"})
 	if err != nil {
 		return nil, err
@@ -41,11 +41,11 @@ func NewItemFromInventoryRecord(user User, invItemRecord *core.Record) (Item, er
 
 	item.invItemRecord.SetProxyRecord(invItemRecord)
 	item.itemRecord.SetProxyRecord(itemRecord)
-	item.bindHooks()
+	item.bindHooks(ctx)
 
 	if item.IsActive() {
 		if err = item.awake(); err != nil {
-			item.Close()
+			item.Close(ctx)
 			return nil, err
 		}
 	}
@@ -70,14 +70,19 @@ func (i *ItemBase) awake() error {
 				User:      i.user,
 				InvItemID: i.invItemRecord.Id,
 			},
-			func() {
+			func(ctx AppContext) {
 				i.addAppliedEffect(effect)
 				i.unsubEffectByID(effect.ID())
 
 				if i.AppliedEffectsCount() == i.EffectsCount() {
 					i.user.LastAction().UsedItemAppend(i.itemRecord.Id)
 					i.sleep()
-					PocketBase.Delete(i.invItemRecord.ProxyRecord())
+					if err := ctx.App.Delete(i.invItemRecord.ProxyRecord()); err != nil {
+						ctx.App.Logger().Error(
+							"Failed to delete item after all effects applied",
+							"error", err,
+						)
+					}
 				}
 			})
 		if len(unsubs) > 0 {
@@ -108,16 +113,16 @@ func (i *ItemBase) unsubEffectByID(id string) {
 	}
 }
 
-func (i *ItemBase) bindHooks() {
+func (i *ItemBase) bindHooks(ctx AppContext) {
 	i.hookIds = make([]string, 3)
 
-	i.hookIds[0] = PocketBase.OnRecordAfterUpdateSuccess(CollectionItems).BindFunc(func(e *core.RecordEvent) error {
+	i.hookIds[0] = ctx.App.OnRecordAfterUpdateSuccess(CollectionItems).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == i.itemRecord.Id {
 			i.itemRecord.SetProxyRecord(e.Record)
 		}
 		return e.Next()
 	})
-	i.hookIds[1] = PocketBase.OnRecordAfterUpdateSuccess(CollectionInventory).BindFunc(func(e *core.RecordEvent) error {
+	i.hookIds[1] = ctx.App.OnRecordAfterUpdateSuccess(CollectionInventory).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == i.invItemRecord.Id {
 			i.invItemRecord.SetProxyRecord(e.Record)
 
@@ -129,7 +134,7 @@ func (i *ItemBase) bindHooks() {
 		}
 		return e.Next()
 	})
-	i.hookIds[2] = PocketBase.OnRecordAfterDeleteSuccess(CollectionInventory).BindFunc(func(e *core.RecordEvent) error {
+	i.hookIds[2] = ctx.App.OnRecordAfterDeleteSuccess(CollectionInventory).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == i.invItemRecord.Id {
 			i.sleep()
 		}
@@ -137,11 +142,11 @@ func (i *ItemBase) bindHooks() {
 	})
 }
 
-func (i *ItemBase) Close() {
+func (i *ItemBase) Close(ctx AppContext) {
 	i.sleep()
-	PocketBase.OnRecordAfterCreateSuccess(CollectionInventory).Unbind(i.hookIds[0])
-	PocketBase.OnRecordAfterUpdateSuccess(CollectionInventory).Unbind(i.hookIds[1])
-	PocketBase.OnRecordAfterDeleteSuccess(CollectionInventory).Unbind(i.hookIds[2])
+	ctx.App.OnRecordAfterCreateSuccess(CollectionInventory).Unbind(i.hookIds[0])
+	ctx.App.OnRecordAfterUpdateSuccess(CollectionInventory).Unbind(i.hookIds[1])
+	ctx.App.OnRecordAfterDeleteSuccess(CollectionInventory).Unbind(i.hookIds[2])
 }
 
 func (i *ItemBase) IDInventory() string {
@@ -179,9 +184,9 @@ func (i *ItemBase) addAppliedEffect(effect Effect) {
 	)
 }
 
-func (i *ItemBase) CanUse() bool {
+func (i *ItemBase) CanUse(ctx AppContext) bool {
 	for _, effect := range i.effects {
-		if !effect.CanUse(EffectContext{
+		if !effect.CanUse(ctx, EffectContext{
 			User:      i.user,
 			InvItemID: i.invItemRecord.Id,
 		}) {
@@ -191,7 +196,7 @@ func (i *ItemBase) CanUse() bool {
 	return true
 }
 
-func (i *ItemBase) Use() (OnUseSuccess, OnUseFail, error) {
+func (i *ItemBase) Use(ctx AppContext) (OnUseSuccess, OnUseFail, error) {
 	if i.IsActive() {
 		return nil, nil, errors.New("item is already active")
 	}
@@ -207,14 +212,14 @@ func (i *ItemBase) Use() (OnUseSuccess, OnUseFail, error) {
 				return nil
 			}
 			i.setActivated(types.NowDateTime())
-			return PocketBase.Save(i.invItemRecord)
+			return ctx.App.Save(i.invItemRecord)
 		}, func() {
 			i.setIsActive(false)
 			i.sleep()
 		}, nil
 }
 
-func (i *ItemBase) Drop() error {
+func (i *ItemBase) Drop(ctx AppContext) error {
 	if !i.CanDrop() {
 		return nil
 	}
@@ -223,16 +228,16 @@ func (i *ItemBase) Drop() error {
 		i.sleep()
 	}
 
-	return PocketBase.Delete(i.invItemRecord.ProxyRecord())
+	return ctx.App.Delete(i.invItemRecord.ProxyRecord())
 }
 
-func (i *ItemBase) GetEffectVariants(effectId string) (any, error) {
+func (i *ItemBase) GetEffectVariants(ctx AppContext, effectId string) (any, error) {
 	effect, ok := i.effects[effectId]
 	if !ok {
 		return nil, errors.New("effect not found")
 	}
 
-	return effect.GetVariants(EffectContext{
+	return effect.GetVariants(ctx, EffectContext{
 		User:      i.user,
 		InvItemID: i.invItemRecord.Id,
 	}), nil

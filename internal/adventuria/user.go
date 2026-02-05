@@ -1,7 +1,6 @@
 package adventuria
 
 import (
-	"adventuria/pkg/cache"
 	"adventuria/pkg/event"
 
 	"github.com/pocketbase/pocketbase/core"
@@ -10,7 +9,7 @@ import (
 type User interface {
 	core.RecordProxy
 	UserEvent
-	cache.Closable
+	Closable
 
 	ID() string
 	Name() string
@@ -28,12 +27,12 @@ type User interface {
 	SetMaxInventorySlots(maxInventorySlots int)
 	ItemWheelsCount() int
 	SetItemWheelsCount(itemWheelsCount int)
-	Move(steps int) ([]*OnAfterMoveEvent, error)
+	Move(ctx AppContext, steps int) ([]*MoveResult, error)
 	CurrentCellOrder() int
-	MoveToClosestCellType(cellType CellType) ([]*OnAfterMoveEvent, error)
-	MoveToCellId(cellId string) ([]*OnAfterMoveEvent, error)
-	MoveToCellName(cellName string) ([]*OnAfterMoveEvent, error)
-	MoveToClosestCellByNames(cellNames ...string) ([]*OnAfterMoveEvent, error)
+	MoveToClosestCellType(ctx AppContext, cellType CellType) ([]*MoveResult, error)
+	MoveToCellId(ctx AppContext, cellId string) ([]*MoveResult, error)
+	MoveToCellName(ctx AppContext, cellName string) ([]*MoveResult, error)
+	MoveToClosestCellByNames(ctx AppContext, cellNames ...string) ([]*MoveResult, error)
 	Inventory() Inventory
 	LastAction() ActionRecord
 	Timer() Timer
@@ -84,4 +83,12 @@ type Stats struct {
 	DiceRolls   int `json:"diceRolls"`
 	MaxDiceRoll int `json:"maxDiceRoll"`
 	WheelRolled int `json:"wheelRolled"`
+}
+
+type MoveResult struct {
+	Steps          int  `json:"steps"`
+	TotalSteps     int  `json:"total_steps"`
+	PrevTotalSteps int  `json:"prev_total_steps"`
+	CurrentCell    Cell `json:"current_cell"`
+	Laps           int  `json:"laps"`
 }

@@ -19,7 +19,7 @@ type cellRollItemValue struct {
 	ItemsType adventuria.ItemType `json:"items_type"`
 }
 
-func (c *CellRollItem) Verify(value string) error {
+func (c *CellRollItem) Verify(_ adventuria.AppContext, value string) error {
 	var decodedValue cellRollItemValue
 	if err := json.Unmarshal([]byte(value), &decodedValue); err != nil {
 		return fmt.Errorf("roll_item.refreshItems: invalid JSON: %w", err)
@@ -33,7 +33,7 @@ func (c *CellRollItem) Verify(value string) error {
 	return nil
 }
 
-func (c *CellRollItem) Roll(user adventuria.User, _ adventuria.RollWheelRequest) (*adventuria.WheelRollResult, error) {
+func (c *CellRollItem) Roll(ctx adventuria.AppContext, user adventuria.User, _ adventuria.RollWheelRequest) (*adventuria.WheelRollResult, error) {
 	items, err := user.LastAction().ItemsList()
 	if err != nil {
 		return &adventuria.WheelRollResult{
@@ -49,7 +49,7 @@ func (c *CellRollItem) Roll(user adventuria.User, _ adventuria.RollWheelRequest)
 		}, fmt.Errorf("roll_item.roll(): no items to roll")
 	}
 
-	records, err := adventuria.PocketBase.FindRecordsByIds(
+	records, err := ctx.App.FindRecordsByIds(
 		adventuria.GameCollections.Get(adventuria.CollectionItems),
 		items,
 	)
@@ -76,19 +76,19 @@ func (c *CellRollItem) Roll(user adventuria.User, _ adventuria.RollWheelRequest)
 	}, nil
 }
 
-func (c *CellRollItem) RefreshItems(user adventuria.User) error {
-	return c.refreshItems(user)
+func (c *CellRollItem) RefreshItems(ctx adventuria.AppContext, user adventuria.User) error {
+	return c.refreshItems(ctx, user)
 }
 
 func (c *CellRollItem) OnCellReached(ctx *adventuria.CellReachedContext) error {
-	return c.refreshItems(ctx.User)
+	return c.refreshItems(ctx.AppContext, ctx.User)
 }
 
 func (c *CellRollItem) OnCellLeft(_ *adventuria.CellLeftContext) error {
 	return nil
 }
 
-func (c *CellRollItem) refreshItems(user adventuria.User) error {
+func (c *CellRollItem) refreshItems(ctx adventuria.AppContext, user adventuria.User) error {
 	var decodedValue cellRollItemValue
 	if err := c.UnmarshalJSONField("value", &decodedValue); err != nil {
 		return fmt.Errorf("roll_item.refreshItems: invalid JSON: %w", err)
@@ -97,7 +97,7 @@ func (c *CellRollItem) refreshItems(user adventuria.User) error {
 	var records []struct {
 		Id string `db:"id"`
 	}
-	err := adventuria.PocketBase.
+	err := ctx.App.
 		RecordQuery(adventuria.GameCollections.Get(adventuria.CollectionItems)).
 		Where(dbx.And(
 			dbx.HashExp{"type": decodedValue.ItemsType},
@@ -116,5 +116,5 @@ func (c *CellRollItem) refreshItems(user adventuria.User) error {
 
 	user.LastAction().SetItemsList(ids)
 
-	return nil
+	return ctx.App.Save(user.LastAction().ProxyRecord())
 }

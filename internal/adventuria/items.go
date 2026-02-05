@@ -11,45 +11,45 @@ type Items struct {
 	items cache.Cache[string, ItemRecord]
 }
 
-func NewItems() (*Items, error) {
+func NewItems(ctx AppContext) (*Items, error) {
 	items := &Items{
 		items: cache.NewMemoryCache[string, ItemRecord](0, true),
 	}
 
-	if err := items.fetch(); err != nil {
+	if err := items.fetch(ctx); err != nil {
 		return nil, err
 	}
-	items.bindHooks()
+	items.bindHooks(ctx)
 
 	return items, nil
 }
 
-func (i *Items) bindHooks() {
-	PocketBase.OnRecordAfterCreateSuccess(CollectionItems).BindFunc(func(e *core.RecordEvent) error {
+func (i *Items) bindHooks(ctx AppContext) {
+	ctx.App.OnRecordAfterCreateSuccess(CollectionItems).BindFunc(func(e *core.RecordEvent) error {
 		i.add(e.Record)
 		return e.Next()
 	})
-	PocketBase.OnRecordAfterUpdateSuccess(CollectionItems).BindFunc(func(e *core.RecordEvent) error {
+	ctx.App.OnRecordAfterUpdateSuccess(CollectionItems).BindFunc(func(e *core.RecordEvent) error {
 		i.add(e.Record)
 		return e.Next()
 	})
-	PocketBase.OnRecordAfterDeleteSuccess(CollectionItems).BindFunc(func(e *core.RecordEvent) error {
+	ctx.App.OnRecordAfterDeleteSuccess(CollectionItems).BindFunc(func(e *core.RecordEvent) error {
 		i.delete(e.Record.Id)
 		return e.Next()
 	})
 }
 
-func (i *Items) fetch() error {
+func (i *Items) fetch(ctx AppContext) error {
 	i.items.Clear()
 
-	items, err := PocketBase.FindAllRecords(CollectionItems)
+	items, err := ctx.App.FindAllRecords(CollectionItems)
 	if err != nil {
 		return err
 	}
 
 	for _, item := range items {
 		if err = i.add(item); err != nil {
-			PocketBase.Logger().Error("Items: unknown item type", "item", item)
+			ctx.App.Logger().Error("Items: unknown item type", "item", item)
 		}
 	}
 

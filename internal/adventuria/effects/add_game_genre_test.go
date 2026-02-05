@@ -27,22 +27,25 @@ func Test_AddGameGenre(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	user, err := adventuria.GameUsers.GetByName("user1")
+	ctx := adventuria.AppContext{
+		App: adventuria.PocketBase,
+	}
+	user, err := adventuria.GameUsers.GetByName(ctx, "user1")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	invItemId, err := user.Inventory().AddItemById(item.Id)
+	invItemId, err := user.Inventory().AddItemById(ctx, item.Id)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = user.Move(1)
+	_, err = user.Move(ctx, 1)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	genre, err := adventuria.PocketBase.FindFirstRecordByFilter(
+	genre, err := ctx.App.FindFirstRecordByFilter(
 		adventuria.GameCollections.Get(adventuria.CollectionGenres),
 		"",
 	)
@@ -50,9 +53,17 @@ func Test_AddGameGenre(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = game.UseItem(user.ID(), invItemId, adventuria.UseItemRequest{
-		"genre_id": genre.Id,
+	err = game.UseItem(ctx.App, user.ID(), adventuria.UseItemRequest{
+		InvItemId: invItemId,
+		Data: map[string]any{
+			"genre_id": genre.Id,
+		},
 	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	user, err = adventuria.GameUsers.GetByName(ctx, "user1")
 	if err != nil {
 		t.Fatal(err)
 	}

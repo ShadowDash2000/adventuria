@@ -11,8 +11,8 @@ type ChooseGameEffect struct {
 	adventuria.EffectRecord
 }
 
-func (ef *ChooseGameEffect) CanUse(ctx adventuria.EffectContext) bool {
-	return adventuria.GameActions.CanDo(ctx.User, "done")
+func (ef *ChooseGameEffect) CanUse(appCtx adventuria.AppContext, ctx adventuria.EffectContext) bool {
+	return adventuria.GameActions.CanDo(appCtx, ctx.User, "done")
 }
 
 func (ef *ChooseGameEffect) Subscribe(
@@ -22,7 +22,7 @@ func (ef *ChooseGameEffect) Subscribe(
 	return []event.Unsubscribe{
 		ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*event.Result, error) {
 			if ctx.InvItemID == e.InvItemId {
-				if gameId, ok := e.Request["game_id"].(string); ok {
+				if gameId, ok := e.Data["game_id"].(string); ok {
 					itemsList, err := ctx.User.LastAction().ItemsList()
 					if err != nil {
 						return &event.Result{
@@ -40,7 +40,7 @@ func (ef *ChooseGameEffect) Subscribe(
 
 					ctx.User.LastAction().SetActivity(gameId)
 
-					callback()
+					callback(e.AppContext)
 				} else {
 					return &event.Result{
 						Success: false,
@@ -54,10 +54,10 @@ func (ef *ChooseGameEffect) Subscribe(
 	}, nil
 }
 
-func (ef *ChooseGameEffect) Verify(_ string) error {
+func (ef *ChooseGameEffect) Verify(_ adventuria.AppContext, _ string) error {
 	return nil
 }
 
-func (ef *ChooseGameEffect) GetVariants(_ adventuria.EffectContext) any {
+func (ef *ChooseGameEffect) GetVariants(_ adventuria.AppContext, _ adventuria.EffectContext) any {
 	return nil
 }

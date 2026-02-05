@@ -13,13 +13,13 @@ type TeleportToRandomCellByTypeEffect struct {
 	adventuria.EffectRecord
 }
 
-func (ef *TeleportToRandomCellByTypeEffect) CanUse(ctx adventuria.EffectContext) bool {
-	if adventuria.GameActions.HasActionsInCategories(ctx.User, []string{"wheel_roll", "on_cell"}) {
+func (ef *TeleportToRandomCellByTypeEffect) CanUse(appCtx adventuria.AppContext, ctx adventuria.EffectContext) bool {
+	if adventuria.GameActions.HasActionsInCategories(appCtx, ctx.User, []string{"wheel_roll", "on_cell"}) {
 		return false
 	}
 
-	canDone := adventuria.GameActions.CanDo(ctx.User, "done")
-	canDrop := adventuria.GameActions.CanDo(ctx.User, "drop")
+	canDone := adventuria.GameActions.CanDo(appCtx, ctx.User, "done")
+	canDrop := adventuria.GameActions.CanDo(appCtx, ctx.User, "drop")
 
 	if canDone && !canDrop {
 		return false
@@ -42,7 +42,7 @@ func (ef *TeleportToRandomCellByTypeEffect) Subscribe(
 		return []event.Unsubscribe{
 			ctx.User.OnAfterItemSave().BindFunc(func(e *adventuria.OnAfterItemSave) (*event.Result, error) {
 				if e.Item.IDInventory() == ctx.InvItemID {
-					err = teleportToRandomCellByType(ctx.User, decodedValue.CellTypes)
+					err = teleportToRandomCellByType(e.AppContext, ctx.User, decodedValue.CellTypes)
 					if err != nil {
 						return &event.Result{
 							Success: false,
@@ -50,7 +50,7 @@ func (ef *TeleportToRandomCellByTypeEffect) Subscribe(
 						}, fmt.Errorf("teleportToRandomCellByTypeEffect: %w", err)
 					}
 
-					callback()
+					callback(e.AppContext)
 				}
 
 				return e.Next()
@@ -60,7 +60,7 @@ func (ef *TeleportToRandomCellByTypeEffect) Subscribe(
 		return []event.Unsubscribe{
 			ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*event.Result, error) {
 				if e.InvItemId == ctx.InvItemID {
-					err = teleportToRandomCellByType(ctx.User, decodedValue.CellTypes)
+					err = teleportToRandomCellByType(e.AppContext, ctx.User, decodedValue.CellTypes)
 					if err != nil {
 						return &event.Result{
 							Success: false,
@@ -68,7 +68,7 @@ func (ef *TeleportToRandomCellByTypeEffect) Subscribe(
 						}, fmt.Errorf("teleportToRandomCellByTypeEffect: %w", err)
 					}
 
-					callback()
+					callback(e.AppContext)
 				}
 
 				return e.Next()
@@ -79,12 +79,12 @@ func (ef *TeleportToRandomCellByTypeEffect) Subscribe(
 	}
 }
 
-func teleportToRandomCellByType(user adventuria.User, cellTypes []string) error {
-	_, err := user.MoveToClosestCellType(adventuria.CellType(helper.RandomItemFromSlice(cellTypes)))
+func teleportToRandomCellByType(ctx adventuria.AppContext, user adventuria.User, cellTypes []string) error {
+	_, err := user.MoveToClosestCellType(ctx, adventuria.CellType(helper.RandomItemFromSlice(cellTypes)))
 	return err
 }
 
-func (ef *TeleportToRandomCellByTypeEffect) Verify(value string) error {
+func (ef *TeleportToRandomCellByTypeEffect) Verify(_ adventuria.AppContext, value string) error {
 	events := []string{
 		"onAfterItemSave",
 		"onAfterItemUse",
@@ -126,6 +126,6 @@ func (ef *TeleportToRandomCellByTypeEffect) DecodeValue(value string) (*Teleport
 	}, nil
 }
 
-func (ef *TeleportToRandomCellByTypeEffect) GetVariants(_ adventuria.EffectContext) any {
+func (ef *TeleportToRandomCellByTypeEffect) GetVariants(_ adventuria.AppContext, _ adventuria.EffectContext) any {
 	return nil
 }

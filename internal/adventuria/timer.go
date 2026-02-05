@@ -9,8 +9,8 @@ import (
 
 type Timer interface {
 	core.RecordProxy
-	Start() error
-	Stop() error
+	Start(ctx AppContext) error
+	Stop(ctx AppContext) error
 	GetTimeLeft() int64
 	IsTimeExceeded() bool
 	UserId() string
@@ -22,5 +22,5 @@ type Timer interface {
 	SetTimeLimit(tp time.Duration)
 	StartTime() types.DateTime
 	SetStartTime(time types.DateTime)
-	AddSecondsTimeLimit(secs int) error
+	AddSecondsTimeLimit(ctx AppContext, secs int) error
 }

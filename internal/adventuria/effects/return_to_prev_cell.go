@@ -10,13 +10,13 @@ type ReturnToPrevCellEffect struct {
 	adventuria.EffectRecord
 }
 
-func (ef *ReturnToPrevCellEffect) CanUse(ctx adventuria.EffectContext) bool {
+func (ef *ReturnToPrevCellEffect) CanUse(appCtx adventuria.AppContext, ctx adventuria.EffectContext) bool {
 	latestDiceRoll := ctx.User.LastAction().DiceRoll()
 	if latestDiceRoll == 0 {
 		return false
 	}
 
-	return !adventuria.GameActions.CanDo(ctx.User, "done")
+	return !adventuria.GameActions.CanDo(appCtx, ctx.User, "done")
 }
 
 func (ef *ReturnToPrevCellEffect) Subscribe(
@@ -30,7 +30,7 @@ func (ef *ReturnToPrevCellEffect) Subscribe(
 			}
 
 			latestDiceRoll := ctx.User.LastAction().DiceRoll()
-			_, err := ctx.User.Move(-latestDiceRoll)
+			_, err := ctx.User.Move(e.AppContext, -latestDiceRoll)
 			if err != nil {
 				return &event.Result{
 					Success: false,
@@ -40,16 +40,16 @@ func (ef *ReturnToPrevCellEffect) Subscribe(
 
 			ctx.User.LastAction().SetCanMove(true)
 
-			callback()
+			callback(e.AppContext)
 
 			return e.Next()
 		}),
 	}, nil
 }
 
-func (ef *ReturnToPrevCellEffect) Verify(_ string) error {
+func (ef *ReturnToPrevCellEffect) Verify(_ adventuria.AppContext, _ string) error {
 	return nil
 }
-func (ef *ReturnToPrevCellEffect) GetVariants(_ adventuria.EffectContext) any {
+func (ef *ReturnToPrevCellEffect) GetVariants(_ adventuria.AppContext, _ adventuria.EffectContext) any {
 	return nil
 }

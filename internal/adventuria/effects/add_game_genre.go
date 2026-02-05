@@ -11,8 +11,8 @@ type AddGameGenreEffect struct {
 	adventuria.EffectRecord
 }
 
-func (ef *AddGameGenreEffect) CanUse(ctx adventuria.EffectContext) bool {
-	if !adventuria.GameActions.CanDo(ctx.User, "rollWheel") {
+func (ef *AddGameGenreEffect) CanUse(appCtx adventuria.AppContext, ctx adventuria.EffectContext) bool {
+	if !adventuria.GameActions.CanDo(appCtx, ctx.User, "rollWheel") {
 		return false
 	}
 
@@ -26,7 +26,7 @@ func (ef *AddGameGenreEffect) CanUse(ctx adventuria.EffectContext) bool {
 	}
 
 	if filterId := cell.Filter(); filterId != "" {
-		filterRecord, err := adventuria.PocketBase.FindRecordById(
+		filterRecord, err := appCtx.App.FindRecordById(
 			adventuria.CollectionActivityFilter,
 			filterId,
 		)
@@ -71,8 +71,8 @@ func (ef *AddGameGenreEffect) Subscribe(
 					}, nil
 				}
 
-				if genreId, ok := e.Request["genre_id"].(string); ok {
-					_, err := adventuria.PocketBase.FindRecordById(
+				if genreId, ok := e.Data["genre_id"].(string); ok {
+					_, err := e.AppContext.App.FindRecordById(
 						adventuria.CollectionGenres,
 						genreId,
 					)
@@ -92,14 +92,14 @@ func (ef *AddGameGenreEffect) Subscribe(
 					}
 
 					filter.Genres = append(filter.Genres, genreId)
-					if err = cellGame.RefreshItems(ctx.User); err != nil {
+					if err = cellGame.RefreshItems(e.AppContext, ctx.User); err != nil {
 						return &event.Result{
 							Success: false,
 							Error:   "internal error: can't refresh cell items",
 						}, fmt.Errorf("addGameGenre: %w", err)
 					}
 
-					callback()
+					callback(e.AppContext)
 				} else {
 					return &event.Result{
 						Success: false,
@@ -113,10 +113,10 @@ func (ef *AddGameGenreEffect) Subscribe(
 	}, nil
 }
 
-func (ef *AddGameGenreEffect) Verify(_ string) error {
+func (ef *AddGameGenreEffect) Verify(_ adventuria.AppContext, _ string) error {
 	return nil
 }
 
-func (ef *AddGameGenreEffect) GetVariants(_ adventuria.EffectContext) any {
+func (ef *AddGameGenreEffect) GetVariants(_ adventuria.AppContext, _ adventuria.EffectContext) any {
 	return nil
 }

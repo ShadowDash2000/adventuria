@@ -10,7 +10,7 @@ type DropInventoryEffect struct {
 	adventuria.EffectRecord
 }
 
-func (ef *DropInventoryEffect) CanUse(_ adventuria.EffectContext) bool {
+func (ef *DropInventoryEffect) CanUse(_ adventuria.AppContext, _ adventuria.EffectContext) bool {
 	return true
 }
 
@@ -21,7 +21,7 @@ func (ef *DropInventoryEffect) Subscribe(
 	return []event.Unsubscribe{
 		ctx.User.OnAfterItemSave().BindFunc(func(e *adventuria.OnAfterItemSave) (*event.Result, error) {
 			if e.Item.IDInventory() == ctx.InvItemID {
-				err := ctx.User.Inventory().DropInventory()
+				err := ctx.User.Inventory().DropInventory(e.AppContext)
 				if err != nil {
 					return &event.Result{
 						Success: false,
@@ -29,7 +29,7 @@ func (ef *DropInventoryEffect) Subscribe(
 					}, fmt.Errorf("dropInventory: %w", err)
 				}
 
-				callback()
+				callback(e.AppContext)
 			}
 
 			return e.Next()
@@ -37,10 +37,10 @@ func (ef *DropInventoryEffect) Subscribe(
 	}, nil
 }
 
-func (ef *DropInventoryEffect) Verify(_ string) error {
+func (ef *DropInventoryEffect) Verify(_ adventuria.AppContext, _ string) error {
 	return nil
 }
 
-func (ef *DropInventoryEffect) GetVariants(_ adventuria.EffectContext) any {
+func (ef *DropInventoryEffect) GetVariants(_ adventuria.AppContext, _ adventuria.EffectContext) any {
 	return nil
 }

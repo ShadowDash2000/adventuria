@@ -1,7 +1,5 @@
 package adventuria
 
-import "adventuria/pkg/cache"
-
 type ItemRecord interface {
 	ID() string
 	Name() string
@@ -31,16 +29,16 @@ var ItemTypes = map[ItemType]bool{
 
 type Item interface {
 	ItemRecord
-	cache.Closable
+	Closable
 
 	IDInventory() string
 	IsActive() bool
 	EffectsCount() int
 	AppliedEffectsCount() int
-	CanUse() bool
-	Use() (OnUseSuccess, OnUseFail, error)
-	Drop() error
-	GetEffectVariants(effectId string) (any, error)
+	CanUse(AppContext) bool
+	Use(AppContext) (OnUseSuccess, OnUseFail, error)
+	Drop(AppContext) error
+	GetEffectVariants(ctx AppContext, effectId string) (any, error)
 }
 
 type OnUseSuccess func() error

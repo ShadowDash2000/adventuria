@@ -1,27 +1,26 @@
 package adventuria
 
 import (
-	"adventuria/pkg/cache"
 	"time"
 )
 
 type Users struct {
-	users cache.Cache[string, User]
+	users *MemoryCacheWithClose[string, User]
 }
 
-func NewUsers() *Users {
+func NewUsers(ctx AppContext) *Users {
 	return &Users{
-		users: cache.NewMemoryCacheWithClose[string, User](time.Hour, false),
+		users: NewMemoryCacheWithClose[string, User](ctx, time.Hour, false),
 	}
 }
 
-func (u *Users) GetByID(userId string) (User, error) {
+func (u *Users) GetByID(ctx AppContext, userId string) (User, error) {
 	user, ok := u.users.Get(userId)
 	if ok {
 		return user, nil
 	}
 
-	user, err := NewUser(userId)
+	user, err := NewUser(ctx, userId)
 	if err != nil {
 		return nil, err
 	}
@@ -30,18 +29,22 @@ func (u *Users) GetByID(userId string) (User, error) {
 	return user, nil
 }
 
-func (u *Users) GetByName(name string) (User, error) {
+func (u *Users) GetByName(ctx AppContext, name string) (User, error) {
 	for _, user := range u.users.GetAll() {
 		if name == user.Name() {
 			return user, nil
 		}
 	}
 
-	user, err := NewUserFromName(name)
+	user, err := NewUserFromName(ctx, name)
 	if err != nil {
 		return nil, err
 	}
 
 	u.users.Set(user.ID(), user)
 	return user, nil
+}
+
+func (u *Users) Update(user User) {
+	u.users.Set(user.ID(), user)
 }

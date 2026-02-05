@@ -18,32 +18,30 @@ func Test_Reroll(t *testing.T) {
 		t.Fatalf("Test_Reroll(): Error creating game: %s", err)
 	}
 
-	user, err := adventuria.GameUsers.GetByName("user1")
+	ctx := adventuria.AppContext{
+		App: adventuria.PocketBase,
+	}
+	user, err := adventuria.GameUsers.GetByName(ctx, "user1")
 	if err != nil {
 		t.Fatalf("Test_Reroll(): Error getting user: %s", err)
 	}
 
-	_, err = user.Move(1)
+	_, err = user.Move(ctx, 1)
 	if err != nil {
 		t.Fatalf("Test_Reroll(): Error moving: %s", err)
 	}
 
-	err = adventuria.PocketBase.Save(user.LastAction().ProxyRecord())
-	if err != nil {
-		t.Fatalf("Test_Reroll(): Error saving action: %s", err)
-	}
-
-	_, err = game.DoAction(ActionTypeRollWheel, user.ID(), adventuria.ActionRequest{})
+	_, err = game.DoAction(ctx.App, user.ID(), ActionTypeRollWheel, adventuria.ActionRequest{})
 	if err != nil {
 		t.Fatalf("Test_Reroll(): Error action roll wheel: %s", err)
 	}
 
-	_, err = game.DoAction(ActionTypeReroll, user.ID(), adventuria.ActionRequest{})
+	_, err = game.DoAction(ctx.App, user.ID(), ActionTypeReroll, adventuria.ActionRequest{})
 	if err != nil {
 		t.Fatalf("Test_Reroll(): Error action done: %s", err)
 	}
 
-	_, err = game.DoAction(ActionTypeRollWheel, user.ID(), adventuria.ActionRequest{})
+	_, err = game.DoAction(ctx.App, user.ID(), ActionTypeRollWheel, adventuria.ActionRequest{})
 	if err != nil {
 		t.Fatalf("Test_Reroll(): Error action roll wheel: %s", err)
 	}

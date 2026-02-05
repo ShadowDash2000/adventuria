@@ -10,8 +10,8 @@ type NoTimeLimitEffect struct {
 	adventuria.EffectRecord
 }
 
-func (ef *NoTimeLimitEffect) CanUse(ctx adventuria.EffectContext) bool {
-	if !adventuria.GameActions.CanDo(ctx.User, "rollWheel") {
+func (ef *NoTimeLimitEffect) CanUse(appCtx adventuria.AppContext, ctx adventuria.EffectContext) bool {
+	if !adventuria.GameActions.CanDo(appCtx, ctx.User, "rollWheel") {
 		return false
 	}
 
@@ -33,17 +33,17 @@ func (ef *NoTimeLimitEffect) Subscribe(
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
 		ctx.User.OnAfterMove().BindFunc(func(e *adventuria.OnAfterMoveEvent) (*event.Result, error) {
-			if !ef.CanUse(ctx) {
+			if !ef.CanUse(e.AppContext, ctx) {
 				return e.Next()
 			}
 
-			res, err := ef.tryToApplyEffect(ctx.User)
+			res, err := ef.tryToApplyEffect(e.AppContext, ctx.User)
 			if err != nil {
 				return res, err
 			}
 
 			if res.Success {
-				callback()
+				callback(e.AppContext)
 			} else {
 				return res, nil
 			}
@@ -55,17 +55,17 @@ func (ef *NoTimeLimitEffect) Subscribe(
 				return e.Next()
 			}
 
-			if !ef.CanUse(ctx) {
+			if !ef.CanUse(e.AppContext, ctx) {
 				return e.Next()
 			}
 
-			res, err := ef.tryToApplyEffect(ctx.User)
+			res, err := ef.tryToApplyEffect(e.AppContext, ctx.User)
 			if err != nil {
 				return res, err
 			}
 
 			if res.Success {
-				callback()
+				callback(e.AppContext)
 			} else {
 				return res, nil
 			}
@@ -75,7 +75,7 @@ func (ef *NoTimeLimitEffect) Subscribe(
 	}, nil
 }
 
-func (ef *NoTimeLimitEffect) tryToApplyEffect(user adventuria.User) (*event.Result, error) {
+func (ef *NoTimeLimitEffect) tryToApplyEffect(ctx adventuria.AppContext, user adventuria.User) (*event.Result, error) {
 	cell, ok := user.CurrentCell()
 	if !ok {
 		return &event.Result{
@@ -94,7 +94,7 @@ func (ef *NoTimeLimitEffect) tryToApplyEffect(user adventuria.User) (*event.Resu
 
 	user.LastAction().CustomActivityFilter().MinCampaignTime = -1
 	user.LastAction().CustomActivityFilter().MaxCampaignTime = -1
-	if err := cellGame.RefreshItems(user); err != nil {
+	if err := cellGame.RefreshItems(ctx, user); err != nil {
 		return &event.Result{
 			Success: false,
 			Error:   "internal error: can't refresh cell items in \"no_time_limit\" effect",
@@ -106,10 +106,10 @@ func (ef *NoTimeLimitEffect) tryToApplyEffect(user adventuria.User) (*event.Resu
 	}, nil
 }
 
-func (ef *NoTimeLimitEffect) Verify(_ string) error {
+func (ef *NoTimeLimitEffect) Verify(_ adventuria.AppContext, _ string) error {
 	return nil
 }
 
-func (ef *NoTimeLimitEffect) GetVariants(_ adventuria.EffectContext) any {
+func (ef *NoTimeLimitEffect) GetVariants(_ adventuria.AppContext, _ adventuria.EffectContext) any {
 	return nil
 }

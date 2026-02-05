@@ -33,6 +33,7 @@ func (a *RollWheelAction) Do(ctx adventuria.ActionContext, req adventuria.Action
 	}
 
 	onBeforeWheelRollEvent := &adventuria.OnBeforeWheelRollEvent{
+		AppContext:  ctx.AppContext,
 		CurrentCell: currentCell.(adventuria.CellWheel),
 	}
 	eventRes, err := ctx.User.OnBeforeWheelRoll().Trigger(onBeforeWheelRollEvent)
@@ -49,7 +50,7 @@ func (a *RollWheelAction) Do(ctx adventuria.ActionContext, req adventuria.Action
 		}, err
 	}
 
-	res, err := onBeforeWheelRollEvent.CurrentCell.Roll(ctx.User, adventuria.RollWheelRequest(req))
+	res, err := onBeforeWheelRollEvent.CurrentCell.Roll(ctx.AppContext, ctx.User, adventuria.RollWheelRequest(req))
 	if err != nil {
 		return &adventuria.ActionResult{
 			Success: false,
@@ -62,7 +63,8 @@ func (a *RollWheelAction) Do(ctx adventuria.ActionContext, req adventuria.Action
 	action.SetActivity(res.WinnerId)
 
 	onAfterWheelRollEvent := &adventuria.OnAfterWheelRollEvent{
-		ItemId: res.WinnerId,
+		AppContext: ctx.AppContext,
+		ItemId:     res.WinnerId,
 	}
 	eventRes, err = ctx.User.OnAfterWheelRoll().Trigger(onAfterWheelRollEvent)
 	if eventRes != nil && !eventRes.Success {

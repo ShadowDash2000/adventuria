@@ -28,22 +28,30 @@ func Test_ChooseGame(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	user, err := adventuria.GameUsers.GetByName("user1")
+	ctx := adventuria.AppContext{
+		App: adventuria.PocketBase,
+	}
+	user, err := adventuria.GameUsers.GetByName(ctx, "user1")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	invItemId, err := user.Inventory().AddItemById(item.Id)
+	invItemId, err := user.Inventory().AddItemById(ctx, item.Id)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = user.Move(1)
+	_, err = user.Move(ctx, 1)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = game.DoAction("rollWheel", user.ID(), adventuria.ActionRequest{})
+	_, err = game.DoAction(ctx.App, user.ID(), "rollWheel", adventuria.ActionRequest{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	user, err = adventuria.GameUsers.GetByName(ctx, "user1")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -58,7 +66,17 @@ func Test_ChooseGame(t *testing.T) {
 	}
 
 	gameId := helper.RandomItemFromSlice(itemsList)
-	err = game.UseItem(user.ID(), invItemId, adventuria.UseItemRequest{"game_id": gameId})
+	err = game.UseItem(ctx.App, user.ID(), adventuria.UseItemRequest{
+		InvItemId: invItemId,
+		Data: map[string]any{
+			"game_id": gameId,
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	user, err = adventuria.GameUsers.GetByName(ctx, "user1")
 	if err != nil {
 		t.Fatal(err)
 	}

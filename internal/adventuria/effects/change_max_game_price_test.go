@@ -26,22 +26,25 @@ func Test_ChangeMaxGamePriceUsable(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	user, err := adventuria.GameUsers.GetByName("user1")
+	ctx := adventuria.AppContext{
+		App: adventuria.PocketBase,
+	}
+	user, err := adventuria.GameUsers.GetByName(ctx, "user1")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = user.Move(1)
+	_, err = user.Move(ctx, 1)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	invItemId, err := user.Inventory().AddItemById(item.Id)
+	invItemId, err := user.Inventory().AddItemById(ctx, item.Id)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = game.UseItem(user.ID(), invItemId, adventuria.UseItemRequest{})
+	err = game.UseItem(ctx.App, user.ID(), adventuria.UseItemRequest{InvItemId: invItemId})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -107,17 +110,25 @@ func Test_ChangeMaxGamePriceUnusable(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	user, err := adventuria.GameUsers.GetByName("user1")
+	ctx := adventuria.AppContext{
+		App: adventuria.PocketBase,
+	}
+	user, err := adventuria.GameUsers.GetByName(ctx, "user1")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = user.Move(1)
+	_, err = user.Move(ctx, 1)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = user.Inventory().AddItemById(item.Id)
+	_, err = user.Inventory().AddItemById(ctx, item.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	user, err = adventuria.GameUsers.GetByName(ctx, "user1")
 	if err != nil {
 		t.Fatal(err)
 	}

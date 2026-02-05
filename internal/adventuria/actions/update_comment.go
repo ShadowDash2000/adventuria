@@ -44,7 +44,7 @@ func (a *UpdateCommentAction) Do(ctx adventuria.ActionContext, req adventuria.Ac
 	}
 
 	record := &core.Record{}
-	err := adventuria.PocketBase.
+	err := ctx.AppContext.App.
 		RecordQuery(adventuria.GameCollections.Get(adventuria.CollectionActions)).
 		AndWhere(
 			dbx.HashExp{
@@ -72,7 +72,7 @@ func (a *UpdateCommentAction) Do(ctx adventuria.ActionContext, req adventuria.Ac
 	action := adventuria.NewActionRecordFromRecord(record)
 	action.SetComment(comment)
 
-	err = adventuria.PocketBase.Save(record)
+	err = ctx.AppContext.App.Save(record)
 	if err != nil {
 		return &adventuria.ActionResult{
 			Success: false,

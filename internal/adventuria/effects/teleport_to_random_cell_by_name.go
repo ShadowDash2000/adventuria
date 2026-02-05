@@ -15,13 +15,13 @@ type TeleportToRandomCellByNameEffect struct {
 	adventuria.EffectRecord
 }
 
-func (ef *TeleportToRandomCellByNameEffect) CanUse(ctx adventuria.EffectContext) bool {
-	if adventuria.GameActions.HasActionsInCategories(ctx.User, []string{"wheel_roll", "on_cell"}) {
+func (ef *TeleportToRandomCellByNameEffect) CanUse(appCtx adventuria.AppContext, ctx adventuria.EffectContext) bool {
+	if adventuria.GameActions.HasActionsInCategories(appCtx, ctx.User, []string{"wheel_roll", "on_cell"}) {
 		return false
 	}
 
-	canDone := adventuria.GameActions.CanDo(ctx.User, "done")
-	canDrop := adventuria.GameActions.CanDo(ctx.User, "drop")
+	canDone := adventuria.GameActions.CanDo(appCtx, ctx.User, "done")
+	canDrop := adventuria.GameActions.CanDo(appCtx, ctx.User, "drop")
 
 	if canDone && !canDrop {
 		return false
@@ -38,7 +38,7 @@ func (ef *TeleportToRandomCellByNameEffect) Subscribe(
 		ctx.User.OnAfterItemSave().BindFunc(func(e *adventuria.OnAfterItemSave) (*event.Result, error) {
 			if e.Item.IDInventory() == ctx.InvItemID {
 				cellNames, _ := ef.DecodeValue(ef.GetString("value"))
-				_, err := ctx.User.MoveToCellName(helper.RandomItemFromSlice(cellNames))
+				_, err := ctx.User.MoveToCellName(e.AppContext, helper.RandomItemFromSlice(cellNames))
 				if err != nil {
 					return &event.Result{
 						Success: false,
@@ -46,7 +46,7 @@ func (ef *TeleportToRandomCellByNameEffect) Subscribe(
 					}, fmt.Errorf("teleportToRandomCellByNameEffect: %w", err)
 				}
 
-				callback()
+				callback(e.AppContext)
 			}
 
 			return e.Next()
@@ -54,7 +54,7 @@ func (ef *TeleportToRandomCellByNameEffect) Subscribe(
 	}, nil
 }
 
-func (ef *TeleportToRandomCellByNameEffect) Verify(value string) error {
+func (ef *TeleportToRandomCellByNameEffect) Verify(ctx adventuria.AppContext, value string) error {
 	names, err := ef.DecodeValue(value)
 	if err != nil {
 		return fmt.Errorf("teleportToRandomCellByName: %w", err)
@@ -68,7 +68,7 @@ func (ef *TeleportToRandomCellByNameEffect) Verify(value string) error {
 	var records []struct {
 		Id string `db:"id"`
 	}
-	err = adventuria.PocketBase.RecordQuery(adventuria.GameCollections.Get(adventuria.CollectionCells)).
+	err = ctx.App.RecordQuery(adventuria.GameCollections.Get(adventuria.CollectionCells)).
 		Where(dbx.In("name", namesAny...)).
 		Select("id").
 		All(&records)
@@ -87,6 +87,6 @@ func (ef *TeleportToRandomCellByNameEffect) DecodeValue(value string) ([]string,
 	return strings.Split(value, ";"), nil
 }
 
-func (ef *TeleportToRandomCellByNameEffect) GetVariants(_ adventuria.EffectContext) any {
+func (ef *TeleportToRandomCellByNameEffect) GetVariants(_ adventuria.AppContext, _ adventuria.EffectContext) any {
 	return nil
 }

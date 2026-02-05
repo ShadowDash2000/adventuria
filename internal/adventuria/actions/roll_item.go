@@ -16,7 +16,7 @@ func (a *RollItemAction) CanDo(ctx adventuria.ActionContext) bool {
 		return false
 	}
 
-	if adventuria.GameActions.CanDo(ctx.User, "done") {
+	if adventuria.GameActions.CanDo(ctx.AppContext, ctx.User, "done") {
 		return false
 	}
 
@@ -44,7 +44,7 @@ func (a *RollItemAction) Do(ctx adventuria.ActionContext, _ adventuria.ActionReq
 
 	res.WinnerId = helper.RandomItemFromSlice(items).ID()
 
-	_, err := ctx.User.Inventory().MustAddItemById(res.WinnerId)
+	_, err := ctx.User.Inventory().MustAddItemById(ctx.AppContext, res.WinnerId)
 	if err != nil {
 		return &adventuria.ActionResult{
 			Success: false,
@@ -55,7 +55,8 @@ func (a *RollItemAction) Do(ctx adventuria.ActionContext, _ adventuria.ActionReq
 	ctx.User.SetItemWheelsCount(ctx.User.ItemWheelsCount() - 1)
 
 	onAfterItemRollEvent := &adventuria.OnAfterItemRollEvent{
-		ItemId: res.WinnerId,
+		AppContext: ctx.AppContext,
+		ItemId:     res.WinnerId,
 	}
 	eventRes, err := ctx.User.OnAfterItemRoll().Trigger(onAfterItemRollEvent)
 	if eventRes != nil && !eventRes.Success {
@@ -72,7 +73,8 @@ func (a *RollItemAction) Do(ctx adventuria.ActionContext, _ adventuria.ActionReq
 	}
 
 	onAfterWheelRollEvent := &adventuria.OnAfterWheelRollEvent{
-		ItemId: res.WinnerId,
+		AppContext: ctx.AppContext,
+		ItemId:     res.WinnerId,
 	}
 	eventRes, err = ctx.User.OnAfterWheelRoll().Trigger(onAfterWheelRollEvent)
 	if eventRes != nil && !eventRes.Success {

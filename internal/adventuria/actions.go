@@ -22,24 +22,30 @@ func NewActions() *Actions {
 	return a
 }
 
-func (a *Actions) CanDo(user User, t ActionType) bool {
+func (a *Actions) CanDo(ctx AppContext, user User, t ActionType) bool {
 	if action, ok := a.actions[t]; ok {
-		return action.CanDo(ActionContext{User: user})
+		return action.CanDo(ActionContext{
+			AppContext: ctx,
+			User:       user,
+		})
 	}
 	return false
 }
 
-func (a *Actions) Do(user User, req ActionRequest, t ActionType) (*ActionResult, error) {
+func (a *Actions) Do(ctx AppContext, user User, req ActionRequest, t ActionType) (*ActionResult, error) {
 	if action, ok := a.actions[t]; ok {
-		return action.Do(ActionContext{User: user}, req)
+		return action.Do(ActionContext{
+			AppContext: ctx,
+			User:       user,
+		}, req)
 	}
 	return nil, errors.New("actions: unknown action")
 }
 
-func (a *Actions) AvailableActions(user User) iter.Seq[ActionType] {
+func (a *Actions) AvailableActions(ctx AppContext, user User) iter.Seq[ActionType] {
 	return func(yield func(ActionType) bool) {
 		for t := range a.actions {
-			if !a.CanDo(user, t) {
+			if !a.CanDo(ctx, user, t) {
 				continue
 			}
 			if !yield(t) {
@@ -49,9 +55,12 @@ func (a *Actions) AvailableActions(user User) iter.Seq[ActionType] {
 	}
 }
 
-func (a *Actions) HasActionsInCategory(user User, category string) bool {
+func (a *Actions) HasActionsInCategory(ctx AppContext, user User, category string) bool {
 	for _, action := range a.actions {
-		if !action.CanDo(ActionContext{User: user}) {
+		if !action.CanDo(ActionContext{
+			AppContext: ctx,
+			User:       user,
+		}) {
 			continue
 		}
 		if action.InCategory(category) {
@@ -61,9 +70,12 @@ func (a *Actions) HasActionsInCategory(user User, category string) bool {
 	return false
 }
 
-func (a *Actions) HasActionsInCategories(user User, categories []string) bool {
+func (a *Actions) HasActionsInCategories(ctx AppContext, user User, categories []string) bool {
 	for _, action := range a.actions {
-		if !action.CanDo(ActionContext{User: user}) {
+		if !action.CanDo(ActionContext{
+			AppContext: ctx,
+			User:       user,
+		}) {
 			continue
 		}
 		if action.InCategories(categories) {
@@ -73,9 +85,12 @@ func (a *Actions) HasActionsInCategories(user User, categories []string) bool {
 	return false
 }
 
-func (a *Actions) GetVariants(user User, t ActionType) any {
+func (a *Actions) GetVariants(ctx AppContext, user User, t ActionType) any {
 	if action, ok := a.actions[t]; ok {
-		return action.GetVariants(ActionContext{User: user})
+		return action.GetVariants(ActionContext{
+			AppContext: ctx,
+			User:       user,
+		})
 	}
 	return nil
 }

@@ -11,7 +11,7 @@ type DiscountPriceDivideEffect struct {
 	adventuria.EffectRecord
 }
 
-func (ef *DiscountPriceDivideEffect) CanUse(_ adventuria.EffectContext) bool {
+func (ef *DiscountPriceDivideEffect) CanUse(_ adventuria.AppContext, _ adventuria.EffectContext) bool {
 	return true
 }
 
@@ -22,7 +22,7 @@ func (ef *DiscountPriceDivideEffect) Subscribe(
 	return []event.Unsubscribe{
 		ctx.User.OnBeforeItemBuy().BindFunc(func(e *adventuria.OnBeforeItemBuy) (*event.Result, error) {
 			e.Price /= ef.GetInt("value")
-			callback()
+			callback(e.AppContext)
 			return e.Next()
 		}),
 		ctx.User.OnBuyGetVariants().BindFunc(func(e *adventuria.OnBuyGetVariants) (*event.Result, error) {
@@ -32,7 +32,7 @@ func (ef *DiscountPriceDivideEffect) Subscribe(
 	}, nil
 }
 
-func (ef *DiscountPriceDivideEffect) Verify(value string) error {
+func (ef *DiscountPriceDivideEffect) Verify(_ adventuria.AppContext, value string) error {
 	num, err := ef.DecodeValue(value)
 	if num == 0 {
 		return errors.New("discountPriceDivide: value must not be 0")
@@ -44,6 +44,6 @@ func (ef *DiscountPriceDivideEffect) DecodeValue(value string) (int, error) {
 	return strconv.Atoi(value)
 }
 
-func (ef *DiscountPriceDivideEffect) GetVariants(_ adventuria.EffectContext) any {
+func (ef *DiscountPriceDivideEffect) GetVariants(_ adventuria.AppContext, _ adventuria.EffectContext) any {
 	return nil
 }

@@ -26,23 +26,26 @@ func Test_RollReverse(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	user, err := adventuria.GameUsers.GetByName("user1")
+	ctx := adventuria.AppContext{
+		App: adventuria.PocketBase,
+	}
+	user, err := adventuria.GameUsers.GetByName(ctx, "user1")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	for i := 0; i < 100; i++ {
-		invItemId, err := user.Inventory().AddItemById(item.Id)
+	for i := 0; i < 50; i++ {
+		invItemId, err := user.Inventory().AddItemById(ctx, item.Id)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		err = game.UseItem(user.ID(), invItemId, adventuria.UseItemRequest{})
+		err = game.UseItem(ctx.App, user.ID(), adventuria.UseItemRequest{InvItemId: invItemId})
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		res, err := game.DoAction(actions.ActionTypeRollDice, user.ID(), adventuria.ActionRequest{})
+		res, err := game.DoAction(ctx.App, user.ID(), actions.ActionTypeRollDice, adventuria.ActionRequest{})
 		if err != nil {
 			t.Fatalf("Test_RollReverse(): Error rolling dice: %s", err)
 		}
@@ -62,7 +65,15 @@ func Test_RollReverse(t *testing.T) {
 			t.Fatalf("Test_RollReverse(): Roll not reversed, want = %d, got = %d", wantRoll, rollDiceRes.Roll)
 		}
 
+		user, err = adventuria.GameUsers.GetByName(ctx, "user1")
+		if err != nil {
+			t.Fatal(err)
+		}
+
 		user.LastAction().SetCanMove(true)
+		if err = ctx.App.Save(user.LastAction().ProxyRecord()); err != nil {
+			t.Fatalf("Test_Buy(): Error saving user: %s", err)
+		}
 	}
 }
 

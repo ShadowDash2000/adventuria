@@ -10,7 +10,7 @@ type StayOnCellAfterDoneEffect struct {
 	adventuria.EffectRecord
 }
 
-func (ef *StayOnCellAfterDoneEffect) CanUse(_ adventuria.EffectContext) bool {
+func (ef *StayOnCellAfterDoneEffect) CanUse(_ adventuria.AppContext, _ adventuria.EffectContext) bool {
 	return true
 }
 
@@ -38,7 +38,7 @@ func (ef *StayOnCellAfterDoneEffect) Subscribe(
 			}
 
 			lastAction := ctx.User.LastAction()
-			err := adventuria.PocketBase.Save(lastAction.ProxyRecord())
+			err := e.AppContext.App.Save(lastAction.ProxyRecord())
 			if err != nil {
 				return &event.Result{
 					Success: false,
@@ -46,7 +46,7 @@ func (ef *StayOnCellAfterDoneEffect) Subscribe(
 				}, fmt.Errorf("stayOnCellAfterDone: %w", err)
 			}
 
-			err = cellWheel.RefreshItems(ctx.User)
+			err = cellWheel.RefreshItems(e.AppContext, ctx.User)
 			if err != nil {
 				return &event.Result{
 					Success: false,
@@ -59,17 +59,17 @@ func (ef *StayOnCellAfterDoneEffect) Subscribe(
 			lastAction.SetType("rollDice")
 			lastAction.ClearCustomActivityFilter()
 
-			callback()
+			callback(e.AppContext)
 
 			return e.Next()
 		}),
 	}, nil
 }
 
-func (ef *StayOnCellAfterDoneEffect) Verify(_ string) error {
+func (ef *StayOnCellAfterDoneEffect) Verify(_ adventuria.AppContext, _ string) error {
 	return nil
 }
 
-func (ef *StayOnCellAfterDoneEffect) GetVariants(_ adventuria.EffectContext) any {
+func (ef *StayOnCellAfterDoneEffect) GetVariants(_ adventuria.AppContext, _ adventuria.EffectContext) any {
 	return nil
 }

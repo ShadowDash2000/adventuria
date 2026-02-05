@@ -18,46 +18,46 @@ type Cells struct {
 	mx            sync.Mutex
 }
 
-func NewCells() (*Cells, error) {
+func NewCells(ctx AppContext) (*Cells, error) {
 	cells := &Cells{
 		cells:       cache.NewMemoryCache[string, Cell](0, true),
 		cellsByCode: cache.NewMemoryCache[string, Cell](0, true),
 	}
 
-	if err := cells.fetch(); err != nil {
+	if err := cells.fetch(ctx); err != nil {
 		return nil, err
 	}
-	cells.bindHooks()
+	cells.bindHooks(ctx)
 
 	return cells, nil
 }
 
-func (c *Cells) bindHooks() {
-	PocketBase.OnRecordAfterCreateSuccess(CollectionCells).BindFunc(func(e *core.RecordEvent) error {
+func (c *Cells) bindHooks(ctx AppContext) {
+	ctx.App.OnRecordAfterCreateSuccess(CollectionCells).BindFunc(func(e *core.RecordEvent) error {
 		err := c.add(e.Record)
 		if err != nil {
 			return err
 		}
 		return e.Next()
 	})
-	PocketBase.OnRecordAfterUpdateSuccess(CollectionCells).BindFunc(func(e *core.RecordEvent) error {
+	ctx.App.OnRecordAfterUpdateSuccess(CollectionCells).BindFunc(func(e *core.RecordEvent) error {
 		err := c.add(e.Record)
 		if err != nil {
 			return err
 		}
 		return e.Next()
 	})
-	PocketBase.OnRecordAfterDeleteSuccess(CollectionCells).BindFunc(func(e *core.RecordEvent) error {
+	ctx.App.OnRecordAfterDeleteSuccess(CollectionCells).BindFunc(func(e *core.RecordEvent) error {
 		c.delete(e.Record)
 		return e.Next()
 	})
 }
 
-func (c *Cells) fetch() error {
+func (c *Cells) fetch(ctx AppContext) error {
 	c.cells.Clear()
 	c.cellsByCode.Clear()
 
-	cells, err := PocketBase.FindRecordsByFilter(
+	cells, err := ctx.App.FindRecordsByFilter(
 		CollectionCells,
 		"",
 		"sort",
@@ -70,7 +70,7 @@ func (c *Cells) fetch() error {
 
 	for _, cell := range cells {
 		if err = c.add(cell); err != nil {
-			PocketBase.Logger().Error("Cells: unknown cell type", "cell", cell)
+			ctx.App.Logger().Error("Cells: unknown cell type", "cell", cell)
 		}
 	}
 	c.sort()

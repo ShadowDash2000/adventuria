@@ -21,11 +21,11 @@ func NewCellActivity(activityType adventuria.ActivityType) adventuria.CellCreato
 	}
 }
 
-func (c *CellActivity) Verify(_ string) error {
+func (c *CellActivity) Verify(_ adventuria.AppContext, _ string) error {
 	return nil
 }
 
-func (c *CellActivity) Roll(user adventuria.User, _ adventuria.RollWheelRequest) (*adventuria.WheelRollResult, error) {
+func (c *CellActivity) Roll(ctx adventuria.AppContext, user adventuria.User, _ adventuria.RollWheelRequest) (*adventuria.WheelRollResult, error) {
 	items, err := user.LastAction().ItemsList()
 	if err != nil {
 		return &adventuria.WheelRollResult{
@@ -41,7 +41,7 @@ func (c *CellActivity) Roll(user adventuria.User, _ adventuria.RollWheelRequest)
 		}, fmt.Errorf("%s.roll(): no items to roll", c.activityType)
 	}
 
-	records, err := adventuria.PocketBase.FindRecordsByIds(
+	records, err := ctx.App.FindRecordsByIds(
 		adventuria.GameCollections.Get(adventuria.CollectionActivities),
 		items,
 	)
@@ -68,23 +68,28 @@ func (c *CellActivity) Roll(user adventuria.User, _ adventuria.RollWheelRequest)
 	}, nil
 }
 
-func (c *CellActivity) RefreshItems(user adventuria.User) error {
-	return c.refreshItems(user)
+func (c *CellActivity) RefreshItems(ctx adventuria.AppContext, user adventuria.User) error {
+	return c.refreshItems(ctx, user)
 }
 
 func (c *CellActivity) OnCellReached(ctx *adventuria.CellReachedContext) error {
-	return c.refreshItems(ctx.User)
+	return c.refreshItems(ctx.AppContext, ctx.User)
 }
 
 func (c *CellActivity) OnCellLeft(_ *adventuria.CellLeftContext) error {
 	return nil
 }
 
-func (c *CellActivity) refreshItems(user adventuria.User) error {
-	filter, err := newActivityFilterById(c.Filter())
+func (c *CellActivity) refreshItems(ctx adventuria.AppContext, user adventuria.User) error {
+	filter, err := newActivityFilterById(ctx.App, c.Filter())
 	if err != nil {
 		return err
 	}
 	filter.SetType(c.activityType)
-	return updateActivitiesFromFilter(user, filter, true)
+
+	if err = updateActivitiesFromFilter(ctx.App, user, filter, true); err != nil {
+		return err
+	}
+
+	return ctx.App.Save(user.LastAction().ProxyRecord())
 }

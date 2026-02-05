@@ -20,8 +20,8 @@ func NewBaseTimerFromRecord(record *core.Record) Timer {
 	return timer
 }
 
-func NewTimer(userId string) (Timer, error) {
-	record, err := PocketBase.FindFirstRecordByFilter(
+func NewTimer(ctx AppContext, userId string) (Timer, error) {
+	record, err := ctx.App.FindFirstRecordByFilter(
 		CollectionTimers,
 		"user.id = {:userId}",
 		dbx.Params{"userId": userId},
@@ -34,25 +34,25 @@ func NewTimer(userId string) (Timer, error) {
 	if record != nil {
 		timer.SetProxyRecord(record)
 	} else {
-		timer, err = CreateTimer(userId, GameSettings.TimerTimeLimit())
+		timer, err = CreateTimer(ctx, userId, GameSettings.TimerTimeLimit())
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	timer.bindHooks()
+	timer.bindHooks(ctx)
 
 	return timer, nil
 }
 
-func (t *TimerBase) bindHooks() {
-	PocketBase.OnRecordAfterUpdateSuccess(CollectionTimers).BindFunc(func(e *core.RecordEvent) error {
+func (t *TimerBase) bindHooks(ctx AppContext) {
+	ctx.App.OnRecordAfterUpdateSuccess(CollectionTimers).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.GetString("user") == t.UserId() {
 			t.SetProxyRecord(e.Record)
 		}
 		return e.Next()
 	})
-	PocketBase.OnRecordAfterDeleteSuccess(CollectionTimers).BindFunc(func(e *core.RecordEvent) error {
+	ctx.App.OnRecordAfterDeleteSuccess(CollectionTimers).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == t.Id {
 			t.SetProxyRecord(core.NewRecord(GameCollections.Get(CollectionTimers)))
 		}
@@ -60,7 +60,7 @@ func (t *TimerBase) bindHooks() {
 	})
 }
 
-func (t *TimerBase) Start() error {
+func (t *TimerBase) Start(ctx AppContext) error {
 	if t.IsActive() {
 		return nil
 	}
@@ -71,10 +71,10 @@ func (t *TimerBase) Start() error {
 	t.SetIsActive(true)
 	t.SetStartTime(types.NowDateTime())
 
-	return PocketBase.Save(t)
+	return ctx.App.Save(t)
 }
 
-func (t *TimerBase) Stop() error {
+func (t *TimerBase) Stop(ctx AppContext) error {
 	if !t.IsActive() {
 		return nil
 	}
@@ -83,7 +83,7 @@ func (t *TimerBase) Stop() error {
 	timePassed := t.TimePassed() + time.Now().Sub(t.StartTime().Time())
 	t.SetTimePassed(timePassed)
 
-	return PocketBase.Save(t)
+	return ctx.App.Save(t)
 }
 
 // GetTimeLeft returns the time left in seconds
@@ -140,19 +140,19 @@ func (t *TimerBase) SetStartTime(time types.DateTime) {
 	t.Set("startTime", time)
 }
 
-func (t *TimerBase) AddSecondsTimeLimit(secs int) error {
+func (t *TimerBase) AddSecondsTimeLimit(ctx AppContext, secs int) error {
 	t.SetTimeLimit(t.TimeLimit() + (time.Duration(secs) * time.Second))
-	return PocketBase.Save(t)
+	return ctx.App.Save(t)
 }
 
-func CreateTimer(userId string, timeLimit int) (*TimerBase, error) {
+func CreateTimer(ctx AppContext, userId string, timeLimit int) (*TimerBase, error) {
 	timer := &TimerBase{}
 	timer.SetProxyRecord(core.NewRecord(GameCollections.Get(CollectionTimers)))
 	timer.Set("user", userId)
 	timer.Set("timeLimit", timeLimit)
 	timer.Set("timePassed", 0)
 	timer.Set("isActive", false)
-	err := PocketBase.Save(timer)
+	err := ctx.App.Save(timer)
 	if err != nil {
 		return nil, err
 	}
@@ -160,8 +160,8 @@ func CreateTimer(userId string, timeLimit int) (*TimerBase, error) {
 	return timer, nil
 }
 
-func ResetAllTimers(timeLimit int, limitExceedPenalty int) error {
-	records, err := PocketBase.FindAllRecords(CollectionTimers)
+func ResetAllTimers(ctx AppContext, timeLimit int, limitExceedPenalty int) error {
+	records, err := ctx.App.FindAllRecords(CollectionTimers)
 	if err != nil {
 		return err
 	}
@@ -189,7 +189,7 @@ func ResetAllTimers(timeLimit int, limitExceedPenalty int) error {
 
 		timer.SetTimeLimit(newTimeLimit)
 		timer.SetTimePassed(0)
-		err = PocketBase.Save(timer.ProxyRecord())
+		err = ctx.App.Save(timer.ProxyRecord())
 		if err != nil {
 			return err
 		}

@@ -10,7 +10,7 @@ type PointsIncrementEffect struct {
 	adventuria.EffectRecord
 }
 
-func (ef *PointsIncrementEffect) CanUse(_ adventuria.EffectContext) bool {
+func (ef *PointsIncrementEffect) CanUse(_ adventuria.AppContext, _ adventuria.EffectContext) bool {
 	return true
 }
 
@@ -23,7 +23,7 @@ func (ef *PointsIncrementEffect) Subscribe(
 			if i := ef.GetInt("value"); i != 0 {
 				ctx.User.SetPoints(ctx.User.Points() + i)
 
-				callback()
+				callback(e.AppContext)
 			}
 
 			return e.Next()
@@ -31,7 +31,7 @@ func (ef *PointsIncrementEffect) Subscribe(
 	}, nil
 }
 
-func (ef *PointsIncrementEffect) Verify(value string) error {
+func (ef *PointsIncrementEffect) Verify(_ adventuria.AppContext, value string) error {
 	_, err := ef.DecodeValue(value)
 	return err
 }
@@ -40,6 +40,6 @@ func (ef *PointsIncrementEffect) DecodeValue(value string) (any, error) {
 	return strconv.Atoi(value)
 }
 
-func (ef *PointsIncrementEffect) GetVariants(_ adventuria.EffectContext) any {
+func (ef *PointsIncrementEffect) GetVariants(_ adventuria.AppContext, _ adventuria.EffectContext) any {
 	return nil
 }

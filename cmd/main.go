@@ -39,7 +39,7 @@ func main() {
 		if err != nil {
 			adventuria.PocketBase.Logger().Error("Failed to initialize stream tracker", "error", err)
 		} else {
-			if err = st.Start(game.Context()); err != nil {
+			if err = st.Start(adventuria.AppContext{App: adventuria.PocketBase}, game.Context()); err != nil {
 				adventuria.PocketBase.Logger().Error("Failed to start stream tracker", "error", err)
 			}
 		}

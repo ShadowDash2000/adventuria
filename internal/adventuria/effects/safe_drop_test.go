@@ -26,37 +26,40 @@ func Test_SafeDrop(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	user, err := adventuria.GameUsers.GetByName("user1")
+	ctx := adventuria.AppContext{
+		App: adventuria.PocketBase,
+	}
+	user, err := adventuria.GameUsers.GetByName(ctx, "user1")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	invItemId, err := user.Inventory().AddItemById(item.Id)
+	invItemId, err := user.Inventory().AddItemById(ctx, item.Id)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = game.UseItem(user.ID(), invItemId, adventuria.UseItemRequest{})
+	err = game.UseItem(ctx.App, user.ID(), adventuria.UseItemRequest{InvItemId: invItemId})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = user.Move(1)
+	_, err = user.Move(ctx, 1)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = adventuria.PocketBase.Save(user.LastAction().ProxyRecord())
-	if err != nil {
-		t.Fatalf("Test_SafeDrop(): Error saving action: %s", err)
-	}
-
-	_, err = game.DoAction(actions.ActionTypeRollWheel, user.ID(), adventuria.ActionRequest{})
+	_, err = game.DoAction(ctx.App, user.ID(), actions.ActionTypeRollWheel, adventuria.ActionRequest{})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = game.DoAction(actions.ActionTypeDrop, user.ID(), adventuria.ActionRequest{})
+	_, err = game.DoAction(ctx.App, user.ID(), actions.ActionTypeDrop, adventuria.ActionRequest{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	user, err = adventuria.GameUsers.GetByName(ctx, "user1")
 	if err != nil {
 		t.Fatal(err)
 	}

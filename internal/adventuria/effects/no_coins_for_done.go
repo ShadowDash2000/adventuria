@@ -9,7 +9,7 @@ type NoCoinsForDoneEffect struct {
 	adventuria.EffectRecord
 }
 
-func (ef *NoCoinsForDoneEffect) CanUse(_ adventuria.EffectContext) bool {
+func (ef *NoCoinsForDoneEffect) CanUse(_ adventuria.AppContext, _ adventuria.EffectContext) bool {
 	return true
 }
 
@@ -20,16 +20,16 @@ func (ef *NoCoinsForDoneEffect) Subscribe(
 	return []event.Unsubscribe{
 		ctx.User.OnBeforeDone().BindFunc(func(e *adventuria.OnBeforeDoneEvent) (*event.Result, error) {
 			e.CellCoins = 0
-			callback()
+			callback(e.AppContext)
 			return e.Next()
 		}),
 	}, nil
 }
 
-func (ef *NoCoinsForDoneEffect) Verify(_ string) error {
+func (ef *NoCoinsForDoneEffect) Verify(_ adventuria.AppContext, _ string) error {
 	return nil
 }
 
-func (ef *NoCoinsForDoneEffect) GetVariants(_ adventuria.EffectContext) any {
+func (ef *NoCoinsForDoneEffect) GetVariants(_ adventuria.AppContext, _ adventuria.EffectContext) any {
 	return nil
 }

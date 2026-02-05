@@ -26,22 +26,30 @@ func Test_ReturnToPrevCell(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	user, err := adventuria.GameUsers.GetByName("user1")
+	ctx := adventuria.AppContext{
+		App: adventuria.PocketBase,
+	}
+	user, err := adventuria.GameUsers.GetByName(ctx, "user1")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	invItemId, err := user.Inventory().AddItemById(item.Id)
+	invItemId, err := user.Inventory().AddItemById(ctx, item.Id)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = user.Move(1)
+	_, err = user.Move(ctx, 1)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = game.UseItem(user.ID(), invItemId, adventuria.UseItemRequest{})
+	err = game.UseItem(ctx.App, user.ID(), adventuria.UseItemRequest{InvItemId: invItemId})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	user, err = adventuria.GameUsers.GetByName(ctx, "user1")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -50,7 +58,7 @@ func Test_ReturnToPrevCell(t *testing.T) {
 		t.Fatalf("Test_ReturnToPrevCell(): Cells passed = %d, want = 0", user.CellsPassed())
 	}
 
-	if !adventuria.GameActions.CanDo(user, "rollDice") {
+	if !adventuria.GameActions.CanDo(ctx, user, "rollDice") {
 		t.Fatalf("Test_ReturnToPrevCell(): Expected that roll dice action to be allowed")
 	}
 }

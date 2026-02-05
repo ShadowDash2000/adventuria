@@ -16,56 +16,58 @@ type InventoryBase struct {
 	hookIds  []string
 }
 
-func NewInventory(user User, maxSlots int) (Inventory, error) {
+func NewInventory(ctx AppContext, user User, maxSlots int) (Inventory, error) {
 	i := &InventoryBase{
 		user:     user,
 		maxSlots: maxSlots,
 	}
 
-	err := i.fetchInventory()
+	err := i.fetchInventory(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	i.bindHooks()
+	i.bindHooks(ctx)
 
 	return i, nil
 }
 
-func (i *InventoryBase) bindHooks() {
+func (i *InventoryBase) bindHooks(ctx AppContext) {
 	i.hookIds = make([]string, 4)
 
-	i.hookIds[0] = PocketBase.OnRecordAfterCreateSuccess(CollectionInventory).BindFunc(func(e *core.RecordEvent) error {
+	i.hookIds[0] = ctx.App.OnRecordAfterCreateSuccess(CollectionInventory).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.GetString("user") == i.user.ID() {
-			item, err := NewItemFromInventoryRecord(i.user, e.Record)
+			ctx := AppContext{App: e.App}
+			item, err := NewItemFromInventoryRecord(ctx, i.user, e.Record)
 			if err != nil {
 				return err
 			}
 			i.items[e.Record.Id] = item
 
 			_, err = i.user.OnAfterItemSave().Trigger(&OnAfterItemSave{
-				Item: item,
+				AppContext: ctx,
+				Item:       item,
 			})
 			if err != nil {
-				PocketBase.Logger().Error("Failed to trigger OnAfterItemSave event", "err", err)
+				e.App.Logger().Error("Failed to trigger OnAfterItemSave event", "err", err)
 			}
 		}
 		return e.Next()
 	})
-	i.hookIds[1] = PocketBase.OnRecordAfterDeleteSuccess(CollectionInventory).BindFunc(func(e *core.RecordEvent) error {
+	i.hookIds[1] = ctx.App.OnRecordAfterDeleteSuccess(CollectionInventory).BindFunc(func(e *core.RecordEvent) error {
 		if _, ok := i.items[e.Record.Id]; ok {
 			delete(i.items, e.Record.Id)
 		}
 		return e.Next()
 	})
-	i.hookIds[2] = PocketBase.OnRecordEnrich(CollectionInventory).BindFunc(func(e *core.RecordEnrichEvent) error {
+	i.hookIds[2] = ctx.App.OnRecordEnrich(CollectionInventory).BindFunc(func(e *core.RecordEnrichEvent) error {
 		if _, ok := i.items[e.Record.Id]; ok {
 			e.Record.WithCustomData(true)
-			e.Record.Set("can_use", i.CanUseItem(e.Record.Id))
+			e.Record.Set("can_use", i.CanUseItem(AppContext{App: e.App}, e.Record.Id))
 		}
 		return e.Next()
 	})
-	i.hookIds[3] = PocketBase.OnRecordCreate(CollectionInventory).BindFunc(func(e *core.RecordEvent) error {
+	i.hookIds[3] = ctx.App.OnRecordCreate(CollectionInventory).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.GetBool("isActive") {
 			e.Record.Set("activated", types.NowDateTime())
 		}
@@ -73,18 +75,18 @@ func (i *InventoryBase) bindHooks() {
 	})
 }
 
-func (i *InventoryBase) Close() {
-	PocketBase.OnRecordAfterCreateSuccess(CollectionInventory).Unbind(i.hookIds[0])
-	PocketBase.OnRecordAfterDeleteSuccess(CollectionInventory).Unbind(i.hookIds[1])
-	PocketBase.OnRecordEnrich(CollectionInventory).Unbind(i.hookIds[2])
-	PocketBase.OnRecordCreate(CollectionInventory).Unbind(i.hookIds[3])
+func (i *InventoryBase) Close(ctx AppContext) {
+	ctx.App.OnRecordAfterCreateSuccess(CollectionInventory).Unbind(i.hookIds[0])
+	ctx.App.OnRecordAfterDeleteSuccess(CollectionInventory).Unbind(i.hookIds[1])
+	ctx.App.OnRecordEnrich(CollectionInventory).Unbind(i.hookIds[2])
+	ctx.App.OnRecordCreate(CollectionInventory).Unbind(i.hookIds[3])
 	for _, item := range i.items {
-		item.Close()
+		item.Close(ctx)
 	}
 }
 
-func (i *InventoryBase) fetchInventory() error {
-	invItems, err := PocketBase.FindRecordsByFilter(
+func (i *InventoryBase) fetchInventory(ctx AppContext) error {
+	invItems, err := ctx.App.FindRecordsByFilter(
 		CollectionInventory,
 		"user.id = {:userId}",
 		"activated,created",
@@ -98,7 +100,7 @@ func (i *InventoryBase) fetchInventory() error {
 
 	i.items = make(map[string]Item)
 	for _, invItem := range invItems {
-		i.items[invItem.Id], err = NewItemFromInventoryRecord(i.user, invItem)
+		i.items[invItem.Id], err = NewItemFromInventoryRecord(ctx, i.user, invItem)
 		if err != nil {
 			return err
 		}
@@ -129,8 +131,9 @@ func (i *InventoryBase) HasEmptySlots() bool {
 	return i.AvailableSlots() > 0
 }
 
-func (i *InventoryBase) AddItem(item ItemRecord) (string, error) {
+func (i *InventoryBase) AddItem(ctx AppContext, item ItemRecord) (string, error) {
 	onBeforeItemAddEvent := OnBeforeItemAdd{
+		AppContext:    ctx,
 		ItemRecord:    item,
 		ShouldAddItem: true,
 	}
@@ -151,12 +154,13 @@ func (i *InventoryBase) AddItem(item ItemRecord) (string, error) {
 	record.Set("user", i.user.ID())
 	record.Set("item", item.ID())
 	record.Set("isActive", item.IsActiveByDefault())
-	err = PocketBase.Save(record)
+	err = ctx.App.Save(record)
 	if err != nil {
 		return "", err
 	}
 
 	res, err = i.user.OnAfterItemAdd().Trigger(&OnAfterItemAdd{
+		AppContext: ctx,
 		ItemRecord: item,
 	})
 	if res != nil && !res.Success {
@@ -169,7 +173,7 @@ func (i *InventoryBase) AddItem(item ItemRecord) (string, error) {
 	return record.Id, nil
 }
 
-func (i *InventoryBase) AddItemById(itemId string) (string, error) {
+func (i *InventoryBase) AddItemById(ctx AppContext, itemId string) (string, error) {
 	item, ok := GameItems.GetById(itemId)
 	if !ok {
 		return "", errors.New("item not found")
@@ -179,62 +183,62 @@ func (i *InventoryBase) AddItemById(itemId string) (string, error) {
 		return "", errors.New("no available slots")
 	}
 
-	return i.AddItem(item)
+	return i.AddItem(ctx, item)
 }
 
 // MustAddItemById
 // Note: before an item added, checks if there are some empty slots.
 // If not, trys to drop a random item from inventory.
-func (i *InventoryBase) MustAddItemById(itemId string) (string, error) {
+func (i *InventoryBase) MustAddItemById(ctx AppContext, itemId string) (string, error) {
 	item, ok := GameItems.GetById(itemId)
 	if !ok {
 		return "", errors.New("item not found")
 	}
 
 	if item.IsUsingSlot() && !i.HasEmptySlots() {
-		err := i.DropRandomItem()
+		err := i.DropRandomItem(ctx)
 		if err != nil {
 			return "", err
 		}
 	}
 
-	return i.AddItem(item)
+	return i.AddItem(ctx, item)
 }
 
-func (i *InventoryBase) CanUseItem(itemId string) bool {
+func (i *InventoryBase) CanUseItem(ctx AppContext, itemId string) bool {
 	item, ok := i.items[itemId]
 	if !ok {
 		return false
 	}
 
-	return item.CanUse()
+	return item.CanUse(ctx)
 }
 
-func (i *InventoryBase) UseItem(itemId string) (OnUseSuccess, OnUseFail, error) {
+func (i *InventoryBase) UseItem(ctx AppContext, itemId string) (OnUseSuccess, OnUseFail, error) {
 	item, ok := i.items[itemId]
 	if !ok {
 		return nil, nil, errors.New("inventory item not found")
 	}
 
-	if !item.CanUse() {
+	if !item.CanUse(ctx) {
 		return nil, nil, errors.New("item cannot be used")
 	}
 
-	return item.Use()
+	return item.Use(ctx)
 }
 
-func (i *InventoryBase) DropItem(invItemId string) error {
+func (i *InventoryBase) DropItem(ctx AppContext, invItemId string) error {
 	item, ok := i.items[invItemId]
 	if !ok {
 		return errors.New("inventory item not found")
 	}
 
-	return item.Drop()
+	return item.Drop(ctx)
 }
 
 // DropRandomItem
 // Note: removes random item that uses a slot and can be dropped
-func (i *InventoryBase) DropRandomItem() error {
+func (i *InventoryBase) DropRandomItem(ctx AppContext) error {
 	var items []Item
 	for _, item := range i.items {
 		if item.IsUsingSlot() && item.CanDrop() {
@@ -246,7 +250,7 @@ func (i *InventoryBase) DropRandomItem() error {
 		return nil
 	}
 
-	err := helper.RandomItemFromSlice(items).Drop()
+	err := helper.RandomItemFromSlice(items).Drop(ctx)
 	if err != nil {
 		return err
 	}
@@ -254,9 +258,9 @@ func (i *InventoryBase) DropRandomItem() error {
 	return nil
 }
 
-func (i *InventoryBase) DropInventory() error {
+func (i *InventoryBase) DropInventory(ctx AppContext) error {
 	for invItemId := range i.items {
-		err := i.DropItem(invItemId)
+		err := i.DropItem(ctx, invItemId)
 		if err != nil {
 			return err
 		}

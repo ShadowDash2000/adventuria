@@ -11,8 +11,8 @@ type ChangeMinGamePriceEffect struct {
 	adventuria.EffectRecord
 }
 
-func (ef *ChangeMinGamePriceEffect) CanUse(ctx adventuria.EffectContext) bool {
-	if ok := adventuria.GameActions.CanDo(ctx.User, "rollWheel"); !ok {
+func (ef *ChangeMinGamePriceEffect) CanUse(appCtx adventuria.AppContext, ctx adventuria.EffectContext) bool {
+	if ok := adventuria.GameActions.CanDo(appCtx, ctx.User, "rollWheel"); !ok {
 		return false
 	}
 
@@ -30,7 +30,7 @@ func (ef *ChangeMinGamePriceEffect) CanUse(ctx adventuria.EffectContext) bool {
 	}
 
 	if filterId := cell.Filter(); filterId != "" {
-		filterRecord, err := adventuria.PocketBase.FindRecordById(
+		filterRecord, err := appCtx.App.FindRecordById(
 			adventuria.CollectionActivityFilter,
 			filterId,
 		)
@@ -71,15 +71,15 @@ func (ef *ChangeMinGamePriceEffect) Subscribe(
 
 				if i := ef.GetInt("value"); i != 0 {
 					ctx.User.LastAction().CustomActivityFilter().MinPrice = i
-					ctx.User.LastAction().CustomActivityFilter().MaxPrice = 0
-					if err := cellGame.RefreshItems(ctx.User); err != nil {
+					ctx.User.LastAction().CustomActivityFilter().MaxPrice = -1
+					if err := cellGame.RefreshItems(e.AppContext, ctx.User); err != nil {
 						return &event.Result{
 							Success: false,
 							Error:   "internal error: can't refresh cell items in \"change_min_game_price\" effect",
 						}, fmt.Errorf("changeMinGamePrice: %w", err)
 					}
 
-					callback()
+					callback(e.AppContext)
 				}
 			}
 
@@ -88,7 +88,7 @@ func (ef *ChangeMinGamePriceEffect) Subscribe(
 	}, nil
 }
 
-func (ef *ChangeMinGamePriceEffect) Verify(value string) error {
+func (ef *ChangeMinGamePriceEffect) Verify(_ adventuria.AppContext, value string) error {
 	_, err := ef.DecodeValue(value)
 	return err
 }
@@ -97,6 +97,6 @@ func (ef *ChangeMinGamePriceEffect) DecodeValue(value string) (any, error) {
 	return strconv.Atoi(value)
 }
 
-func (ef *ChangeMinGamePriceEffect) GetVariants(_ adventuria.EffectContext) any {
+func (ef *ChangeMinGamePriceEffect) GetVariants(_ adventuria.AppContext, _ adventuria.EffectContext) any {
 	return nil
 }

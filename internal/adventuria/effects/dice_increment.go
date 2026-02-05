@@ -10,7 +10,7 @@ type DiceIncrementEffect struct {
 	adventuria.EffectRecord
 }
 
-func (ef *DiceIncrementEffect) CanUse(_ adventuria.EffectContext) bool {
+func (ef *DiceIncrementEffect) CanUse(_ adventuria.AppContext, _ adventuria.EffectContext) bool {
 	return true
 }
 
@@ -23,7 +23,7 @@ func (ef *DiceIncrementEffect) Subscribe(
 			if i := ef.GetInt("value"); i != 0 {
 				e.N += i
 
-				callback()
+				callback(e.AppContext)
 			}
 
 			return e.Next()
@@ -31,7 +31,7 @@ func (ef *DiceIncrementEffect) Subscribe(
 	}, nil
 }
 
-func (ef *DiceIncrementEffect) Verify(value string) error {
+func (ef *DiceIncrementEffect) Verify(_ adventuria.AppContext, value string) error {
 	_, err := ef.DecodeValue(value)
 	return err
 }
@@ -40,6 +40,6 @@ func (ef *DiceIncrementEffect) DecodeValue(value string) (any, error) {
 	return strconv.Atoi(value)
 }
 
-func (ef *DiceIncrementEffect) GetVariants(_ adventuria.EffectContext) any {
+func (ef *DiceIncrementEffect) GetVariants(_ adventuria.AppContext, _ adventuria.EffectContext) any {
 	return nil
 }

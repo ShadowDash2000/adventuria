@@ -15,7 +15,7 @@ type AddRandomItemToInventoryEffect struct {
 	adventuria.EffectRecord
 }
 
-func (ef *AddRandomItemToInventoryEffect) CanUse(_ adventuria.EffectContext) bool {
+func (ef *AddRandomItemToInventoryEffect) CanUse(_ adventuria.AppContext, _ adventuria.EffectContext) bool {
 	return true
 }
 
@@ -27,7 +27,7 @@ func (ef *AddRandomItemToInventoryEffect) Subscribe(
 		ctx.User.OnAfterAction().BindFunc(func(e *adventuria.OnAfterActionEvent) (*event.Result, error) {
 			if e.ActionType == "buyItem" {
 				ids, _ := ef.DecodeValue(ef.GetString("value"))
-				_, err := ctx.User.Inventory().AddItemById(helper.RandomItemFromSlice(ids))
+				_, err := ctx.User.Inventory().AddItemById(e.AppContext, helper.RandomItemFromSlice(ids))
 				if err != nil {
 					return &event.Result{
 						Success: false,
@@ -35,7 +35,7 @@ func (ef *AddRandomItemToInventoryEffect) Subscribe(
 					}, fmt.Errorf("addRandomItemToInventory: %w", err)
 				}
 
-				callback()
+				callback(e.AppContext)
 			}
 
 			return e.Next()
@@ -43,7 +43,7 @@ func (ef *AddRandomItemToInventoryEffect) Subscribe(
 	}, nil
 }
 
-func (ef *AddRandomItemToInventoryEffect) Verify(value string) error {
+func (ef *AddRandomItemToInventoryEffect) Verify(ctx adventuria.AppContext, value string) error {
 	ids, err := ef.DecodeValue(value)
 	if err != nil {
 		return fmt.Errorf("addRandomItemToInventory: %w", err)
@@ -57,7 +57,7 @@ func (ef *AddRandomItemToInventoryEffect) Verify(value string) error {
 	var records []struct {
 		Id string `db:"id"`
 	}
-	err = adventuria.PocketBase.RecordQuery(adventuria.GameCollections.Get(adventuria.CollectionItems)).
+	err = ctx.App.RecordQuery(adventuria.GameCollections.Get(adventuria.CollectionItems)).
 		Where(dbx.In("id", idsAny...)).
 		Select("id").
 		All(&records)
@@ -76,6 +76,6 @@ func (ef *AddRandomItemToInventoryEffect) DecodeValue(value string) ([]string, e
 	return strings.Split(value, ";"), nil
 }
 
-func (ef *AddRandomItemToInventoryEffect) GetVariants(_ adventuria.EffectContext) any {
+func (ef *AddRandomItemToInventoryEffect) GetVariants(_ adventuria.AppContext, _ adventuria.EffectContext) any {
 	return nil
 }

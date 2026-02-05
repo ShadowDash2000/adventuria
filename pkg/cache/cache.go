@@ -13,12 +13,3 @@ type Cache[K comparable, V any] interface {
 	Count() int
 	Clear()
 }
-
-type Closable interface {
-	Close()
-}
-
-type WithClose[K comparable, V any] interface {
-	Cache[K, V]
-	Close()
-}

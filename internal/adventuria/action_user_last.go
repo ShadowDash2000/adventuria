@@ -1,7 +1,6 @@
 package adventuria
 
 import (
-	"adventuria/pkg/cache"
 	"database/sql"
 	"errors"
 
@@ -9,28 +8,28 @@ import (
 	"github.com/pocketbase/pocketbase/core"
 )
 
-var _ cache.Closable = (*LastUserActionRecord)(nil)
+var _ Closable = (*LastUserActionRecord)(nil)
 
 type LastUserActionRecord struct {
 	ActionRecordBase
 	hookIds []string
 }
 
-func NewLastUserAction(userId string) (*LastUserActionRecord, error) {
-	a, err := getLastUserAction(userId)
+func NewLastUserAction(ctx AppContext, userId string) (*LastUserActionRecord, error) {
+	a, err := getLastUserAction(ctx, userId)
 	if err != nil {
 		return nil, err
 	}
 
-	a.bindHooks()
+	a.bindHooks(ctx)
 
 	return a, nil
 }
 
-func (a *LastUserActionRecord) bindHooks() {
+func (a *LastUserActionRecord) bindHooks(ctx AppContext) {
 	a.hookIds = make([]string, 5)
 
-	a.hookIds[0] = PocketBase.OnRecordAfterCreateSuccess(CollectionActions).BindFunc(func(e *core.RecordEvent) error {
+	a.hookIds[0] = ctx.App.OnRecordAfterCreateSuccess(CollectionActions).BindFunc(func(e *core.RecordEvent) error {
 		userId := e.Record.GetString("user")
 		if userId != a.User() {
 			return e.Next()
@@ -40,7 +39,7 @@ func (a *LastUserActionRecord) bindHooks() {
 
 		return e.Next()
 	})
-	a.hookIds[1] = PocketBase.OnRecordAfterUpdateSuccess(CollectionActions).BindFunc(func(e *core.RecordEvent) error {
+	a.hookIds[1] = ctx.App.OnRecordAfterUpdateSuccess(CollectionActions).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id != a.ID() {
 			return e.Next()
 		}
@@ -49,13 +48,13 @@ func (a *LastUserActionRecord) bindHooks() {
 
 		return e.Next()
 	})
-	a.hookIds[2] = PocketBase.OnRecordAfterDeleteSuccess(CollectionActions).BindFunc(func(e *core.RecordEvent) error {
+	a.hookIds[2] = ctx.App.OnRecordAfterDeleteSuccess(CollectionActions).BindFunc(func(e *core.RecordEvent) error {
 		userId := e.Record.GetString("user")
 		if userId != a.User() {
 			return e.Next()
 		}
 
-		record, err := fetchLastUserAction(a.User())
+		record, err := fetchLastUserAction(AppContext{App: e.App}, a.User())
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				a.SetProxyRecord(core.NewRecord(GameCollections.Get(CollectionActions)))
@@ -72,13 +71,13 @@ func (a *LastUserActionRecord) bindHooks() {
 
 		return e.Next()
 	})
-	a.hookIds[3] = PocketBase.OnRecordCreate(CollectionActions).BindFunc(func(e *core.RecordEvent) error {
+	a.hookIds[3] = ctx.App.OnRecordCreate(CollectionActions).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == a.ID() {
 			e.Record.Set("custom_activity_filter", a.activityFilter)
 		}
 		return e.Next()
 	})
-	a.hookIds[4] = PocketBase.OnRecordUpdate(CollectionActions).BindFunc(func(e *core.RecordEvent) error {
+	a.hookIds[4] = ctx.App.OnRecordUpdate(CollectionActions).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == a.ID() {
 			e.Record.Set("custom_activity_filter", a.activityFilter)
 		}
@@ -86,16 +85,16 @@ func (a *LastUserActionRecord) bindHooks() {
 	})
 }
 
-func (a *LastUserActionRecord) Close() {
-	PocketBase.OnRecordAfterCreateSuccess(CollectionActions).Unbind(a.hookIds[0])
-	PocketBase.OnRecordAfterUpdateSuccess(CollectionActions).Unbind(a.hookIds[1])
-	PocketBase.OnRecordAfterDeleteSuccess(CollectionActions).Unbind(a.hookIds[2])
-	PocketBase.OnRecordCreate(CollectionActions).Unbind(a.hookIds[3])
-	PocketBase.OnRecordUpdate(CollectionActions).Unbind(a.hookIds[4])
+func (a *LastUserActionRecord) Close(ctx AppContext) {
+	ctx.App.OnRecordAfterCreateSuccess(CollectionActions).Unbind(a.hookIds[0])
+	ctx.App.OnRecordAfterUpdateSuccess(CollectionActions).Unbind(a.hookIds[1])
+	ctx.App.OnRecordAfterDeleteSuccess(CollectionActions).Unbind(a.hookIds[2])
+	ctx.App.OnRecordCreate(CollectionActions).Unbind(a.hookIds[3])
+	ctx.App.OnRecordUpdate(CollectionActions).Unbind(a.hookIds[4])
 }
 
-func getLastUserAction(userId string) (*LastUserActionRecord, error) {
-	record, err := fetchLastUserAction(userId)
+func getLastUserAction(ctx AppContext, userId string) (*LastUserActionRecord, error) {
+	record, err := fetchLastUserAction(ctx, userId)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return nil, err
 	}
@@ -118,8 +117,8 @@ func getLastUserAction(userId string) (*LastUserActionRecord, error) {
 	return a, nil
 }
 
-func fetchLastUserAction(userId string) (*core.Record, error) {
-	actions, err := PocketBase.FindRecordsByFilter(
+func fetchLastUserAction(ctx AppContext, userId string) (*core.Record, error) {
+	actions, err := ctx.App.FindRecordsByFilter(
 		CollectionActions,
 		"user.id = {:userId}",
 		"-created",

@@ -11,7 +11,7 @@ type NothingEffect struct {
 	adventuria.EffectRecord
 }
 
-func (ef *NothingEffect) CanUse(_ adventuria.EffectContext) bool {
+func (ef *NothingEffect) CanUse(_ adventuria.AppContext, _ adventuria.EffectContext) bool {
 	return true
 }
 
@@ -23,7 +23,7 @@ func (ef *NothingEffect) Subscribe(
 	case "onAfterItemAdd":
 		return []event.Unsubscribe{
 			ctx.User.OnAfterItemAdd().BindFunc(func(e *adventuria.OnAfterItemAdd) (*event.Result, error) {
-				callback()
+				callback(e.AppContext)
 				return e.Next()
 			}),
 		}, nil
@@ -31,7 +31,7 @@ func (ef *NothingEffect) Subscribe(
 		return []event.Unsubscribe{
 			ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*event.Result, error) {
 				if e.InvItemId == ctx.InvItemID {
-					callback()
+					callback(e.AppContext)
 				}
 				return e.Next()
 			}),
@@ -48,7 +48,7 @@ func (ef *NothingEffect) Subscribe(
 				}
 
 				if currentCell.Type() == "game" {
-					callback()
+					callback(e.AppContext)
 				}
 
 				return e.Next()
@@ -59,7 +59,7 @@ func (ef *NothingEffect) Subscribe(
 	}
 }
 
-func (ef *NothingEffect) Verify(v string) error {
+func (ef *NothingEffect) Verify(_ adventuria.AppContext, v string) error {
 	events := []string{
 		"onAfterItemAdd",
 		"onAfterItemUse",
@@ -73,6 +73,6 @@ func (ef *NothingEffect) Verify(v string) error {
 	return nil
 }
 
-func (ef *NothingEffect) GetVariants(_ adventuria.EffectContext) any {
+func (ef *NothingEffect) GetVariants(_ adventuria.AppContext, _ adventuria.EffectContext) any {
 	return nil
 }

@@ -10,7 +10,7 @@ type DiceMultiplierEffect struct {
 	adventuria.EffectRecord
 }
 
-func (ef *DiceMultiplierEffect) CanUse(_ adventuria.EffectContext) bool {
+func (ef *DiceMultiplierEffect) CanUse(_ adventuria.AppContext, _ adventuria.EffectContext) bool {
 	return true
 }
 
@@ -23,7 +23,7 @@ func (ef *DiceMultiplierEffect) Subscribe(
 			if i := ef.GetInt("value"); i != 0 {
 				e.N *= i
 
-				callback()
+				callback(e.AppContext)
 			}
 
 			return e.Next()
@@ -31,7 +31,7 @@ func (ef *DiceMultiplierEffect) Subscribe(
 	}, nil
 }
 
-func (ef *DiceMultiplierEffect) Verify(value string) error {
+func (ef *DiceMultiplierEffect) Verify(_ adventuria.AppContext, value string) error {
 	_, err := ef.DecodeValue(value)
 	return err
 }
@@ -40,6 +40,6 @@ func (ef *DiceMultiplierEffect) DecodeValue(value string) (any, error) {
 	return strconv.Atoi(value)
 }
 
-func (ef *DiceMultiplierEffect) GetVariants(_ adventuria.EffectContext) any {
+func (ef *DiceMultiplierEffect) GetVariants(_ adventuria.AppContext, _ adventuria.EffectContext) any {
 	return nil
 }

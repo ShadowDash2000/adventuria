@@ -18,6 +18,7 @@ func (a *RerollAction) CanDo(ctx adventuria.ActionContext) bool {
 	}
 
 	onBeforeRerollCheckEvent := &adventuria.OnBeforeRerollCheckEvent{
+		AppContext:      ctx.AppContext,
 		IsRerollBlocked: false,
 	}
 	_, err := ctx.User.OnBeforeRerollCheck().Trigger(onBeforeRerollCheckEvent)
@@ -63,7 +64,7 @@ func (a *RerollAction) Do(ctx adventuria.ActionContext, req adventuria.ActionReq
 	action := ctx.User.LastAction()
 	action.SetType(ActionTypeReroll)
 	action.SetComment(comment)
-	err := adventuria.PocketBase.Save(action.ProxyRecord())
+	err := ctx.AppContext.App.Save(action.ProxyRecord())
 	if err != nil {
 		return &adventuria.ActionResult{
 			Success: false,
@@ -72,7 +73,7 @@ func (a *RerollAction) Do(ctx adventuria.ActionContext, req adventuria.ActionReq
 	}
 	action.MarkAsNew()
 
-	err = cellWheel.RefreshItems(ctx.User)
+	err = cellWheel.RefreshItems(ctx.AppContext, ctx.User)
 	if err != nil {
 		return &adventuria.ActionResult{
 			Success: false,
@@ -80,7 +81,7 @@ func (a *RerollAction) Do(ctx adventuria.ActionContext, req adventuria.ActionReq
 		}, fmt.Errorf("reroll.do(): %w", err)
 	}
 
-	res, err := ctx.User.OnAfterReroll().Trigger(&adventuria.OnAfterRerollEvent{})
+	res, err := ctx.User.OnAfterReroll().Trigger(&adventuria.OnAfterRerollEvent{AppContext: ctx.AppContext})
 	if res != nil && !res.Success {
 		return &adventuria.ActionResult{
 			Success: false,

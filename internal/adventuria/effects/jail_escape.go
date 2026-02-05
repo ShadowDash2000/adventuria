@@ -9,7 +9,7 @@ type JailEscapeEffect struct {
 	adventuria.EffectRecord
 }
 
-func (ef *JailEscapeEffect) CanUse(ctx adventuria.EffectContext) bool {
+func (ef *JailEscapeEffect) CanUse(_ adventuria.AppContext, ctx adventuria.EffectContext) bool {
 	return ctx.User.IsInJail()
 }
 
@@ -24,7 +24,7 @@ func (ef *JailEscapeEffect) Subscribe(
 				ctx.User.SetDropsInARow(0)
 				ctx.User.LastAction().SetCanMove(true)
 
-				callback()
+				callback(e.AppContext)
 			}
 
 			return e.Next()
@@ -32,10 +32,10 @@ func (ef *JailEscapeEffect) Subscribe(
 	}, nil
 }
 
-func (ef *JailEscapeEffect) Verify(_ string) error {
+func (ef *JailEscapeEffect) Verify(_ adventuria.AppContext, _ string) error {
 	return nil
 }
 
-func (ef *JailEscapeEffect) GetVariants(_ adventuria.EffectContext) any {
+func (ef *JailEscapeEffect) GetVariants(_ adventuria.AppContext, _ adventuria.EffectContext) any {
 	return nil
 }

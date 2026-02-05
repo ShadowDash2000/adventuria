@@ -27,12 +27,15 @@ func Test_TeleportCell(t *testing.T) {
 		t.Fatal("Test_CellTeleport(): Could not find cell 0")
 	}
 
-	user, err := adventuria.GameUsers.GetByName("user1")
+	ctx := adventuria.AppContext{
+		App: adventuria.PocketBase,
+	}
+	user, err := adventuria.GameUsers.GetByName(ctx, "user1")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = user.Move(4)
+	_, err = user.Move(ctx, 4)
 	if err != nil {
 		t.Fatal(err)
 	}

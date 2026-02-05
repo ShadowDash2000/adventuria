@@ -39,7 +39,7 @@ func NewGameTest() (*GameTest, error) {
 	}
 	adventuria.PocketBase = pb
 
-	if err = game.init(); err != nil {
+	if err = game.init(adventuria.AppContext{App: adventuria.PocketBase}); err != nil {
 		return nil, err
 	}
 
@@ -67,21 +67,21 @@ func NewGameTest() (*GameTest, error) {
 	return game, nil
 }
 
-func (g *GameTest) init() error {
+func (g *GameTest) init(ctx adventuria.AppContext) error {
 	var err error
 
 	adventuria.GameCollections = collections.NewCollections(adventuria.PocketBase)
-	adventuria.GameUsers = adventuria.NewUsers()
+	adventuria.GameUsers = adventuria.NewUsers(ctx)
 	adventuria.GameActions = adventuria.NewActions()
-	adventuria.GameCells, err = adventuria.NewCells()
+	adventuria.GameCells, err = adventuria.NewCells(ctx)
 	if err != nil {
 		return err
 	}
-	adventuria.GameItems, err = adventuria.NewItems()
+	adventuria.GameItems, err = adventuria.NewItems(ctx)
 	if err != nil {
 		return err
 	}
-	adventuria.GameSettings, err = adventuria.NewSettings()
+	adventuria.GameSettings, err = adventuria.NewSettings(ctx)
 	if err != nil {
 		return err
 	}

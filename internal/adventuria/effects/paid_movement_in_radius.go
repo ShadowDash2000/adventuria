@@ -12,8 +12,8 @@ type PaidMovementInRadiusEffect struct {
 	adventuria.EffectRecord
 }
 
-func (ef *PaidMovementInRadiusEffect) CanUse(ctx adventuria.EffectContext) bool {
-	if adventuria.GameActions.HasActionsInCategories(ctx.User, []string{"wheel_roll", "on_cell"}) {
+func (ef *PaidMovementInRadiusEffect) CanUse(appCtx adventuria.AppContext, ctx adventuria.EffectContext) bool {
+	if adventuria.GameActions.HasActionsInCategories(appCtx, ctx.User, []string{"wheel_roll", "on_cell"}) {
 		return false
 	}
 
@@ -22,8 +22,8 @@ func (ef *PaidMovementInRadiusEffect) CanUse(ctx adventuria.EffectContext) bool 
 		return false
 	}
 
-	canDone := adventuria.GameActions.CanDo(ctx.User, "done")
-	canDrop := adventuria.GameActions.CanDo(ctx.User, "drop")
+	canDone := adventuria.GameActions.CanDo(appCtx, ctx.User, "done")
+	canDrop := adventuria.GameActions.CanDo(appCtx, ctx.User, "drop")
 
 	if canDone && !canDrop {
 		if currentCell.Type() != "jail" {
@@ -46,7 +46,7 @@ func (ef *PaidMovementInRadiusEffect) Subscribe(
 	return []event.Unsubscribe{
 		ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*event.Result, error) {
 			if ctx.InvItemID == e.InvItemId {
-				if cellId, ok := e.Request["cell_id"].(string); ok {
+				if cellId, ok := e.Data["cell_id"].(string); ok {
 					currentCell, ok := ctx.User.CurrentCell()
 					if !ok {
 						return &event.Result{
@@ -71,7 +71,7 @@ func (ef *PaidMovementInRadiusEffect) Subscribe(
 						}, nil
 					}
 
-					_, err := ctx.User.MoveToCellId(cellId)
+					_, err := ctx.User.MoveToCellId(e.AppContext, cellId)
 					if err != nil {
 						return &event.Result{
 							Success: false,
@@ -81,7 +81,7 @@ func (ef *PaidMovementInRadiusEffect) Subscribe(
 
 					ctx.User.SetBalance(ctx.User.Balance() - value.Price)
 
-					callback()
+					callback(e.AppContext)
 				} else {
 					return &event.Result{
 						Success: false,
@@ -95,12 +95,12 @@ func (ef *PaidMovementInRadiusEffect) Subscribe(
 	}, nil
 }
 
-func (ef *PaidMovementInRadiusEffect) Verify(value string) error {
+func (ef *PaidMovementInRadiusEffect) Verify(_ adventuria.AppContext, value string) error {
 	_, err := ef.DecodeValue(value)
 	return err
 }
 
-func (ef *PaidMovementInRadiusEffect) GetVariants(ctx adventuria.EffectContext) any {
+func (ef *PaidMovementInRadiusEffect) GetVariants(_ adventuria.AppContext, ctx adventuria.EffectContext) any {
 	value, _ := ef.DecodeValue(ef.GetString("value"))
 	currentCellOrder := ctx.User.CurrentCellOrder()
 

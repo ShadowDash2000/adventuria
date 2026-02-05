@@ -13,7 +13,7 @@ type CoinsIncrementEffect struct {
 	adventuria.EffectRecord
 }
 
-func (ef *CoinsIncrementEffect) CanUse(_ adventuria.EffectContext) bool {
+func (ef *CoinsIncrementEffect) CanUse(_ adventuria.AppContext, _ adventuria.EffectContext) bool {
 	return true
 }
 
@@ -33,7 +33,7 @@ func (ef *CoinsIncrementEffect) Subscribe(
 				if e.Item.IDInventory() == ctx.InvItemID {
 					ctx.User.SetBalance(ctx.User.Balance() + value.Value)
 
-					callback()
+					callback(e.AppContext)
 				}
 
 				return e.Next()
@@ -44,7 +44,7 @@ func (ef *CoinsIncrementEffect) Subscribe(
 	}
 }
 
-func (ef *CoinsIncrementEffect) Verify(value string) error {
+func (ef *CoinsIncrementEffect) Verify(_ adventuria.AppContext, value string) error {
 	_, err := ef.DecodeValue(value)
 	return err
 }
@@ -79,6 +79,6 @@ func (ef *CoinsIncrementEffect) DecodeValue(value string) (*CoinsIncrementEffect
 	}, nil
 }
 
-func (ef *CoinsIncrementEffect) GetVariants(_ adventuria.EffectContext) any {
+func (ef *CoinsIncrementEffect) GetVariants(_ adventuria.AppContext, _ adventuria.EffectContext) any {
 	return nil
 }

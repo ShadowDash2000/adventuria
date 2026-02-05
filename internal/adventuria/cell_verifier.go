@@ -20,20 +20,20 @@ func NewCellVerifier() *CellVerifier {
 
 func (cf *CellVerifier) bindHooks() {
 	PocketBase.OnRecordCreate(CollectionCells).BindFunc(func(e *core.RecordEvent) error {
-		if err := cf.Verify(e.Record); err != nil {
+		if err := cf.Verify(AppContext{App: e.App}, e.Record); err != nil {
 			return err
 		}
 		return e.Next()
 	})
 	PocketBase.OnRecordUpdate(CollectionCells).BindFunc(func(e *core.RecordEvent) error {
-		if err := cf.Verify(e.Record); err != nil {
+		if err := cf.Verify(AppContext{App: e.App}, e.Record); err != nil {
 			return err
 		}
 		return e.Next()
 	})
 }
 
-func (cf *CellVerifier) Verify(record *core.Record) error {
+func (cf *CellVerifier) Verify(ctx AppContext, record *core.Record) error {
 	cellType := record.GetString("type")
 	cellValue := record.GetString("value")
 
@@ -44,5 +44,5 @@ func (cf *CellVerifier) Verify(record *core.Record) error {
 
 	cell := cellCreator.New(record)
 
-	return cell.Verify(cellValue)
+	return cell.Verify(ctx, cellValue)
 }

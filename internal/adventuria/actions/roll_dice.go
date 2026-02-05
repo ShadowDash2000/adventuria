@@ -14,9 +14,9 @@ func (a *RollDiceAction) CanDo(ctx adventuria.ActionContext) bool {
 }
 
 type RollDiceResult struct {
-	Roll      int                            `json:"roll"`
-	DiceRolls []DiceRoll                     `json:"dice_rolls"`
-	Path      []*adventuria.OnAfterMoveEvent `json:"path"`
+	Roll      int                      `json:"roll"`
+	DiceRolls []DiceRoll               `json:"dice_rolls"`
+	Path      []*adventuria.MoveResult `json:"path"`
 }
 
 type DiceRoll struct {
@@ -26,7 +26,8 @@ type DiceRoll struct {
 
 func (a *RollDiceAction) Do(ctx adventuria.ActionContext, _ adventuria.ActionRequest) (*adventuria.ActionResult, error) {
 	onBeforeRollEvent := &adventuria.OnBeforeRollEvent{
-		Dices: []*adventuria.Dice{adventuria.DiceTypeD6, adventuria.DiceTypeD6},
+		AppContext: ctx.AppContext,
+		Dices:      []*adventuria.Dice{adventuria.DiceTypeD6, adventuria.DiceTypeD6},
 	}
 	res, err := ctx.User.OnBeforeRoll().Trigger(onBeforeRollEvent)
 	if res != nil && !res.Success {
@@ -43,7 +44,8 @@ func (a *RollDiceAction) Do(ctx adventuria.ActionContext, _ adventuria.ActionReq
 	}
 
 	onBeforeRollMoveEvent := &adventuria.OnBeforeRollMoveEvent{
-		N: 0,
+		AppContext: ctx.AppContext,
+		N:          0,
 	}
 	diceRolls := make([]DiceRoll, len(onBeforeRollEvent.Dices))
 	for i, dice := range onBeforeRollEvent.Dices {
@@ -68,7 +70,7 @@ func (a *RollDiceAction) Do(ctx adventuria.ActionContext, _ adventuria.ActionReq
 		}, err
 	}
 
-	moveRes, err := ctx.User.Move(onBeforeRollMoveEvent.N)
+	moveRes, err := ctx.User.Move(ctx.AppContext, onBeforeRollMoveEvent.N)
 	if err != nil {
 		return &adventuria.ActionResult{
 			Success: false,
@@ -79,8 +81,9 @@ func (a *RollDiceAction) Do(ctx adventuria.ActionContext, _ adventuria.ActionReq
 	ctx.User.LastAction().SetType(ActionTypeRollDice)
 
 	onAfterRollEvent := &adventuria.OnAfterRollEvent{
-		Dices: onBeforeRollEvent.Dices,
-		N:     onBeforeRollMoveEvent.N,
+		AppContext: ctx.AppContext,
+		Dices:      onBeforeRollEvent.Dices,
+		N:          onBeforeRollMoveEvent.N,
 	}
 	res, err = ctx.User.OnAfterRoll().Trigger(onAfterRollEvent)
 	if res != nil && !res.Success {

@@ -9,7 +9,7 @@ type DebuffBlockEffect struct {
 	adventuria.EffectRecord
 }
 
-func (ef *DebuffBlockEffect) CanUse(_ adventuria.EffectContext) bool {
+func (ef *DebuffBlockEffect) CanUse(_ adventuria.AppContext, _ adventuria.EffectContext) bool {
 	return true
 }
 
@@ -21,17 +21,17 @@ func (ef *DebuffBlockEffect) Subscribe(
 		ctx.User.OnBeforeItemAdd().BindFunc(func(e *adventuria.OnBeforeItemAdd) (*event.Result, error) {
 			if e.ItemRecord.Type() == "debuff" {
 				e.ShouldAddItem = false
-				callback()
+				callback(e.AppContext)
 			}
 			return e.Next()
 		}),
 	}, nil
 }
 
-func (ef *DebuffBlockEffect) Verify(_ string) error {
+func (ef *DebuffBlockEffect) Verify(_ adventuria.AppContext, _ string) error {
 	return nil
 }
 
-func (ef *DebuffBlockEffect) GetVariants(_ adventuria.EffectContext) any {
+func (ef *DebuffBlockEffect) GetVariants(_ adventuria.AppContext, _ adventuria.EffectContext) any {
 	return nil
 }

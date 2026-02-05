@@ -20,20 +20,28 @@ func NewEffectVerifier() *EffectVerifier {
 
 func (ef *EffectVerifier) bindHooks() {
 	PocketBase.OnRecordCreate(CollectionEffects).BindFunc(func(e *core.RecordEvent) error {
-		if err := ef.Verify(e.Record.GetString("type"), e.Record.GetString("value")); err != nil {
+		if err := ef.Verify(
+			AppContext{App: e.App},
+			e.Record.GetString("type"),
+			e.Record.GetString("value"),
+		); err != nil {
 			return err
 		}
 		return e.Next()
 	})
 	PocketBase.OnRecordUpdate(CollectionEffects).BindFunc(func(e *core.RecordEvent) error {
-		if err := ef.Verify(e.Record.GetString("type"), e.Record.GetString("value")); err != nil {
+		if err := ef.Verify(
+			AppContext{App: e.App},
+			e.Record.GetString("type"),
+			e.Record.GetString("value"),
+		); err != nil {
 			return err
 		}
 		return e.Next()
 	})
 }
 
-func (ef *EffectVerifier) Verify(effectType, value string) error {
+func (ef *EffectVerifier) Verify(ctx AppContext, effectType, value string) error {
 	effectCreator, ok := effectsList[effectType]
 	if !ok {
 		return errors.New("unknown effect type")
@@ -41,5 +49,5 @@ func (ef *EffectVerifier) Verify(effectType, value string) error {
 
 	effect := effectCreator(core.NewRecord(GameCollections.Get(CollectionEffects)))
 
-	return effect.Verify(value)
+	return effect.Verify(ctx, value)
 }

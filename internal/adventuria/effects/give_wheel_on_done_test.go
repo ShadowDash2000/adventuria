@@ -18,27 +18,30 @@ func Test_GiveWheelOnDone(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	user, err := adventuria.GameUsers.GetByName("user1")
+	ctx := adventuria.AppContext{
+		App: adventuria.PocketBase,
+	}
+	user, err := adventuria.GameUsers.GetByName(ctx, "user1")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = user.Move(1)
+	_, err = user.Move(ctx, 1)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = adventuria.PocketBase.Save(user.LastAction().ProxyRecord())
-	if err != nil {
-		t.Fatalf("Test_GiveWheelOnDone(): Error saving action: %s", err)
-	}
-
-	_, err = game.DoAction(actions.ActionTypeRollWheel, user.ID(), adventuria.ActionRequest{})
+	_, err = game.DoAction(ctx.App, user.ID(), actions.ActionTypeRollWheel, adventuria.ActionRequest{})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = game.DoAction(actions.ActionTypeDone, user.ID(), adventuria.ActionRequest{})
+	_, err = game.DoAction(ctx.App, user.ID(), actions.ActionTypeDone, adventuria.ActionRequest{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	user, err = adventuria.GameUsers.GetByName(ctx, "user1")
 	if err != nil {
 		t.Fatal(err)
 	}

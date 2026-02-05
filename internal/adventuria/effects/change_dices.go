@@ -12,7 +12,7 @@ type ChangeDicesEffect struct {
 	adventuria.EffectRecord
 }
 
-func (ef *ChangeDicesEffect) CanUse(_ adventuria.EffectContext) bool {
+func (ef *ChangeDicesEffect) CanUse(_ adventuria.AppContext, _ adventuria.EffectContext) bool {
 	return true
 }
 
@@ -30,14 +30,14 @@ func (ef *ChangeDicesEffect) Subscribe(
 			}
 			e.Dices = diceList
 
-			callback()
+			callback(e.AppContext)
 
 			return e.Next()
 		}),
 	}, nil
 }
 
-func (ef *ChangeDicesEffect) Verify(value string) error {
+func (ef *ChangeDicesEffect) Verify(_ adventuria.AppContext, value string) error {
 	names, err := ef.DecodeValue(value)
 	if err != nil {
 		return fmt.Errorf("changeDices: %w", err)
@@ -56,6 +56,6 @@ func (ef *ChangeDicesEffect) DecodeValue(value string) (any, error) {
 	return strings.Split(value, ";"), nil
 }
 
-func (ef *ChangeDicesEffect) GetVariants(_ adventuria.EffectContext) any {
+func (ef *ChangeDicesEffect) GetVariants(_ adventuria.AppContext, _ adventuria.EffectContext) any {
 	return nil
 }

@@ -19,7 +19,10 @@ func Test_Done(t *testing.T) {
 		t.Fatalf("Test_Done(): Error creating game: %s", err)
 	}
 
-	user, err := adventuria.GameUsers.GetByName("user1")
+	ctx := adventuria.AppContext{
+		App: adventuria.PocketBase,
+	}
+	user, err := adventuria.GameUsers.GetByName(ctx, "user1")
 	if err != nil {
 		t.Fatalf("Test_Done(): Error getting user: %s", err)
 	}
@@ -27,24 +30,24 @@ func Test_Done(t *testing.T) {
 	user.SetIsInJail(true)
 	user.SetDropsInARow(2)
 
-	_, err = user.Move(1)
+	_, err = user.Move(ctx, 1)
 	if err != nil {
 		t.Fatalf("Test_Done(): Error moving: %s", err)
 	}
 
-	err = adventuria.PocketBase.Save(user.LastAction().ProxyRecord())
-	if err != nil {
-		t.Fatalf("Test_Done(): Error saving action: %s", err)
-	}
-
-	_, err = game.DoAction(ActionTypeRollWheel, user.ID(), adventuria.ActionRequest{})
+	_, err = game.DoAction(ctx.App, user.ID(), ActionTypeRollWheel, adventuria.ActionRequest{})
 	if err != nil {
 		t.Fatalf("Test_Done(): Error action roll wheel: %s", err)
 	}
 
-	_, err = game.DoAction(ActionTypeDone, user.ID(), adventuria.ActionRequest{})
+	_, err = game.DoAction(ctx.App, user.ID(), ActionTypeDone, adventuria.ActionRequest{})
 	if err != nil {
 		t.Fatalf("Test_Done(): Error action done: %s", err)
+	}
+
+	user, err = adventuria.GameUsers.GetByName(ctx, "user1")
+	if err != nil {
+		t.Fatalf("Test_Done(): Error getting user: %s", err)
 	}
 
 	type testCompare struct {

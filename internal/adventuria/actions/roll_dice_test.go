@@ -18,14 +18,17 @@ func Test_RollDice(t *testing.T) {
 		t.Fatalf("Test_RollDice(): Error creating game: %s", err)
 	}
 
-	user, err := adventuria.GameUsers.GetByName("user1")
+	ctx := adventuria.AppContext{
+		App: adventuria.PocketBase,
+	}
+	user, err := adventuria.GameUsers.GetByName(ctx, "user1")
 	if err != nil {
 		t.Fatalf("Test_RollDice(): Error getting user: %s", err)
 	}
 
 	initialCellsPassed := user.CellsPassed()
 
-	_, err = game.DoAction(ActionTypeRollDice, user.ID(), adventuria.ActionRequest{})
+	_, err = game.DoAction(ctx.App, user.ID(), ActionTypeRollDice, adventuria.ActionRequest{})
 	if err != nil {
 		t.Fatalf("Test_RollDice(): Error action roll dice: %s", err)
 	}

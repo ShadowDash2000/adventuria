@@ -31,17 +31,25 @@ func Test_DropInventory(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	user, err := adventuria.GameUsers.GetByName("user1")
+	ctx := adventuria.AppContext{
+		App: adventuria.PocketBase,
+	}
+	user, err := adventuria.GameUsers.GetByName(ctx, "user1")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = user.Inventory().AddItemById(fillerItem.Id)
+	_, err = user.Inventory().AddItemById(ctx, fillerItem.Id)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = user.Inventory().AddItemById(item.Id)
+	_, err = user.Inventory().AddItemById(ctx, item.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	user, err = adventuria.GameUsers.GetByName(ctx, "user1")
 	if err != nil {
 		t.Fatal(err)
 	}

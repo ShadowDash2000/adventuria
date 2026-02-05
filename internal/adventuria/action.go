@@ -18,6 +18,7 @@ type Action interface {
 }
 
 type ActionContext struct {
+	AppContext
 	User User
 }
 

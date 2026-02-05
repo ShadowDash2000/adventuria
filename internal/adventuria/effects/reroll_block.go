@@ -9,7 +9,7 @@ type RerollBlockedEffect struct {
 	adventuria.EffectRecord
 }
 
-func (ef *RerollBlockedEffect) CanUse(_ adventuria.EffectContext) bool {
+func (ef *RerollBlockedEffect) CanUse(_ adventuria.AppContext, _ adventuria.EffectContext) bool {
 	return true
 }
 
@@ -23,16 +23,16 @@ func (ef *RerollBlockedEffect) Subscribe(
 			return e.Next()
 		}),
 		ctx.User.OnAfterDone().BindFunc(func(e *adventuria.OnAfterDoneEvent) (*event.Result, error) {
-			callback()
+			callback(e.AppContext)
 			return e.Next()
 		}),
 	}, nil
 }
 
-func (ef *RerollBlockedEffect) Verify(_ string) error {
+func (ef *RerollBlockedEffect) Verify(_ adventuria.AppContext, _ string) error {
 	return nil
 }
 
-func (ef *RerollBlockedEffect) GetVariants(_ adventuria.EffectContext) any {
+func (ef *RerollBlockedEffect) GetVariants(_ adventuria.AppContext, _ adventuria.EffectContext) any {
 	return nil
 }

@@ -9,10 +9,10 @@ import (
 	"github.com/pocketbase/pocketbase/core"
 )
 
-func newActivityFilterById(filterId string) (adventuria.ActivityFilterRecord, error) {
+func newActivityFilterById(app core.App, filterId string) (adventuria.ActivityFilterRecord, error) {
 	var filter adventuria.ActivityFilterRecord
 	if filterId != "" {
-		filterRecord, err := adventuria.PocketBase.FindRecordById(
+		filterRecord, err := app.FindRecordById(
 			adventuria.GameCollections.Get(adventuria.CollectionActivityFilter),
 			filterId,
 		)
@@ -31,7 +31,7 @@ func newActivityFilterById(filterId string) (adventuria.ActivityFilterRecord, er
 	return filter, nil
 }
 
-func updateActivitiesFromFilter(user adventuria.User, filter adventuria.ActivityFilterRecord, forceUpdate bool) error {
+func updateActivitiesFromFilter(app core.App, user adventuria.User, filter adventuria.ActivityFilterRecord, forceUpdate bool) error {
 	needToUpdate := forceUpdate
 	customFilter := user.LastAction().CustomActivityFilter()
 
@@ -85,7 +85,7 @@ func updateActivitiesFromFilter(user adventuria.User, filter adventuria.Activity
 	}
 
 	if needToUpdate {
-		res, err := fetchActivitiesByFilter(filter)
+		res, err := fetchActivitiesByFilter(app, filter)
 		if err != nil {
 			return err
 		}
@@ -96,8 +96,8 @@ func updateActivitiesFromFilter(user adventuria.User, filter adventuria.Activity
 	return nil
 }
 
-func fetchActivitiesByFilter(filter adventuria.ActivityFilterRecord) ([]string, error) {
-	countQuery := adventuria.PocketBase.RecordQuery(adventuria.GameCollections.Get(adventuria.CollectionActivities))
+func fetchActivitiesByFilter(app core.App, filter adventuria.ActivityFilterRecord) ([]string, error) {
+	countQuery := app.RecordQuery(adventuria.GameCollections.Get(adventuria.CollectionActivities))
 	if filter != nil {
 		countQuery = setFilters(filter, countQuery)
 	}
@@ -121,7 +121,7 @@ func fetchActivitiesByFilter(filter adventuria.ActivityFilterRecord) ([]string, 
 		offset = rand.N(totalCount - maxPoolSize + 1)
 	}
 
-	q := adventuria.PocketBase.RecordQuery(adventuria.GameCollections.Get(adventuria.CollectionActivities)).
+	q := app.RecordQuery(adventuria.GameCollections.Get(adventuria.CollectionActivities)).
 		Select("id").
 		Limit(int64(limit)).
 		Offset(int64(offset))

@@ -2,6 +2,7 @@ package http
 
 import (
 	"adventuria/internal/adventuria"
+	"fmt"
 	"net/http"
 
 	"github.com/pocketbase/pocketbase/core"
@@ -22,7 +23,7 @@ func (h *Handlers) UpdateActionHandler(e *core.RequestEvent) error {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	res, err := h.Game.DoAction("update_comment", e.Auth.Id, req)
+	res, err := h.Game.DoAction(e.App, e.Auth.Id, "update_comment", req)
 	if err != nil {
 		return e.JSON(http.StatusInternalServerError, &adventuria.ActionResult{
 			Success: false,
@@ -36,7 +37,7 @@ func (h *Handlers) UpdateActionHandler(e *core.RequestEvent) error {
 }
 
 func (h *Handlers) RollHandler(e *core.RequestEvent) error {
-	res, err := h.Game.DoAction("rollDice", e.Auth.Id, adventuria.ActionRequest{})
+	res, err := h.Game.DoAction(e.App, e.Auth.Id, "rollDice", adventuria.ActionRequest{})
 	if err != nil {
 		return e.JSON(http.StatusInternalServerError, &adventuria.ActionResult{
 			Success: false,
@@ -45,6 +46,8 @@ func (h *Handlers) RollHandler(e *core.RequestEvent) error {
 	} else if !res.Success {
 		return e.JSON(http.StatusBadRequest, res)
 	}
+
+	fmt.Println(res)
 
 	return e.JSON(http.StatusOK, res)
 }
@@ -56,7 +59,7 @@ func (h *Handlers) RerollHandler(e *core.RequestEvent) error {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	res, err := h.Game.DoAction("reroll", e.Auth.Id, req)
+	res, err := h.Game.DoAction(e.App, e.Auth.Id, "reroll", req)
 	if err != nil {
 		return e.JSON(http.StatusInternalServerError, &adventuria.ActionResult{
 			Success: false,
@@ -77,7 +80,7 @@ func (h *Handlers) DropHandler(e *core.RequestEvent) error {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	res, err := h.Game.DoAction("drop", e.Auth.Id, req)
+	res, err := h.Game.DoAction(e.App, e.Auth.Id, "drop", req)
 	if err != nil {
 		return e.JSON(http.StatusInternalServerError, &adventuria.ActionResult{
 			Success: false,
@@ -97,7 +100,7 @@ func (h *Handlers) DoneHandler(e *core.RequestEvent) error {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	res, err := h.Game.DoAction("done", e.Auth.Id, req)
+	res, err := h.Game.DoAction(e.App, e.Auth.Id, "done", req)
 	if err != nil {
 		return e.JSON(http.StatusInternalServerError, &adventuria.ActionResult{
 			Success: false,
@@ -111,7 +114,7 @@ func (h *Handlers) DoneHandler(e *core.RequestEvent) error {
 }
 
 func (h *Handlers) RollWheelHandler(e *core.RequestEvent) error {
-	res, err := h.Game.DoAction("rollWheel", e.Auth.Id, adventuria.ActionRequest{})
+	res, err := h.Game.DoAction(e.App, e.Auth.Id, "rollWheel", adventuria.ActionRequest{})
 	if err != nil {
 		return e.JSON(http.StatusInternalServerError, &adventuria.ActionResult{
 			Success: false,
@@ -125,7 +128,7 @@ func (h *Handlers) RollWheelHandler(e *core.RequestEvent) error {
 }
 
 func (h *Handlers) RollItemHandler(e *core.RequestEvent) error {
-	res, err := h.Game.DoAction("rollItem", e.Auth.Id, adventuria.ActionRequest{})
+	res, err := h.Game.DoAction(e.App, e.Auth.Id, "rollItem", adventuria.ActionRequest{})
 	if err != nil {
 		return e.JSON(http.StatusInternalServerError, &adventuria.ActionResult{
 			Success: false,
@@ -139,7 +142,7 @@ func (h *Handlers) RollItemHandler(e *core.RequestEvent) error {
 }
 
 func (h *Handlers) RollItemOnCellHandler(e *core.RequestEvent) error {
-	res, err := h.Game.DoAction("rollItemOnCell", e.Auth.Id, adventuria.ActionRequest{})
+	res, err := h.Game.DoAction(e.App, e.Auth.Id, "rollItemOnCell", adventuria.ActionRequest{})
 	if err != nil {
 		return e.JSON(http.StatusInternalServerError, &adventuria.ActionResult{
 			Success: false,
@@ -160,7 +163,7 @@ func (h *Handlers) BuyItemHandler(e *core.RequestEvent) error {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	res, err := h.Game.DoAction("buyItem", e.Auth.Id, req)
+	res, err := h.Game.DoAction(e.App, e.Auth.Id, "buyItem", req)
 	if err != nil {
 		return e.JSON(http.StatusInternalServerError, &adventuria.ActionResult{
 			Success: false,
@@ -174,17 +177,13 @@ func (h *Handlers) BuyItemHandler(e *core.RequestEvent) error {
 }
 
 func (h *Handlers) UseItemHandler(e *core.RequestEvent) error {
-	data := struct {
-		ItemId string                    `json:"itemId"`
-		Data   adventuria.UseItemRequest `json:"data"`
-	}{}
-
+	data := adventuria.UseItemRequest{}
 	err := e.BindBody(&data)
 	if err != nil {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	err = h.Game.UseItem(e.Auth.Id, data.ItemId, data.Data)
+	err = h.Game.UseItem(e.App, e.Auth.Id, data)
 	if err != nil {
 		return e.JSON(http.StatusInternalServerError, err.Error())
 	}
@@ -202,7 +201,7 @@ func (h *Handlers) DropItemHandler(e *core.RequestEvent) error {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	err = h.Game.DropItem(e.Auth.Id, data.ItemId)
+	err = h.Game.DropItem(e.App, e.Auth.Id, data.ItemId)
 	if err != nil {
 		return e.JSON(http.StatusInternalServerError, err.Error())
 	}
@@ -211,7 +210,7 @@ func (h *Handlers) DropItemHandler(e *core.RequestEvent) error {
 }
 
 func (h *Handlers) StartTimerHandler(e *core.RequestEvent) error {
-	err := h.Game.StartTimer(e.Auth.Id)
+	err := h.Game.StartTimer(e.App, e.Auth.Id)
 	if err != nil {
 		return e.JSON(http.StatusInternalServerError, err.Error())
 	}
@@ -220,7 +219,7 @@ func (h *Handlers) StartTimerHandler(e *core.RequestEvent) error {
 }
 
 func (h *Handlers) StopTimerHandler(e *core.RequestEvent) error {
-	err := h.Game.StopTimer(e.Auth.Id)
+	err := h.Game.StopTimer(e.App, e.Auth.Id)
 	if err != nil {
 		return e.JSON(http.StatusInternalServerError, err.Error())
 	}
@@ -229,7 +228,7 @@ func (h *Handlers) StopTimerHandler(e *core.RequestEvent) error {
 }
 
 func (h *Handlers) GetTimeLeftHandler(e *core.RequestEvent) error {
-	time, isActive, nextTimerResetDate, err := h.Game.GetTimeLeft(e.Auth.Id)
+	time, isActive, nextTimerResetDate, err := h.Game.GetTimeLeft(e.App, e.Auth.Id)
 	if err != nil {
 		return e.JSON(http.StatusInternalServerError, err.Error())
 	}
@@ -244,7 +243,7 @@ func (h *Handlers) GetTimeLeftHandler(e *core.RequestEvent) error {
 func (h *Handlers) GetTimeLeftByUserHandler(e *core.RequestEvent) error {
 	userId := e.Request.PathValue("userId")
 
-	time, isActive, nextTimerResetDate, err := h.Game.GetTimeLeft(userId)
+	time, isActive, nextTimerResetDate, err := h.Game.GetTimeLeft(e.App, userId)
 	if err != nil {
 		return e.JSON(http.StatusInternalServerError, err.Error())
 	}
@@ -257,7 +256,7 @@ func (h *Handlers) GetTimeLeftByUserHandler(e *core.RequestEvent) error {
 }
 
 func (h *Handlers) GetAvailableActions(e *core.RequestEvent) error {
-	actions, err := h.Game.GetAvailableActions(e.Auth.Id)
+	actions, err := h.Game.GetAvailableActions(e.App, e.Auth.Id)
 	if err != nil {
 		return e.JSON(http.StatusInternalServerError, err.Error())
 	}
@@ -275,7 +274,7 @@ func (h *Handlers) GetItemEffectVariants(e *core.RequestEvent) error {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	effectVariants, err := h.Game.GetItemEffectVariants(e.Auth.Id, req.InvItemId, req.EffectId)
+	effectVariants, err := h.Game.GetItemEffectVariants(e.App, e.Auth.Id, req.InvItemId, req.EffectId)
 	if err != nil {
 		return e.JSON(http.StatusInternalServerError, err.Error())
 	}
@@ -286,7 +285,7 @@ func (h *Handlers) GetItemEffectVariants(e *core.RequestEvent) error {
 func (h *Handlers) GetActionVariants(e *core.RequestEvent) error {
 	action := e.Request.URL.Query().Get("action")
 
-	actions, err := h.Game.GetActionVariants(e.Auth.Id, action)
+	actions, err := h.Game.GetActionVariants(e.App, e.Auth.Id, action)
 	if err != nil {
 		return e.JSON(http.StatusInternalServerError, err.Error())
 	}

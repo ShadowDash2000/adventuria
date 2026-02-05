@@ -9,7 +9,7 @@ type RollReverseEffect struct {
 	adventuria.EffectRecord
 }
 
-func (ef *RollReverseEffect) CanUse(_ adventuria.EffectContext) bool {
+func (ef *RollReverseEffect) CanUse(_ adventuria.AppContext, _ adventuria.EffectContext) bool {
 	return true
 }
 
@@ -21,17 +21,17 @@ func (ef *RollReverseEffect) Subscribe(
 		ctx.User.OnBeforeRollMove().BindFunc(func(e *adventuria.OnBeforeRollMoveEvent) (*event.Result, error) {
 			e.N *= -1
 
-			callback()
+			callback(e.AppContext)
 
 			return e.Next()
 		}),
 	}, nil
 }
 
-func (ef *RollReverseEffect) Verify(_ string) error {
+func (ef *RollReverseEffect) Verify(_ adventuria.AppContext, _ string) error {
 	return nil
 }
 
-func (ef *RollReverseEffect) GetVariants(_ adventuria.EffectContext) any {
+func (ef *RollReverseEffect) GetVariants(_ adventuria.AppContext, _ adventuria.EffectContext) any {
 	return nil
 }

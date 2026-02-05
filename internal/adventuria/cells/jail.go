@@ -21,7 +21,7 @@ func NewCellJail() adventuria.CellCreator {
 func (c *CellJail) OnCellReached(ctx *adventuria.CellReachedContext) error {
 	if ctx.User.IsInJail() {
 		ctx.User.LastAction().SetCanMove(false)
-		if err := c.refreshItems(ctx.User); err != nil {
+		if err := c.refreshItems(ctx.AppContext, ctx.User); err != nil {
 			return err
 		}
 
@@ -32,7 +32,7 @@ func (c *CellJail) OnCellReached(ctx *adventuria.CellReachedContext) error {
 	} else {
 		ctx.User.LastAction().SetCanMove(true)
 	}
-	return nil
+	return ctx.App.Save(ctx.User.LastAction().ProxyRecord())
 }
 
 func (c *CellJail) OnCellLeft(ctx *adventuria.CellLeftContext) error {
@@ -42,5 +42,5 @@ func (c *CellJail) OnCellLeft(ctx *adventuria.CellLeftContext) error {
 		ctx.User.SetDropsInARow(0)
 	}
 
-	return nil
+	return ctx.App.Save(ctx.User.ProxyRecord())
 }

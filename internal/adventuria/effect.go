@@ -13,10 +13,10 @@ type Effect interface {
 	ID() string
 	Name() string
 	Type() string
-	CanUse(EffectContext) bool
+	CanUse(AppContext, EffectContext) bool
 	Subscribe(EffectContext, EffectCallback) ([]event.Unsubscribe, error)
-	Verify(string) error
-	GetVariants(EffectContext) any
+	Verify(AppContext, string) error
+	GetVariants(AppContext, EffectContext) any
 }
 
 type EffectContext struct {
@@ -33,7 +33,7 @@ var persistentEffectsList = map[string]PersistentEffectCreator{}
 
 type EffectCreator func(*core.Record) Effect
 type PersistentEffectCreator func() PersistentEffect
-type EffectCallback func()
+type EffectCallback func(AppContext)
 
 func RegisterEffects(effects map[string]EffectCreator) {
 	maps.Insert(effectsList, maps.All(effects))

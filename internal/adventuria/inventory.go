@@ -1,21 +1,19 @@
 package adventuria
 
-import "adventuria/pkg/cache"
-
 type Inventory interface {
-	cache.Closable
+	Closable
 
 	MaxSlots() int
 	SetMaxSlots(int)
 	AvailableSlots() int
 	HasEmptySlots() bool
-	AddItem(ItemRecord) (string, error)
-	AddItemById(string) (string, error)
-	MustAddItemById(string) (string, error)
-	CanUseItem(string) bool
-	UseItem(string) (OnUseSuccess, OnUseFail, error)
-	DropItem(string) error
-	DropRandomItem() error
-	DropInventory() error
+	AddItem(AppContext, ItemRecord) (string, error)
+	AddItemById(AppContext, string) (string, error)
+	MustAddItemById(AppContext, string) (string, error)
+	CanUseItem(AppContext, string) bool
+	UseItem(AppContext, string) (OnUseSuccess, OnUseFail, error)
+	DropItem(AppContext, string) error
+	DropRandomItem(AppContext) error
+	DropInventory(AppContext) error
 	GetItemById(invItemId string) (Item, bool)
 }

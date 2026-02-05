@@ -11,14 +11,14 @@ type GoToJailEffect struct {
 	adventuria.EffectRecord
 }
 
-func (ef *GoToJailEffect) CanUse(ctx adventuria.EffectContext) bool {
-	canRollWheel := adventuria.GameActions.CanDo(ctx.User, "rollWheel")
+func (ef *GoToJailEffect) CanUse(appCtx adventuria.AppContext, ctx adventuria.EffectContext) bool {
+	canRollWheel := adventuria.GameActions.CanDo(appCtx, ctx.User, "rollWheel")
 	if canRollWheel {
 		return false
 	}
 
-	canDone := adventuria.GameActions.CanDo(ctx.User, "done")
-	canDrop := adventuria.GameActions.CanDo(ctx.User, "drop")
+	canDone := adventuria.GameActions.CanDo(appCtx, ctx.User, "done")
+	canDrop := adventuria.GameActions.CanDo(appCtx, ctx.User, "drop")
 
 	if canDone && !canDrop {
 		return false
@@ -44,13 +44,13 @@ func (ef *GoToJailEffect) Subscribe(
 					return e.Next()
 				}
 
-				res, err := ef.tryToApplyEffect(ctx.User)
+				res, err := ef.tryToApplyEffect(e.AppContext, ctx.User)
 				if err != nil {
 					return res, err
 				}
 
 				if res.Success {
-					callback()
+					callback(e.AppContext)
 				} else {
 					return res, nil
 				}
@@ -65,13 +65,13 @@ func (ef *GoToJailEffect) Subscribe(
 					return e.Next()
 				}
 
-				res, err := ef.tryToApplyEffect(ctx.User)
+				res, err := ef.tryToApplyEffect(e.AppContext, ctx.User)
 				if err != nil {
 					return res, err
 				}
 
 				if res.Success {
-					callback()
+					callback(e.AppContext)
 				} else {
 					return res, nil
 				}
@@ -84,10 +84,10 @@ func (ef *GoToJailEffect) Subscribe(
 	}
 }
 
-func (ef *GoToJailEffect) tryToApplyEffect(user adventuria.User) (*event.Result, error) {
+func (ef *GoToJailEffect) tryToApplyEffect(ctx adventuria.AppContext, user adventuria.User) (*event.Result, error) {
 	user.SetIsInJail(true)
 
-	_, err := user.MoveToClosestCellType("jail")
+	_, err := user.MoveToClosestCellType(ctx, "jail")
 	if err != nil {
 		return &event.Result{
 			Success: false,
@@ -98,7 +98,7 @@ func (ef *GoToJailEffect) tryToApplyEffect(user adventuria.User) (*event.Result,
 	return &event.Result{Success: true}, nil
 }
 
-func (ef *GoToJailEffect) Verify(value string) error {
+func (ef *GoToJailEffect) Verify(_ adventuria.AppContext, value string) error {
 	_, err := ef.DecodeValue(value)
 	return err
 }
@@ -117,6 +117,6 @@ func (ef *GoToJailEffect) DecodeValue(value string) (*GoToJailEffectValue, error
 	return &GoToJailEffectValue{Event: value}, nil
 }
 
-func (ef *GoToJailEffect) GetVariants(_ adventuria.EffectContext) any {
+func (ef *GoToJailEffect) GetVariants(_ adventuria.AppContext, _ adventuria.EffectContext) any {
 	return nil
 }

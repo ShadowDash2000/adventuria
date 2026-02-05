@@ -17,7 +17,7 @@ type CellShop struct {
 
 func (c *CellShop) OnCellReached(ctx *adventuria.CellReachedContext) error {
 	var records []*core.Record
-	err := adventuria.PocketBase.RecordQuery(adventuria.GameCollections.Get(adventuria.CollectionItems)).
+	err := ctx.App.RecordQuery(adventuria.GameCollections.Get(adventuria.CollectionItems)).
 		Where(dbx.And(
 			dbx.NewExp("type = \"buff\""),
 			dbx.NewExp("isRollable = true"),
@@ -40,13 +40,13 @@ func (c *CellShop) OnCellReached(ctx *adventuria.CellReachedContext) error {
 	ctx.User.LastAction().SetItemsList(res)
 	ctx.User.LastAction().SetCanMove(true)
 
-	return nil
+	return ctx.App.Save(ctx.User.LastAction().ProxyRecord())
 }
 
 func (c *CellShop) OnCellLeft(_ *adventuria.CellLeftContext) error {
 	return nil
 }
 
-func (c *CellShop) Verify(_ string) error {
+func (c *CellShop) Verify(_ adventuria.AppContext, _ string) error {
 	return nil
 }

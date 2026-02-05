@@ -34,7 +34,7 @@ func (a *RollItemOnCellAction) Do(ctx adventuria.ActionContext, req adventuria.A
 
 	cellWheel := currentCell.(adventuria.CellWheel)
 
-	res, err := cellWheel.Roll(ctx.User, adventuria.RollWheelRequest(req))
+	res, err := cellWheel.Roll(ctx.AppContext, ctx.User, adventuria.RollWheelRequest(req))
 	if err != nil {
 		return &adventuria.ActionResult{
 			Success: false,
@@ -42,7 +42,7 @@ func (a *RollItemOnCellAction) Do(ctx adventuria.ActionContext, req adventuria.A
 		}, fmt.Errorf("roll_item_on_cell.do(): %w", err)
 	}
 
-	_, err = ctx.User.Inventory().MustAddItemById(res.WinnerId)
+	_, err = ctx.User.Inventory().MustAddItemById(ctx.AppContext, res.WinnerId)
 	if err != nil {
 		return &adventuria.ActionResult{
 			Success: false,

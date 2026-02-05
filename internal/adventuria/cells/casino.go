@@ -27,14 +27,14 @@ func (c *CellCasino) OnCellReached(ctx *adventuria.CellReachedContext) error {
 	}
 	ctx.User.LastAction().SetItemsList(decodedValue.ItemIds)
 
-	return nil
+	return ctx.App.Save(ctx.User.LastAction().ProxyRecord())
 }
 
 func (c *CellCasino) OnCellLeft(_ *adventuria.CellLeftContext) error {
 	return nil
 }
 
-func (c *CellCasino) Verify(value string) error {
+func (c *CellCasino) Verify(ctx adventuria.AppContext, value string) error {
 	var decodedValue cellCasinoValue
 	if err := json.Unmarshal([]byte(value), &decodedValue); err != nil {
 		return fmt.Errorf("item.verify: invalid JSON: %w", err)
@@ -52,7 +52,7 @@ func (c *CellCasino) Verify(value string) error {
 	var records []struct {
 		Id string `db:"id"`
 	}
-	err := adventuria.PocketBase.
+	err := ctx.App.
 		RecordQuery(adventuria.CollectionItems).
 		Select("id").
 		Where(dbx.Or(exp...)).

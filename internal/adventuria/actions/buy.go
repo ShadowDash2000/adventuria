@@ -62,7 +62,7 @@ func (a *BuyAction) Do(ctx adventuria.ActionContext, req adventuria.ActionReques
 		}, fmt.Errorf("buy.do(): item with id = %s not found", itemId)
 	}
 
-	itemRecord, err := adventuria.PocketBase.FindRecordById(
+	itemRecord, err := ctx.AppContext.App.FindRecordById(
 		adventuria.GameCollections.Get(adventuria.CollectionItems),
 		itemId,
 	)
@@ -97,7 +97,7 @@ func (a *BuyAction) Do(ctx adventuria.ActionContext, req adventuria.ActionReques
 		}, fmt.Errorf("buy.do(): can't check item price: %w", err)
 	}
 
-	invItemId, err := ctx.User.Inventory().AddItemById(itemId)
+	invItemId, err := ctx.User.Inventory().AddItemById(ctx.AppContext, itemId)
 	if err != nil {
 		return &adventuria.ActionResult{
 			Success: false,
@@ -130,7 +130,7 @@ func (a *BuyAction) GetVariants(ctx adventuria.ActionContext) any {
 	}
 
 	var records []*core.Record
-	err = adventuria.PocketBase.
+	err = ctx.AppContext.App.
 		RecordQuery(adventuria.CollectionItems).
 		Where(dbx.Or(exp...)).
 		All(&records)
@@ -142,7 +142,7 @@ func (a *BuyAction) GetVariants(ctx adventuria.ActionContext) any {
 	for _, record := range records {
 		onBuyGetVariants, err := a.triggerOnBuyGetVariants(ctx, adventuria.NewItemFromRecord(record))
 		if err != nil {
-			adventuria.PocketBase.Logger().Error("Error on buy.getVariants event trigger", "error", err)
+			ctx.AppContext.App.Logger().Error("Error on buy.getVariants event trigger", "error", err)
 			continue
 		}
 
@@ -202,8 +202,9 @@ func (a *BuyAction) triggerOnBeforeItemBuy(ctx adventuria.ActionContext, item ad
 	}
 
 	onBeforeItemBuy := &adventuria.OnBeforeItemBuy{
-		Item:  item,
-		Price: price,
+		AppContext: ctx.AppContext,
+		Item:       item,
+		Price:      price,
 	}
 	res, err := ctx.User.OnBeforeItemBuy().Trigger(onBeforeItemBuy)
 	if err != nil {
@@ -223,8 +224,9 @@ func (a *BuyAction) triggerOnBuyGetVariants(ctx adventuria.ActionContext, item a
 	}
 
 	onBuyGetVariants := &adventuria.OnBuyGetVariants{
-		Item:  item,
-		Price: price,
+		AppContext: ctx.AppContext,
+		Item:       item,
+		Price:      price,
 	}
 	res, err := ctx.User.OnBuyGetVariants().Trigger(onBuyGetVariants)
 	if err != nil {

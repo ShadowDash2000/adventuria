@@ -20,16 +20,17 @@ func (c *CellTeleport) OnCellReached(ctx *adventuria.CellReachedContext) error {
 		return fmt.Errorf("teleport.verify: invalid JSON: %w", err)
 	}
 
-	if err := adventuria.PocketBase.Save(ctx.User.LastAction().ProxyRecord()); err != nil {
+	ctx.User.LastAction().SetType("teleport")
+	if err := ctx.App.Save(ctx.User.LastAction().ProxyRecord()); err != nil {
 		return err
 	}
-	res, err := ctx.User.MoveToCellName(decodedValue.CellName)
+
+	res, err := ctx.User.MoveToCellName(ctx.AppContext, decodedValue.CellName)
 	if err != nil {
 		return err
 	}
 
 	ctx.Moves = append(ctx.Moves, res...)
-	ctx.User.LastAction().SetType("teleport")
 
 	return nil
 }
@@ -38,13 +39,13 @@ func (c *CellTeleport) OnCellLeft(_ *adventuria.CellLeftContext) error {
 	return nil
 }
 
-func (c *CellTeleport) Verify(value string) error {
+func (c *CellTeleport) Verify(ctx adventuria.AppContext, value string) error {
 	var decodedValue cellTeleportValue
 	if err := json.Unmarshal([]byte(value), &decodedValue); err != nil {
 		return fmt.Errorf("teleport.verify: invalid JSON: %w", err)
 	}
 
-	if _, err := adventuria.PocketBase.FindFirstRecordByFilter(
+	if _, err := ctx.App.FindFirstRecordByFilter(
 		adventuria.GameCollections.Get(adventuria.CollectionCells),
 		fmt.Sprintf("name = '%s'", decodedValue.CellName),
 	); err != nil {

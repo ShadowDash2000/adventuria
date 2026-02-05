@@ -21,15 +21,15 @@ type OnKillParserEvent struct {
 	event.Event
 }
 
-func NewSettings() (*Settings, error) {
+func NewSettings(ctx AppContext) (*Settings, error) {
 	s := &Settings{}
 
-	if err := s.init(); err != nil {
+	if err := s.init(ctx); err != nil {
 		return nil, err
 	}
 	s.initHooks()
-	s.bindHooks()
-	s.RegisterSettingsCron()
+	s.bindHooks(ctx)
+	s.RegisterSettingsCron(ctx)
 
 	return s, nil
 }
@@ -50,20 +50,20 @@ func (s *Settings) initHooks() {
 	s.onKillParser = &event.Hook[*OnKillParserEvent]{}
 }
 
-func (s *Settings) bindHooks() {
-	PocketBase.OnRecordAfterCreateSuccess(CollectionSettings).BindFunc(func(e *core.RecordEvent) error {
+func (s *Settings) bindHooks(ctx AppContext) {
+	ctx.App.OnRecordAfterCreateSuccess(CollectionSettings).BindFunc(func(e *core.RecordEvent) error {
 		s.SetProxyRecord(e.Record)
 		return e.Next()
 	})
-	PocketBase.OnRecordAfterUpdateSuccess(CollectionSettings).BindFunc(func(e *core.RecordEvent) error {
+	ctx.App.OnRecordAfterUpdateSuccess(CollectionSettings).BindFunc(func(e *core.RecordEvent) error {
 		s.SetProxyRecord(e.Record)
 		return e.Next()
 	})
-	PocketBase.OnRecordUpdate(CollectionSettings).BindFunc(func(e *core.RecordEvent) error {
+	ctx.App.OnRecordUpdate(CollectionSettings).BindFunc(func(e *core.RecordEvent) error {
 		if ok := e.Record.GetBool("kill_parser"); ok {
 			_, err := s.onKillParser.Trigger(&OnKillParserEvent{})
 			if err != nil {
-				PocketBase.Logger().Error("Failed to trigger kill parser event", "err", err)
+				e.App.Logger().Error("Failed to trigger kill parser event", "err", err)
 			}
 			e.Record.Set("kill_parser", false)
 		}
@@ -71,8 +71,8 @@ func (s *Settings) bindHooks() {
 	})
 }
 
-func (s *Settings) init() error {
-	record, err := PocketBase.FindFirstRecordByFilter(
+func (s *Settings) init(ctx AppContext) error {
+	record, err := ctx.App.FindFirstRecordByFilter(
 		CollectionSettings,
 		"",
 	)
@@ -89,7 +89,7 @@ func (s *Settings) init() error {
 		}
 
 		s.SetProxyRecord(record)
-		err = PocketBase.Save(s)
+		err = ctx.App.Save(s)
 		if err != nil {
 			return err
 		}
@@ -160,22 +160,22 @@ func (s *Settings) checkActionsBlock() func(*core.RequestEvent) error {
 	}
 }
 
-func (s *Settings) RegisterSettingsCron() {
-	PocketBase.Cron().MustAdd("settings", "* * * * *", func() {
+func (s *Settings) RegisterSettingsCron(ctx AppContext) {
+	ctx.App.Cron().MustAdd("settings", "* * * * *", func() {
 		week := s.GetCurrentWeekNum()
 		if s.CurrentWeek() == week {
 			return
 		}
 
 		s.SetCurrentWeek(week)
-		err := PocketBase.Save(s)
+		err := ctx.App.Save(s)
 		if err != nil {
-			PocketBase.Logger().Error("save settings failed", "err", err)
+			ctx.App.Logger().Error("save settings failed", "err", err)
 		}
 
-		err = ResetAllTimers(s.TimerTimeLimit(), s.LimitExceedPenalty())
+		err = ResetAllTimers(AppContext{App: PocketBase}, s.TimerTimeLimit(), s.LimitExceedPenalty())
 		if err != nil {
-			PocketBase.Logger().Error("failed to clear timers", "err", err)
+			ctx.App.Logger().Error("failed to clear timers", "err", err)
 		}
 	})
 }
