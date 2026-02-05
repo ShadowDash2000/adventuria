@@ -49,6 +49,11 @@ func Test_ChangeMaxGamePriceUsable(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	user, err = adventuria.GameUsers.GetByName(ctx, "user1")
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	if user.LastAction().CustomActivityFilter().MaxPrice != 20 {
 		t.Fatalf("Test_ChangeMaxGamePrice(): Max price is %d, expected 20", user.LastAction().CustomActivityFilter().MaxPrice)
 	}
