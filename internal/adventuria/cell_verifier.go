@@ -12,20 +12,14 @@ import (
 // method of cell that should try to parse record's value
 type CellVerifier struct{}
 
-func NewCellVerifier() *CellVerifier {
+func NewCellVerifier(ctx AppContext) *CellVerifier {
 	ef := &CellVerifier{}
-	ef.bindHooks()
+	ef.bindHooks(ctx)
 	return ef
 }
 
-func (cf *CellVerifier) bindHooks() {
-	PocketBase.OnRecordCreate(CollectionCells).BindFunc(func(e *core.RecordEvent) error {
-		if err := cf.Verify(AppContext{App: e.App}, e.Record); err != nil {
-			return err
-		}
-		return e.Next()
-	})
-	PocketBase.OnRecordUpdate(CollectionCells).BindFunc(func(e *core.RecordEvent) error {
+func (cf *CellVerifier) bindHooks(ctx AppContext) {
+	ctx.App.OnRecordValidate(CollectionCells).BindFunc(func(e *core.RecordEvent) error {
 		if err := cf.Verify(AppContext{App: e.App}, e.Record); err != nil {
 			return err
 		}

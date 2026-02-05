@@ -2,6 +2,8 @@ package adventuria
 
 import (
 	"time"
+
+	"github.com/pocketbase/pocketbase/core"
 )
 
 type Users struct {
@@ -9,9 +11,23 @@ type Users struct {
 }
 
 func NewUsers(ctx AppContext) *Users {
-	return &Users{
+	u := &Users{
 		users: NewMemoryCacheWithClose[string, User](ctx, time.Hour, false),
 	}
+	u.bindHooks(ctx)
+	return u
+}
+
+func (u *Users) bindHooks(ctx AppContext) {
+	ctx.App.OnRecordAfterUpdateSuccess(CollectionUsers).BindFunc(func(e *core.RecordEvent) error {
+		user, err := u.GetByID(AppContext{App: e.App}, e.Record.Id)
+		if err != nil {
+			return e.Next()
+		}
+		user.SetProxyRecord(e.Record)
+
+		return e.Next()
+	})
 }
 
 func (u *Users) GetByID(ctx AppContext, userId string) (User, error) {

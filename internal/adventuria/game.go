@@ -31,8 +31,6 @@ type Game struct {
 	pb     *pocketbase.PocketBase
 	ctx    context.Context
 	cancel context.CancelFunc
-	ef     *EffectVerifier
-	cf     *CellVerifier
 }
 
 func New() *Game {
@@ -84,8 +82,10 @@ func (g *Game) init(ctx AppContext) error {
 		return err
 	}
 
-	g.ef = NewEffectVerifier()
-	g.cf = NewCellVerifier()
+	_ = NewInventories(ctx)
+	_ = NewEffectVerifier(ctx)
+	_ = NewCellVerifier(ctx)
+
 	return nil
 }
 
@@ -263,12 +263,12 @@ func (g *Game) UseItem(app core.App, userId string, req UseItemRequest) error {
 		return err
 	}
 
-	err = app.Save(txUser.ProxyRecord())
+	err = app.Save(txUser.LastAction().ProxyRecord())
 	if err != nil {
 		return err
 	}
 
-	err = app.Save(txUser.LastAction().ProxyRecord())
+	err = app.Save(txUser.ProxyRecord())
 	if err != nil {
 		return err
 	}

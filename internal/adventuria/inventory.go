@@ -7,6 +7,8 @@ type Inventory interface {
 	SetMaxSlots(int)
 	AvailableSlots() int
 	HasEmptySlots() bool
+	HasItem(invItemId string) bool
+	RegisterItem(item Item)
 	AddItem(AppContext, ItemRecord) (string, error)
 	AddItemById(AppContext, string) (string, error)
 	MustAddItemById(AppContext, string) (string, error)

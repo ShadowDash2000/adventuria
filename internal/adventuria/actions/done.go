@@ -62,8 +62,9 @@ func (a *DoneAction) Do(ctx adventuria.ActionContext, req adventuria.ActionReque
 	ctx.User.SetPoints(ctx.User.Points() + onBeforeDoneEvent.CellPoints)
 	ctx.User.SetBalance(ctx.User.Balance() + onBeforeDoneEvent.CellCoins)
 
-	onAfterDoneEvent := &adventuria.OnAfterDoneEvent{AppContext: ctx.AppContext}
-	res, err = ctx.User.OnAfterDone().Trigger(onAfterDoneEvent)
+	res, err = ctx.User.OnAfterDone().Trigger(&adventuria.OnAfterDoneEvent{
+		AppContext: ctx.AppContext,
+	})
 	if res != nil && !res.Success {
 		return &adventuria.ActionResult{
 			Success: false,

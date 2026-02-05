@@ -12,24 +12,14 @@ import (
 // method of an effect that should try to parse record's value
 type EffectVerifier struct{}
 
-func NewEffectVerifier() *EffectVerifier {
+func NewEffectVerifier(ctx AppContext) *EffectVerifier {
 	ef := &EffectVerifier{}
-	ef.bindHooks()
+	ef.bindHooks(ctx)
 	return ef
 }
 
-func (ef *EffectVerifier) bindHooks() {
-	PocketBase.OnRecordCreate(CollectionEffects).BindFunc(func(e *core.RecordEvent) error {
-		if err := ef.Verify(
-			AppContext{App: e.App},
-			e.Record.GetString("type"),
-			e.Record.GetString("value"),
-		); err != nil {
-			return err
-		}
-		return e.Next()
-	})
-	PocketBase.OnRecordUpdate(CollectionEffects).BindFunc(func(e *core.RecordEvent) error {
+func (ef *EffectVerifier) bindHooks(ctx AppContext) {
+	ctx.App.OnRecordValidate(CollectionEffects).BindFunc(func(e *core.RecordEvent) error {
 		if err := ef.Verify(
 			AppContext{App: e.App},
 			e.Record.GetString("type"),

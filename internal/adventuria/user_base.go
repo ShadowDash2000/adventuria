@@ -101,17 +101,16 @@ func NewUserFromName(ctx AppContext, name string) (User, error) {
 }
 
 func (u *UserBase) bindHooks(ctx AppContext) {
-	u.hookIds = make([]string, 3)
+	u.hookIds = make([]string, 2)
 
-	u.hookIds[0] = ctx.App.OnRecordAfterUpdateSuccess(CollectionUsers).BindFunc(func(e *core.RecordEvent) error {
+	u.hookIds[0] = ctx.App.OnRecordUpdate(CollectionUsers).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == u.Id {
-			u.SetProxyRecord(e.Record)
-		}
-		return e.Next()
-	})
-	u.hookIds[1] = ctx.App.OnRecordUpdate(CollectionUsers).BindFunc(func(e *core.RecordEvent) error {
-		if e.Record.Id == u.Id {
-			e.Record.Set("stats", u.stats)
+			if e.Record.GetBool("clear_stats") {
+				e.Record.Set("clear_stats", false)
+				e.Record.Set("stats", "null")
+			} else {
+				e.Record.Set("stats", u.stats)
+			}
 		}
 		return e.Next()
 	})
@@ -124,7 +123,8 @@ func (u *UserBase) bindHooks(ctx AppContext) {
 		u.pEffectsUnsubGroup[i] = event.UnsubGroup{Fns: unsubs}
 		i++
 	}
-	u.hookIds[2] = ctx.App.OnTerminate().BindFunc(func(e *core.TerminateEvent) error {
+
+	u.hookIds[1] = ctx.App.OnTerminate().BindFunc(func(e *core.TerminateEvent) error {
 		for _, unsubGroup := range u.pEffectsUnsubGroup {
 			unsubGroup.Unsubscribe()
 		}
@@ -133,9 +133,8 @@ func (u *UserBase) bindHooks(ctx AppContext) {
 }
 
 func (u *UserBase) Close(ctx AppContext) {
-	ctx.App.OnRecordAfterUpdateSuccess(CollectionUsers).Unbind(u.hookIds[0])
-	ctx.App.OnRecordUpdate(CollectionUsers).Unbind(u.hookIds[1])
-	ctx.App.OnTerminate().Unbind(u.hookIds[2])
+	ctx.App.OnRecordUpdate(CollectionUsers).Unbind(u.hookIds[0])
+	ctx.App.OnTerminate().Unbind(u.hookIds[1])
 	for _, unsubGroup := range u.pEffectsUnsubGroup {
 		unsubGroup.Unsubscribe()
 	}

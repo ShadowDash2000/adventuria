@@ -9,99 +9,99 @@ type OnAfterChooseGameEvent struct {
 }
 type OnAfterRerollEvent struct {
 	event.Event
-	AppContext AppContext
+	AppContext
 }
 type OnBeforeDropEvent struct {
 	event.Event
-	AppContext    AppContext
+	AppContext
 	IsSafeDrop    bool
 	IsDropBlocked bool
 	PointsForDrop int
 }
 type OnBeforeDropCheckEvent struct {
 	event.Event
-	AppContext    AppContext
+	AppContext
 	IsDropBlocked bool
 }
 type OnBeforeRerollCheckEvent struct {
 	event.Event
-	AppContext      AppContext
+	AppContext
 	IsRerollBlocked bool
 }
 type OnAfterDropEvent struct {
 	event.Event
-	AppContext AppContext
+	AppContext
 }
 type OnAfterGoToJailEvent struct {
 	event.Event
 }
 type OnBeforeDoneEvent struct {
 	event.Event
-	AppContext AppContext
+	AppContext
 	CellPoints int
 	CellCoins  int
 }
 type OnAfterDoneEvent struct {
 	event.Event
-	AppContext AppContext
+	AppContext
 }
 type OnBeforeRollEvent struct {
 	event.Event
-	AppContext AppContext
-	Dices      []*Dice
+	AppContext
+	Dices []*Dice
 }
 type OnBeforeRollMoveEvent struct {
 	event.Event
-	AppContext AppContext
-	N          int
+	AppContext
+	N int
 }
 type OnAfterRollEvent struct {
 	event.Event
-	AppContext AppContext
-	Dices      []*Dice
-	N          int
+	AppContext
+	Dices []*Dice
+	N     int
 }
 type OnBeforeWheelRollEvent struct {
 	event.Event
-	AppContext  AppContext
+	AppContext
 	CurrentCell CellWheel
 }
 type OnAfterWheelRollEvent struct {
 	event.Event
-	AppContext AppContext
-	ItemId     string
+	AppContext
+	ItemId string
 }
 type OnAfterItemRollEvent struct {
 	event.Event
-	AppContext AppContext
-	ItemId     string
+	AppContext
+	ItemId string
 }
 type OnAfterItemUseEvent struct {
 	event.Event
-	AppContext AppContext
-	InvItemId  string
-	Data       map[string]any
+	AppContext
+	InvItemId string
+	Data      map[string]any
 }
 type OnBeforeItemAdd struct {
 	event.Event
-	AppContext    AppContext
+	AppContext
 	ItemRecord    ItemRecord
 	ShouldAddItem bool
 }
 type OnAfterItemAdd struct {
 	event.Event
-	AppContext AppContext
+	AppContext
 	ItemRecord ItemRecord
 }
 type OnAfterItemSave struct {
 	event.Event
-	AppContext AppContext
-	Item       Item
+	AppContext
+	Item Item
 }
 type OnNewLapEvent struct {
 	event.Event
-	AppContext AppContext
-	Laps       int
+	AppContext
+	Laps int
 }
 type OnBeforeNextStepEvent struct {
 	event.Event
@@ -110,12 +110,12 @@ type OnBeforeNextStepEvent struct {
 }
 type OnAfterActionEvent struct {
 	event.Event
-	AppContext AppContext
+	AppContext
 	ActionType ActionType
 }
 type OnAfterMoveEvent struct {
 	event.Event
-	AppContext     AppContext
+	AppContext
 	Steps          int
 	TotalSteps     int
 	PrevTotalSteps int
@@ -128,13 +128,13 @@ type OnBeforeCurrentCellEvent struct {
 }
 type OnBeforeItemBuy struct {
 	event.Event
-	AppContext AppContext
-	Item       ItemRecord
-	Price      int
+	AppContext
+	Item  ItemRecord
+	Price int
 }
 type OnBuyGetVariants struct {
 	event.Event
-	AppContext AppContext
-	Item       ItemRecord
-	Price      int
+	AppContext
+	Item  ItemRecord
+	Price int
 }

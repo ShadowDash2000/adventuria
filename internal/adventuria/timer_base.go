@@ -40,24 +40,7 @@ func NewTimer(ctx AppContext, userId string) (Timer, error) {
 		}
 	}
 
-	timer.bindHooks(ctx)
-
 	return timer, nil
-}
-
-func (t *TimerBase) bindHooks(ctx AppContext) {
-	ctx.App.OnRecordAfterUpdateSuccess(CollectionTimers).BindFunc(func(e *core.RecordEvent) error {
-		if e.Record.GetString("user") == t.UserId() {
-			t.SetProxyRecord(e.Record)
-		}
-		return e.Next()
-	})
-	ctx.App.OnRecordAfterDeleteSuccess(CollectionTimers).BindFunc(func(e *core.RecordEvent) error {
-		if e.Record.Id == t.Id {
-			t.SetProxyRecord(core.NewRecord(GameCollections.Get(CollectionTimers)))
-		}
-		return e.Next()
-	})
 }
 
 func (t *TimerBase) Start(ctx AppContext) error {

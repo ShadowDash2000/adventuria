@@ -62,11 +62,10 @@ func (a *RollWheelAction) Do(ctx adventuria.ActionContext, req adventuria.Action
 	action.SetType(ActionTypeRollWheel)
 	action.SetActivity(res.WinnerId)
 
-	onAfterWheelRollEvent := &adventuria.OnAfterWheelRollEvent{
+	eventRes, err = ctx.User.OnAfterWheelRoll().Trigger(&adventuria.OnAfterWheelRollEvent{
 		AppContext: ctx.AppContext,
 		ItemId:     res.WinnerId,
-	}
-	eventRes, err = ctx.User.OnAfterWheelRoll().Trigger(onAfterWheelRollEvent)
+	})
 	if eventRes != nil && !eventRes.Success {
 		return &adventuria.ActionResult{
 			Success: false,

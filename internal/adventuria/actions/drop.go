@@ -114,7 +114,9 @@ func (a *DropAction) Do(ctx adventuria.ActionContext, req adventuria.ActionReque
 		}
 	}
 
-	res, err = ctx.User.OnAfterDrop().Trigger(&adventuria.OnAfterDropEvent{AppContext: ctx.AppContext})
+	res, err = ctx.User.OnAfterDrop().Trigger(&adventuria.OnAfterDropEvent{
+		AppContext: ctx.AppContext,
+	})
 	if res != nil && !res.Success {
 		return &adventuria.ActionResult{
 			Success: false,

@@ -80,12 +80,11 @@ func (a *RollDiceAction) Do(ctx adventuria.ActionContext, _ adventuria.ActionReq
 
 	ctx.User.LastAction().SetType(ActionTypeRollDice)
 
-	onAfterRollEvent := &adventuria.OnAfterRollEvent{
+	res, err = ctx.User.OnAfterRoll().Trigger(&adventuria.OnAfterRollEvent{
 		AppContext: ctx.AppContext,
 		Dices:      onBeforeRollEvent.Dices,
 		N:          onBeforeRollMoveEvent.N,
-	}
-	res, err = ctx.User.OnAfterRoll().Trigger(onAfterRollEvent)
+	})
 	if res != nil && !res.Success {
 		return &adventuria.ActionResult{
 			Success: false,

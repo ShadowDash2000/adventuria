@@ -20,7 +20,6 @@ var Placeholder []byte
 
 type GameTest struct {
 	*adventuria.Game
-	ef *adventuria.EffectVerifier
 }
 
 func NewGameTest() (*GameTest, error) {
@@ -86,7 +85,10 @@ func (g *GameTest) init(ctx adventuria.AppContext) error {
 		return err
 	}
 
-	g.ef = adventuria.NewEffectVerifier()
+	_ = adventuria.NewInventories(ctx)
+	_ = adventuria.NewEffectVerifier(ctx)
+	_ = adventuria.NewCellVerifier(ctx)
+
 	return nil
 }
 

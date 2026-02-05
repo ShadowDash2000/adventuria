@@ -32,7 +32,12 @@ func (ef *CoinsIncrementEffect) Subscribe(
 			ctx.User.OnAfterItemSave().BindFunc(func(e *adventuria.OnAfterItemSave) (*event.Result, error) {
 				if e.Item.IDInventory() == ctx.InvItemID {
 					ctx.User.SetBalance(ctx.User.Balance() + value.Value)
-
+					if err = e.App.Save(ctx.User.ProxyRecord()); err != nil {
+						return &event.Result{
+							Success: false,
+							Error:   "internal error: failed to save user",
+						}, nil
+					}
 					callback(e.AppContext)
 				}
 
@@ -57,24 +62,24 @@ type CoinsIncrementEffectValue struct {
 func (ef *CoinsIncrementEffect) DecodeValue(value string) (*CoinsIncrementEffectValue, error) {
 	values := strings.Split(value, ";")
 	if len(values) != 2 {
-		return nil, fmt.Errorf("coinsIncrement: invalid value, expected format 'event;value': %s", value)
+		return nil, fmt.Errorf("coinsIncrement: invalid value, expected format 'value;event': %s", value)
+	}
+
+	coins, err := strconv.Atoi(values[0])
+	if err != nil {
+		return nil, fmt.Errorf("coinsIncrement: invalid value: %s", values[1])
 	}
 
 	events := []string{
 		"onAfterItemSave",
 	}
 
-	if !slices.Contains(events, values[0]) {
+	if !slices.Contains(events, values[1]) {
 		return nil, fmt.Errorf("coinsIncrement: invalid event: %s", values[0])
 	}
 
-	coins, err := strconv.Atoi(values[1])
-	if err != nil {
-		return nil, fmt.Errorf("coinsIncrement: invalid value: %s", values[1])
-	}
-
 	return &CoinsIncrementEffectValue{
-		Event: values[0],
+		Event: values[1],
 		Value: coins,
 	}, nil
 }

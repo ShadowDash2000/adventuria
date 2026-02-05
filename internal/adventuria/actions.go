@@ -1,8 +1,11 @@
 package adventuria
 
 import (
+	"database/sql"
 	"errors"
 	"iter"
+
+	"github.com/pocketbase/pocketbase/core"
 )
 
 type Actions struct {
@@ -20,6 +23,58 @@ func NewActions() *Actions {
 	}
 
 	return a
+}
+
+func (a *Actions) bindHooks(ctx AppContext) {
+	ctx.App.OnRecordAfterCreateSuccess(CollectionActions).BindFunc(func(e *core.RecordEvent) error {
+		userId := e.Record.GetString("user")
+
+		user, err := GameUsers.GetByID(AppContext{App: e.App}, userId)
+		if err != nil {
+			return e.Next()
+		}
+
+		user.LastAction().SetProxyRecord(e.Record)
+
+		return e.Next()
+	})
+	ctx.App.OnRecordAfterUpdateSuccess(CollectionActions).BindFunc(func(e *core.RecordEvent) error {
+		userId := e.Record.GetString("user")
+
+		user, err := GameUsers.GetByID(AppContext{App: e.App}, userId)
+		if err != nil {
+			return e.Next()
+		}
+
+		user.LastAction().SetProxyRecord(e.Record)
+
+		return e.Next()
+	})
+	ctx.App.OnRecordAfterDeleteSuccess(CollectionActions).BindFunc(func(e *core.RecordEvent) error {
+		userId := e.Record.GetString("user")
+
+		user, err := GameUsers.GetByID(AppContext{App: e.App}, userId)
+		if err != nil {
+			return e.Next()
+		}
+
+		record, err := fetchLastUserAction(AppContext{App: e.App}, userId)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				user.LastAction().SetProxyRecord(core.NewRecord(GameCollections.Get(CollectionActions)))
+				user.LastAction().SetType(ActionTypeNone)
+				user.LastAction().SetCanMove(true)
+
+				return e.Next()
+			}
+
+			return e.Next()
+		}
+
+		user.LastAction().SetProxyRecord(record)
+
+		return e.Next()
+	})
 }
 
 func (a *Actions) CanDo(ctx AppContext, user User, t ActionType) bool {

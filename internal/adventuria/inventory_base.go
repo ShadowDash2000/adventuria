@@ -33,41 +33,22 @@ func NewInventory(ctx AppContext, user User, maxSlots int) (Inventory, error) {
 }
 
 func (i *InventoryBase) bindHooks(ctx AppContext) {
-	i.hookIds = make([]string, 4)
+	i.hookIds = make([]string, 3)
 
-	i.hookIds[0] = ctx.App.OnRecordAfterCreateSuccess(CollectionInventory).BindFunc(func(e *core.RecordEvent) error {
-		if e.Record.GetString("user") == i.user.ID() {
-			ctx := AppContext{App: e.App}
-			item, err := NewItemFromInventoryRecord(ctx, i.user, e.Record)
-			if err != nil {
-				return err
-			}
-			i.items[e.Record.Id] = item
-
-			_, err = i.user.OnAfterItemSave().Trigger(&OnAfterItemSave{
-				AppContext: ctx,
-				Item:       item,
-			})
-			if err != nil {
-				e.App.Logger().Error("Failed to trigger OnAfterItemSave event", "err", err)
-			}
-		}
-		return e.Next()
-	})
-	i.hookIds[1] = ctx.App.OnRecordAfterDeleteSuccess(CollectionInventory).BindFunc(func(e *core.RecordEvent) error {
+	i.hookIds[0] = ctx.App.OnRecordAfterDeleteSuccess(CollectionInventory).BindFunc(func(e *core.RecordEvent) error {
 		if _, ok := i.items[e.Record.Id]; ok {
 			delete(i.items, e.Record.Id)
 		}
 		return e.Next()
 	})
-	i.hookIds[2] = ctx.App.OnRecordEnrich(CollectionInventory).BindFunc(func(e *core.RecordEnrichEvent) error {
+	i.hookIds[1] = ctx.App.OnRecordEnrich(CollectionInventory).BindFunc(func(e *core.RecordEnrichEvent) error {
 		if _, ok := i.items[e.Record.Id]; ok {
 			e.Record.WithCustomData(true)
 			e.Record.Set("can_use", i.CanUseItem(AppContext{App: e.App}, e.Record.Id))
 		}
 		return e.Next()
 	})
-	i.hookIds[3] = ctx.App.OnRecordCreate(CollectionInventory).BindFunc(func(e *core.RecordEvent) error {
+	i.hookIds[2] = ctx.App.OnRecordCreate(CollectionInventory).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.GetBool("isActive") {
 			e.Record.Set("activated", types.NowDateTime())
 		}
@@ -76,10 +57,9 @@ func (i *InventoryBase) bindHooks(ctx AppContext) {
 }
 
 func (i *InventoryBase) Close(ctx AppContext) {
-	ctx.App.OnRecordAfterCreateSuccess(CollectionInventory).Unbind(i.hookIds[0])
-	ctx.App.OnRecordAfterDeleteSuccess(CollectionInventory).Unbind(i.hookIds[1])
-	ctx.App.OnRecordEnrich(CollectionInventory).Unbind(i.hookIds[2])
-	ctx.App.OnRecordCreate(CollectionInventory).Unbind(i.hookIds[3])
+	ctx.App.OnRecordAfterDeleteSuccess(CollectionInventory).Unbind(i.hookIds[0])
+	ctx.App.OnRecordEnrich(CollectionInventory).Unbind(i.hookIds[1])
+	ctx.App.OnRecordCreate(CollectionInventory).Unbind(i.hookIds[2])
 	for _, item := range i.items {
 		item.Close(ctx)
 	}
@@ -131,6 +111,15 @@ func (i *InventoryBase) HasEmptySlots() bool {
 	return i.AvailableSlots() > 0
 }
 
+func (i *InventoryBase) HasItem(invItemId string) bool {
+	_, ok := i.items[invItemId]
+	return ok
+}
+
+func (i *InventoryBase) RegisterItem(item Item) {
+	i.items[item.IDInventory()] = item
+}
+
 func (i *InventoryBase) AddItem(ctx AppContext, item ItemRecord) (string, error) {
 	onBeforeItemAddEvent := OnBeforeItemAdd{
 		AppContext:    ctx,
@@ -155,6 +144,20 @@ func (i *InventoryBase) AddItem(ctx AppContext, item ItemRecord) (string, error)
 	record.Set("item", item.ID())
 	record.Set("isActive", item.IsActiveByDefault())
 	err = ctx.App.Save(record)
+	if err != nil {
+		return "", err
+	}
+
+	newItem, err := NewItemFromInventoryRecord(ctx, i.user, record)
+	if err != nil {
+		return "", err
+	}
+	i.items[newItem.IDInventory()] = newItem
+
+	_, err = i.user.OnAfterItemSave().Trigger(&OnAfterItemSave{
+		AppContext: ctx,
+		Item:       newItem,
+	})
 	if err != nil {
 		return "", err
 	}

@@ -54,11 +54,10 @@ func (a *RollItemAction) Do(ctx adventuria.ActionContext, _ adventuria.ActionReq
 
 	ctx.User.SetItemWheelsCount(ctx.User.ItemWheelsCount() - 1)
 
-	onAfterItemRollEvent := &adventuria.OnAfterItemRollEvent{
+	eventRes, err := ctx.User.OnAfterItemRoll().Trigger(&adventuria.OnAfterItemRollEvent{
 		AppContext: ctx.AppContext,
 		ItemId:     res.WinnerId,
-	}
-	eventRes, err := ctx.User.OnAfterItemRoll().Trigger(onAfterItemRollEvent)
+	})
 	if eventRes != nil && !eventRes.Success {
 		return &adventuria.ActionResult{
 			Success: false,
@@ -72,11 +71,10 @@ func (a *RollItemAction) Do(ctx adventuria.ActionContext, _ adventuria.ActionReq
 		}, err
 	}
 
-	onAfterWheelRollEvent := &adventuria.OnAfterWheelRollEvent{
+	eventRes, err = ctx.User.OnAfterWheelRoll().Trigger(&adventuria.OnAfterWheelRollEvent{
 		AppContext: ctx.AppContext,
 		ItemId:     res.WinnerId,
-	}
-	eventRes, err = ctx.User.OnAfterWheelRoll().Trigger(onAfterWheelRollEvent)
+	})
 	if eventRes != nil && !eventRes.Success {
 		return &adventuria.ActionResult{
 			Success: false,

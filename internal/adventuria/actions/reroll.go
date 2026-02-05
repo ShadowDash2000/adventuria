@@ -81,7 +81,9 @@ func (a *RerollAction) Do(ctx adventuria.ActionContext, req adventuria.ActionReq
 		}, fmt.Errorf("reroll.do(): %w", err)
 	}
 
-	res, err := ctx.User.OnAfterReroll().Trigger(&adventuria.OnAfterRerollEvent{AppContext: ctx.AppContext})
+	res, err := ctx.User.OnAfterReroll().Trigger(&adventuria.OnAfterRerollEvent{
+		AppContext: ctx.AppContext,
+	})
 	if res != nil && !res.Success {
 		return &adventuria.ActionResult{
 			Success: false,
