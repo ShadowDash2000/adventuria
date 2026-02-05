@@ -153,6 +153,7 @@ func (g *Game) DoAction(app core.App, userId string, actionType ActionType, req 
 		}, err
 	}
 
+	user.Close(ctx)
 	GameUsers.Update(txUser)
 	defer txUser.setIsInAction(false)
 
@@ -249,6 +250,7 @@ func (g *Game) UseItem(app core.App, userId string, req UseItemRequest) error {
 		return err
 	}
 
+	user.Close(ctx)
 	GameUsers.Update(txUser)
 	defer txUser.setIsInAction(false)
 
