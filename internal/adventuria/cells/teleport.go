@@ -51,7 +51,7 @@ func (c *CellTeleport) Verify(ctx adventuria.AppContext, value string) error {
 	var exists bool
 	err := ctx.App.
 		RecordQuery(schema.CollectionCells).
-		Select("1").
+		Select("count(*)").
 		Where(dbx.HashExp{"name": decodedValue.CellName}).
 		Limit(1).
 		Row(&exists)
