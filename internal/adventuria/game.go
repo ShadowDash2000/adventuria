@@ -129,6 +129,8 @@ func (g *Game) DoAction(app core.App, userId string, actionType ActionType, req 
 		}
 
 		txUser.setIsInAction(true)
+		txUser.ProxyRecord().IgnoreUnchangedFields(true)
+		txUser.LastAction().ProxyRecord().IgnoreUnchangedFields(true)
 
 		res, err = GameActions.Do(ctx, txUser, req, actionType)
 		if err != nil {
@@ -224,6 +226,8 @@ func (g *Game) UseItem(app core.App, userId string, req UseItemRequest) error {
 		}
 
 		txUser.setIsInAction(true)
+		txUser.ProxyRecord().IgnoreUnchangedFields(true)
+		txUser.LastAction().ProxyRecord().IgnoreUnchangedFields(true)
 
 		onUseSuccess, onUseFail, err := txUser.Inventory().UseItem(ctx, req.InvItemId)
 		if err != nil {
