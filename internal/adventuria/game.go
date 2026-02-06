@@ -68,7 +68,7 @@ func (g *Game) init(ctx AppContext) error {
 
 	GameCollections = collections.NewCollections(PocketBase)
 	GameUsers = NewUsers(ctx)
-	GameActions = NewActions()
+	GameActions = NewActions(ctx)
 	GameCells, err = NewCells(ctx)
 	if err != nil {
 		return err

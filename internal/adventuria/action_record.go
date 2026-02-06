@@ -82,12 +82,10 @@ func (a *ActionRecordBase) SetDiceRoll(roll int) {
 	a.Set(schema.ActionSchema.DiceRoll, roll)
 }
 
-func (a *ActionRecordBase) UsedItems() []string {
-	return a.GetStringSlice(schema.ActionSchema.UsedItems)
-}
-
 func (a *ActionRecordBase) UsedItemAppend(itemId string) {
-	a.Set(schema.ActionSchema.UsedItems, append(a.UsedItems(), itemId))
+	var usedItems []string
+	_ = a.UnmarshalJSONField(schema.ActionSchema.UsedItems, &usedItems)
+	a.Set(schema.ActionSchema.UsedItems, append(usedItems, itemId))
 }
 
 func (a *ActionRecordBase) SetUsedItems(items []string) {

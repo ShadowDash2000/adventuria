@@ -13,7 +13,7 @@ type Actions struct {
 	actions map[ActionType]Action
 }
 
-func NewActions() *Actions {
+func NewActions(ctx AppContext) *Actions {
 	a := &Actions{
 		actions: make(map[ActionType]Action, len(actionsList)),
 	}
@@ -23,12 +23,14 @@ func NewActions() *Actions {
 		a.actions[action.Type()] = action
 	}
 
+	a.bindHooks(ctx)
+
 	return a
 }
 
 func (a *Actions) bindHooks(ctx AppContext) {
 	ctx.App.OnRecordAfterCreateSuccess(schema.CollectionActions).BindFunc(func(e *core.RecordEvent) error {
-		userId := e.Record.GetString("user")
+		userId := e.Record.GetString(schema.ActionSchema.User)
 
 		user, err := GameUsers.GetByID(AppContext{App: e.App}, userId)
 		if err != nil {
@@ -40,7 +42,7 @@ func (a *Actions) bindHooks(ctx AppContext) {
 		return e.Next()
 	})
 	ctx.App.OnRecordAfterUpdateSuccess(schema.CollectionActions).BindFunc(func(e *core.RecordEvent) error {
-		userId := e.Record.GetString("user")
+		userId := e.Record.GetString(schema.ActionSchema.User)
 
 		user, err := GameUsers.GetByID(AppContext{App: e.App}, userId)
 		if err != nil {
@@ -52,7 +54,7 @@ func (a *Actions) bindHooks(ctx AppContext) {
 		return e.Next()
 	})
 	ctx.App.OnRecordAfterDeleteSuccess(schema.CollectionActions).BindFunc(func(e *core.RecordEvent) error {
-		userId := e.Record.GetString("user")
+		userId := e.Record.GetString(schema.ActionSchema.User)
 
 		user, err := GameUsers.GetByID(AppContext{App: e.App}, userId)
 		if err != nil {

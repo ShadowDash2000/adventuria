@@ -72,7 +72,7 @@ func (g *GameTest) init(ctx adventuria.AppContext) error {
 
 	adventuria.GameCollections = collections.NewCollections(adventuria.PocketBase)
 	adventuria.GameUsers = adventuria.NewUsers(ctx)
-	adventuria.GameActions = adventuria.NewActions()
+	adventuria.GameActions = adventuria.NewActions(ctx)
 	adventuria.GameCells, err = adventuria.NewCells(ctx)
 	if err != nil {
 		return err

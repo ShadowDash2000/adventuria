@@ -38,9 +38,7 @@ type ActionRecord interface {
 	SetType(ActionType)
 	DiceRoll() int
 	SetDiceRoll(int)
-	UsedItems() []string
 	UsedItemAppend(string)
-	SetUsedItems([]string)
 	ItemsList() ([]string, error)
 	SetItemsList([]string)
 	CanMove() bool
