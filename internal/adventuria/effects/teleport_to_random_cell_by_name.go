@@ -2,6 +2,7 @@ package effects
 
 import (
 	"adventuria/internal/adventuria"
+	"adventuria/internal/adventuria/schema"
 	"adventuria/pkg/event"
 	"adventuria/pkg/helper"
 	"errors"
@@ -68,7 +69,7 @@ func (ef *TeleportToRandomCellByNameEffect) Verify(ctx adventuria.AppContext, va
 	var records []struct {
 		Id string `db:"id"`
 	}
-	err = ctx.App.RecordQuery(adventuria.GameCollections.Get(adventuria.CollectionCells)).
+	err = ctx.App.RecordQuery(adventuria.GameCollections.Get(schema.CollectionCells)).
 		Where(dbx.In("name", namesAny...)).
 		Select("id").
 		All(&records)

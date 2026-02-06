@@ -1,6 +1,7 @@
 package adventuria
 
 import (
+	"adventuria/internal/adventuria/schema"
 	"time"
 
 	"github.com/pocketbase/pocketbase/core"
@@ -19,7 +20,7 @@ func NewUsers(ctx AppContext) *Users {
 }
 
 func (u *Users) bindHooks(ctx AppContext) {
-	ctx.App.OnRecordAfterUpdateSuccess(CollectionUsers).BindFunc(func(e *core.RecordEvent) error {
+	ctx.App.OnRecordAfterUpdateSuccess(schema.CollectionUsers).BindFunc(func(e *core.RecordEvent) error {
 		user, err := u.GetByID(AppContext{App: e.App}, e.Record.Id)
 		if err != nil {
 			return e.Next()

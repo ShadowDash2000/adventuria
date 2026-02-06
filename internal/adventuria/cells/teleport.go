@@ -2,8 +2,11 @@ package cells
 
 import (
 	"adventuria/internal/adventuria"
+	"adventuria/internal/adventuria/schema"
 	"encoding/json"
 	"fmt"
+
+	"github.com/pocketbase/dbx"
 )
 
 type CellTeleport struct {
@@ -16,7 +19,7 @@ type cellTeleportValue struct {
 
 func (c *CellTeleport) OnCellReached(ctx *adventuria.CellReachedContext) error {
 	var decodedValue cellTeleportValue
-	if err := c.UnmarshalJSONField("value", &decodedValue); err != nil {
+	if err := c.UnmarshalJSONField(schema.CellSchema.Value, &decodedValue); err != nil {
 		return fmt.Errorf("teleport.verify: invalid JSON: %w", err)
 	}
 
@@ -45,10 +48,14 @@ func (c *CellTeleport) Verify(ctx adventuria.AppContext, value string) error {
 		return fmt.Errorf("teleport.verify: invalid JSON: %w", err)
 	}
 
-	if _, err := ctx.App.FindFirstRecordByFilter(
-		adventuria.GameCollections.Get(adventuria.CollectionCells),
-		fmt.Sprintf("name = '%s'", decodedValue.CellName),
-	); err != nil {
+	var exists bool
+	err := ctx.App.
+		RecordQuery(schema.CollectionCells).
+		Select("1").
+		Where(dbx.HashExp{"name": decodedValue.CellName}).
+		Limit(1).
+		Row(&exists)
+	if err != nil {
 		return fmt.Errorf("teleport.verify(): can't find cell: %w", err)
 	}
 

@@ -85,6 +85,7 @@ func (g *Game) init(ctx AppContext) error {
 	_ = NewInventories(ctx)
 	_ = NewEffectVerifier(ctx)
 	_ = NewCellVerifier(ctx)
+	_ = NewTimers(ctx)
 
 	return nil
 }

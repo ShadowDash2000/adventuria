@@ -2,6 +2,7 @@ package cells
 
 import (
 	"adventuria/internal/adventuria"
+	"adventuria/internal/adventuria/schema"
 	"adventuria/pkg/helper"
 	"fmt"
 )
@@ -42,7 +43,7 @@ func (c *CellActivity) Roll(ctx adventuria.AppContext, user adventuria.User, _ a
 	}
 
 	records, err := ctx.App.FindRecordsByIds(
-		adventuria.GameCollections.Get(adventuria.CollectionActivities),
+		adventuria.GameCollections.Get(schema.CollectionActivities),
 		items,
 	)
 	if err != nil {

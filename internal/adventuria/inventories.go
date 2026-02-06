@@ -1,6 +1,11 @@
 package adventuria
 
-import "github.com/pocketbase/pocketbase/core"
+import (
+	"adventuria/internal/adventuria/schema"
+
+	"github.com/pocketbase/pocketbase/core"
+	"github.com/pocketbase/pocketbase/tools/types"
+)
 
 type Inventories struct {
 }
@@ -12,8 +17,8 @@ func NewInventories(ctx AppContext) *Inventories {
 }
 
 func (i *Inventories) bindHooks(ctx AppContext) {
-	ctx.App.OnRecordAfterCreateSuccess(CollectionInventory).BindFunc(func(e *core.RecordEvent) error {
-		userId := e.Record.GetString("user")
+	ctx.App.OnRecordAfterCreateSuccess(schema.CollectionInventory).BindFunc(func(e *core.RecordEvent) error {
+		userId := e.Record.GetString(schema.InventorySchema.User)
 
 		ctx := AppContext{App: e.App}
 		user, err := GameUsers.GetByID(ctx, userId)
@@ -41,6 +46,12 @@ func (i *Inventories) bindHooks(ctx AppContext) {
 			)
 		}
 
+		return e.Next()
+	})
+	ctx.App.OnRecordCreate(schema.CollectionInventory).BindFunc(func(e *core.RecordEvent) error {
+		if e.Record.GetBool(schema.InventorySchema.IsActive) {
+			e.Record.Set(schema.InventorySchema.Activated, types.NowDateTime())
+		}
 		return e.Next()
 	})
 }

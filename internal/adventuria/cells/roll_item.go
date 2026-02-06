@@ -2,6 +2,7 @@ package cells
 
 import (
 	"adventuria/internal/adventuria"
+	"adventuria/internal/adventuria/schema"
 	"adventuria/pkg/helper"
 	"encoding/json"
 	"fmt"
@@ -50,7 +51,7 @@ func (c *CellRollItem) Roll(ctx adventuria.AppContext, user adventuria.User, _ a
 	}
 
 	records, err := ctx.App.FindRecordsByIds(
-		adventuria.GameCollections.Get(adventuria.CollectionItems),
+		adventuria.GameCollections.Get(schema.CollectionItems),
 		items,
 	)
 	if err != nil {
@@ -98,7 +99,7 @@ func (c *CellRollItem) refreshItems(ctx adventuria.AppContext, user adventuria.U
 		Id string `db:"id"`
 	}
 	err := ctx.App.
-		RecordQuery(adventuria.GameCollections.Get(adventuria.CollectionItems)).
+		RecordQuery(adventuria.GameCollections.Get(schema.CollectionItems)).
 		Where(dbx.And(
 			dbx.HashExp{"type": decodedValue.ItemsType},
 			dbx.NewExp("isRollable = true"),

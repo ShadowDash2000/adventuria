@@ -2,6 +2,7 @@ package tests
 
 import (
 	"adventuria/internal/adventuria"
+	"adventuria/internal/adventuria/schema"
 	"adventuria/pkg/collections"
 	_ "embed"
 	"os"
@@ -88,6 +89,7 @@ func (g *GameTest) init(ctx adventuria.AppContext) error {
 	_ = adventuria.NewInventories(ctx)
 	_ = adventuria.NewEffectVerifier(ctx)
 	_ = adventuria.NewCellVerifier(ctx)
+	_ = adventuria.NewTimers(ctx)
 
 	return nil
 }
@@ -111,7 +113,7 @@ func (g *GameTest) createTestUsers() error {
 	}
 
 	for _, user := range users {
-		record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionUsers))
+		record := core.NewRecord(adventuria.GameCollections.Get(schema.CollectionUsers))
 		record.Set("name", user.name)
 		record.Set("password", user.password)
 		record.Set("email", user.email)
@@ -148,7 +150,7 @@ func (g *GameTest) createTestCells() error {
 	}
 
 	for _, cell := range cells {
-		record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionCells))
+		record := core.NewRecord(adventuria.GameCollections.Get(schema.CollectionCells))
 		record.Set("isActive", true)
 		record.Set("type", cell.cellType)
 		record.Set("name", cell.name)
@@ -192,7 +194,7 @@ func (g *GameTest) createTestGames() error {
 	}
 
 	for i, game := range games {
-		record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionActivities))
+		record := core.NewRecord(adventuria.GameCollections.Get(schema.CollectionActivities))
 		record.Set("id_db", game.idDb)
 		record.Set("type", adventuria.ActivityTypeGame)
 		record.Set("name", game.name)
@@ -224,7 +226,7 @@ func (g *GameTest) createTestTags() error {
 	}
 
 	for i, tag := range tags {
-		record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionTags))
+		record := core.NewRecord(adventuria.GameCollections.Get(schema.CollectionTags))
 		record.Set("id_db", tag.idDb)
 		record.Set("name", tag.name)
 		record.Set("checksum", strconv.Itoa(i))
@@ -247,7 +249,7 @@ func (g *GameTest) createTestGenres() error {
 	}
 
 	for i, genre := range genres {
-		record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionGenres))
+		record := core.NewRecord(adventuria.GameCollections.Get(schema.CollectionGenres))
 		record.Set("id_db", genre.idDb)
 		record.Set("name", genre.name)
 		record.Set("checksum", strconv.Itoa(i))

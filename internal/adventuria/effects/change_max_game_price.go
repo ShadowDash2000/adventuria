@@ -2,6 +2,7 @@ package effects
 
 import (
 	"adventuria/internal/adventuria"
+	"adventuria/internal/adventuria/schema"
 	"adventuria/pkg/event"
 	"fmt"
 	"slices"
@@ -33,7 +34,7 @@ func (ef *ChangeMaxGamePriceEffect) CanUse(appCtx adventuria.AppContext, ctx adv
 
 	if filterId := cell.Filter(); filterId != "" {
 		filterRecord, err := appCtx.App.FindRecordById(
-			adventuria.CollectionActivityFilter,
+			schema.CollectionActivityFilter,
 			filterId,
 		)
 		if err != nil {

@@ -1,6 +1,7 @@
 package adventuria
 
 import (
+	"adventuria/internal/adventuria/schema"
 	"database/sql"
 	"errors"
 	"time"
@@ -21,23 +22,23 @@ func NewBaseTimerFromRecord(record *core.Record) Timer {
 }
 
 func NewTimer(ctx AppContext, userId string) (Timer, error) {
-	record, err := ctx.App.FindFirstRecordByFilter(
-		CollectionTimers,
-		"user.id = {:userId}",
-		dbx.Params{"userId": userId},
-	)
+	var record core.Record
+	err := ctx.App.
+		RecordQuery(schema.CollectionTimers).
+		Where(dbx.HashExp{schema.TimerSchema.User: userId}).
+		One(&record)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return nil, err
 	}
 
 	timer := &TimerBase{}
-	if record != nil {
-		timer.SetProxyRecord(record)
-	} else {
+	if errors.Is(err, sql.ErrNoRows) {
 		timer, err = CreateTimer(ctx, userId, GameSettings.TimerTimeLimit())
 		if err != nil {
 			return nil, err
 		}
+	} else {
+		timer.SetProxyRecord(&record)
 	}
 
 	return timer, nil
@@ -83,44 +84,44 @@ func (t *TimerBase) IsTimeExceeded() bool {
 }
 
 func (t *TimerBase) UserId() string {
-	return t.GetString("user")
+	return t.GetString(schema.TimerSchema.User)
 }
 
 func (t *TimerBase) setUserId(userId string) {
-	t.Set("user", userId)
+	t.Set(schema.TimerSchema.User, userId)
 }
 
 func (t *TimerBase) IsActive() bool {
-	return t.GetBool("isActive")
+	return t.GetBool(schema.TimerSchema.IsActive)
 }
 
 func (t *TimerBase) SetIsActive(active bool) {
-	t.Set("isActive", active)
+	t.Set(schema.TimerSchema.IsActive, active)
 }
 
 func (t *TimerBase) TimePassed() time.Duration {
-	return time.Duration(t.GetInt("timePassed")) * time.Second
+	return time.Duration(t.GetInt(schema.TimerSchema.TimePassed)) * time.Second
 }
 
 func (t *TimerBase) SetTimePassed(tp time.Duration) {
-	t.Set("timePassed", int(tp/time.Second))
+	t.Set(schema.TimerSchema.TimePassed, int(tp/time.Second))
 }
 
 // TimeLimit returns time.Duration in seconds
 func (t *TimerBase) TimeLimit() time.Duration {
-	return time.Duration(t.GetInt("timeLimit")) * time.Second
+	return time.Duration(t.GetInt(schema.TimerSchema.TimeLimit)) * time.Second
 }
 
 func (t *TimerBase) SetTimeLimit(tp time.Duration) {
-	t.Set("timeLimit", int(tp/time.Second))
+	t.Set(schema.TimerSchema.TimeLimit, int(tp/time.Second))
 }
 
 func (t *TimerBase) StartTime() types.DateTime {
-	return t.GetDateTime("startTime")
+	return t.GetDateTime(schema.TimerSchema.StartTime)
 }
 
 func (t *TimerBase) SetStartTime(time types.DateTime) {
-	t.Set("startTime", time)
+	t.Set(schema.TimerSchema.StartTime, time)
 }
 
 func (t *TimerBase) AddSecondsTimeLimit(ctx AppContext, secs int) error {
@@ -130,11 +131,11 @@ func (t *TimerBase) AddSecondsTimeLimit(ctx AppContext, secs int) error {
 
 func CreateTimer(ctx AppContext, userId string, timeLimit int) (*TimerBase, error) {
 	timer := &TimerBase{}
-	timer.SetProxyRecord(core.NewRecord(GameCollections.Get(CollectionTimers)))
-	timer.Set("user", userId)
-	timer.Set("timeLimit", timeLimit)
-	timer.Set("timePassed", 0)
-	timer.Set("isActive", false)
+	timer.SetProxyRecord(core.NewRecord(GameCollections.Get(schema.CollectionTimers)))
+	timer.Set(schema.TimerSchema.User, userId)
+	timer.Set(schema.TimerSchema.TimeLimit, timeLimit)
+	timer.Set(schema.TimerSchema.TimePassed, 0)
+	timer.Set(schema.TimerSchema.IsActive, false)
 	err := ctx.App.Save(timer)
 	if err != nil {
 		return nil, err
@@ -144,7 +145,7 @@ func CreateTimer(ctx AppContext, userId string, timeLimit int) (*TimerBase, erro
 }
 
 func ResetAllTimers(ctx AppContext, timeLimit int, limitExceedPenalty int) error {
-	records, err := ctx.App.FindAllRecords(CollectionTimers)
+	records, err := ctx.App.FindAllRecords(schema.CollectionTimers)
 	if err != nil {
 		return err
 	}

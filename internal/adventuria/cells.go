@@ -1,6 +1,7 @@
 package adventuria
 
 import (
+	"adventuria/internal/adventuria/schema"
 	"adventuria/pkg/cache"
 	"iter"
 	"slices"
@@ -33,21 +34,21 @@ func NewCells(ctx AppContext) (*Cells, error) {
 }
 
 func (c *Cells) bindHooks(ctx AppContext) {
-	ctx.App.OnRecordAfterCreateSuccess(CollectionCells).BindFunc(func(e *core.RecordEvent) error {
+	ctx.App.OnRecordAfterCreateSuccess(schema.CollectionCells).BindFunc(func(e *core.RecordEvent) error {
 		err := c.add(e.Record)
 		if err != nil {
 			return err
 		}
 		return e.Next()
 	})
-	ctx.App.OnRecordAfterUpdateSuccess(CollectionCells).BindFunc(func(e *core.RecordEvent) error {
+	ctx.App.OnRecordAfterUpdateSuccess(schema.CollectionCells).BindFunc(func(e *core.RecordEvent) error {
 		err := c.add(e.Record)
 		if err != nil {
 			return err
 		}
 		return e.Next()
 	})
-	ctx.App.OnRecordAfterDeleteSuccess(CollectionCells).BindFunc(func(e *core.RecordEvent) error {
+	ctx.App.OnRecordAfterDeleteSuccess(schema.CollectionCells).BindFunc(func(e *core.RecordEvent) error {
 		c.delete(e.Record)
 		return e.Next()
 	})
@@ -58,7 +59,7 @@ func (c *Cells) fetch(ctx AppContext) error {
 	c.cellsByCode.Clear()
 
 	cells, err := ctx.App.FindRecordsByFilter(
-		CollectionCells,
+		schema.CollectionCells,
 		"",
 		"sort",
 		0,

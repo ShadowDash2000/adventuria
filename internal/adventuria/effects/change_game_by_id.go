@@ -2,6 +2,7 @@ package effects
 
 import (
 	"adventuria/internal/adventuria"
+	"adventuria/internal/adventuria/schema"
 	"adventuria/pkg/event"
 )
 
@@ -43,7 +44,7 @@ func (ef *ChangeGameByIdEffect) Subscribe(
 
 func (ef *ChangeGameByIdEffect) Verify(ctx adventuria.AppContext, gameId string) error {
 	_, err := ctx.App.FindRecordById(
-		adventuria.GameCollections.Get(adventuria.CollectionActivities),
+		adventuria.GameCollections.Get(schema.CollectionActivities),
 		gameId,
 	)
 	return err

@@ -1,6 +1,7 @@
 package adventuria
 
 import (
+	"adventuria/internal/adventuria/schema"
 	"adventuria/pkg/cache"
 	"iter"
 
@@ -25,15 +26,15 @@ func NewItems(ctx AppContext) (*Items, error) {
 }
 
 func (i *Items) bindHooks(ctx AppContext) {
-	ctx.App.OnRecordAfterCreateSuccess(CollectionItems).BindFunc(func(e *core.RecordEvent) error {
+	ctx.App.OnRecordAfterCreateSuccess(schema.CollectionItems).BindFunc(func(e *core.RecordEvent) error {
 		i.add(e.Record)
 		return e.Next()
 	})
-	ctx.App.OnRecordAfterUpdateSuccess(CollectionItems).BindFunc(func(e *core.RecordEvent) error {
+	ctx.App.OnRecordAfterUpdateSuccess(schema.CollectionItems).BindFunc(func(e *core.RecordEvent) error {
 		i.add(e.Record)
 		return e.Next()
 	})
-	ctx.App.OnRecordAfterDeleteSuccess(CollectionItems).BindFunc(func(e *core.RecordEvent) error {
+	ctx.App.OnRecordAfterDeleteSuccess(schema.CollectionItems).BindFunc(func(e *core.RecordEvent) error {
 		i.delete(e.Record.Id)
 		return e.Next()
 	})
@@ -42,7 +43,7 @@ func (i *Items) bindHooks(ctx AppContext) {
 func (i *Items) fetch(ctx AppContext) error {
 	i.items.Clear()
 
-	items, err := ctx.App.FindAllRecords(CollectionItems)
+	items, err := ctx.App.FindAllRecords(schema.CollectionItems)
 	if err != nil {
 		return err
 	}

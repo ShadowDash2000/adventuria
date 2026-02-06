@@ -2,6 +2,7 @@ package actions
 
 import (
 	"adventuria/internal/adventuria"
+	"adventuria/internal/adventuria/schema"
 	"errors"
 	"fmt"
 	"slices"
@@ -63,7 +64,7 @@ func (a *BuyAction) Do(ctx adventuria.ActionContext, req adventuria.ActionReques
 	}
 
 	itemRecord, err := ctx.AppContext.App.FindRecordById(
-		adventuria.GameCollections.Get(adventuria.CollectionItems),
+		adventuria.GameCollections.Get(schema.CollectionItems),
 		itemId,
 	)
 	if err != nil {
@@ -131,7 +132,7 @@ func (a *BuyAction) GetVariants(ctx adventuria.ActionContext) any {
 
 	var records []*core.Record
 	err = ctx.AppContext.App.
-		RecordQuery(adventuria.CollectionItems).
+		RecordQuery(schema.CollectionItems).
 		Where(dbx.Or(exp...)).
 		All(&records)
 	if err != nil {

@@ -4,6 +4,7 @@ import (
 	"adventuria/internal/adventuria"
 	"adventuria/internal/adventuria/cells"
 	"adventuria/internal/adventuria/effects"
+	"adventuria/internal/adventuria/schema"
 	"adventuria/internal/adventuria/tests"
 	"testing"
 
@@ -83,7 +84,7 @@ func createCellPointsDivideItem(ctx adventuria.AppContext) (*core.Record, error)
 		return nil, err
 	}
 
-	record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionItems))
+	record := core.NewRecord(adventuria.GameCollections.Get(schema.CollectionItems))
 	record.Set("name", "Cell Points Divide")
 	record.Set("effects", []string{effectRecord.Id})
 	record.Set("icon", icon)
@@ -102,7 +103,7 @@ func createCellPointsDivideItem(ctx adventuria.AppContext) (*core.Record, error)
 }
 
 func createCellPointsDivideEffect(ctx adventuria.AppContext) (*core.Record, error) {
-	record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionEffects))
+	record := core.NewRecord(adventuria.GameCollections.Get(schema.CollectionEffects))
 	record.Set("name", "Cell Points Divide")
 	record.Set("type", "cellPointsDivide")
 	record.Set("value", 2)

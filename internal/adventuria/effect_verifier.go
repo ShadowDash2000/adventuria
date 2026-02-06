@@ -1,6 +1,7 @@
 package adventuria
 
 import (
+	"adventuria/internal/adventuria/schema"
 	"errors"
 
 	"github.com/pocketbase/pocketbase/core"
@@ -19,7 +20,7 @@ func NewEffectVerifier(ctx AppContext) *EffectVerifier {
 }
 
 func (ef *EffectVerifier) bindHooks(ctx AppContext) {
-	ctx.App.OnRecordValidate(CollectionEffects).BindFunc(func(e *core.RecordEvent) error {
+	ctx.App.OnRecordValidate(schema.CollectionEffects).BindFunc(func(e *core.RecordEvent) error {
 		if err := ef.Verify(
 			AppContext{App: e.App},
 			e.Record.GetString("type"),
@@ -37,7 +38,7 @@ func (ef *EffectVerifier) Verify(ctx AppContext, effectType, value string) error
 		return errors.New("unknown effect type")
 	}
 
-	effect := effectCreator(core.NewRecord(GameCollections.Get(CollectionEffects)))
+	effect := effectCreator(core.NewRecord(GameCollections.Get(schema.CollectionEffects)))
 
 	return effect.Verify(ctx, value)
 }

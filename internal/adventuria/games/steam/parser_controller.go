@@ -2,6 +2,7 @@ package steam
 
 import (
 	"adventuria/internal/adventuria"
+	"adventuria/internal/adventuria/schema"
 	"context"
 
 	"github.com/pocketbase/dbx"
@@ -44,7 +45,7 @@ func (p *ParserController) parseSteamSpy(ctx context.Context) error {
 
 		appRecord := NewSteamSpyRecordFromRecord(
 			core.NewRecord(
-				adventuria.GameCollections.Get(adventuria.CollectionSteamSpy),
+				adventuria.GameCollections.Get(schema.CollectionSteamSpy),
 			),
 		)
 		appRecord.SetIdDb(app.AppId)
@@ -60,7 +61,7 @@ func (p *ParserController) parseSteamSpy(ctx context.Context) error {
 
 func (p *ParserController) isAppExist(ctx context.Context, id uint) bool {
 	err := adventuria.PocketBase.
-		RecordQuery(adventuria.GameCollections.Get(adventuria.CollectionSteamSpy)).
+		RecordQuery(adventuria.GameCollections.Get(schema.CollectionSteamSpy)).
 		WithContext(ctx).
 		Where(dbx.HashExp{"id_db": id}).
 		One(&core.Record{})

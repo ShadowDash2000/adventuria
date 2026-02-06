@@ -2,6 +2,7 @@ package cells
 
 import (
 	"adventuria/internal/adventuria"
+	"adventuria/internal/adventuria/schema"
 	"fmt"
 	"math/rand/v2"
 
@@ -17,7 +18,7 @@ type CellShop struct {
 
 func (c *CellShop) OnCellReached(ctx *adventuria.CellReachedContext) error {
 	var records []*core.Record
-	err := ctx.App.RecordQuery(adventuria.GameCollections.Get(adventuria.CollectionItems)).
+	err := ctx.App.RecordQuery(adventuria.GameCollections.Get(schema.CollectionItems)).
 		Where(dbx.And(
 			dbx.NewExp("type = \"buff\""),
 			dbx.NewExp("isRollable = true"),

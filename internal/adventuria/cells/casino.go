@@ -2,6 +2,7 @@ package cells
 
 import (
 	"adventuria/internal/adventuria"
+	"adventuria/internal/adventuria/schema"
 	"encoding/json"
 	"fmt"
 
@@ -53,7 +54,7 @@ func (c *CellCasino) Verify(ctx adventuria.AppContext, value string) error {
 		Id string `db:"id"`
 	}
 	err := ctx.App.
-		RecordQuery(adventuria.CollectionItems).
+		RecordQuery(schema.CollectionItems).
 		Select("id").
 		Where(dbx.Or(exp...)).
 		All(&records)

@@ -1,6 +1,7 @@
 package adventuria
 
 import (
+	"adventuria/internal/adventuria/schema"
 	"adventuria/pkg/event"
 	"errors"
 
@@ -19,13 +20,17 @@ type ItemBase struct {
 }
 
 func NewItemFromInventoryRecord(ctx AppContext, user User, invItemRecord *core.Record) (Item, error) {
-	itemRecord, err := GetRecordById(CollectionItems, invItemRecord.GetString("item"), []string{"effects"})
+	itemRecord, err := GetRecordById(
+		schema.CollectionItems,
+		invItemRecord.GetString(schema.InventorySchema.Item),
+		[]string{schema.ItemSchema.Effects},
+	)
 	if err != nil {
 		return nil, err
 	}
 
 	effects := make(map[string]Effect)
-	for _, effectRecord := range itemRecord.ExpandedAll("effects") {
+	for _, effectRecord := range itemRecord.ExpandedAll(schema.ItemSchema.Effects) {
 		effect, err := NewEffectFromRecord(effectRecord)
 		if err != nil {
 			return nil, err
@@ -116,13 +121,13 @@ func (i *ItemBase) unsubEffectByID(id string) {
 func (i *ItemBase) bindHooks(ctx AppContext) {
 	i.hookIds = make([]string, 3)
 
-	i.hookIds[0] = ctx.App.OnRecordAfterUpdateSuccess(CollectionItems).BindFunc(func(e *core.RecordEvent) error {
+	i.hookIds[0] = ctx.App.OnRecordAfterUpdateSuccess(schema.CollectionItems).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == i.itemRecord.Id {
 			i.itemRecord.SetProxyRecord(e.Record)
 		}
 		return e.Next()
 	})
-	i.hookIds[1] = ctx.App.OnRecordAfterUpdateSuccess(CollectionInventory).BindFunc(func(e *core.RecordEvent) error {
+	i.hookIds[1] = ctx.App.OnRecordAfterUpdateSuccess(schema.CollectionInventory).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == i.invItemRecord.Id {
 			i.invItemRecord.SetProxyRecord(e.Record)
 
@@ -134,7 +139,7 @@ func (i *ItemBase) bindHooks(ctx AppContext) {
 		}
 		return e.Next()
 	})
-	i.hookIds[2] = ctx.App.OnRecordAfterDeleteSuccess(CollectionInventory).BindFunc(func(e *core.RecordEvent) error {
+	i.hookIds[2] = ctx.App.OnRecordAfterDeleteSuccess(schema.CollectionInventory).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == i.invItemRecord.Id {
 			i.sleep()
 		}
@@ -144,9 +149,9 @@ func (i *ItemBase) bindHooks(ctx AppContext) {
 
 func (i *ItemBase) Close(ctx AppContext) {
 	i.sleep()
-	ctx.App.OnRecordAfterCreateSuccess(CollectionInventory).Unbind(i.hookIds[0])
-	ctx.App.OnRecordAfterUpdateSuccess(CollectionInventory).Unbind(i.hookIds[1])
-	ctx.App.OnRecordAfterDeleteSuccess(CollectionInventory).Unbind(i.hookIds[2])
+	ctx.App.OnRecordAfterCreateSuccess(schema.CollectionInventory).Unbind(i.hookIds[0])
+	ctx.App.OnRecordAfterUpdateSuccess(schema.CollectionInventory).Unbind(i.hookIds[1])
+	ctx.App.OnRecordAfterDeleteSuccess(schema.CollectionInventory).Unbind(i.hookIds[2])
 }
 
 func (i *ItemBase) IDInventory() string {
@@ -154,15 +159,15 @@ func (i *ItemBase) IDInventory() string {
 }
 
 func (i *ItemBase) IsActive() bool {
-	return i.invItemRecord.GetBool("isActive")
+	return i.invItemRecord.GetBool(schema.InventorySchema.IsActive)
 }
 
 func (i *ItemBase) setIsActive(b bool) {
-	i.invItemRecord.Set("isActive", b)
+	i.invItemRecord.Set(schema.InventorySchema.IsActive, b)
 }
 
 func (i *ItemBase) setActivated(date types.DateTime) {
-	i.invItemRecord.Set("activated", date)
+	i.invItemRecord.Set(schema.InventorySchema.Activated, date)
 }
 
 func (i *ItemBase) EffectsCount() int {
@@ -170,17 +175,17 @@ func (i *ItemBase) EffectsCount() int {
 }
 
 func (i *ItemBase) AppliedEffectsCount() int {
-	return len(i.invItemRecord.GetStringSlice("appliedEffects"))
+	return len(i.AppliedEffects())
 }
 
 func (i *ItemBase) AppliedEffects() []string {
-	return i.invItemRecord.GetStringSlice("appliedEffects")
+	return i.invItemRecord.GetStringSlice(schema.InventorySchema.AppliedEffects)
 }
 
 func (i *ItemBase) addAppliedEffect(effect Effect) {
 	i.invItemRecord.Set(
-		"appliedEffects",
-		append(i.invItemRecord.GetStringSlice("appliedEffects"), effect.ID()),
+		schema.InventorySchema.AppliedEffects,
+		append(i.AppliedEffects(), effect.ID()),
 	)
 }
 

@@ -4,6 +4,7 @@ import (
 	"adventuria/internal/adventuria"
 	"adventuria/internal/adventuria/actions"
 	"adventuria/internal/adventuria/cells"
+	"adventuria/internal/adventuria/schema"
 	"adventuria/internal/adventuria/tests"
 	"testing"
 
@@ -70,7 +71,7 @@ func createChangeMaxGamePriceUsableItem() (*core.Record, error) {
 		return nil, err
 	}
 
-	record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionItems))
+	record := core.NewRecord(adventuria.GameCollections.Get(schema.CollectionItems))
 	record.Set("name", "Change Max Activity Price Usable")
 	record.Set("effects", []string{effectRecord.Id})
 	record.Set("icon", icon)
@@ -88,7 +89,7 @@ func createChangeMaxGamePriceUsableItem() (*core.Record, error) {
 }
 
 func createChangeMaxGamePriceUsableEffect() (*core.Record, error) {
-	record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionEffects))
+	record := core.NewRecord(adventuria.GameCollections.Get(schema.CollectionEffects))
 	record.Set("name", "Change Max Activity Price Usable")
 	record.Set("type", "changeMaxGamePrice")
 	record.Set("value", "20;usable")
@@ -154,7 +155,7 @@ func createChangeMaxGamePriceUnusableItem() (*core.Record, error) {
 		return nil, err
 	}
 
-	record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionItems))
+	record := core.NewRecord(adventuria.GameCollections.Get(schema.CollectionItems))
 	record.Set("name", "Change Max Activity Price Unusable")
 	record.Set("effects", []string{effectRecord.Id})
 	record.Set("icon", icon)
@@ -172,7 +173,7 @@ func createChangeMaxGamePriceUnusableItem() (*core.Record, error) {
 }
 
 func createChangeMaxGamePriceUnusableEffect() (*core.Record, error) {
-	record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionEffects))
+	record := core.NewRecord(adventuria.GameCollections.Get(schema.CollectionEffects))
 	record.Set("name", "Change Max Activity Price Unusable")
 	record.Set("type", "changeMaxGamePrice")
 	record.Set("value", "20;unusable")

@@ -2,6 +2,7 @@ package cells
 
 import (
 	"adventuria/internal/adventuria"
+	"adventuria/internal/adventuria/schema"
 	"adventuria/internal/adventuria/tests"
 	"testing"
 
@@ -62,7 +63,7 @@ func createTeleportCell() (*core.Record, error) {
 		return nil, err
 	}
 
-	record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionCells))
+	record := core.NewRecord(adventuria.GameCollections.Get(schema.CollectionCells))
 	record.Set("name", "Cell Teleport")
 	record.Set("icon", icon)
 	record.Set("sort", 500)

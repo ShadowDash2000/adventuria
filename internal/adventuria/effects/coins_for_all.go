@@ -2,6 +2,7 @@ package effects
 
 import (
 	"adventuria/internal/adventuria"
+	"adventuria/internal/adventuria/schema"
 	"adventuria/pkg/event"
 	"fmt"
 	"strconv"
@@ -33,8 +34,9 @@ func (ef *CoinsForAllEffect) Subscribe(
 				ctx.User.SetBalance(ctx.User.Balance() + decodedValue.CoinsForPlayer)
 
 				query := fmt.Sprintf(
-					"UPDATE %s SET balance = balance + {:coins} WHERE id != {:currentUserId}",
-					adventuria.CollectionUsers,
+					"UPDATE %s SET %[2]s = %[2]s + {:coins} WHERE id != {:currentUserId}",
+					schema.CollectionUsers,
+					schema.UserSchema.Balance,
 				)
 				_, err = e.App.DB().
 					NewQuery(query).

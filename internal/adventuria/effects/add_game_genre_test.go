@@ -4,6 +4,7 @@ import (
 	"adventuria/internal/adventuria"
 	"adventuria/internal/adventuria/actions"
 	"adventuria/internal/adventuria/cells"
+	"adventuria/internal/adventuria/schema"
 	"adventuria/internal/adventuria/tests"
 	"slices"
 	"testing"
@@ -46,7 +47,7 @@ func Test_AddGameGenre(t *testing.T) {
 	}
 
 	genre, err := ctx.App.FindFirstRecordByFilter(
-		adventuria.GameCollections.Get(adventuria.CollectionGenres),
+		adventuria.GameCollections.Get(schema.CollectionGenres),
 		"",
 	)
 	if err != nil {
@@ -84,7 +85,7 @@ func createAddGameGenreItem() (*core.Record, error) {
 		return nil, err
 	}
 
-	record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionItems))
+	record := core.NewRecord(adventuria.GameCollections.Get(schema.CollectionItems))
 	record.Set("name", "Add Game Genre")
 	record.Set("effects", []string{effectRecord.Id})
 	record.Set("icon", icon)
@@ -100,7 +101,7 @@ func createAddGameGenreItem() (*core.Record, error) {
 }
 
 func createAddGameGenreEffect() (*core.Record, error) {
-	record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionEffects))
+	record := core.NewRecord(adventuria.GameCollections.Get(schema.CollectionEffects))
 	record.Set("name", "Add Game Genre")
 	record.Set("type", "addGameGenre")
 	err := adventuria.PocketBase.Save(record)

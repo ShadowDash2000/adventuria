@@ -1,6 +1,7 @@
 package adventuria
 
 import (
+	"adventuria/internal/adventuria/schema"
 	"errors"
 
 	"github.com/pocketbase/pocketbase/core"
@@ -19,7 +20,7 @@ func NewCellVerifier(ctx AppContext) *CellVerifier {
 }
 
 func (cf *CellVerifier) bindHooks(ctx AppContext) {
-	ctx.App.OnRecordValidate(CollectionCells).BindFunc(func(e *core.RecordEvent) error {
+	ctx.App.OnRecordValidate(schema.CollectionCells).BindFunc(func(e *core.RecordEvent) error {
 		if err := cf.Verify(AppContext{App: e.App}, e.Record); err != nil {
 			return err
 		}

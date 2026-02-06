@@ -1,6 +1,7 @@
 package adventuria
 
 import (
+	"adventuria/internal/adventuria/schema"
 	"database/sql"
 	"errors"
 	"iter"
@@ -26,7 +27,7 @@ func NewActions() *Actions {
 }
 
 func (a *Actions) bindHooks(ctx AppContext) {
-	ctx.App.OnRecordAfterCreateSuccess(CollectionActions).BindFunc(func(e *core.RecordEvent) error {
+	ctx.App.OnRecordAfterCreateSuccess(schema.CollectionActions).BindFunc(func(e *core.RecordEvent) error {
 		userId := e.Record.GetString("user")
 
 		user, err := GameUsers.GetByID(AppContext{App: e.App}, userId)
@@ -38,7 +39,7 @@ func (a *Actions) bindHooks(ctx AppContext) {
 
 		return e.Next()
 	})
-	ctx.App.OnRecordAfterUpdateSuccess(CollectionActions).BindFunc(func(e *core.RecordEvent) error {
+	ctx.App.OnRecordAfterUpdateSuccess(schema.CollectionActions).BindFunc(func(e *core.RecordEvent) error {
 		userId := e.Record.GetString("user")
 
 		user, err := GameUsers.GetByID(AppContext{App: e.App}, userId)
@@ -50,7 +51,7 @@ func (a *Actions) bindHooks(ctx AppContext) {
 
 		return e.Next()
 	})
-	ctx.App.OnRecordAfterDeleteSuccess(CollectionActions).BindFunc(func(e *core.RecordEvent) error {
+	ctx.App.OnRecordAfterDeleteSuccess(schema.CollectionActions).BindFunc(func(e *core.RecordEvent) error {
 		userId := e.Record.GetString("user")
 
 		user, err := GameUsers.GetByID(AppContext{App: e.App}, userId)
@@ -61,7 +62,7 @@ func (a *Actions) bindHooks(ctx AppContext) {
 		record, err := fetchLastUserAction(AppContext{App: e.App}, userId)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
-				user.LastAction().SetProxyRecord(core.NewRecord(GameCollections.Get(CollectionActions)))
+				user.LastAction().SetProxyRecord(core.NewRecord(GameCollections.Get(schema.CollectionActions)))
 				user.LastAction().SetType(ActionTypeNone)
 				user.LastAction().SetCanMove(true)
 

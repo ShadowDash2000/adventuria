@@ -1,6 +1,7 @@
 package adventuria
 
 import (
+	"adventuria/internal/adventuria/schema"
 	"database/sql"
 	"errors"
 
@@ -29,13 +30,13 @@ func NewLastUserAction(ctx AppContext, userId string) (*LastUserActionRecord, er
 func (a *LastUserActionRecord) bindHooks(ctx AppContext) {
 	a.hookIds = make([]string, 2)
 
-	a.hookIds[0] = ctx.App.OnRecordCreate(CollectionActions).BindFunc(func(e *core.RecordEvent) error {
+	a.hookIds[0] = ctx.App.OnRecordCreate(schema.CollectionActions).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == a.ID() {
 			e.Record.Set("custom_activity_filter", a.activityFilter)
 		}
 		return e.Next()
 	})
-	a.hookIds[1] = ctx.App.OnRecordUpdate(CollectionActions).BindFunc(func(e *core.RecordEvent) error {
+	a.hookIds[1] = ctx.App.OnRecordUpdate(schema.CollectionActions).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == a.ID() {
 			e.Record.Set("custom_activity_filter", a.activityFilter)
 		}
@@ -44,8 +45,8 @@ func (a *LastUserActionRecord) bindHooks(ctx AppContext) {
 }
 
 func (a *LastUserActionRecord) Close(ctx AppContext) {
-	ctx.App.OnRecordCreate(CollectionActions).Unbind(a.hookIds[0])
-	ctx.App.OnRecordUpdate(CollectionActions).Unbind(a.hookIds[1])
+	ctx.App.OnRecordCreate(schema.CollectionActions).Unbind(a.hookIds[0])
+	ctx.App.OnRecordUpdate(schema.CollectionActions).Unbind(a.hookIds[1])
 }
 
 func getLastUserAction(ctx AppContext, userId string) (*LastUserActionRecord, error) {
@@ -56,7 +57,7 @@ func getLastUserAction(ctx AppContext, userId string) (*LastUserActionRecord, er
 
 	a := &LastUserActionRecord{}
 	if errors.Is(err, sql.ErrNoRows) {
-		a.SetProxyRecord(core.NewRecord(GameCollections.Get(CollectionActions)))
+		a.SetProxyRecord(core.NewRecord(GameCollections.Get(schema.CollectionActions)))
 		a.SetType(ActionTypeNone)
 		a.SetCanMove(true)
 		firstCell, ok := GameCells.GetByOrder(0)
@@ -73,21 +74,16 @@ func getLastUserAction(ctx AppContext, userId string) (*LastUserActionRecord, er
 }
 
 func fetchLastUserAction(ctx AppContext, userId string) (*core.Record, error) {
-	actions, err := ctx.App.FindRecordsByFilter(
-		CollectionActions,
-		"user.id = {:userId}",
-		"-created",
-		1,
-		0,
-		dbx.Params{"userId": userId},
-	)
+	var record core.Record
+	err := ctx.App.
+		RecordQuery(schema.CollectionActions).
+		Where(dbx.HashExp{schema.ActionSchema.User: userId}).
+		OrderBy("created DESC").
+		Limit(1).
+		One(&record)
 	if err != nil {
 		return nil, err
 	}
 
-	if len(actions) == 0 {
-		return nil, sql.ErrNoRows
-	}
-
-	return actions[0], nil
+	return &record, nil
 }

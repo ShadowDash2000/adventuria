@@ -1,8 +1,8 @@
 package igdb
 
 import (
-	"adventuria/internal/adventuria"
 	"adventuria/internal/adventuria/games"
+	"adventuria/internal/adventuria/schema"
 	"context"
 	"fmt"
 	"strconv"
@@ -323,32 +323,32 @@ func (p *Parser) ParseGames(ctx context.Context, count, offset, limit uint64) (<
 						Slug: game.GetSlug(),
 						GameType: games.CollectionReferenceSingle{
 							Id:         game.GetGameType().GetId(),
-							Collection: adventuria.CollectionGameTypes,
+							Collection: schema.CollectionGameTypes,
 						},
 						ReleaseDate: releaseDate,
 						Platforms: games.CollectionReference{
 							Ids:        platformIds,
-							Collection: adventuria.CollectionPlatforms,
+							Collection: schema.CollectionPlatforms,
 						},
 						Developers: games.CollectionReference{
 							Ids:        developersIds,
-							Collection: adventuria.CollectionCompanies,
+							Collection: schema.CollectionCompanies,
 						},
 						Publishers: games.CollectionReference{
 							Ids:        publishersIds,
-							Collection: adventuria.CollectionCompanies,
+							Collection: schema.CollectionCompanies,
 						},
 						Genres: games.CollectionReference{
 							Ids:        genreIds,
-							Collection: adventuria.CollectionGenres,
+							Collection: schema.CollectionGenres,
 						},
 						Tags: games.CollectionReference{
 							Ids:        keywordIds,
-							Collection: adventuria.CollectionTags,
+							Collection: schema.CollectionTags,
 						},
 						Themes: games.CollectionReference{
 							Ids:        themeIds,
-							Collection: adventuria.CollectionThemes,
+							Collection: schema.CollectionThemes,
 						},
 						SteamAppId: steamAppIds[game.GetId()],
 						Cover:      covers[game.GetId()],

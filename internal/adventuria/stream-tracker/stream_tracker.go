@@ -2,12 +2,14 @@ package stream_tracker
 
 import (
 	"adventuria/internal/adventuria"
+	"adventuria/internal/adventuria/schema"
 	"context"
 	"errors"
 	"os"
 	"time"
 
 	streamlive "github.com/ShadowDash2000/is-stream-live"
+	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
 )
 
@@ -42,7 +44,7 @@ func NewStreamTracker() (*StreamTracker, error) {
 }
 
 func (s *StreamTracker) bindHooks(ctx adventuria.AppContext) {
-	ctx.App.OnRecordAfterCreateSuccess(adventuria.CollectionUsers).BindFunc(func(e *core.RecordEvent) error {
+	ctx.App.OnRecordAfterCreateSuccess(schema.CollectionUsers).BindFunc(func(e *core.RecordEvent) error {
 		if client, ok := s.client.GetClient(streamlive.TwitchClientName); ok {
 			s.updateUserLogin(client, s.twitchUsers, e.Record.Id, e.Record.GetString("twitch"))
 		}
@@ -51,7 +53,7 @@ func (s *StreamTracker) bindHooks(ctx adventuria.AppContext) {
 		}
 		return e.Next()
 	})
-	ctx.App.OnRecordAfterUpdateSuccess(adventuria.CollectionUsers).BindFunc(func(e *core.RecordEvent) error {
+	ctx.App.OnRecordAfterUpdateSuccess(schema.CollectionUsers).BindFunc(func(e *core.RecordEvent) error {
 		if client, ok := s.client.GetClient(streamlive.TwitchClientName); ok {
 			s.updateUserLogin(client, s.twitchUsers, e.Record.Id, e.Record.GetString("twitch"))
 		}
@@ -61,7 +63,7 @@ func (s *StreamTracker) bindHooks(ctx adventuria.AppContext) {
 
 		return e.Next()
 	})
-	ctx.App.OnRecordAfterDeleteSuccess(adventuria.CollectionUsers).BindFunc(func(e *core.RecordEvent) error {
+	ctx.App.OnRecordAfterDeleteSuccess(schema.CollectionUsers).BindFunc(func(e *core.RecordEvent) error {
 		twitchLogin := e.Record.GetString("twitch")
 		if twitchClient, ok := s.client.GetClient(streamlive.TwitchClientName); ok {
 			twitchClient.RemoveLogin(twitchLogin)
@@ -114,8 +116,19 @@ func (s *StreamTracker) userIdForChannel(channel string) (string, bool) {
 	return "", false
 }
 
-func (s *StreamTracker) fetchUsers(ctx adventuria.AppContext) ([]*core.Record, error) {
-	return ctx.App.FindAllRecords(adventuria.GameCollections.Get(adventuria.CollectionUsers))
+type userRecord struct {
+	Id               string `db:"id"`
+	Twitch           string `db:"twitch"`
+	YouTubeChannelId string `db:"youtube_channel_id"`
+}
+
+func (s *StreamTracker) fetchUsers(ctx adventuria.AppContext) ([]userRecord, error) {
+	var users []userRecord
+	err := ctx.App.
+		RecordQuery(schema.CollectionUsers).
+		Select(schema.UserSchema.Id, schema.UserSchema.Twitch, schema.UserSchema.YouTubeChannelId).
+		All(&users)
+	return users, err
 }
 
 func (s *StreamTracker) Start(appCtx adventuria.AppContext, ctx context.Context) error {
@@ -143,20 +156,18 @@ func (s *StreamTracker) Start(appCtx adventuria.AppContext, ctx context.Context)
 	twitchClient, _ := s.client.GetClient(streamlive.TwitchClientName)
 	youtubeClient, _ := s.client.GetClient(streamlive.YouTubeClientName)
 	for _, user := range users {
-		twitchLogin := user.GetString("twitch")
-		if twitchLogin != "" {
+		if user.Twitch != "" {
 			if twitchClient != nil {
-				twitchClient.AddLogin(twitchLogin)
+				twitchClient.AddLogin(user.Twitch)
 			}
-			s.twitchUsers[twitchLogin] = user.Id
+			s.twitchUsers[user.Twitch] = user.Id
 		}
 
-		youtubeChannelId := user.GetString("youtube_channel_id")
-		if youtubeChannelId != "" {
+		if user.YouTubeChannelId != "" {
 			if youtubeClient != nil {
-				youtubeClient.AddLogin(youtubeChannelId)
+				youtubeClient.AddLogin(user.YouTubeChannelId)
 			}
-			s.youtubeUsers[youtubeChannelId] = user.Id
+			s.youtubeUsers[user.YouTubeChannelId] = user.Id
 		}
 	}
 
@@ -172,13 +183,15 @@ func (s *StreamTracker) onStreamChange(ctx adventuria.AppContext, e *streamlive.
 		return e.Next()
 	}
 
-	user, err := adventuria.GameUsers.GetByID(ctx, userId)
+	_, err := ctx.App.DB().
+		Update("users",
+			dbx.Params{schema.UserSchema.IsStreamLive: e.Live},
+			dbx.And(
+				dbx.HashExp{schema.UserSchema.Id: userId},
+				dbx.Not(dbx.HashExp{schema.UserSchema.IsStreamLive: e.Live}),
+			),
+		).Execute()
 	if err != nil {
-		return err
-	}
-
-	user.SetIsStreamLive(e.Live)
-	if err = ctx.App.Save(user.ProxyRecord()); err != nil {
 		return err
 	}
 

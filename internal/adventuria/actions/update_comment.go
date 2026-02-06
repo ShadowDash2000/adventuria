@@ -2,6 +2,7 @@ package actions
 
 import (
 	"adventuria/internal/adventuria"
+	"adventuria/internal/adventuria/schema"
 	"fmt"
 
 	"github.com/pocketbase/dbx"
@@ -45,7 +46,7 @@ func (a *UpdateCommentAction) Do(ctx adventuria.ActionContext, req adventuria.Ac
 
 	record := &core.Record{}
 	err := ctx.AppContext.App.
-		RecordQuery(adventuria.GameCollections.Get(adventuria.CollectionActions)).
+		RecordQuery(adventuria.GameCollections.Get(schema.CollectionActions)).
 		AndWhere(
 			dbx.HashExp{
 				"user": ctx.User.ID(),

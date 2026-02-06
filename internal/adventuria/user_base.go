@@ -1,6 +1,7 @@
 package adventuria
 
 import (
+	"adventuria/internal/adventuria/schema"
 	"adventuria/pkg/event"
 	"errors"
 	"fmt"
@@ -83,33 +84,29 @@ func NewUser(ctx AppContext, userId string) (User, error) {
 }
 
 func NewUserFromName(ctx AppContext, name string) (User, error) {
-	record, err := ctx.App.FindRecordsByFilter(
-		CollectionUsers,
-		"name = {:name}",
-		"",
-		1,
-		0,
-		dbx.Params{
-			"name": name,
-		},
-	)
+	var record core.Record
+	err := ctx.App.
+		RecordQuery(schema.CollectionUsers).
+		Where(dbx.HashExp{schema.UserSchema.Name: name}).
+		Limit(1).
+		One(&record)
 	if err != nil {
 		return nil, err
 	}
 
-	return NewUser(ctx, record[0].Id)
+	return NewUser(ctx, record.Id)
 }
 
 func (u *UserBase) bindHooks(ctx AppContext) {
 	u.hookIds = make([]string, 2)
 
-	u.hookIds[0] = ctx.App.OnRecordUpdate(CollectionUsers).BindFunc(func(e *core.RecordEvent) error {
+	u.hookIds[0] = ctx.App.OnRecordUpdate(schema.CollectionUsers).BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.Id == u.Id {
-			if e.Record.GetBool("clear_stats") {
-				e.Record.Set("clear_stats", false)
-				e.Record.Set("stats", "null")
+			if e.Record.GetBool(schema.UserSchema.ClearStats) {
+				e.Record.Set(schema.UserSchema.ClearStats, false)
+				e.Record.Set(schema.UserSchema.Stats, "null")
 			} else {
-				e.Record.Set("stats", u.stats)
+				e.Record.Set(schema.UserSchema.Stats, u.stats)
 			}
 		}
 		return e.Next()
@@ -133,7 +130,7 @@ func (u *UserBase) bindHooks(ctx AppContext) {
 }
 
 func (u *UserBase) Close(ctx AppContext) {
-	ctx.App.OnRecordUpdate(CollectionUsers).Unbind(u.hookIds[0])
+	ctx.App.OnRecordUpdate(schema.CollectionUsers).Unbind(u.hookIds[0])
 	ctx.App.OnTerminate().Unbind(u.hookIds[1])
 	for _, unsubGroup := range u.pEffectsUnsubGroup {
 		unsubGroup.Unsubscribe()
@@ -148,7 +145,7 @@ func (u *UserBase) SetProxyRecord(record *core.Record) {
 }
 
 func (u *UserBase) fetchUser(ctx AppContext, userId string) error {
-	user, err := ctx.App.FindRecordById(CollectionUsers, userId)
+	user, err := ctx.App.FindRecordById(schema.CollectionUsers, userId)
 	if err != nil {
 		return err
 	}
@@ -163,7 +160,7 @@ func (u *UserBase) ID() string {
 }
 
 func (u *UserBase) Name() string {
-	return u.GetString("name")
+	return u.GetString(schema.UserSchema.Name)
 }
 
 func (u *UserBase) IsSafeDrop() bool {
@@ -171,11 +168,11 @@ func (u *UserBase) IsSafeDrop() bool {
 }
 
 func (u *UserBase) IsInJail() bool {
-	return u.GetBool("isInJail")
+	return u.GetBool(schema.UserSchema.IsInJail)
 }
 
 func (u *UserBase) SetIsInJail(b bool) {
-	u.Set("isInJail", b)
+	u.Set(schema.UserSchema.IsInJail, b)
 }
 
 func (u *UserBase) CurrentCell() (Cell, bool) {
@@ -186,43 +183,43 @@ func (u *UserBase) CurrentCell() (Cell, bool) {
 }
 
 func (u *UserBase) Points() int {
-	return u.GetInt("points")
+	return u.GetInt(schema.UserSchema.Points)
 }
 
 func (u *UserBase) SetPoints(points int) {
-	u.Set("points", points)
+	u.Set(schema.UserSchema.Points, points)
 }
 
 func (u *UserBase) DropsInARow() int {
-	return u.GetInt("dropsInARow")
+	return u.GetInt(schema.UserSchema.DropsInARow)
 }
 
 func (u *UserBase) SetDropsInARow(drops int) {
-	u.Set("dropsInARow", drops)
+	u.Set(schema.UserSchema.DropsInARow, drops)
 }
 
 func (u *UserBase) CellsPassed() int {
-	return u.GetInt("cellsPassed")
+	return u.GetInt(schema.UserSchema.CellsPassed)
 }
 
 func (u *UserBase) setCellsPassed(cellsPassed int) {
-	u.Set("cellsPassed", cellsPassed)
+	u.Set(schema.UserSchema.CellsPassed, cellsPassed)
 }
 
 func (u *UserBase) MaxInventorySlots() int {
-	return u.GetInt("maxInventorySlots")
+	return u.GetInt(schema.UserSchema.MaxInventorySlots)
 }
 
 func (u *UserBase) SetMaxInventorySlots(maxInventorySlots int) {
-	u.Set("maxInventorySlots", maxInventorySlots)
+	u.Set(schema.UserSchema.MaxInventorySlots, maxInventorySlots)
 }
 
 func (u *UserBase) ItemWheelsCount() int {
-	return u.GetInt("itemWheelsCount")
+	return u.GetInt(schema.UserSchema.ItemWheelsCount)
 }
 
 func (u *UserBase) SetItemWheelsCount(itemWheelsCount int) {
-	u.Set("itemWheelsCount", itemWheelsCount)
+	u.Set(schema.UserSchema.ItemWheelsCount, itemWheelsCount)
 }
 
 func (u *UserBase) Move(ctx AppContext, steps int) ([]*MoveResult, error) {
@@ -254,7 +251,7 @@ func (u *UserBase) Move(ctx AppContext, steps int) ([]*MoveResult, error) {
 		return nil, err
 	}
 
-	u.lastAction.SetProxyRecord(core.NewRecord(GameCollections.Get(CollectionActions)))
+	u.lastAction.SetProxyRecord(core.NewRecord(GameCollections.Get(schema.CollectionActions)))
 	u.lastAction.SetUser(u.ID())
 	u.lastAction.SetType(ActionTypeMove)
 	u.lastAction.SetDiceRoll(steps)
@@ -414,19 +411,19 @@ func (u *UserBase) Stats() *Stats {
 }
 
 func (u *UserBase) Balance() int {
-	return u.GetInt("balance")
+	return u.GetInt(schema.UserSchema.Balance)
 }
 
 func (u *UserBase) SetBalance(balance int) {
-	u.Set("balance", balance)
+	u.Set(schema.UserSchema.Balance, balance)
 }
 
 func (u *UserBase) IsStreamLive() bool {
-	return u.GetBool("is_stream_live")
+	return u.GetBool(schema.UserSchema.IsStreamLive)
 }
 
 func (u *UserBase) SetIsStreamLive(isLive bool) {
-	u.Set("is_stream_live", isLive)
+	u.Set(schema.UserSchema.IsStreamLive, isLive)
 }
 
 func (u *UserBase) isInAction() bool {

@@ -4,6 +4,7 @@ import (
 	"adventuria/internal/adventuria"
 	"adventuria/internal/adventuria/actions"
 	"adventuria/internal/adventuria/cells"
+	"adventuria/internal/adventuria/schema"
 	"adventuria/internal/adventuria/tests"
 	"testing"
 
@@ -70,7 +71,7 @@ func createChangeMinGamePriceItem() (*core.Record, error) {
 		return nil, err
 	}
 
-	record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionItems))
+	record := core.NewRecord(adventuria.GameCollections.Get(schema.CollectionItems))
 	record.Set("name", "Change Min Activity Price")
 	record.Set("effects", []string{effectRecord.Id})
 	record.Set("icon", icon)
@@ -88,7 +89,7 @@ func createChangeMinGamePriceItem() (*core.Record, error) {
 }
 
 func createChangeMinGamePriceEffect() (*core.Record, error) {
-	record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionEffects))
+	record := core.NewRecord(adventuria.GameCollections.Get(schema.CollectionEffects))
 	record.Set("name", "Change Min Activity Price")
 	record.Set("type", "changeMinGamePrice")
 	record.Set("value", 20)

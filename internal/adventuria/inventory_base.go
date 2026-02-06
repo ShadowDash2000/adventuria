@@ -1,12 +1,12 @@
 package adventuria
 
 import (
+	"adventuria/internal/adventuria/schema"
 	"adventuria/pkg/helper"
 	"errors"
 
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
-	"github.com/pocketbase/pocketbase/tools/types"
 )
 
 type InventoryBase struct {
@@ -33,54 +33,45 @@ func NewInventory(ctx AppContext, user User, maxSlots int) (Inventory, error) {
 }
 
 func (i *InventoryBase) bindHooks(ctx AppContext) {
-	i.hookIds = make([]string, 3)
+	i.hookIds = make([]string, 2)
 
-	i.hookIds[0] = ctx.App.OnRecordAfterDeleteSuccess(CollectionInventory).BindFunc(func(e *core.RecordEvent) error {
+	i.hookIds[0] = ctx.App.OnRecordAfterDeleteSuccess(schema.CollectionInventory).BindFunc(func(e *core.RecordEvent) error {
 		if _, ok := i.items[e.Record.Id]; ok {
 			delete(i.items, e.Record.Id)
 		}
 		return e.Next()
 	})
-	i.hookIds[1] = ctx.App.OnRecordEnrich(CollectionInventory).BindFunc(func(e *core.RecordEnrichEvent) error {
+	i.hookIds[1] = ctx.App.OnRecordEnrich(schema.CollectionInventory).BindFunc(func(e *core.RecordEnrichEvent) error {
 		if _, ok := i.items[e.Record.Id]; ok {
 			e.Record.WithCustomData(true)
 			e.Record.Set("can_use", i.CanUseItem(AppContext{App: e.App}, e.Record.Id))
 		}
 		return e.Next()
 	})
-	i.hookIds[2] = ctx.App.OnRecordCreate(CollectionInventory).BindFunc(func(e *core.RecordEvent) error {
-		if e.Record.GetBool("isActive") {
-			e.Record.Set("activated", types.NowDateTime())
-		}
-		return e.Next()
-	})
 }
 
 func (i *InventoryBase) Close(ctx AppContext) {
-	ctx.App.OnRecordAfterDeleteSuccess(CollectionInventory).Unbind(i.hookIds[0])
-	ctx.App.OnRecordEnrich(CollectionInventory).Unbind(i.hookIds[1])
-	ctx.App.OnRecordCreate(CollectionInventory).Unbind(i.hookIds[2])
+	ctx.App.OnRecordAfterDeleteSuccess(schema.CollectionInventory).Unbind(i.hookIds[0])
+	ctx.App.OnRecordEnrich(schema.CollectionInventory).Unbind(i.hookIds[1])
 	for _, item := range i.items {
 		item.Close(ctx)
 	}
 }
 
 func (i *InventoryBase) fetchInventory(ctx AppContext) error {
-	invItems, err := ctx.App.FindRecordsByFilter(
-		CollectionInventory,
-		"user.id = {:userId}",
-		"activated,created",
-		0,
-		0,
-		dbx.Params{"userId": i.user.ID()},
-	)
+	var records []*core.Record
+	err := ctx.App.
+		RecordQuery(schema.CollectionInventory).
+		Where(dbx.HashExp{schema.InventorySchema.User: i.user.ID()}).
+		OrderBy(schema.InventorySchema.Activated, "created").
+		All(&records)
 	if err != nil {
 		return err
 	}
 
 	i.items = make(map[string]Item)
-	for _, invItem := range invItems {
-		i.items[invItem.Id], err = NewItemFromInventoryRecord(ctx, i.user, invItem)
+	for _, record := range records {
+		i.items[record.Id], err = NewItemFromInventoryRecord(ctx, i.user, record)
 		if err != nil {
 			return err
 		}
@@ -139,10 +130,10 @@ func (i *InventoryBase) AddItem(ctx AppContext, item ItemRecord) (string, error)
 		return "", nil
 	}
 
-	record := core.NewRecord(GameCollections.Get(CollectionInventory))
-	record.Set("user", i.user.ID())
-	record.Set("item", item.ID())
-	record.Set("isActive", item.IsActiveByDefault())
+	record := core.NewRecord(GameCollections.Get(schema.CollectionInventory))
+	record.Set(schema.InventorySchema.User, i.user.ID())
+	record.Set(schema.InventorySchema.Item, item.ID())
+	record.Set(schema.InventorySchema.IsActive, item.IsActiveByDefault())
 	err = ctx.App.Save(record)
 	if err != nil {
 		return "", err

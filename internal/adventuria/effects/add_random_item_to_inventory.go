@@ -2,6 +2,7 @@ package effects
 
 import (
 	"adventuria/internal/adventuria"
+	"adventuria/internal/adventuria/schema"
 	"adventuria/pkg/event"
 	"adventuria/pkg/helper"
 	"errors"
@@ -57,7 +58,7 @@ func (ef *AddRandomItemToInventoryEffect) Verify(ctx adventuria.AppContext, valu
 	var records []struct {
 		Id string `db:"id"`
 	}
-	err = ctx.App.RecordQuery(adventuria.GameCollections.Get(adventuria.CollectionItems)).
+	err = ctx.App.RecordQuery(adventuria.GameCollections.Get(schema.CollectionItems)).
 		Where(dbx.In("id", idsAny...)).
 		Select("id").
 		All(&records)

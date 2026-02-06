@@ -2,6 +2,7 @@ package cells
 
 import (
 	"adventuria/internal/adventuria"
+	"adventuria/internal/adventuria/schema"
 	"fmt"
 	"math/rand/v2"
 
@@ -13,7 +14,7 @@ func newActivityFilterById(app core.App, filterId string) (adventuria.ActivityFi
 	var filter adventuria.ActivityFilterRecord
 	if filterId != "" {
 		filterRecord, err := app.FindRecordById(
-			adventuria.GameCollections.Get(adventuria.CollectionActivityFilter),
+			adventuria.GameCollections.Get(schema.CollectionActivityFilter),
 			filterId,
 		)
 		if err != nil {
@@ -24,7 +25,7 @@ func newActivityFilterById(app core.App, filterId string) (adventuria.ActivityFi
 	} else {
 		filter = adventuria.NewActivityFilterFromRecord(
 			core.NewRecord(
-				adventuria.GameCollections.Get(adventuria.CollectionActivityFilter),
+				adventuria.GameCollections.Get(schema.CollectionActivityFilter),
 			),
 		)
 	}
@@ -97,7 +98,7 @@ func updateActivitiesFromFilter(app core.App, user adventuria.User, filter adven
 }
 
 func fetchActivitiesByFilter(app core.App, filter adventuria.ActivityFilterRecord) ([]string, error) {
-	countQuery := app.RecordQuery(adventuria.GameCollections.Get(adventuria.CollectionActivities))
+	countQuery := app.RecordQuery(adventuria.GameCollections.Get(schema.CollectionActivities))
 	if filter != nil {
 		countQuery = setFilters(filter, countQuery)
 	}
@@ -121,7 +122,7 @@ func fetchActivitiesByFilter(app core.App, filter adventuria.ActivityFilterRecor
 		offset = rand.N(totalCount - maxPoolSize + 1)
 	}
 
-	q := app.RecordQuery(adventuria.GameCollections.Get(adventuria.CollectionActivities)).
+	q := app.RecordQuery(adventuria.GameCollections.Get(schema.CollectionActivities)).
 		Select("id").
 		Limit(int64(limit)).
 		Offset(int64(offset))

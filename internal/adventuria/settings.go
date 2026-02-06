@@ -1,6 +1,7 @@
 package adventuria
 
 import (
+	"adventuria/internal/adventuria/schema"
 	"adventuria/pkg/event"
 	"database/sql"
 	"errors"
@@ -35,14 +36,13 @@ func NewSettings(ctx AppContext) (*Settings, error) {
 }
 
 func DefaultSettings() (*core.Record, error) {
-	record := core.NewRecord(GameCollections.Get(CollectionSettings))
-	record.Set("eventDateStart", types.NowDateTime())
-	record.Set("currentWeek", 0)
-	record.Set("timerTimeLimit", 14400)
-	record.Set("limitExceedPenalty", 2)
-	record.Set("pointsForDrop", -2)
-	record.Set("dropsToJail", 2)
-	record.Set("igdbParseSettings", "game_type = 0 & platforms = {6}")
+	record := core.NewRecord(GameCollections.Get(schema.CollectionSettings))
+	record.Set(schema.SettingsSchema.EventDateStart, types.NowDateTime())
+	record.Set(schema.SettingsSchema.CurrentWeek, 0)
+	record.Set(schema.SettingsSchema.TimerTimeLimit, 14400)
+	record.Set(schema.SettingsSchema.LimitExceedPenalty, 2)
+	record.Set(schema.SettingsSchema.PointsForDrop, -2)
+	record.Set(schema.SettingsSchema.DropsToJail, 2)
 	return record, nil
 }
 
@@ -51,21 +51,21 @@ func (s *Settings) initHooks() {
 }
 
 func (s *Settings) bindHooks(ctx AppContext) {
-	ctx.App.OnRecordAfterCreateSuccess(CollectionSettings).BindFunc(func(e *core.RecordEvent) error {
+	ctx.App.OnRecordAfterCreateSuccess(schema.CollectionSettings).BindFunc(func(e *core.RecordEvent) error {
 		s.SetProxyRecord(e.Record)
 		return e.Next()
 	})
-	ctx.App.OnRecordAfterUpdateSuccess(CollectionSettings).BindFunc(func(e *core.RecordEvent) error {
+	ctx.App.OnRecordAfterUpdateSuccess(schema.CollectionSettings).BindFunc(func(e *core.RecordEvent) error {
 		s.SetProxyRecord(e.Record)
 		return e.Next()
 	})
-	ctx.App.OnRecordUpdate(CollectionSettings).BindFunc(func(e *core.RecordEvent) error {
-		if ok := e.Record.GetBool("kill_parser"); ok {
+	ctx.App.OnRecordUpdate(schema.CollectionSettings).BindFunc(func(e *core.RecordEvent) error {
+		if ok := e.Record.GetBool(schema.SettingsSchema.KillParser); ok {
 			_, err := s.onKillParser.Trigger(&OnKillParserEvent{})
 			if err != nil {
 				e.App.Logger().Error("Failed to trigger kill parser event", "err", err)
 			}
-			e.Record.Set("kill_parser", false)
+			e.Record.Set(schema.SettingsSchema.KillParser, false)
 		}
 		return e.Next()
 	})
@@ -73,7 +73,7 @@ func (s *Settings) bindHooks(ctx AppContext) {
 
 func (s *Settings) init(ctx AppContext) error {
 	record, err := ctx.App.FindFirstRecordByFilter(
-		CollectionSettings,
+		schema.CollectionSettings,
 		"",
 	)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
@@ -99,15 +99,15 @@ func (s *Settings) init(ctx AppContext) error {
 }
 
 func (s *Settings) EventDateStart() types.DateTime {
-	return s.GetDateTime("eventDateStart")
+	return s.GetDateTime(schema.SettingsSchema.EventDateStart)
 }
 
 func (s *Settings) CurrentWeek() int {
-	return s.GetInt("currentWeek")
+	return s.GetInt(schema.SettingsSchema.CurrentWeek)
 }
 
 func (s *Settings) SetCurrentWeek(w int) {
-	s.Set("currentWeek", w)
+	s.Set(schema.SettingsSchema.CurrentWeek, w)
 }
 
 func (s *Settings) DaysPassedFromEventStart() int {
@@ -119,23 +119,23 @@ func (s *Settings) GetCurrentWeekNum() int {
 }
 
 func (s *Settings) TimerTimeLimit() int {
-	return s.GetInt("timerTimeLimit")
+	return s.GetInt(schema.SettingsSchema.TimerTimeLimit)
 }
 
 func (s *Settings) LimitExceedPenalty() int {
-	return s.GetInt("limitExceedPenalty")
+	return s.GetInt(schema.SettingsSchema.LimitExceedPenalty)
 }
 
 func (s *Settings) BlockAllActions() bool {
-	return s.GetBool("blockAllActions")
+	return s.GetBool(schema.SettingsSchema.BlockAllActions)
 }
 
 func (s *Settings) PointsForDrop() int {
-	return s.GetInt("pointsForDrop")
+	return s.GetInt(schema.SettingsSchema.PointsForDrop)
 }
 
 func (s *Settings) DropsToJail() int {
-	return s.GetInt("dropsToJail")
+	return s.GetInt(schema.SettingsSchema.DropsToJail)
 }
 
 func (s *Settings) NextTimerResetDate() types.DateTime {
@@ -181,27 +181,27 @@ func (s *Settings) RegisterSettingsCron(ctx AppContext) {
 }
 
 func (s *Settings) IGDBGamesParsed() uint64 {
-	return uint64(s.GetInt("igdb_games_parsed"))
+	return uint64(s.GetInt(schema.SettingsSchema.IgdbGamesParsed))
 }
 
 func (s *Settings) SetIGDBGamesParsed(count uint64) {
-	s.Set("igdb_games_parsed", count)
+	s.Set(schema.SettingsSchema.IgdbGamesParsed, count)
 }
 
 func (s *Settings) DisableIGDBParser() bool {
-	return s.GetBool("disable_igdb_parser")
+	return s.GetBool(schema.SettingsSchema.DisableIgdbParser)
 }
 
 func (s *Settings) DisableSteamParser() bool {
-	return s.GetBool("disable_steam_parser")
+	return s.GetBool(schema.SettingsSchema.DisableSteamParser)
 }
 
 func (s *Settings) DisableCheapsharkParser() bool {
-	return s.GetBool("disable_cheapshark_parser")
+	return s.GetBool(schema.SettingsSchema.DisableCheapsharkParser)
 }
 
 func (s *Settings) DisableHLTBParser() bool {
-	return s.GetBool("disable_hltb_parser")
+	return s.GetBool(schema.SettingsSchema.DisableHltbParser)
 }
 
 func (s *Settings) OnKillParser() *event.Hook[*OnKillParserEvent] {
@@ -209,5 +209,5 @@ func (s *Settings) OnKillParser() *event.Hook[*OnKillParserEvent] {
 }
 
 func (s *Settings) IgdbForceUpdateGames() bool {
-	return s.GetBool("igdb_force_update_games")
+	return s.GetBool(schema.SettingsSchema.IgdbForceUpdateGames)
 }

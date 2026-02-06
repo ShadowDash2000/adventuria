@@ -1,6 +1,7 @@
 package adventuria
 
 import (
+	"adventuria/internal/adventuria/schema"
 	"slices"
 
 	"github.com/pocketbase/pocketbase/core"
@@ -16,7 +17,7 @@ func (c *CellRecord) ID() string {
 }
 
 func (c *CellRecord) Sort() int {
-	return c.GetInt("sort")
+	return c.GetInt(schema.CellSchema.Sort)
 }
 
 func (c *CellRecord) Type() CellType {
@@ -40,56 +41,56 @@ func (c *CellRecord) InCategory(category string) bool {
 }
 
 func (c *CellRecord) Filter() string {
-	return c.GetString("filter")
+	return c.GetString(schema.CellSchema.Filter)
 }
 
-func (c *CellRecord) AudioPresets() []string {
-	return c.GetStringSlice("audioPresets")
+func (c *CellRecord) AudioPreset() []string {
+	return c.GetStringSlice(schema.CellSchema.AudioPreset)
 }
 
 func (c *CellRecord) Icon() string {
-	return c.GetString("icon")
+	return c.GetString(schema.CellSchema.Icon)
 }
 
 func (c *CellRecord) Name() string {
-	return c.GetString("name")
+	return c.GetString(schema.CellSchema.Name)
 }
 
 func (c *CellRecord) Points() int {
-	return c.GetInt("points")
+	return c.GetInt(schema.CellSchema.Points)
 }
 
 func (c *CellRecord) Coins() int {
-	return c.GetInt("coins")
+	return c.GetInt(schema.CellSchema.Coins)
 }
 
 func (c *CellRecord) Description() string {
-	return c.GetString("description")
+	return c.GetString(schema.CellSchema.Description)
 }
 
 func (c *CellRecord) Color() string {
-	return c.GetString("color")
+	return c.GetString(schema.CellSchema.Color)
 }
 
 func (c *CellRecord) CantDrop() bool {
-	return c.GetBool("cantDrop")
+	return c.GetBool(schema.CellSchema.CantDrop)
 }
 
 func (c *CellRecord) CantReroll() bool {
-	return c.GetBool("cantReroll")
+	return c.GetBool(schema.CellSchema.CantReroll)
 }
 
 func (c *CellRecord) IsSafeDrop() bool {
-	return c.GetBool("isSafeDrop")
+	return c.GetBool(schema.CellSchema.IsSafeDrop)
 }
 
 func (c *CellRecord) IsCustomFilterNotAllowed() bool {
-	return c.GetBool("is_custom_filter_not_allowed")
+	return c.GetBool(schema.CellSchema.IsCustomFilterNotAllowed)
 }
 
 func (c *CellRecord) Value() string {
-	return c.GetString("value")
+	return c.GetString(schema.CellSchema.Value)
 }
 func (c *CellRecord) UnmarshalValue(result any) error {
-	return c.UnmarshalJSONField("value", result)
+	return c.UnmarshalJSONField(schema.CellSchema.Value, result)
 }

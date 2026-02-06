@@ -2,6 +2,7 @@ package effects
 
 import (
 	"adventuria/internal/adventuria"
+	"adventuria/internal/adventuria/schema"
 	"adventuria/pkg/event"
 	"fmt"
 	"slices"
@@ -27,7 +28,7 @@ func (ef *AddGameGenreEffect) CanUse(appCtx adventuria.AppContext, ctx adventuri
 
 	if filterId := cell.Filter(); filterId != "" {
 		filterRecord, err := appCtx.App.FindRecordById(
-			adventuria.CollectionActivityFilter,
+			schema.CollectionActivityFilter,
 			filterId,
 		)
 		if err != nil {
@@ -73,7 +74,7 @@ func (ef *AddGameGenreEffect) Subscribe(
 
 				if genreId, ok := e.Data["genre_id"].(string); ok {
 					_, err := e.AppContext.App.FindRecordById(
-						adventuria.CollectionGenres,
+						schema.CollectionGenres,
 						genreId,
 					)
 					if err != nil {

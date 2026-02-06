@@ -2,6 +2,7 @@ package hltb
 
 import (
 	"adventuria/internal/adventuria"
+	"adventuria/internal/adventuria/schema"
 	"context"
 	"math"
 
@@ -44,7 +45,7 @@ func (p *ParserController) parseGames(ctx context.Context) error {
 
 		gameRecord := NewHowLongToBeatRecordFromRecord(
 			core.NewRecord(
-				adventuria.GameCollections.Get(adventuria.CollectionHowLongToBeat),
+				adventuria.GameCollections.Get(schema.CollectionHowLongToBeat),
 			),
 		)
 		gameRecord.SetIdDb(game.GameID)
@@ -60,7 +61,7 @@ func (p *ParserController) parseGames(ctx context.Context) error {
 
 func (p *ParserController) isGameExist(ctx context.Context, id int) bool {
 	err := adventuria.PocketBase.
-		RecordQuery(adventuria.GameCollections.Get(adventuria.CollectionHowLongToBeat)).
+		RecordQuery(adventuria.GameCollections.Get(schema.CollectionHowLongToBeat)).
 		WithContext(ctx).
 		Where(dbx.HashExp{"id_db": id}).
 		One(&core.Record{})

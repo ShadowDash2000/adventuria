@@ -6,6 +6,7 @@ import (
 	"adventuria/internal/adventuria/games/cheapshark"
 	"adventuria/internal/adventuria/games/hltb"
 	"adventuria/internal/adventuria/games/steam"
+	"adventuria/internal/adventuria/schema"
 	"context"
 	"database/sql"
 	"errors"
@@ -105,7 +106,7 @@ func (p *ParserController) parseGames(ctx context.Context, limit uint64, forceUp
 
 		records := make([]games.UpdatableRecord, len(msg.Games))
 		for i, game := range msg.Games {
-			record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionActivities))
+			record := core.NewRecord(adventuria.GameCollections.Get(schema.CollectionActivities))
 
 			gameRecord := games.NewGameFromRecord(record)
 			gameRecord.SetIdDb(game.IdDb)
@@ -215,7 +216,7 @@ func (p *ParserController) saveCompaniesFromGames(ctx context.Context, gs []game
 
 		compRecords := make([]games.UpdatableRecord, len(companies))
 		for i, company := range companies {
-			record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionCompanies))
+			record := core.NewRecord(adventuria.GameCollections.Get(schema.CollectionCompanies))
 
 			companyRecord := games.NewCompanyFromRecord(record)
 			companyRecord.SetIdDb(company.IdDb)
@@ -257,7 +258,7 @@ func (p *ParserController) saveKeywordsFromGames(ctx context.Context, gs []games
 
 	tagRecords := make([]games.UpdatableRecord, len(tags))
 	for i, tag := range tags {
-		record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionTags))
+		record := core.NewRecord(adventuria.GameCollections.Get(schema.CollectionTags))
 
 		tagRecord := games.NewTagFromRecord(record)
 		tagRecord.SetIdDb(tag.IdDb)
@@ -294,7 +295,7 @@ func (p *ParserController) saveThemesFromGames(ctx context.Context, gs []games.G
 
 	themeRecords := make([]games.UpdatableRecord, len(themes))
 	for i, tag := range themes {
-		record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionThemes))
+		record := core.NewRecord(adventuria.GameCollections.Get(schema.CollectionThemes))
 
 		themeRecord := games.NewThemeFromRecord(record)
 		themeRecord.SetIdDb(tag.IdDb)
@@ -323,7 +324,7 @@ func (p *ParserController) parsePlatforms(ctx context.Context, limit uint64) err
 
 		records := make([]games.UpdatableRecord, len(msg.Platforms))
 		for i, platform := range msg.Platforms {
-			record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionPlatforms))
+			record := core.NewRecord(adventuria.GameCollections.Get(schema.CollectionPlatforms))
 
 			platformRecord := games.NewPlatformFromRecord(record)
 			platformRecord.SetIdDb(platform.IdDb)
@@ -358,7 +359,7 @@ func (p *ParserController) parseCompanies(ctx context.Context, limit uint64) err
 
 		records := make([]games.UpdatableRecord, len(msg.Companies))
 		for i, company := range msg.Companies {
-			record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionCompanies))
+			record := core.NewRecord(adventuria.GameCollections.Get(schema.CollectionCompanies))
 
 			companyRecord := games.NewCompanyFromRecord(record)
 			companyRecord.SetIdDb(company.IdDb)
@@ -393,7 +394,7 @@ func (p *ParserController) parseGenres(ctx context.Context, limit uint64) error 
 
 		records := make([]games.UpdatableRecord, len(msg.Genres))
 		for i, genre := range msg.Genres {
-			record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionGenres))
+			record := core.NewRecord(adventuria.GameCollections.Get(schema.CollectionGenres))
 
 			genreRecord := games.NewGenreFromRecord(record)
 			genreRecord.SetIdDb(genre.IdDb)
@@ -423,7 +424,7 @@ func (p *ParserController) parseGameTypes(ctx context.Context) error {
 
 	records := make([]games.UpdatableRecord, len(gameTypes))
 	for i, gameType := range gameTypes {
-		record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionGameTypes))
+		record := core.NewRecord(adventuria.GameCollections.Get(schema.CollectionGameTypes))
 
 		gameTypeRecord := games.NewGameTypeFromRecord(record)
 		gameTypeRecord.SetIdDb(gameType.IdDb)
@@ -554,7 +555,7 @@ func (p *ParserController) findHltbByGameName(ctx context.Context, gameName stri
 
 	var records []*core.Record
 	err := adventuria.PocketBase.
-		RecordQuery(adventuria.GameCollections.Get(adventuria.CollectionHowLongToBeat)).
+		RecordQuery(adventuria.GameCollections.Get(schema.CollectionHowLongToBeat)).
 		WithContext(ctx).
 		Where(dbx.Like("name", parts...)).
 		All(&records)
@@ -678,7 +679,7 @@ func (p *ParserController) findPriceBySteamAppid(ctx context.Context, appId uint
 func (p *ParserController) findSteamSpyByAppId(ctx context.Context, appId uint) (*steam.SteamSpyRecord, error) {
 	var record core.Record
 	err := adventuria.PocketBase.
-		RecordQuery(adventuria.GameCollections.Get(adventuria.CollectionSteamSpy)).
+		RecordQuery(adventuria.GameCollections.Get(schema.CollectionSteamSpy)).
 		WithContext(ctx).
 		Where(dbx.HashExp{"id_db": appId}).
 		One(&record)
@@ -692,7 +693,7 @@ func (p *ParserController) findSteamSpyByAppId(ctx context.Context, appId uint) 
 func (p *ParserController) findCheapsharkByAppId(ctx context.Context, appId uint) (*cheapshark.CheapSharkRecord, error) {
 	var record core.Record
 	err := adventuria.PocketBase.
-		RecordQuery(adventuria.GameCollections.Get(adventuria.CollectionCheapshark)).
+		RecordQuery(adventuria.GameCollections.Get(schema.CollectionCheapshark)).
 		WithContext(ctx).
 		Where(dbx.HashExp{"id_db": appId}).
 		One(&record)

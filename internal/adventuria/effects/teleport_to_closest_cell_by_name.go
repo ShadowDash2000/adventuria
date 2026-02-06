@@ -2,6 +2,7 @@ package effects
 
 import (
 	"adventuria/internal/adventuria"
+	"adventuria/internal/adventuria/schema"
 	"adventuria/pkg/event"
 	"errors"
 	"fmt"
@@ -67,7 +68,7 @@ func (ef *TeleportToClosestCellByNameEffect) Verify(ctx adventuria.AppContext, v
 	var records []struct {
 		Id string `db:"id"`
 	}
-	err = ctx.App.RecordQuery(adventuria.GameCollections.Get(adventuria.CollectionCells)).
+	err = ctx.App.RecordQuery(adventuria.GameCollections.Get(schema.CollectionCells)).
 		Where(dbx.Or(exp...)).
 		Select("id").
 		All(&records)

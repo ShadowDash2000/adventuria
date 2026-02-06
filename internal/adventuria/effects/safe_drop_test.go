@@ -4,6 +4,7 @@ import (
 	"adventuria/internal/adventuria"
 	"adventuria/internal/adventuria/actions"
 	"adventuria/internal/adventuria/cells"
+	"adventuria/internal/adventuria/schema"
 	"adventuria/internal/adventuria/tests"
 	"testing"
 
@@ -81,7 +82,7 @@ func createSafeDropItem() (*core.Record, error) {
 		return nil, err
 	}
 
-	record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionItems))
+	record := core.NewRecord(adventuria.GameCollections.Get(schema.CollectionItems))
 	record.Set("name", "Safe Drop")
 	record.Set("effects", []string{effectRecord.Id})
 	record.Set("icon", icon)
@@ -97,7 +98,7 @@ func createSafeDropItem() (*core.Record, error) {
 }
 
 func createSafeDropEffect() (*core.Record, error) {
-	record := core.NewRecord(adventuria.GameCollections.Get(adventuria.CollectionEffects))
+	record := core.NewRecord(adventuria.GameCollections.Get(schema.CollectionEffects))
 	record.Set("name", "Safe Drop")
 	record.Set("type", "safeDrop")
 	err := adventuria.PocketBase.Save(record)

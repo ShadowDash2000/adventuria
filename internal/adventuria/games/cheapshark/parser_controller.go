@@ -2,6 +2,7 @@ package cheapshark
 
 import (
 	"adventuria/internal/adventuria"
+	"adventuria/internal/adventuria/schema"
 	"context"
 
 	"github.com/pocketbase/dbx"
@@ -44,7 +45,7 @@ func (p *ParserController) parseCheapshark(ctx context.Context) error {
 
 		dealRecord := NewCheapsharkRecordFromRecord(
 			core.NewRecord(
-				adventuria.GameCollections.Get(adventuria.CollectionCheapshark),
+				adventuria.GameCollections.Get(schema.CollectionCheapshark),
 			),
 		)
 		dealRecord.SetIdDb(deal.SteamAppID)
@@ -60,7 +61,7 @@ func (p *ParserController) parseCheapshark(ctx context.Context) error {
 
 func (p *ParserController) isDealExist(ctx context.Context, id uint) bool {
 	err := adventuria.PocketBase.
-		RecordQuery(adventuria.GameCollections.Get(adventuria.CollectionCheapshark)).
+		RecordQuery(adventuria.GameCollections.Get(schema.CollectionCheapshark)).
 		WithContext(ctx).
 		Where(dbx.HashExp{"id_db": id}).
 		One(&core.Record{})
