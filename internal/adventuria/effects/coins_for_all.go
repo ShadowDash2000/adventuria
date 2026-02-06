@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/pocketbase/pocketbase/core/validators"
+	"github.com/pocketbase/dbx"
 )
 
 type CoinsForAllEffect struct {
@@ -31,20 +31,25 @@ func (ef *CoinsForAllEffect) Subscribe(
 		ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*event.Result, error) {
 			if e.InvItemId == ctx.InvItemID {
 				ctx.User.SetBalance(ctx.User.Balance() + decodedValue.CoinsForPlayer)
-				/*go func() {
-					for _, user := range adventuria.GameUsers.GetAll() {
-						if user.ID() == ctx.User.ID() {
-							continue
-						}
-						user.SetBalance(user.Balance() + decodedValue.CoinsForOther)
-						if err := e.AppContext.App.Save(user.ProxyRecord()); err != nil {
-							e.AppContext.App.Logger().Error(
-								"Failed to save user in coinsForAll effect",
-								"error", err,
-							)
-						}
-					}
-				}()*/
+
+				query := fmt.Sprintf(
+					"UPDATE %s SET balance = balance + {:coins} WHERE id != {:currentUserId}",
+					adventuria.CollectionUsers,
+				)
+				_, err = e.App.DB().
+					NewQuery(query).
+					Bind(dbx.Params{
+						"coins":         decodedValue.CoinsForOther,
+						"currentUserId": ctx.User.ID(),
+					}).
+					Execute()
+				if err != nil {
+					return &event.Result{
+						Success: false,
+						Error:   "internal error: can't update user balance",
+					}, fmt.Errorf("coinsForAllEffect: %w", err)
+				}
+
 				callback(e.AppContext)
 			}
 
@@ -53,7 +58,7 @@ func (ef *CoinsForAllEffect) Subscribe(
 	}, nil
 }
 
-func (ef *CoinsForAllEffect) Verify(value string) error {
+func (ef *CoinsForAllEffect) Verify(_ adventuria.AppContext, value string) error {
 	_, err := ef.DecodeValue(value)
 	return err
 }
@@ -66,7 +71,6 @@ type CoinsForAllEffectValue struct {
 func (ef *CoinsForAllEffect) DecodeValue(value string) (*CoinsForAllEffectValue, error) {
 	values := strings.Split(value, ";")
 	if len(values) != 2 {
-		return nil, validators.ErrUnsupportedValueType
 		return nil, fmt.Errorf("coinsForAll: invalid value, expected format 'event;value': %s", value)
 	}
 

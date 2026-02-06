@@ -37,6 +37,7 @@ func WithBaseEffects() {
 		"paidMovementInRadius":        adventuria.NewEffect(func() adventuria.Effect { return &PaidMovementInRadiusEffect{} }),
 		"coinsIncrement":              adventuria.NewEffect(func() adventuria.Effect { return &CoinsIncrementEffect{} }),
 		"discountPriceDivide":         adventuria.NewEffect(func() adventuria.Effect { return &DiscountPriceDivideEffect{} }),
+		"coinsForAll":                 adventuria.NewEffect(func() adventuria.Effect { return &CoinsForAllEffect{} }),
 	})
 
 	adventuria.RegisterPersistentEffects(map[string]adventuria.PersistentEffectCreator{
