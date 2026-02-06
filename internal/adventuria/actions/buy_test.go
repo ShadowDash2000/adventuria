@@ -41,9 +41,9 @@ func Test_Buy(t *testing.T) {
 		t.Fatalf("Test_Buy(): Error moving: %s", err)
 	}
 
-	user.SetBalance(2)
-	if err = ctx.App.Save(user.ProxyRecord()); err != nil {
-		t.Fatalf("Test_Buy(): Error saving user: %s", err)
+	err = user.AddBalance(ctx, 2)
+	if err != nil {
+		t.Fatalf("Test_Buy(): Error adding balance: %s", err)
 	}
 
 	res, err := game.DoAction(ctx.App, user.ID(), ActionTypeBuyItem, adventuria.ActionRequest{

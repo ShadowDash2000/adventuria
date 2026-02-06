@@ -31,7 +31,13 @@ func (ef *CoinsForAllEffect) Subscribe(
 	return []event.Unsubscribe{
 		ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*event.Result, error) {
 			if e.InvItemId == ctx.InvItemID {
-				ctx.User.SetBalance(ctx.User.Balance() + decodedValue.CoinsForPlayer)
+				err = ctx.User.AddBalance(e.AppContext, decodedValue.CoinsForPlayer)
+				if err != nil {
+					return &event.Result{
+						Success: false,
+						Error:   "internal error: can't update user balance",
+					}, fmt.Errorf("coinsForAllEffect: %w", err)
+				}
 
 				query := fmt.Sprintf(
 					"UPDATE %s SET %[2]s = %[2]s + {:coins} WHERE id != {:currentUserId}",

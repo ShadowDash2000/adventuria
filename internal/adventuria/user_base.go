@@ -22,6 +22,8 @@ type UserBase struct {
 	hookIds            []string
 	pEffectsUnsubGroup []event.UnsubGroup
 
+	balance int
+
 	onAfterChooseGame   *event.Hook[*OnAfterChooseGameEvent]
 	onAfterReroll       *event.Hook[*OnAfterRerollEvent]
 	onBeforeDrop        *event.Hook[*OnBeforeDropEvent]
@@ -142,6 +144,7 @@ func (u *UserBase) Close(ctx AppContext) {
 func (u *UserBase) SetProxyRecord(record *core.Record) {
 	u.BaseRecordProxy.SetProxyRecord(record)
 	u.UnmarshalJSONField("stats", &u.stats)
+	u.balance = u.GetInt(schema.UserSchema.Balance)
 }
 
 func (u *UserBase) fetchUser(ctx AppContext, userId string) error {
@@ -153,6 +156,10 @@ func (u *UserBase) fetchUser(ctx AppContext, userId string) error {
 	u.SetProxyRecord(user)
 
 	return nil
+}
+
+func (u *UserBase) Refetch(ctx AppContext) error {
+	return u.fetchUser(ctx, u.Id)
 }
 
 func (u *UserBase) ID() string {
@@ -411,11 +418,26 @@ func (u *UserBase) Stats() *Stats {
 }
 
 func (u *UserBase) Balance() int {
-	return u.GetInt(schema.UserSchema.Balance)
+	return u.balance
 }
 
-func (u *UserBase) SetBalance(balance int) {
-	u.Set(schema.UserSchema.Balance, balance)
+func (u *UserBase) AddBalance(ctx AppContext, amount int) error {
+	query := fmt.Sprintf(
+		"UPDATE %s SET %[2]s = %[2]s + {:amount} WHERE id = {:id}",
+		schema.CollectionUsers,
+		schema.UserSchema.Balance,
+	)
+	_, err := ctx.App.DB().NewQuery(query).Bind(dbx.Params{
+		"amount": amount,
+		"id":     u.ID(),
+	}).Execute()
+	if err != nil {
+		return err
+	}
+
+	u.balance += amount
+
+	return nil
 }
 
 func (u *UserBase) IsStreamLive() bool {

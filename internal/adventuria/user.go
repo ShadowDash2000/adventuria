@@ -11,6 +11,7 @@ type User interface {
 	UserEvent
 	Closable
 
+	Refetch(ctx AppContext) error
 	ID() string
 	Name() string
 	IsSafeDrop() bool
@@ -38,7 +39,7 @@ type User interface {
 	Timer() Timer
 	Stats() *Stats
 	Balance() int
-	SetBalance(int)
+	AddBalance(AppContext, int) error
 	IsStreamLive() bool
 	SetIsStreamLive(bool)
 	isInAction() bool

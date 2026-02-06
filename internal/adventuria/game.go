@@ -138,8 +138,10 @@ func (g *Game) DoAction(app core.App, userId string, actionType ActionType, req 
 				"Failed to complete user action",
 				"error", err,
 			)
+			txUser.Close(ctx)
 			return err
 		} else if res.Error != "" {
+			txUser.Close(ctx)
 			return errors.New(res.Error)
 		}
 
@@ -196,6 +198,14 @@ func (g *Game) DoAction(app core.App, userId string, actionType ActionType, req 
 		}, fmt.Errorf("doAction(): %w", err)
 	}
 
+	err = txUser.Refetch(ctx)
+	if err != nil {
+		return &ActionResult{
+			Success: false,
+			Error:   "internal error",
+		}, fmt.Errorf("doAction(): %w", err)
+	}
+
 	return res, nil
 }
 
@@ -241,10 +251,12 @@ func (g *Game) UseItem(app core.App, userId string, req UseItemRequest) error {
 		})
 		if eventRes != nil && !eventRes.Success {
 			onUseFail()
+			txUser.Close(ctx)
 			return errors.New(eventRes.Error)
 		}
 		if err != nil {
 			onUseFail()
+			txUser.Close(ctx)
 			return err
 		}
 
@@ -280,6 +292,11 @@ func (g *Game) UseItem(app core.App, userId string, req UseItemRequest) error {
 		return err
 	}
 
+	err = txUser.Refetch(ctx)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -301,7 +318,10 @@ func (g *Game) DropItem(app core.App, userId, itemId string) error {
 	}
 
 	if itemPrice := item.Price(); itemPrice > 0 {
-		user.SetBalance(user.Balance() + itemPrice/2)
+		err = user.AddBalance(ctx, itemPrice/2)
+		if err != nil {
+			return err
+		}
 
 		err = app.Save(user.ProxyRecord())
 		if err != nil {
