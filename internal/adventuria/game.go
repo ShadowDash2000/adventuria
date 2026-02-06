@@ -108,6 +108,7 @@ func (g *Game) DoAction(app core.App, userId string, actionType ActionType, req 
 	}
 
 	user.setIsInAction(true)
+	defer user.setIsInAction(false)
 
 	if ok := GameActions.CanDo(ctx, user, actionType); !ok {
 		return &ActionResult{
@@ -148,7 +149,6 @@ func (g *Game) DoAction(app core.App, userId string, actionType ActionType, req 
 		return nil
 	})
 	if err != nil {
-		user.setIsInAction(false)
 		if res != nil {
 			return res, err
 		}
@@ -222,6 +222,7 @@ func (g *Game) UseItem(app core.App, userId string, req UseItemRequest) error {
 	}
 
 	user.setIsInAction(true)
+	defer user.setIsInAction(false)
 
 	var (
 		eventRes *event.Result
@@ -263,7 +264,6 @@ func (g *Game) UseItem(app core.App, userId string, req UseItemRequest) error {
 		return onUseSuccess()
 	})
 	if err != nil {
-		user.setIsInAction(false)
 		return err
 	}
 
