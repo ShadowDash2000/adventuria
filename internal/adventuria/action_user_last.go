@@ -78,7 +78,7 @@ func fetchLastUserAction(ctx AppContext, userId string) (*core.Record, error) {
 	err := ctx.App.
 		RecordQuery(schema.CollectionActions).
 		Where(dbx.HashExp{schema.ActionSchema.User: userId}).
-		OrderBy("created DESC").
+		OrderBy("created DESC", "rowid DESC").
 		Limit(1).
 		One(&record)
 	if err != nil {
