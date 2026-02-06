@@ -32,12 +32,6 @@ func (ef *CoinsIncrementEffect) Subscribe(
 			ctx.User.OnAfterItemSave().BindFunc(func(e *adventuria.OnAfterItemSave) (*event.Result, error) {
 				if e.Item.IDInventory() == ctx.InvItemID {
 					ctx.User.SetBalance(ctx.User.Balance() + value.Value)
-					if err = e.App.Save(ctx.User.ProxyRecord()); err != nil {
-						return &event.Result{
-							Success: false,
-							Error:   "internal error: failed to save user",
-						}, nil
-					}
 					callback(e.AppContext)
 				}
 

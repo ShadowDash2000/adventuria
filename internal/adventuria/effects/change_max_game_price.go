@@ -114,13 +114,6 @@ func (ef *ChangeMaxGamePriceEffect) Subscribe(
 					return res, err
 				}
 
-				if err = e.App.Save(ctx.User.LastAction().ProxyRecord()); err != nil {
-					return &event.Result{
-						Success: false,
-						Error:   "internal error: can't save last user action",
-					}, err
-				}
-
 				if res.Success {
 					callback(e.AppContext)
 				} else {
