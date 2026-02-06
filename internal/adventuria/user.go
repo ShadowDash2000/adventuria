@@ -23,7 +23,7 @@ type User interface {
 	DropsInARow() int
 	SetDropsInARow(drops int)
 	CellsPassed() int
-	setCellsPassed(cellsPassed int)
+	addCellsPassed(ctx AppContext, amount int) error
 	MaxInventorySlots() int
 	SetMaxInventorySlots(maxInventorySlots int)
 	ItemWheelsCount() int

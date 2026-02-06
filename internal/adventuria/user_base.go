@@ -22,7 +22,8 @@ type UserBase struct {
 	hookIds            []string
 	pEffectsUnsubGroup []event.UnsubGroup
 
-	balance int
+	balance     int
+	cellsPassed int
 
 	onAfterChooseGame   *event.Hook[*OnAfterChooseGameEvent]
 	onAfterReroll       *event.Hook[*OnAfterRerollEvent]
@@ -144,7 +145,9 @@ func (u *UserBase) Close(ctx AppContext) {
 func (u *UserBase) SetProxyRecord(record *core.Record) {
 	u.BaseRecordProxy.SetProxyRecord(record)
 	u.UnmarshalJSONField("stats", &u.stats)
+
 	u.balance = u.GetInt(schema.UserSchema.Balance)
+	u.cellsPassed = u.GetInt(schema.UserSchema.CellsPassed)
 }
 
 func (u *UserBase) fetchUser(ctx AppContext, userId string) error {
@@ -206,11 +209,26 @@ func (u *UserBase) SetDropsInARow(drops int) {
 }
 
 func (u *UserBase) CellsPassed() int {
-	return u.GetInt(schema.UserSchema.CellsPassed)
+	return u.cellsPassed
 }
 
-func (u *UserBase) setCellsPassed(cellsPassed int) {
-	u.Set(schema.UserSchema.CellsPassed, cellsPassed)
+func (u *UserBase) addCellsPassed(ctx AppContext, amount int) error {
+	query := fmt.Sprintf(
+		"UPDATE %s SET %[2]s = %[2]s + {:amount} WHERE id = {:id}",
+		schema.CollectionUsers,
+		schema.UserSchema.CellsPassed,
+	)
+	_, err := ctx.App.DB().NewQuery(query).Bind(dbx.Params{
+		"amount": amount,
+		"id":     u.ID(),
+	}).Execute()
+	if err != nil {
+		return err
+	}
+
+	u.cellsPassed += amount
+
+	return nil
 }
 
 func (u *UserBase) MaxInventorySlots() int {
@@ -253,8 +271,7 @@ func (u *UserBase) Move(ctx AppContext, steps int) ([]*MoveResult, error) {
 		return nil, fmt.Errorf("user.Move(): cell with num = %d not found, steps = %d", currentCellNum, steps)
 	}
 
-	u.setCellsPassed(totalSteps)
-	if err := ctx.App.Save(u.ProxyRecord()); err != nil {
+	if err := u.addCellsPassed(ctx, steps); err != nil {
 		return nil, err
 	}
 

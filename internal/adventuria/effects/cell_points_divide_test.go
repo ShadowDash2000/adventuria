@@ -40,6 +40,11 @@ func Test_CellPointsDivide(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	err = user.Refetch(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	const points = 100
 	user.SetPoints(points)
 
@@ -57,11 +62,6 @@ func Test_CellPointsDivide(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	cell, ok := user.CurrentCell()
-	if !ok {
-		t.Fatal("Test_CellPointsDivide(): Current cell not found")
-	}
-
 	_, err = game.DoAction(ctx.App, user.ID(), actions.ActionTypeRollWheel, adventuria.ActionRequest{})
 	if err != nil {
 		t.Fatal(err)
@@ -72,11 +72,14 @@ func Test_CellPointsDivide(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	t.Log("Test_CellPointsDivide(): Points:", user.Points())
-
 	user, err = adventuria.GameUsers.GetByName(ctx, "user1")
 	if err != nil {
 		t.Fatal(err)
+	}
+
+	cell, ok := user.CurrentCell()
+	if !ok {
+		t.Fatal("Test_CellPointsDivide(): Current cell not found")
 	}
 
 	wantPoints := points + cell.Points()/2
