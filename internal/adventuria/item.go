@@ -38,6 +38,7 @@ type Item interface {
 	CanUse(AppContext) bool
 	Use(AppContext) (OnUseSuccess, OnUseFail, error)
 	Drop(AppContext) error
+	MustDrop(AppContext) error
 	GetEffectVariants(ctx AppContext, effectId string) (any, error)
 }
 

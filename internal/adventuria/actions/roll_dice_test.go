@@ -33,11 +33,6 @@ func Test_RollDice(t *testing.T) {
 		t.Fatalf("Test_RollDice(): Error action roll dice: %s", err)
 	}
 
-	user, err = adventuria.GameUsers.GetByName(ctx, "user1")
-	if err != nil {
-		t.Fatalf("Test_RollDice(): Error getting user: %s", err)
-	}
-
 	if user.CellsPassed() <= initialCellsPassed {
 		t.Fatalf("Test_RollDice(): Expected that cells passed increased, got %d", user.CellsPassed())
 	}

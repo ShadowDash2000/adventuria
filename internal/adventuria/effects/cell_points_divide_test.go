@@ -40,11 +40,6 @@ func Test_CellPointsDivide(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = user.Refetch(ctx)
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	const points = 100
 	user.SetPoints(points)
 
@@ -68,11 +63,6 @@ func Test_CellPointsDivide(t *testing.T) {
 	}
 
 	_, err = game.DoAction(ctx.App, user.ID(), actions.ActionTypeDone, adventuria.ActionRequest{})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	user, err = adventuria.GameUsers.GetByName(ctx, "user1")
 	if err != nil {
 		t.Fatal(err)
 	}

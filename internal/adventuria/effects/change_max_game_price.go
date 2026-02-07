@@ -155,14 +155,24 @@ func (ef *ChangeMaxGamePriceEffect) tryToApplyEffect(ctx adventuria.AppContext, 
 
 	val := valAny.(ChangeMaxGamePriceEffectValue)
 
-	user.LastAction().CustomActivityFilter().MaxPrice = val.Price
-	user.LastAction().CustomActivityFilter().MinPrice = -1
+	filter, err := user.LastAction().CustomActivityFilter()
+	if err != nil {
+		return &event.Result{
+			Success: false,
+			Error:   "internal error: can't get custom activity filter",
+		}, fmt.Errorf("changeMaxGamePrice: %w", err)
+	}
+
+	filter.MaxPrice = val.Price
+	filter.MinPrice = -1
 	if err = cellGame.RefreshItems(ctx, user); err != nil {
 		return &event.Result{
 			Success: false,
 			Error:   "internal error: can't refresh cell items in \"change_max_game_price\" effect",
 		}, fmt.Errorf("changeMaxGamePrice: %w", err)
 	}
+
+	user.LastAction().SetCustomActivityFilter(*filter)
 
 	return &event.Result{
 		Success: true,

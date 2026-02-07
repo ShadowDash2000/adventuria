@@ -50,11 +50,6 @@ func Test_ReturnToPrevCell(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	user, err = adventuria.GameUsers.GetByName(ctx, "user1")
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	if user.CellsPassed() != 0 {
 		t.Fatalf("Test_ReturnToPrevCell(): Cells passed = %d, want = 0", user.CellsPassed())
 	}

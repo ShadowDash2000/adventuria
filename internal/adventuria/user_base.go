@@ -17,13 +17,10 @@ type UserBase struct {
 	inventory          Inventory
 	timer              Timer
 	stats              Stats
-	inAction           bool
+	locked             bool
 	mu                 sync.RWMutex
 	hookIds            []string
 	pEffectsUnsubGroup []event.UnsubGroup
-
-	balance     int
-	cellsPassed int
 
 	onAfterChooseGame   *event.Hook[*OnAfterChooseGameEvent]
 	onAfterReroll       *event.Hook[*OnAfterRerollEvent]
@@ -139,15 +136,11 @@ func (u *UserBase) Close(ctx AppContext) {
 		unsubGroup.Unsubscribe()
 	}
 	u.inventory.Close(ctx)
-	u.lastAction.Close(ctx)
 }
 
 func (u *UserBase) SetProxyRecord(record *core.Record) {
 	u.BaseRecordProxy.SetProxyRecord(record)
 	u.UnmarshalJSONField("stats", &u.stats)
-
-	u.balance = u.GetInt(schema.UserSchema.Balance)
-	u.cellsPassed = u.GetInt(schema.UserSchema.CellsPassed)
 }
 
 func (u *UserBase) fetchUser(ctx AppContext, userId string) error {
@@ -162,7 +155,13 @@ func (u *UserBase) fetchUser(ctx AppContext, userId string) error {
 }
 
 func (u *UserBase) Refetch(ctx AppContext) error {
-	return u.fetchUser(ctx, u.Id)
+	if err := u.fetchUser(ctx, u.Id); err != nil {
+		return err
+	}
+	if err := u.lastAction.Refetch(ctx); err != nil {
+		return err
+	}
+	return u.inventory.Refetch(ctx)
 }
 
 func (u *UserBase) ID() string {
@@ -209,26 +208,11 @@ func (u *UserBase) SetDropsInARow(drops int) {
 }
 
 func (u *UserBase) CellsPassed() int {
-	return u.cellsPassed
+	return u.GetInt(schema.UserSchema.CellsPassed)
 }
 
-func (u *UserBase) addCellsPassed(ctx AppContext, amount int) error {
-	query := fmt.Sprintf(
-		"UPDATE %s SET %[2]s = %[2]s + {:amount} WHERE id = {:id}",
-		schema.CollectionUsers,
-		schema.UserSchema.CellsPassed,
-	)
-	_, err := ctx.App.DB().NewQuery(query).Bind(dbx.Params{
-		"amount": amount,
-		"id":     u.ID(),
-	}).Execute()
-	if err != nil {
-		return err
-	}
-
-	u.cellsPassed += amount
-
-	return nil
+func (u *UserBase) addCellsPassed(amount int) {
+	u.Set(schema.UserSchema.CellsPassed+"+", amount)
 }
 
 func (u *UserBase) MaxInventorySlots() int {
@@ -271,9 +255,7 @@ func (u *UserBase) Move(ctx AppContext, steps int) ([]*MoveResult, error) {
 		return nil, fmt.Errorf("user.Move(): cell with num = %d not found, steps = %d", currentCellNum, steps)
 	}
 
-	if err := u.addCellsPassed(ctx, steps); err != nil {
-		return nil, err
-	}
+	u.addCellsPassed(steps)
 
 	u.lastAction.SetProxyRecord(core.NewRecord(GameCollections.Get(schema.CollectionActions)))
 	u.lastAction.SetUser(u.ID())
@@ -435,26 +417,11 @@ func (u *UserBase) Stats() *Stats {
 }
 
 func (u *UserBase) Balance() int {
-	return u.balance
+	return u.GetInt(schema.UserSchema.Balance)
 }
 
-func (u *UserBase) AddBalance(ctx AppContext, amount int) error {
-	query := fmt.Sprintf(
-		"UPDATE %s SET %[2]s = %[2]s + {:amount} WHERE id = {:id}",
-		schema.CollectionUsers,
-		schema.UserSchema.Balance,
-	)
-	_, err := ctx.App.DB().NewQuery(query).Bind(dbx.Params{
-		"amount": amount,
-		"id":     u.ID(),
-	}).Execute()
-	if err != nil {
-		return err
-	}
-
-	u.balance += amount
-
-	return nil
+func (u *UserBase) AddBalance(amount int) {
+	u.Set(schema.UserSchema.Balance+"+", amount)
 }
 
 func (u *UserBase) IsStreamLive() bool {
@@ -465,16 +432,20 @@ func (u *UserBase) SetIsStreamLive(isLive bool) {
 	u.Set(schema.UserSchema.IsStreamLive, isLive)
 }
 
-func (u *UserBase) isInAction() bool {
+func (u *UserBase) Locked() bool {
 	u.mu.RLock()
 	defer u.mu.RUnlock()
-	return u.inAction
+	return u.locked
 }
 
-func (u *UserBase) setIsInAction(b bool) {
+func (u *UserBase) Lock() {
 	u.mu.Lock()
-	defer u.mu.Unlock()
-	u.inAction = b
+	u.locked = true
+}
+
+func (u *UserBase) Unlock() {
+	u.mu.Unlock()
+	u.locked = false
 }
 
 func (u *UserBase) initHooks() {

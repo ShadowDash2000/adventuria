@@ -84,7 +84,14 @@ func (ef *AddGameGenreEffect) Subscribe(
 						}, fmt.Errorf("addGameGenre: %w", err)
 					}
 
-					filter := ctx.User.LastAction().CustomActivityFilter()
+					filter, err := ctx.User.LastAction().CustomActivityFilter()
+					if err != nil {
+						return &event.Result{
+							Success: false,
+							Error:   "internal error: can't get custom activity filter",
+						}, fmt.Errorf("addGameGenre: %w", err)
+					}
+
 					if index := slices.Index(filter.Tags, genreId); index != -1 {
 						return &event.Result{
 							Success: false,
@@ -99,6 +106,8 @@ func (ef *AddGameGenreEffect) Subscribe(
 							Error:   "internal error: can't refresh cell items",
 						}, fmt.Errorf("addGameGenre: %w", err)
 					}
+
+					ctx.User.LastAction().SetCustomActivityFilter(*filter)
 
 					callback(e.AppContext)
 				} else {

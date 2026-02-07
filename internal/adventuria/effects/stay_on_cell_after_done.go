@@ -38,7 +38,7 @@ func (ef *StayOnCellAfterDoneEffect) Subscribe(
 			}
 
 			lastAction := ctx.User.LastAction()
-			err := e.AppContext.App.Save(lastAction.ProxyRecord())
+			err := e.App.Save(lastAction.ProxyRecord())
 			if err != nil {
 				return &event.Result{
 					Success: false,

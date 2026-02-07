@@ -50,13 +50,13 @@ func Test_ChangeMinGamePrice(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	user, err = adventuria.GameUsers.GetByName(ctx, "user1")
+	filter, err := user.LastAction().CustomActivityFilter()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if user.LastAction().CustomActivityFilter().MinPrice != 20 {
-		t.Fatalf("Test_ChangeMaxGamePrice(): Min price is %d, expected 20", user.LastAction().CustomActivityFilter().MinPrice)
+	if filter.MinPrice != 20 {
+		t.Fatalf("Test_ChangeMaxGamePrice(): Min price is %d, expected 20", filter.MinPrice)
 	}
 }
 

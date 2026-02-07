@@ -9,8 +9,6 @@ import (
 	"github.com/pocketbase/pocketbase/core"
 )
 
-var _ Closable = (*LastUserActionRecord)(nil)
-
 type LastUserActionRecord struct {
 	ActionRecordBase
 	hookIds []string
@@ -22,31 +20,24 @@ func NewLastUserAction(ctx AppContext, userId string) (*LastUserActionRecord, er
 		return nil, err
 	}
 
-	a.bindHooks(ctx)
-
 	return a, nil
 }
 
-func (a *LastUserActionRecord) bindHooks(ctx AppContext) {
-	a.hookIds = make([]string, 2)
+func (a *LastUserActionRecord) Refetch(ctx AppContext) error {
+	record, err := fetchLastUserAction(ctx, a.User())
+	if err != nil {
+		return err
+	}
 
-	a.hookIds[0] = ctx.App.OnRecordCreate(schema.CollectionActions).BindFunc(func(e *core.RecordEvent) error {
-		if e.Record.Id == a.ID() {
-			e.Record.Set("custom_activity_filter", a.activityFilter)
-		}
-		return e.Next()
-	})
-	a.hookIds[1] = ctx.App.OnRecordUpdate(schema.CollectionActions).BindFunc(func(e *core.RecordEvent) error {
-		if e.Record.Id == a.ID() {
-			e.Record.Set("custom_activity_filter", a.activityFilter)
-		}
-		return e.Next()
-	})
-}
+	if errors.Is(err, sql.ErrNoRows) {
+		a.SetProxyRecord(core.NewRecord(GameCollections.Get(schema.CollectionActions)))
+		a.SetType(ActionTypeNone)
+		a.SetCanMove(true)
+	} else {
+		a.SetProxyRecord(record)
+	}
 
-func (a *LastUserActionRecord) Close(ctx AppContext) {
-	ctx.App.OnRecordCreate(schema.CollectionActions).Unbind(a.hookIds[0])
-	ctx.App.OnRecordUpdate(schema.CollectionActions).Unbind(a.hookIds[1])
+	return nil
 }
 
 func getLastUserAction(ctx AppContext, userId string) (*LastUserActionRecord, error) {

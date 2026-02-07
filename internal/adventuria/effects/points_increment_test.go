@@ -45,11 +45,6 @@ func Test_PointsIncrement(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	user, err = adventuria.GameUsers.GetByName(ctx, "user1")
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	wantPoints := 2
 	if user.Points() != wantPoints {
 		t.Fatalf("Test_PointsIncrement(): Points = %d, want = %d", user.Points(), wantPoints)

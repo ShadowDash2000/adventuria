@@ -43,7 +43,8 @@ type ActionRecord interface {
 	SetItemsList([]string)
 	CanMove() bool
 	SetCanMove(bool)
-	CustomActivityFilter() *CustomActivityFilter
+	CustomActivityFilter() (*CustomActivityFilter, error)
+	SetCustomActivityFilter(CustomActivityFilter)
 	ClearCustomActivityFilter()
 	MarkAsNew()
 }

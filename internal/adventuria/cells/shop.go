@@ -41,7 +41,7 @@ func (c *CellShop) OnCellReached(ctx *adventuria.CellReachedContext) error {
 	ctx.User.LastAction().SetItemsList(res)
 	ctx.User.LastAction().SetCanMove(true)
 
-	return ctx.App.Save(ctx.User.LastAction().ProxyRecord())
+	return nil
 }
 
 func (c *CellShop) OnCellLeft(_ *adventuria.CellLeftContext) error {

@@ -80,6 +80,14 @@ func (i *InventoryBase) fetchInventory(ctx AppContext) error {
 	return nil
 }
 
+func (i *InventoryBase) Refetch(ctx AppContext) error {
+	for _, item := range i.items {
+		item.Close(ctx)
+	}
+	clear(i.items)
+	return i.fetchInventory(ctx)
+}
+
 func (i *InventoryBase) MaxSlots() int {
 	return i.maxSlots
 }
@@ -226,8 +234,15 @@ func (i *InventoryBase) DropItem(ctx AppContext, invItemId string) error {
 	if !ok {
 		return errors.New("inventory item not found")
 	}
-
 	return item.Drop(ctx)
+}
+
+func (i *InventoryBase) MustDropItem(ctx AppContext, invItemId string) error {
+	item, ok := i.items[invItemId]
+	if !ok {
+		return errors.New("inventory item not found")
+	}
+	return item.MustDrop(ctx)
 }
 
 // DropRandomItem
@@ -254,7 +269,7 @@ func (i *InventoryBase) DropRandomItem(ctx AppContext) error {
 
 func (i *InventoryBase) DropInventory(ctx AppContext) error {
 	for invItemId := range i.items {
-		err := i.DropItem(ctx, invItemId)
+		err := i.MustDropItem(ctx, invItemId)
 		if err != nil {
 			return err
 		}

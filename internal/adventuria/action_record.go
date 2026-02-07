@@ -8,7 +8,6 @@ import (
 
 type ActionRecordBase struct {
 	core.BaseRecordProxy
-	activityFilter CustomActivityFilter
 }
 
 func NewActionRecordFromRecord(record *core.Record) ActionRecord {
@@ -17,17 +16,6 @@ func NewActionRecordFromRecord(record *core.Record) ActionRecord {
 	a.SetProxyRecord(record)
 
 	return a
-}
-
-func (a *ActionRecordBase) SetProxyRecord(record *core.Record) {
-	a.BaseRecordProxy.SetProxyRecord(record)
-	if a.GetString(schema.ActionSchema.CustomActivityFilter) == "null" {
-		a.activityFilter = CustomActivityFilter{}
-	} else {
-		if err := a.UnmarshalJSONField(schema.ActionSchema.CustomActivityFilter, &a.activityFilter); err != nil {
-			PocketBase.Logger().Error("Failed to unmarshal custom_activity_filter", "err", err)
-		}
-	}
 }
 
 func (a *ActionRecordBase) ID() string {
@@ -109,12 +97,20 @@ func (a *ActionRecordBase) SetCanMove(b bool) {
 	a.Set(schema.ActionSchema.CanMove, b)
 }
 
-func (a *ActionRecordBase) CustomActivityFilter() *CustomActivityFilter {
-	return &a.activityFilter
+func (a *ActionRecordBase) CustomActivityFilter() (*CustomActivityFilter, error) {
+	var filter CustomActivityFilter
+	if err := a.UnmarshalJSONField(schema.ActionSchema.CustomActivityFilter, &filter); err != nil {
+		return nil, err
+	}
+	return &filter, nil
+}
+
+func (a *ActionRecordBase) SetCustomActivityFilter(filter CustomActivityFilter) {
+	a.Set(schema.ActionSchema.CustomActivityFilter, filter)
 }
 
 func (a *ActionRecordBase) ClearCustomActivityFilter() {
-	a.activityFilter = CustomActivityFilter{}
+	a.Set(schema.ActionSchema.CustomActivityFilter, "null")
 }
 
 // MarkAsNew resets the action record to a new state

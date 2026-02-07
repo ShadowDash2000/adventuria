@@ -54,11 +54,6 @@ func Test_Drop(t *testing.T) {
 		t.Fatalf("Test_Drop(): Error action drop: %s", err)
 	}
 
-	user, err = adventuria.GameUsers.GetByName(ctx, "user1")
-	if err != nil {
-		t.Fatalf("Test_Drop(): Error getting user: %s", err)
-	}
-
 	got := &testCompare{
 		user.IsInJail(),
 		user.DropsInARow(),

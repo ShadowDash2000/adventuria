@@ -41,10 +41,7 @@ func Test_Buy(t *testing.T) {
 		t.Fatalf("Test_Buy(): Error moving: %s", err)
 	}
 
-	err = user.AddBalance(ctx, 2)
-	if err != nil {
-		t.Fatalf("Test_Buy(): Error adding balance: %s", err)
-	}
+	user.AddBalance(2)
 
 	res, err := game.DoAction(ctx.App, user.ID(), ActionTypeBuyItem, adventuria.ActionRequest{
 		"item_id": item.Id,
@@ -57,11 +54,6 @@ func Test_Buy(t *testing.T) {
 	invItemId, ok := res.Data.(string)
 	if !ok {
 		t.Fatalf("Test_Buy(): Error getting item id from response: %s", err)
-	}
-
-	user, err = adventuria.GameUsers.GetByName(ctx, "user1")
-	if err != nil {
-		t.Fatalf("Test_Buy(): Error getting user: %s", err)
 	}
 
 	if user.Balance() != 0 {

@@ -9,7 +9,6 @@ import (
 	"time"
 
 	streamlive "github.com/ShadowDash2000/is-stream-live"
-	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
 )
 
@@ -183,14 +182,17 @@ func (s *StreamTracker) onStreamChange(ctx adventuria.AppContext, e *streamlive.
 		return e.Next()
 	}
 
-	_, err := ctx.App.DB().
-		Update("users",
-			dbx.Params{schema.UserSchema.IsStreamLive: e.Live},
-			dbx.And(
-				dbx.HashExp{schema.UserSchema.Id: userId},
-				dbx.Not(dbx.HashExp{schema.UserSchema.IsStreamLive: e.Live}),
-			),
-		).Execute()
+	user, err := adventuria.GameUsers.GetByID(ctx, userId)
+	if err != nil {
+		return err
+	}
+
+	if user.IsStreamLive() == e.Live {
+		return e.Next()
+	}
+
+	user.SetIsStreamLive(e.Live)
+	err = ctx.App.Save(user.ProxyRecord())
 	if err != nil {
 		return err
 	}

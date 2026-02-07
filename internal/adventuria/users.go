@@ -2,6 +2,7 @@ package adventuria
 
 import (
 	"adventuria/internal/adventuria/schema"
+	"iter"
 	"time"
 
 	"github.com/pocketbase/pocketbase/core"
@@ -62,6 +63,6 @@ func (u *Users) GetByName(ctx AppContext, name string) (User, error) {
 	return user, nil
 }
 
-func (u *Users) Update(user User) {
-	u.users.Set(user.ID(), user)
+func (u *Users) GetAll() iter.Seq2[string, User] {
+	return u.users.GetAll()
 }

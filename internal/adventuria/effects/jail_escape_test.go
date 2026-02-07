@@ -50,11 +50,6 @@ func Test_JailEscape(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	user, err = adventuria.GameUsers.GetByName(ctx, "user1")
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	if user.IsInJail() {
 		t.Fatalf("Test_JailEscape(): User is in jail, expected not in jail")
 	}

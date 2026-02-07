@@ -111,13 +111,7 @@ func (a *BuyAction) Do(ctx adventuria.ActionContext, req adventuria.ActionReques
 	}
 
 	ctx.User.LastAction().SetItemsList(ids)
-	err = ctx.User.AddBalance(ctx.AppContext, -onBuyGetVariants.Price)
-	if err != nil {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   "internal error: can't update user balance",
-		}, fmt.Errorf("buy.do(): can't update user balance: %w", err)
-	}
+	ctx.User.AddBalance(-onBuyGetVariants.Price)
 
 	return &adventuria.ActionResult{
 		Success: true,

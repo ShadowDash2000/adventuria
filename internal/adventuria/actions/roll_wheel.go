@@ -2,8 +2,11 @@ package actions
 
 import (
 	"adventuria/internal/adventuria"
+	"adventuria/internal/adventuria/schema"
 	"errors"
 	"fmt"
+
+	"github.com/pocketbase/pocketbase/core"
 )
 
 type RollWheelAction struct {
@@ -85,6 +88,39 @@ func (a *RollWheelAction) Do(ctx adventuria.ActionContext, req adventuria.Action
 	}, nil
 }
 
-func (a *RollWheelAction) GetVariants(_ adventuria.ActionContext) any {
-	return nil
+func (a *RollWheelAction) GetVariants(ctx adventuria.ActionContext) any {
+	ids, err := ctx.User.LastAction().ItemsList()
+	if err != nil {
+		return nil
+	}
+
+	currentCell, ok := ctx.User.CurrentCell()
+	if !ok {
+		return nil
+	}
+
+	records, err := ctx.App.FindRecordsByIds(schema.CollectionActivities, ids)
+	if err != nil {
+		return nil
+	}
+
+	errs := ctx.App.ExpandRecords(records, []string{
+		schema.ActivitySchema.Platforms,
+		schema.ActivitySchema.Developers,
+		schema.ActivitySchema.Publishers,
+		schema.ActivitySchema.Genres,
+		schema.ActivitySchema.Tags,
+		schema.ActivitySchema.Themes,
+	}, nil)
+	if len(errs) > 0 {
+		return nil
+	}
+
+	return struct {
+		Items         []*core.Record `json:"items"`
+		AudioPresetId string         `json:"audio_preset_id,omitempty"`
+	}{
+		Items:         records,
+		AudioPresetId: currentCell.AudioPreset(),
+	}
 }

@@ -45,11 +45,6 @@ func Test_Done(t *testing.T) {
 		t.Fatalf("Test_Done(): Error action done: %s", err)
 	}
 
-	user, err = adventuria.GameUsers.GetByName(ctx, "user1")
-	if err != nil {
-		t.Fatalf("Test_Done(): Error getting user: %s", err)
-	}
-
 	type testCompare struct {
 		IsInJail    bool
 		DropsInARow int

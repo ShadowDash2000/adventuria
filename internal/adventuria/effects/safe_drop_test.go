@@ -60,11 +60,6 @@ func Test_SafeDrop(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	user, err = adventuria.GameUsers.GetByName(ctx, "user1")
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	wantDropsInARow := 0
 	if user.DropsInARow() != wantDropsInARow {
 		t.Fatalf("Test_SafeDrop(): Drops in a row is %d, expected %d", user.DropsInARow(), wantDropsInARow)

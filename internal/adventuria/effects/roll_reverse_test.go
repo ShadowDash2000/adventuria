@@ -66,11 +66,6 @@ func Test_RollReverse(t *testing.T) {
 			t.Fatalf("Test_RollReverse(): Roll not reversed, want = %d, got = %d", wantRoll, rollDiceRes.Roll)
 		}
 
-		user, err = adventuria.GameUsers.GetByName(ctx, "user1")
-		if err != nil {
-			t.Fatal(err)
-		}
-
 		user.LastAction().SetCanMove(true)
 		if err = ctx.App.Save(user.LastAction().ProxyRecord()); err != nil {
 			t.Fatalf("Test_Buy(): Error saving user: %s", err)

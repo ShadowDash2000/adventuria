@@ -236,6 +236,14 @@ func (i *ItemBase) Drop(ctx AppContext) error {
 	return ctx.App.Delete(i.invItemRecord.ProxyRecord())
 }
 
+func (i *ItemBase) MustDrop(ctx AppContext) error {
+	if i.IsActive() {
+		i.sleep()
+	}
+
+	return ctx.App.Delete(i.invItemRecord.ProxyRecord())
+}
+
 func (i *ItemBase) GetEffectVariants(ctx AppContext, effectId string) (any, error) {
 	effect, ok := i.effects[effectId]
 	if !ok {

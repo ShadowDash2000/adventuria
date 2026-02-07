@@ -34,7 +34,10 @@ func newActivityFilterById(app core.App, filterId string) (adventuria.ActivityFi
 
 func updateActivitiesFromFilter(app core.App, user adventuria.User, filter adventuria.ActivityFilterRecord, forceUpdate bool) error {
 	needToUpdate := forceUpdate
-	customFilter := user.LastAction().CustomActivityFilter()
+	customFilter, err := user.LastAction().CustomActivityFilter()
+	if err != nil {
+		return err
+	}
 
 	if len(customFilter.Platforms) > 0 {
 		filter.SetPlatforms(append(filter.Platforms(), customFilter.Platforms...))

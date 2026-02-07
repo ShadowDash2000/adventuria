@@ -44,8 +44,8 @@ func (c *CellRecord) Filter() string {
 	return c.GetString(schema.CellSchema.Filter)
 }
 
-func (c *CellRecord) AudioPreset() []string {
-	return c.GetStringSlice(schema.CellSchema.AudioPreset)
+func (c *CellRecord) AudioPreset() string {
+	return c.GetString(schema.CellSchema.AudioPreset)
 }
 
 func (c *CellRecord) Icon() string {

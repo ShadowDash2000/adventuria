@@ -31,13 +31,7 @@ func (ef *CoinsIncrementEffect) Subscribe(
 		return []event.Unsubscribe{
 			ctx.User.OnAfterItemSave().BindFunc(func(e *adventuria.OnAfterItemSave) (*event.Result, error) {
 				if e.Item.IDInventory() == ctx.InvItemID {
-					err = ctx.User.AddBalance(e.AppContext, value.Value)
-					if err != nil {
-						return &event.Result{
-							Success: false,
-							Error:   "internal error: can't update user balance",
-						}, fmt.Errorf("coinsIncrementEffect: %w", err)
-					}
+					ctx.User.AddBalance(value.Value)
 					callback(e.AppContext)
 				}
 

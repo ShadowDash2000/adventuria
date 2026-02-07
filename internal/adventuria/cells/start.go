@@ -8,7 +8,7 @@ type CellStart struct {
 
 func (c *CellStart) OnCellReached(ctx *adventuria.CellReachedContext) error {
 	ctx.User.LastAction().SetCanMove(true)
-	return ctx.App.Save(ctx.User.LastAction().ProxyRecord())
+	return nil
 }
 
 func (c *CellStart) OnCellLeft(_ *adventuria.CellLeftContext) error {

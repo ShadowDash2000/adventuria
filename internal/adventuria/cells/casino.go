@@ -28,7 +28,7 @@ func (c *CellCasino) OnCellReached(ctx *adventuria.CellReachedContext) error {
 	}
 	ctx.User.LastAction().SetItemsList(decodedValue.ItemIds)
 
-	return ctx.App.Save(ctx.User.LastAction().ProxyRecord())
+	return nil
 }
 
 func (c *CellCasino) OnCellLeft(_ *adventuria.CellLeftContext) error {

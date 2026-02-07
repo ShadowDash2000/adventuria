@@ -52,11 +52,6 @@ func Test_ChooseGame(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	user, err = adventuria.GameUsers.GetByName(ctx, "user1")
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	itemsList, err := user.LastAction().ItemsList()
 	if err != nil {
 		t.Fatal(err)
@@ -73,11 +68,6 @@ func Test_ChooseGame(t *testing.T) {
 			"game_id": gameId,
 		},
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	user, err = adventuria.GameUsers.GetByName(ctx, "user1")
 	if err != nil {
 		t.Fatal(err)
 	}

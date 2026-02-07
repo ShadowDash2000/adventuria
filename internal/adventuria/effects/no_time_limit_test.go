@@ -45,17 +45,17 @@ func Test_NoTimeLimit(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	user, err = adventuria.GameUsers.GetByName(ctx, "user1")
+	filter, err := user.LastAction().CustomActivityFilter()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if user.LastAction().CustomActivityFilter().MinCampaignTime != -1 ||
-		user.LastAction().CustomActivityFilter().MaxCampaignTime != -1 {
+	if filter.MinCampaignTime != -1 ||
+		filter.MaxCampaignTime != -1 {
 		t.Fatalf(
 			"Test_NoTimeLimit(): Min/Max campaign time is %f/%f, expected -1/-1",
-			user.LastAction().CustomActivityFilter().MinCampaignTime,
-			user.LastAction().CustomActivityFilter().MaxCampaignTime,
+			filter.MinCampaignTime,
+			filter.MaxCampaignTime,
 		)
 	}
 }

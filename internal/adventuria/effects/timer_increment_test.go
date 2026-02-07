@@ -46,11 +46,6 @@ func Test_TimerIncrement(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	user, err = adventuria.GameUsers.GetByName(ctx, "user1")
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	wantTime := time.Duration(adventuria.GameSettings.TimerTimeLimit()+1000) * time.Second
 	if user.Timer().TimeLimit() != wantTime {
 		t.Fatalf("Test_TimerIncrement(): Time limit is %d, expected %d", user.Timer().TimeLimit(), wantTime)

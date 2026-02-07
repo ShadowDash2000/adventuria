@@ -64,13 +64,13 @@ func Test_AddGameGenre(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	user, err = adventuria.GameUsers.GetByName(ctx, "user1")
+	filter, err := user.LastAction().CustomActivityFilter()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if !slices.Contains(user.LastAction().CustomActivityFilter().Genres, genre.Id) {
-		t.Fatalf("Test_AddGameGenre(): Genre not added to user, want = %s, got = %s", genre.Id, user.LastAction().CustomActivityFilter().Genres)
+	if !slices.Contains(filter.Genres, genre.Id) {
+		t.Fatalf("Test_AddGameGenre(): Genre not added to user, want = %s, got = %s", genre.Id, filter.Genres)
 	}
 }
 

@@ -117,5 +117,5 @@ func (c *CellRollItem) refreshItems(ctx adventuria.AppContext, user adventuria.U
 
 	user.LastAction().SetItemsList(ids)
 
-	return ctx.App.Save(user.LastAction().ProxyRecord())
+	return nil
 }

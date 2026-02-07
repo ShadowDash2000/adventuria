@@ -3,7 +3,6 @@ package actions
 import (
 	"adventuria/internal/adventuria"
 	"errors"
-	"fmt"
 )
 
 type DoneAction struct {
@@ -61,13 +60,7 @@ func (a *DoneAction) Do(ctx adventuria.ActionContext, req adventuria.ActionReque
 	ctx.User.SetDropsInARow(0)
 	ctx.User.SetIsInJail(false)
 	ctx.User.SetPoints(ctx.User.Points() + onBeforeDoneEvent.CellPoints)
-	err = ctx.User.AddBalance(ctx.AppContext, onBeforeDoneEvent.CellCoins)
-	if err != nil {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   "internal error: can't update user balance",
-		}, fmt.Errorf("done.do(): %w", err)
-	}
+	ctx.User.AddBalance(onBeforeDoneEvent.CellCoins)
 
 	res, err = ctx.User.OnAfterDone().Trigger(&adventuria.OnAfterDoneEvent{
 		AppContext: ctx.AppContext,

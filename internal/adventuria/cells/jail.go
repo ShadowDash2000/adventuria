@@ -32,7 +32,7 @@ func (c *CellJail) OnCellReached(ctx *adventuria.CellReachedContext) error {
 	} else {
 		ctx.User.LastAction().SetCanMove(true)
 	}
-	return ctx.App.Save(ctx.User.LastAction().ProxyRecord())
+	return nil
 }
 
 func (c *CellJail) OnCellLeft(ctx *adventuria.CellLeftContext) error {
@@ -42,5 +42,5 @@ func (c *CellJail) OnCellLeft(ctx *adventuria.CellLeftContext) error {
 		ctx.User.SetDropsInARow(0)
 	}
 
-	return ctx.App.Save(ctx.User.ProxyRecord())
+	return nil
 }

@@ -71,14 +71,24 @@ func (ef *ChangeMinGamePriceEffect) Subscribe(
 				}
 
 				if i := ef.GetInt("value"); i != 0 {
-					ctx.User.LastAction().CustomActivityFilter().MinPrice = i
-					ctx.User.LastAction().CustomActivityFilter().MaxPrice = -1
+					filter, err := ctx.User.LastAction().CustomActivityFilter()
+					if err != nil {
+						return &event.Result{
+							Success: false,
+							Error:   "internal error: can't get custom activity filter",
+						}, fmt.Errorf("changeMinGamePrice: %w", err)
+					}
+
+					filter.MinPrice = i
+					filter.MaxPrice = -1
 					if err := cellGame.RefreshItems(e.AppContext, ctx.User); err != nil {
 						return &event.Result{
 							Success: false,
 							Error:   "internal error: can't refresh cell items in \"change_min_game_price\" effect",
 						}, fmt.Errorf("changeMinGamePrice: %w", err)
 					}
+
+					ctx.User.LastAction().SetCustomActivityFilter(*filter)
 
 					callback(e.AppContext)
 				}

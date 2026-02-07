@@ -79,13 +79,7 @@ func (ef *PaidMovementInRadiusEffect) Subscribe(
 						}, nil
 					}
 
-					err = ctx.User.AddBalance(e.AppContext, -value.Price)
-					if err != nil {
-						return &event.Result{
-							Success: false,
-							Error:   "internal error: can't update user balance",
-						}, fmt.Errorf("paid_movement_in_radius.do(): can't update user balance: %w", err)
-					}
+					ctx.User.AddBalance(-value.Price)
 
 					callback(e.AppContext)
 				} else {

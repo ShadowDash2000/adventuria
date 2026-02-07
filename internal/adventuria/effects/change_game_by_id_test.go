@@ -42,11 +42,6 @@ func Test_ChangeGameById(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	user, err = adventuria.GameUsers.GetByName(ctx, "user1")
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	itemsList, err := user.LastAction().ItemsList()
 	if err != nil {
 		t.Fatal(err)
@@ -68,11 +63,6 @@ func Test_ChangeGameById(t *testing.T) {
 	}
 
 	err = game.UseItem(ctx.App, user.ID(), adventuria.UseItemRequest{InvItemId: invItemId})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	user, err = adventuria.GameUsers.GetByName(ctx, "user1")
 	if err != nil {
 		t.Fatal(err)
 	}

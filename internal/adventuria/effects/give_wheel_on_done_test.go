@@ -41,11 +41,6 @@ func Test_GiveWheelOnDone(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	user, err = adventuria.GameUsers.GetByName(ctx, "user1")
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	want := 1
 	if user.ItemWheelsCount() != want {
 		t.Fatalf("Test_GiveWheelOnDone(): Wheels count is %d, expected %d", user.ItemWheelsCount(), want)

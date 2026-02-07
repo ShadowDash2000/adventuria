@@ -87,10 +87,5 @@ func (c *CellActivity) refreshItems(ctx adventuria.AppContext, user adventuria.U
 		return err
 	}
 	filter.SetType(c.activityType)
-
-	if err = updateActivitiesFromFilter(ctx.App, user, filter, true); err != nil {
-		return err
-	}
-
-	return ctx.App.Save(user.LastAction().ProxyRecord())
+	return updateActivitiesFromFilter(ctx.App, user, filter, true)
 }

@@ -50,11 +50,6 @@ func Test_DropInventory(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	user, err = adventuria.GameUsers.GetByName(ctx, "user1")
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	if user.Inventory().AvailableSlots() != user.Inventory().MaxSlots() {
 		t.Fatalf("Test_DropInventory(): Inventory not dropped, available slots: %d", user.Inventory().AvailableSlots())
 	}

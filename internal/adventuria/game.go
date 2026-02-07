@@ -100,15 +100,15 @@ func (g *Game) DoAction(app core.App, userId string, actionType ActionType, req 
 		}, nil
 	}
 
-	if user.isInAction() {
+	if user.Locked() {
 		return &ActionResult{
 			Success: false,
 			Error:   "request error: user is already in action",
 		}, nil
 	}
 
-	user.setIsInAction(true)
-	defer user.setIsInAction(false)
+	user.Lock()
+	defer user.Unlock()
 
 	if ok := GameActions.CanDo(ctx, user, actionType); !ok {
 		return &ActionResult{
@@ -118,37 +118,26 @@ func (g *Game) DoAction(app core.App, userId string, actionType ActionType, req 
 	}
 
 	var (
-		res    *ActionResult
-		txUser User
+		res *ActionResult
 	)
 	err = ctx.App.RunInTransaction(func(txApp core.App) error {
 		ctx := AppContext{App: txApp}
 
-		txUser, err = NewUser(ctx, userId)
-		if err != nil {
-			return err
-		}
-
-		txUser.setIsInAction(true)
-		txUser.ProxyRecord().IgnoreUnchangedFields(true)
-		txUser.LastAction().ProxyRecord().IgnoreUnchangedFields(true)
-
-		res, err = GameActions.Do(ctx, txUser, req, actionType)
+		res, err = GameActions.Do(ctx, user, req, actionType)
 		if err != nil {
 			app.Logger().Error(
 				"Failed to complete user action",
 				"error", err,
 			)
-			txUser.Close(ctx)
 			return err
 		} else if res.Error != "" {
-			txUser.Close(ctx)
 			return errors.New(res.Error)
 		}
 
 		return nil
 	})
 	if err != nil {
+		_ = user.Refetch(ctx)
 		if res != nil {
 			return res, err
 		}
@@ -158,11 +147,7 @@ func (g *Game) DoAction(app core.App, userId string, actionType ActionType, req 
 		}, err
 	}
 
-	user.Close(ctx)
-	GameUsers.Update(txUser)
-	defer txUser.setIsInAction(false)
-
-	eventRes, err := txUser.OnAfterAction().Trigger(&OnAfterActionEvent{
+	eventRes, err := user.OnAfterAction().Trigger(&OnAfterActionEvent{
 		AppContext: ctx,
 		ActionType: actionType,
 	})
@@ -180,7 +165,7 @@ func (g *Game) DoAction(app core.App, userId string, actionType ActionType, req 
 		}, fmt.Errorf("doAction(): %w", err)
 	}
 
-	err = app.Save(txUser.LastAction().ProxyRecord())
+	err = app.Save(user.LastAction().ProxyRecord())
 	if err != nil {
 		app.Logger().Error("Failed to save latest user action", "error", err)
 		return &ActionResult{
@@ -189,17 +174,9 @@ func (g *Game) DoAction(app core.App, userId string, actionType ActionType, req 
 		}, fmt.Errorf("doAction(): %w", err)
 	}
 
-	err = app.Save(txUser.ProxyRecord())
+	err = app.Save(user.ProxyRecord())
 	if err != nil {
 		app.Logger().Error("Failed to save user", "error", err)
-		return &ActionResult{
-			Success: false,
-			Error:   "internal error",
-		}, fmt.Errorf("doAction(): %w", err)
-	}
-
-	err = txUser.Refetch(ctx)
-	if err != nil {
 		return &ActionResult{
 			Success: false,
 			Error:   "internal error",
@@ -221,57 +198,42 @@ func (g *Game) UseItem(app core.App, userId string, req UseItemRequest) error {
 		return err
 	}
 
-	user.setIsInAction(true)
-	defer user.setIsInAction(false)
+	user.Lock()
+	defer user.Unlock()
 
 	var (
 		eventRes *event.Result
-		txUser   User
 	)
 	err = ctx.App.RunInTransaction(func(txApp core.App) error {
 		ctx := AppContext{App: txApp}
 
-		txUser, err = NewUser(ctx, userId)
+		onUseSuccess, onUseFail, err := user.Inventory().UseItem(ctx, req.InvItemId)
 		if err != nil {
 			return err
 		}
 
-		txUser.setIsInAction(true)
-		txUser.ProxyRecord().IgnoreUnchangedFields(true)
-		txUser.LastAction().ProxyRecord().IgnoreUnchangedFields(true)
-
-		onUseSuccess, onUseFail, err := txUser.Inventory().UseItem(ctx, req.InvItemId)
-		if err != nil {
-			return err
-		}
-
-		eventRes, err = txUser.OnAfterItemUse().Trigger(&OnAfterItemUseEvent{
+		eventRes, err = user.OnAfterItemUse().Trigger(&OnAfterItemUseEvent{
 			AppContext: ctx,
 			InvItemId:  req.InvItemId,
 			Data:       req.Data,
 		})
 		if eventRes != nil && !eventRes.Success {
 			onUseFail()
-			txUser.Close(ctx)
 			return errors.New(eventRes.Error)
 		}
 		if err != nil {
 			onUseFail()
-			txUser.Close(ctx)
 			return err
 		}
 
 		return onUseSuccess()
 	})
 	if err != nil {
+		_ = user.Refetch(ctx)
 		return err
 	}
 
-	user.Close(ctx)
-	GameUsers.Update(txUser)
-	defer txUser.setIsInAction(false)
-
-	eventRes, err = txUser.OnAfterAction().Trigger(&OnAfterActionEvent{
+	eventRes, err = user.OnAfterAction().Trigger(&OnAfterActionEvent{
 		AppContext: ctx,
 		ActionType: "useItem",
 	})
@@ -282,17 +244,12 @@ func (g *Game) UseItem(app core.App, userId string, req UseItemRequest) error {
 		return err
 	}
 
-	err = app.Save(txUser.LastAction().ProxyRecord())
+	err = app.Save(user.LastAction().ProxyRecord())
 	if err != nil {
 		return err
 	}
 
-	err = app.Save(txUser.ProxyRecord())
-	if err != nil {
-		return err
-	}
-
-	err = txUser.Refetch(ctx)
+	err = app.Save(user.ProxyRecord())
 	if err != nil {
 		return err
 	}
@@ -307,6 +264,9 @@ func (g *Game) DropItem(app core.App, userId, itemId string) error {
 		return err
 	}
 
+	user.Lock()
+	defer user.Unlock()
+
 	item, ok := user.Inventory().GetItemById(itemId)
 	if !ok {
 		return errors.New("item not found in inventory")
@@ -318,11 +278,7 @@ func (g *Game) DropItem(app core.App, userId, itemId string) error {
 	}
 
 	if itemPrice := item.Price(); itemPrice > 0 {
-		err = user.AddBalance(ctx, itemPrice/2)
-		if err != nil {
-			return err
-		}
-
+		user.AddBalance(itemPrice / 2)
 		err = app.Save(user.ProxyRecord())
 		if err != nil {
 			return err
@@ -339,6 +295,9 @@ func (g *Game) StartTimer(app core.App, userId string) error {
 		return err
 	}
 
+	user.Lock()
+	defer user.Unlock()
+
 	return user.Timer().Start(ctx)
 }
 
@@ -348,6 +307,9 @@ func (g *Game) StopTimer(app core.App, userId string) error {
 	if err != nil {
 		return err
 	}
+
+	user.Lock()
+	defer user.Unlock()
 
 	return user.Timer().Stop(ctx)
 }

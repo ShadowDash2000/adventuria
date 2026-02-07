@@ -2,13 +2,10 @@ package effects
 
 import (
 	"adventuria/internal/adventuria"
-	"adventuria/internal/adventuria/schema"
 	"adventuria/pkg/event"
 	"fmt"
 	"strconv"
 	"strings"
-
-	"github.com/pocketbase/dbx"
 )
 
 type CoinsForAllEffect struct {
@@ -31,31 +28,15 @@ func (ef *CoinsForAllEffect) Subscribe(
 	return []event.Unsubscribe{
 		ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*event.Result, error) {
 			if e.InvItemId == ctx.InvItemID {
-				err = ctx.User.AddBalance(e.AppContext, decodedValue.CoinsForPlayer)
-				if err != nil {
-					return &event.Result{
-						Success: false,
-						Error:   "internal error: can't update user balance",
-					}, fmt.Errorf("coinsForAllEffect: %w", err)
-				}
+				ctx.User.AddBalance(decodedValue.CoinsForPlayer)
 
-				query := fmt.Sprintf(
-					"UPDATE %s SET %[2]s = %[2]s + {:coins} WHERE id != {:currentUserId}",
-					schema.CollectionUsers,
-					schema.UserSchema.Balance,
-				)
-				_, err = e.App.DB().
-					NewQuery(query).
-					Bind(dbx.Params{
-						"coins":         decodedValue.CoinsForOther,
-						"currentUserId": ctx.User.ID(),
-					}).
-					Execute()
-				if err != nil {
-					return &event.Result{
-						Success: false,
-						Error:   "internal error: can't update user balance",
-					}, fmt.Errorf("coinsForAllEffect: %w", err)
+				for _, user := range adventuria.GameUsers.GetAll() {
+					if user.ID() == ctx.User.ID() {
+						continue
+					}
+					user.Lock()
+					user.AddBalance(decodedValue.CoinsForOther)
+					user.Unlock()
 				}
 
 				callback(e.AppContext)

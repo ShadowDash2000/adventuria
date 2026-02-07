@@ -17,7 +17,7 @@ type Cell interface {
 	Categories() []string
 	InCategory(string) bool
 	Filter() string
-	AudioPreset() []string
+	AudioPreset() string
 	Icon() string
 	Name() string
 	Points() int

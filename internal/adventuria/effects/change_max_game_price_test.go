@@ -50,13 +50,13 @@ func Test_ChangeMaxGamePriceUsable(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	user, err = adventuria.GameUsers.GetByName(ctx, "user1")
+	filter, err := user.LastAction().CustomActivityFilter()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if user.LastAction().CustomActivityFilter().MaxPrice != 20 {
-		t.Fatalf("Test_ChangeMaxGamePrice(): Max price is %d, expected 20", user.LastAction().CustomActivityFilter().MaxPrice)
+	if filter.MaxPrice != 20 {
+		t.Fatalf("Test_ChangeMaxGamePrice(): Max price is %d, expected 20", filter.MaxPrice)
 	}
 }
 
@@ -134,13 +134,20 @@ func Test_ChangeMaxGamePriceUnusable(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	user, err = adventuria.GameUsers.GetByName(ctx, "user1")
+	err = ctx.App.Save(user.LastAction().ProxyRecord())
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if user.LastAction().CustomActivityFilter().MaxPrice != 20 {
-		t.Fatalf("Test_ChangeMaxGamePrice(): Max price is %d, expected 20", user.LastAction().CustomActivityFilter().MaxPrice)
+	_ = user.Refetch(ctx)
+
+	filter, err := user.LastAction().CustomActivityFilter()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if filter.MaxPrice != 20 {
+		t.Fatalf("Test_ChangeMaxGamePrice(): Max price is %d, expected 20", filter.MaxPrice)
 	}
 }
 

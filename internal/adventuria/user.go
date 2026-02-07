@@ -23,7 +23,7 @@ type User interface {
 	DropsInARow() int
 	SetDropsInARow(drops int)
 	CellsPassed() int
-	addCellsPassed(ctx AppContext, amount int) error
+	addCellsPassed(amount int)
 	MaxInventorySlots() int
 	SetMaxInventorySlots(maxInventorySlots int)
 	ItemWheelsCount() int
@@ -39,11 +39,12 @@ type User interface {
 	Timer() Timer
 	Stats() *Stats
 	Balance() int
-	AddBalance(AppContext, int) error
+	AddBalance(amount int)
 	IsStreamLive() bool
 	SetIsStreamLive(bool)
-	isInAction() bool
-	setIsInAction(bool)
+	Locked() bool
+	Lock()
+	Unlock()
 }
 
 type UserEvent interface {

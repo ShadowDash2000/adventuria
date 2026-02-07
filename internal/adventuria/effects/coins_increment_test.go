@@ -41,11 +41,6 @@ func Test_CoinsIncrement(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	user, err = adventuria.GameUsers.GetByName(ctx, "user1")
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	wantBalance := 2
 	if user.Balance() != wantBalance {
 		t.Fatalf("Test_CoinsIncrement(): Balance = %d, want = %d", user.Balance(), wantBalance)
