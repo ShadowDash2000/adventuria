@@ -24,6 +24,7 @@ func WithBaseEffects() {
 		"addGameGenre":                adventuria.NewEffect(func() adventuria.Effect { return &AddGameGenreEffect{} }),
 		"replaceDiceRoll":             adventuria.NewEffect(func() adventuria.Effect { return &ReplaceDiceRollEffect{} }),
 		"addRandomItemToInventory":    adventuria.NewEffect(func() adventuria.Effect { return &AddRandomItemToInventoryEffect{} }),
+		"addItemsToInventory":         adventuria.NewEffect(func() adventuria.Effect { return &AddItemsToInventoryEffect{} }),
 		"goToJail":                    adventuria.NewEffect(func() adventuria.Effect { return &GoToJailEffect{} }),
 		"changeGameById":              adventuria.NewEffect(func() adventuria.Effect { return &ChangeGameByIdEffect{} }),
 		"chooseGame":                  adventuria.NewEffect(func() adventuria.Effect { return &ChooseGameEffect{} }),
