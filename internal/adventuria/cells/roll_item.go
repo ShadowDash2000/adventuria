@@ -101,8 +101,8 @@ func (c *CellRollItem) refreshItems(ctx adventuria.AppContext, user adventuria.U
 	err := ctx.App.
 		RecordQuery(adventuria.GameCollections.Get(schema.CollectionItems)).
 		Where(dbx.And(
-			dbx.HashExp{"type": decodedValue.ItemsType},
-			dbx.NewExp("isRollable = true"),
+			dbx.HashExp{schema.ItemSchema.Type: decodedValue.ItemsType},
+			dbx.NewExp(fmt.Sprintf("%s = true", schema.ItemSchema.IsRollable)),
 		)).
 		Select("id").
 		All(&records)

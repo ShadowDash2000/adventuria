@@ -25,5 +25,6 @@ func WithBaseActions() {
 		adventuria.NewAction("buyItem", &BuyAction{}),
 		adventuria.NewAction("update_comment", &UpdateCommentAction{}),
 		adventuria.NewAction("rollItemOnCell", &RollItemOnCellAction{}, "wheel_roll", "on_cell"),
+		adventuria.NewAction("refreshShop", &RefreshShopAction{}),
 	})
 }

@@ -57,8 +57,8 @@ func (c *CellActivity) Roll(ctx adventuria.AppContext, user adventuria.User, _ a
 	for _, record := range records {
 		fillerItems = append(fillerItems, adventuria.WheelItem{
 			Id:   record.Id,
-			Name: record.GetString("name"),
-			Icon: record.GetString("icon"),
+			Name: record.GetString(schema.ActivitySchema.Name),
+			Icon: record.GetString(schema.ActivitySchema.Cover),
 		})
 	}
 

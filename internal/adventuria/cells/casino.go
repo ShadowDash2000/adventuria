@@ -9,6 +9,8 @@ import (
 	"github.com/pocketbase/dbx"
 )
 
+var _ adventuria.CellRefreshable = (*CellCasino)(nil)
+
 type CellCasino struct {
 	adventuria.CellRecord
 }
@@ -18,17 +20,14 @@ type cellCasinoValue struct {
 	PriceMultiplier float32  `json:"price_multiplier"`
 }
 
+func (c *CellCasino) RefreshItems(_ adventuria.AppContext, user adventuria.User) error {
+	return c.refreshItems(user)
+}
+
 func (c *CellCasino) OnCellReached(ctx *adventuria.CellReachedContext) error {
 	ctx.User.SetItemWheelsCount(ctx.User.ItemWheelsCount() + 1)
 	ctx.User.LastAction().SetCanMove(true)
-
-	var decodedValue cellCasinoValue
-	if err := c.UnmarshalJSONField("value", &decodedValue); err != nil {
-		return err
-	}
-	ctx.User.LastAction().SetItemsList(decodedValue.ItemIds)
-
-	return nil
+	return c.refreshItems(ctx.User)
 }
 
 func (c *CellCasino) OnCellLeft(_ *adventuria.CellLeftContext) error {
@@ -66,5 +65,14 @@ func (c *CellCasino) Verify(ctx adventuria.AppContext, value string) error {
 		return fmt.Errorf("item.verify: some of ids not found: %s", value)
 	}
 
+	return nil
+}
+
+func (c *CellCasino) refreshItems(user adventuria.User) error {
+	var decodedValue cellCasinoValue
+	if err := c.UnmarshalJSONField(schema.CellSchema.Value, &decodedValue); err != nil {
+		return err
+	}
+	user.LastAction().SetItemsList(decodedValue.ItemIds)
 	return nil
 }

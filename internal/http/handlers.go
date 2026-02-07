@@ -2,7 +2,6 @@ package http
 
 import (
 	"adventuria/internal/adventuria"
-	"fmt"
 	"net/http"
 
 	"github.com/pocketbase/pocketbase/core"
@@ -46,8 +45,6 @@ func (h *Handlers) RollHandler(e *core.RequestEvent) error {
 	} else if !res.Success {
 		return e.JSON(http.StatusBadRequest, res)
 	}
-
-	fmt.Println(res)
 
 	return e.JSON(http.StatusOK, res)
 }
@@ -291,4 +288,18 @@ func (h *Handlers) GetActionVariants(e *core.RequestEvent) error {
 	}
 
 	return e.JSON(http.StatusOK, actions)
+}
+
+func (h *Handlers) RefreshShopHandler(e *core.RequestEvent) error {
+	res, err := h.Game.DoAction(e.App, e.Auth.Id, "refreshShop", adventuria.ActionRequest{})
+	if err != nil {
+		return e.JSON(http.StatusInternalServerError, &adventuria.ActionResult{
+			Success: false,
+			Error:   "internal error",
+		})
+	} else if !res.Success {
+		return e.JSON(http.StatusBadRequest, res)
+	}
+
+	return e.JSON(http.StatusOK, res)
 }
