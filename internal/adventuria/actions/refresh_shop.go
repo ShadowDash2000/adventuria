@@ -105,9 +105,13 @@ func decodeCellShopRefreshValue(ctx adventuria.ActionContext) (*cellShopRefreshV
 	}
 
 	if decodedValue == nil {
-		decodedValue = &cellShopRefreshValue{
+		return &cellShopRefreshValue{
 			RefreshPrice: defaultCellShopRefreshPrice,
-		}
+		}, nil
+	}
+
+	if decodedValue.RefreshPrice == 0 {
+		decodedValue.RefreshPrice = defaultCellShopRefreshPrice
 	}
 
 	return decodedValue, nil
