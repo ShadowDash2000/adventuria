@@ -13,6 +13,15 @@ type PaidMovementInRadiusEffect struct {
 }
 
 func (ef *PaidMovementInRadiusEffect) CanUse(appCtx adventuria.AppContext, ctx adventuria.EffectContext) bool {
+	value, err := ef.DecodeValue(ef.GetString("value"))
+	if err != nil {
+		return false
+	}
+
+	if ctx.User.Balance() < value.Price {
+		return false
+	}
+
 	if adventuria.GameActions.CanDo(appCtx, ctx.User, "rollDice") {
 		return true
 	}
@@ -35,12 +44,7 @@ func (ef *PaidMovementInRadiusEffect) CanUse(appCtx adventuria.AppContext, ctx a
 		}
 	}
 
-	value, err := ef.DecodeValue(ef.GetString("value"))
-	if err != nil {
-		return false
-	}
-
-	return ctx.User.Balance() >= value.Price
+	return true
 }
 
 func (ef *PaidMovementInRadiusEffect) Subscribe(
