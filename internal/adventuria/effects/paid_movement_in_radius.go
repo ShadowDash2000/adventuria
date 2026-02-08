@@ -13,6 +13,10 @@ type PaidMovementInRadiusEffect struct {
 }
 
 func (ef *PaidMovementInRadiusEffect) CanUse(appCtx adventuria.AppContext, ctx adventuria.EffectContext) bool {
+	if adventuria.GameActions.CanDo(appCtx, ctx.User, "rollDice") {
+		return true
+	}
+
 	if adventuria.GameActions.HasActionsInCategories(appCtx, ctx.User, []string{"wheel_roll", "on_cell"}) {
 		return false
 	}
