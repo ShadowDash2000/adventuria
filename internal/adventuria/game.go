@@ -201,6 +201,10 @@ func (g *Game) UseItem(app core.App, userId string, req UseItemRequest) error {
 	user.Lock()
 	defer user.Unlock()
 
+	if ok := user.Inventory().CanUseItem(ctx, req.InvItemId); !ok {
+		return fmt.Errorf("item %s cannot be used", req.InvItemId)
+	}
+
 	var (
 		eventRes *event.Result
 	)
