@@ -81,14 +81,14 @@ func (ef *ChangeMinGamePriceEffect) Subscribe(
 
 					filter.MinPrice = i
 					filter.MaxPrice = -1
+					ctx.User.LastAction().SetCustomActivityFilter(*filter)
+
 					if err := cellGame.RefreshItems(e.AppContext, ctx.User); err != nil {
 						return &event.Result{
 							Success: false,
 							Error:   "internal error: can't refresh cell items in \"change_min_game_price\" effect",
 						}, fmt.Errorf("changeMinGamePrice: %w", err)
 					}
-
-					ctx.User.LastAction().SetCustomActivityFilter(*filter)
 
 					callback(e.AppContext)
 				}
