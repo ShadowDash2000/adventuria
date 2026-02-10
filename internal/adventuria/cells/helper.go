@@ -161,7 +161,7 @@ func fetchActivitiesByFilter(app core.App, filter adventuria.ActivityFilterRecor
 
 func setFilters(app core.App, filter adventuria.ActivityFilterRecord, q *dbx.SelectQuery) {
 	if filter.Type() != "" {
-		q = q.AndWhere(dbx.HashExp{"type": filter.Type()})
+		q = q.Where(dbx.NewExp(fmt.Sprintf("%s = '%s'", schema.ActivitySchema.Type, filter.Type())))
 	}
 
 	if len(filter.Platforms()) > 0 {
