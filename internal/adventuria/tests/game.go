@@ -91,6 +91,8 @@ func (g *GameTest) init(ctx adventuria.AppContext) error {
 	_ = adventuria.NewCellVerifier(ctx)
 	_ = adventuria.NewTimers(ctx)
 
+	adventuria.BindActivitiesHooks(ctx)
+
 	return nil
 }
 

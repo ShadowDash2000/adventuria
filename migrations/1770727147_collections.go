@@ -2640,7 +2640,9 @@ func init() {
 				"id": "pbc_2224754354",
 				"indexes": [
 					"CREATE UNIQUE INDEX ` + "`" + `idx_4vbq6npQHX` + "`" + ` ON ` + "`" + `activities` + "`" + ` (` + "`" + `id_db` + "`" + `)",
-					"CREATE INDEX ` + "`" + `idx_FIAZlE6tVZ` + "`" + ` ON ` + "`" + `activities` + "`" + ` (\n  ` + "`" + `type` + "`" + `,\n  ` + "`" + `created` + "`" + `\n)"
+					"CREATE INDEX ` + "`" + `idx_FIAZlE6tVZ` + "`" + ` ON ` + "`" + `activities` + "`" + ` (\n  ` + "`" + `type` + "`" + `,\n  ` + "`" + `created` + "`" + `\n)",
+					"CREATE INDEX ` + "`" + `idx_oyDwknnIaC` + "`" + ` ON ` + "`" + `activities` + "`" + ` (\n  ` + "`" + `type` + "`" + `,\n  ` + "`" + `game_type` + "`" + `\n)",
+					"CREATE INDEX ` + "`" + `idx_N5JUfqQPD9` + "`" + ` ON ` + "`" + `activities` + "`" + ` (\n  ` + "`" + `type` + "`" + `,\n  ` + "`" + `game_type` + "`" + `,\n  ` + "`" + `hltb_campaign_time` + "`" + `\n)"
 				],
 				"listRule": "",
 				"name": "activities",
@@ -2762,7 +2764,7 @@ func init() {
 					{
 						"autogeneratePattern": "",
 						"hidden": false,
-						"id": "_clone_rMnT",
+						"id": "_clone_sOhs",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -2775,7 +2777,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_ibJR",
+						"id": "_clone_XACb",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_id",
@@ -2787,7 +2789,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_rKEe",
+						"id": "_clone_OyjU",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_price",
@@ -3013,7 +3015,7 @@ func init() {
 					{
 						"autogeneratePattern": "",
 						"hidden": false,
-						"id": "_clone_hWin",
+						"id": "_clone_6iXZ",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -3026,7 +3028,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_vED4",
+						"id": "_clone_V2kM",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_id",
@@ -3038,7 +3040,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_W9c8",
+						"id": "_clone_ZF0V",
 						"max": null,
 						"min": 0,
 						"name": "hltb_id",
@@ -3050,7 +3052,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_mPAp",
+						"id": "_clone_pwSC",
 						"max": null,
 						"min": 0,
 						"name": "hltb_campaign_time",
@@ -3353,7 +3355,7 @@ func init() {
 					{
 						"autogeneratePattern": "",
 						"hidden": false,
-						"id": "_clone_rpBg",
+						"id": "_clone_VA2d",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -3366,7 +3368,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_zsrA",
+						"id": "_clone_LnXN",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_id",
@@ -3378,7 +3380,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_TueE",
+						"id": "_clone_Ix2R",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_price",
@@ -3420,7 +3422,7 @@ func init() {
 					{
 						"autogeneratePattern": "",
 						"hidden": false,
-						"id": "_clone_XxXG",
+						"id": "_clone_EaKg",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -3433,7 +3435,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_dq3y",
+						"id": "_clone_WYXc",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_id",
@@ -3445,7 +3447,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_RQRC",
+						"id": "_clone_UObe",
 						"max": null,
 						"min": 0,
 						"name": "hltb_id",
@@ -3457,7 +3459,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_FM13",
+						"id": "_clone_Y0cR",
 						"max": null,
 						"min": 0,
 						"name": "hltb_campaign_time",
@@ -4010,6 +4012,468 @@ func init() {
 				"type": "base",
 				"updateRule": null,
 				"viewRule": ""
+			},
+			{
+				"createRule": null,
+				"deleteRule": null,
+				"fields": [
+					{
+						"autogeneratePattern": "[a-z0-9]{15}",
+						"hidden": false,
+						"id": "text3208210256",
+						"max": 15,
+						"min": 15,
+						"name": "id",
+						"pattern": "^[a-z0-9]+$",
+						"presentable": false,
+						"primaryKey": true,
+						"required": true,
+						"system": true,
+						"type": "text"
+					},
+					{
+						"hidden": false,
+						"id": "autodate2990389176",
+						"name": "created",
+						"onCreate": true,
+						"onUpdate": false,
+						"presentable": false,
+						"system": false,
+						"type": "autodate"
+					},
+					{
+						"hidden": false,
+						"id": "autodate3332085495",
+						"name": "updated",
+						"onCreate": true,
+						"onUpdate": true,
+						"presentable": false,
+						"system": false,
+						"type": "autodate"
+					},
+					{
+						"cascadeDelete": false,
+						"collectionId": "pbc_2224754354",
+						"hidden": false,
+						"id": "relation2893285722",
+						"maxSelect": 1,
+						"minSelect": 0,
+						"name": "activity",
+						"presentable": false,
+						"required": true,
+						"system": false,
+						"type": "relation"
+					},
+					{
+						"cascadeDelete": false,
+						"collectionId": "pbc_1025546041",
+						"hidden": false,
+						"id": "relation961728715",
+						"maxSelect": 1,
+						"minSelect": 0,
+						"name": "platform",
+						"presentable": false,
+						"required": true,
+						"system": false,
+						"type": "relation"
+					}
+				],
+				"id": "pbc_4234807101",
+				"indexes": [
+					"CREATE INDEX ` + "`" + `idx_NcVN6RcM6V` + "`" + ` ON ` + "`" + `activities_platforms` + "`" + ` (\n  ` + "`" + `platform` + "`" + `,\n  ` + "`" + `activity` + "`" + `\n)",
+					"CREATE INDEX ` + "`" + `idx_X16J59MoFm` + "`" + ` ON ` + "`" + `activities_platforms` + "`" + ` (\n  ` + "`" + `activity` + "`" + `,\n  ` + "`" + `platform` + "`" + `\n)"
+				],
+				"listRule": null,
+				"name": "activities_platforms",
+				"system": false,
+				"type": "base",
+				"updateRule": null,
+				"viewRule": null
+			},
+			{
+				"createRule": null,
+				"deleteRule": null,
+				"fields": [
+					{
+						"autogeneratePattern": "[a-z0-9]{15}",
+						"hidden": false,
+						"id": "text3208210256",
+						"max": 15,
+						"min": 15,
+						"name": "id",
+						"pattern": "^[a-z0-9]+$",
+						"presentable": false,
+						"primaryKey": true,
+						"required": true,
+						"system": true,
+						"type": "text"
+					},
+					{
+						"hidden": false,
+						"id": "autodate2990389176",
+						"name": "created",
+						"onCreate": true,
+						"onUpdate": false,
+						"presentable": false,
+						"system": false,
+						"type": "autodate"
+					},
+					{
+						"hidden": false,
+						"id": "autodate3332085495",
+						"name": "updated",
+						"onCreate": true,
+						"onUpdate": true,
+						"presentable": false,
+						"system": false,
+						"type": "autodate"
+					},
+					{
+						"cascadeDelete": false,
+						"collectionId": "pbc_2224754354",
+						"hidden": false,
+						"id": "relation2893285722",
+						"maxSelect": 1,
+						"minSelect": 0,
+						"name": "activity",
+						"presentable": false,
+						"required": true,
+						"system": false,
+						"type": "relation"
+					},
+					{
+						"cascadeDelete": false,
+						"collectionId": "pbc_2833628128",
+						"hidden": false,
+						"id": "relation1710984090",
+						"maxSelect": 1,
+						"minSelect": 0,
+						"name": "developer",
+						"presentable": false,
+						"required": true,
+						"system": false,
+						"type": "relation"
+					}
+				],
+				"id": "pbc_518411864",
+				"indexes": [
+					"CREATE INDEX ` + "`" + `idx_YTmJolDVic` + "`" + ` ON ` + "`" + `activities_developers` + "`" + ` (\n  ` + "`" + `developer` + "`" + `,\n  ` + "`" + `activity` + "`" + `\n)",
+					"CREATE INDEX ` + "`" + `idx_Dafi0qs5RI` + "`" + ` ON ` + "`" + `activities_developers` + "`" + ` (\n  ` + "`" + `activity` + "`" + `,\n  ` + "`" + `developer` + "`" + `\n)"
+				],
+				"listRule": null,
+				"name": "activities_developers",
+				"system": false,
+				"type": "base",
+				"updateRule": null,
+				"viewRule": null
+			},
+			{
+				"createRule": null,
+				"deleteRule": null,
+				"fields": [
+					{
+						"autogeneratePattern": "[a-z0-9]{15}",
+						"hidden": false,
+						"id": "text3208210256",
+						"max": 15,
+						"min": 15,
+						"name": "id",
+						"pattern": "^[a-z0-9]+$",
+						"presentable": false,
+						"primaryKey": true,
+						"required": true,
+						"system": true,
+						"type": "text"
+					},
+					{
+						"hidden": false,
+						"id": "autodate2990389176",
+						"name": "created",
+						"onCreate": true,
+						"onUpdate": false,
+						"presentable": false,
+						"system": false,
+						"type": "autodate"
+					},
+					{
+						"hidden": false,
+						"id": "autodate3332085495",
+						"name": "updated",
+						"onCreate": true,
+						"onUpdate": true,
+						"presentable": false,
+						"system": false,
+						"type": "autodate"
+					},
+					{
+						"cascadeDelete": false,
+						"collectionId": "pbc_2224754354",
+						"hidden": false,
+						"id": "relation2893285722",
+						"maxSelect": 1,
+						"minSelect": 0,
+						"name": "activity",
+						"presentable": false,
+						"required": true,
+						"system": false,
+						"type": "relation"
+					},
+					{
+						"cascadeDelete": false,
+						"collectionId": "pbc_2833628128",
+						"hidden": false,
+						"id": "relation2632504646",
+						"maxSelect": 1,
+						"minSelect": 0,
+						"name": "publisher",
+						"presentable": false,
+						"required": true,
+						"system": false,
+						"type": "relation"
+					}
+				],
+				"id": "pbc_2440748025",
+				"indexes": [
+					"CREATE INDEX ` + "`" + `idx_v26B5lvE6Z` + "`" + ` ON ` + "`" + `activities_publishers` + "`" + ` (\n  ` + "`" + `publisher` + "`" + `,\n  ` + "`" + `activity` + "`" + `\n)",
+					"CREATE INDEX ` + "`" + `idx_QPC66SZZaG` + "`" + ` ON ` + "`" + `activities_publishers` + "`" + ` (\n  ` + "`" + `activity` + "`" + `,\n  ` + "`" + `publisher` + "`" + `\n)"
+				],
+				"listRule": null,
+				"name": "activities_publishers",
+				"system": false,
+				"type": "base",
+				"updateRule": null,
+				"viewRule": null
+			},
+			{
+				"createRule": null,
+				"deleteRule": null,
+				"fields": [
+					{
+						"autogeneratePattern": "[a-z0-9]{15}",
+						"hidden": false,
+						"id": "text3208210256",
+						"max": 15,
+						"min": 15,
+						"name": "id",
+						"pattern": "^[a-z0-9]+$",
+						"presentable": false,
+						"primaryKey": true,
+						"required": true,
+						"system": true,
+						"type": "text"
+					},
+					{
+						"hidden": false,
+						"id": "autodate2990389176",
+						"name": "created",
+						"onCreate": true,
+						"onUpdate": false,
+						"presentable": false,
+						"system": false,
+						"type": "autodate"
+					},
+					{
+						"hidden": false,
+						"id": "autodate3332085495",
+						"name": "updated",
+						"onCreate": true,
+						"onUpdate": true,
+						"presentable": false,
+						"system": false,
+						"type": "autodate"
+					},
+					{
+						"cascadeDelete": false,
+						"collectionId": "pbc_2224754354",
+						"hidden": false,
+						"id": "relation2893285722",
+						"maxSelect": 1,
+						"minSelect": 0,
+						"name": "activity",
+						"presentable": false,
+						"required": true,
+						"system": false,
+						"type": "relation"
+					},
+					{
+						"cascadeDelete": false,
+						"collectionId": "pbc_2683869272",
+						"hidden": false,
+						"id": "relation2203071480",
+						"maxSelect": 1,
+						"minSelect": 0,
+						"name": "genre",
+						"presentable": false,
+						"required": true,
+						"system": false,
+						"type": "relation"
+					}
+				],
+				"id": "pbc_708769610",
+				"indexes": [
+					"CREATE INDEX ` + "`" + `idx_mNycNFtjpp` + "`" + ` ON ` + "`" + `activities_genres` + "`" + ` (\n  ` + "`" + `genre` + "`" + `,\n  ` + "`" + `activity` + "`" + `\n)",
+					"CREATE INDEX ` + "`" + `idx_SThAueSw41` + "`" + ` ON ` + "`" + `activities_genres` + "`" + ` (\n  ` + "`" + `activity` + "`" + `,\n  ` + "`" + `genre` + "`" + `\n)"
+				],
+				"listRule": null,
+				"name": "activities_genres",
+				"system": false,
+				"type": "base",
+				"updateRule": null,
+				"viewRule": null
+			},
+			{
+				"createRule": null,
+				"deleteRule": null,
+				"fields": [
+					{
+						"autogeneratePattern": "[a-z0-9]{15}",
+						"hidden": false,
+						"id": "text3208210256",
+						"max": 15,
+						"min": 15,
+						"name": "id",
+						"pattern": "^[a-z0-9]+$",
+						"presentable": false,
+						"primaryKey": true,
+						"required": true,
+						"system": true,
+						"type": "text"
+					},
+					{
+						"hidden": false,
+						"id": "autodate2990389176",
+						"name": "created",
+						"onCreate": true,
+						"onUpdate": false,
+						"presentable": false,
+						"system": false,
+						"type": "autodate"
+					},
+					{
+						"hidden": false,
+						"id": "autodate3332085495",
+						"name": "updated",
+						"onCreate": true,
+						"onUpdate": true,
+						"presentable": false,
+						"system": false,
+						"type": "autodate"
+					},
+					{
+						"cascadeDelete": false,
+						"collectionId": "pbc_2224754354",
+						"hidden": false,
+						"id": "relation2893285722",
+						"maxSelect": 1,
+						"minSelect": 0,
+						"name": "activity",
+						"presentable": false,
+						"required": true,
+						"system": false,
+						"type": "relation"
+					},
+					{
+						"cascadeDelete": false,
+						"collectionId": "pbc_1219621782",
+						"hidden": false,
+						"id": "relation59357059",
+						"maxSelect": 1,
+						"minSelect": 0,
+						"name": "tag",
+						"presentable": false,
+						"required": true,
+						"system": false,
+						"type": "relation"
+					}
+				],
+				"id": "pbc_2220690249",
+				"indexes": [
+					"CREATE INDEX ` + "`" + `idx_npmHwyjAt1` + "`" + ` ON ` + "`" + `activities_tags` + "`" + ` (\n  ` + "`" + `tag` + "`" + `,\n  ` + "`" + `activity` + "`" + `\n)",
+					"CREATE INDEX ` + "`" + `idx_CNMeZFviMb` + "`" + ` ON ` + "`" + `activities_tags` + "`" + ` (\n  ` + "`" + `activity` + "`" + `,\n  ` + "`" + `tag` + "`" + `\n)"
+				],
+				"listRule": null,
+				"name": "activities_tags",
+				"system": false,
+				"type": "base",
+				"updateRule": null,
+				"viewRule": null
+			},
+			{
+				"createRule": null,
+				"deleteRule": null,
+				"fields": [
+					{
+						"autogeneratePattern": "[a-z0-9]{15}",
+						"hidden": false,
+						"id": "text3208210256",
+						"max": 15,
+						"min": 15,
+						"name": "id",
+						"pattern": "^[a-z0-9]+$",
+						"presentable": false,
+						"primaryKey": true,
+						"required": true,
+						"system": true,
+						"type": "text"
+					},
+					{
+						"hidden": false,
+						"id": "autodate2990389176",
+						"name": "created",
+						"onCreate": true,
+						"onUpdate": false,
+						"presentable": false,
+						"system": false,
+						"type": "autodate"
+					},
+					{
+						"hidden": false,
+						"id": "autodate3332085495",
+						"name": "updated",
+						"onCreate": true,
+						"onUpdate": true,
+						"presentable": false,
+						"system": false,
+						"type": "autodate"
+					},
+					{
+						"cascadeDelete": false,
+						"collectionId": "pbc_2224754354",
+						"hidden": false,
+						"id": "relation2893285722",
+						"maxSelect": 1,
+						"minSelect": 0,
+						"name": "activity",
+						"presentable": false,
+						"required": true,
+						"system": false,
+						"type": "relation"
+					},
+					{
+						"cascadeDelete": false,
+						"collectionId": "pbc_575754128",
+						"hidden": false,
+						"id": "relation2541086472",
+						"maxSelect": 1,
+						"minSelect": 0,
+						"name": "theme",
+						"presentable": false,
+						"required": true,
+						"system": false,
+						"type": "relation"
+					}
+				],
+				"id": "pbc_2543263874",
+				"indexes": [
+					"CREATE INDEX ` + "`" + `idx_CHOutYAo0b` + "`" + ` ON ` + "`" + `activities_themes` + "`" + ` (\n  ` + "`" + `theme` + "`" + `,\n  ` + "`" + `activity` + "`" + `\n)",
+					"CREATE INDEX ` + "`" + `idx_ci1tSSsplc` + "`" + ` ON ` + "`" + `activities_themes` + "`" + ` (\n  ` + "`" + `activity` + "`" + `,\n  ` + "`" + `theme` + "`" + `\n)"
+				],
+				"listRule": null,
+				"name": "activities_themes",
+				"system": false,
+				"type": "base",
+				"updateRule": null,
+				"viewRule": null
 			}
 		]`
 

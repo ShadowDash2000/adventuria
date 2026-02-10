@@ -21,6 +21,13 @@ const (
 	CollectionHowLongToBeat  = "howlongtobeat"
 	CollectionSteamSpy       = "steam_spy"
 	CollectionCheapshark     = "cheapshark"
+
+	CollectionActivitiesPlatforms  = "activities_platforms"
+	CollectionActivitiesDevelopers = "activities_developers"
+	CollectionActivitiesPublishers = "activities_publishers"
+	CollectionActivitiesGenres     = "activities_genres"
+	CollectionActivitiesTags       = "activities_tags"
+	CollectionActivitiesThemes     = "activities_themes"
 )
 
 var UserSchema = struct {
@@ -256,4 +263,64 @@ var TimerSchema = struct {
 	TimePassed: "timePassed",
 	TimeLimit:  "timeLimit",
 	StartTime:  "startTime",
+}
+
+var ActivitiesPlatformsSchema = struct {
+	Id       string
+	Activity string
+	Platform string
+}{
+	Id:       "id",
+	Activity: "activity",
+	Platform: "platform",
+}
+
+var ActivitiesDevelopersSchema = struct {
+	Id        string
+	Activity  string
+	Developer string
+}{
+	Id:        "id",
+	Activity:  "activity",
+	Developer: "developer",
+}
+
+var ActivitiesPublishersSchema = struct {
+	Id        string
+	Activity  string
+	Publisher string
+}{
+	Id:        "id",
+	Activity:  "activity",
+	Publisher: "publisher",
+}
+
+var ActivitiesGenresSchema = struct {
+	Id       string
+	Activity string
+	Genre    string
+}{
+	Id:       "id",
+	Activity: "activity",
+	Genre:    "genre",
+}
+
+var ActivitiesTagsSchema = struct {
+	Id       string
+	Activity string
+	Tag      string
+}{
+	Id:       "id",
+	Activity: "activity",
+	Tag:      "tag",
+}
+
+var ActivitiesThemesSchema = struct {
+	Id       string
+	Activity string
+	Theme    string
+}{
+	Id:       "id",
+	Activity: "activity",
+	Theme:    "theme",
 }

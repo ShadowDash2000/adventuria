@@ -5,6 +5,7 @@ import (
 	"adventuria/internal/adventuria/schema"
 	"fmt"
 	"math/rand/v2"
+	"strings"
 
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
@@ -103,11 +104,11 @@ func updateActivitiesFromFilter(app core.App, user adventuria.User, filter adven
 func fetchActivitiesByFilter(app core.App, filter adventuria.ActivityFilterRecord) ([]string, error) {
 	countQuery := app.RecordQuery(adventuria.GameCollections.Get(schema.CollectionActivities))
 	if filter != nil {
-		countQuery = setFilters(filter, countQuery)
+		setFilters(app, filter, countQuery)
 	}
 
 	var totalCount int
-	err := countQuery.Select("count(id)").Row(&totalCount)
+	err := countQuery.Select("count(activities.id)").Row(&totalCount)
 	if err != nil {
 		return nil, err
 	}
@@ -126,12 +127,11 @@ func fetchActivitiesByFilter(app core.App, filter adventuria.ActivityFilterRecor
 	}
 
 	q := app.RecordQuery(adventuria.GameCollections.Get(schema.CollectionActivities)).
-		Select("id").
+		Select("activities.id").
 		Limit(int64(limit)).
 		Offset(int64(offset))
-
 	if filter != nil {
-		q = setFilters(filter, q)
+		setFilters(app, filter, q)
 	}
 
 	var records []struct {
@@ -159,72 +159,154 @@ func fetchActivitiesByFilter(app core.App, filter adventuria.ActivityFilterRecor
 	return res, nil
 }
 
-func setFilters(filter adventuria.ActivityFilterRecord, q *dbx.SelectQuery) *dbx.SelectQuery {
+func setFilters(app core.App, filter adventuria.ActivityFilterRecord, q *dbx.SelectQuery) {
 	if filter.Type() != "" {
 		q = q.AndWhere(dbx.HashExp{"type": filter.Type()})
 	}
 
 	if len(filter.Platforms()) > 0 {
-		if filter.PlatformsStrict() {
-			exps := make([]dbx.Expression, len(filter.Platforms()))
-			for i, platform := range filter.Platforms() {
-				exps[i] = dbx.Like("platforms", fmt.Sprintf("[\"%s\"]", platform))
-			}
-			q = q.AndWhere(dbx.Or(exps...))
-		} else {
-			q = q.AndWhere(dbx.OrLike("platforms", filter.Platforms()...))
-		}
+		applyActivityRelationFilter(
+			app,
+			q,
+			schema.CollectionActivitiesPlatforms,
+			schema.ActivitiesPlatformsSchema.Activity,
+			schema.ActivitiesPlatformsSchema.Platform,
+			filter.Platforms(),
+			filter.PlatformsStrict(),
+		)
 	}
 	if len(filter.Developers()) > 0 {
-		q = q.AndWhere(dbx.OrLike("developers", filter.Developers()...))
+		applyActivityRelationFilter(
+			app,
+			q,
+			schema.CollectionActivitiesDevelopers,
+			schema.ActivitiesDevelopersSchema.Activity,
+			schema.ActivitiesDevelopersSchema.Developer,
+			filter.Developers(),
+			false,
+		)
 	}
 	if len(filter.Publishers()) > 0 {
-		q = q.AndWhere(dbx.OrLike("publishers", filter.Publishers()...))
+		applyActivityRelationFilter(
+			app,
+			q,
+			schema.CollectionActivitiesPublishers,
+			schema.ActivitiesPublishersSchema.Activity,
+			schema.ActivitiesPublishersSchema.Publisher,
+			filter.Publishers(),
+			false,
+		)
 	}
 	if len(filter.Genres()) > 0 {
-		q = q.AndWhere(dbx.OrLike("genres", filter.Genres()...))
+		applyActivityRelationFilter(
+			app,
+			q,
+			schema.CollectionActivitiesGenres,
+			schema.ActivitiesGenresSchema.Activity,
+			schema.ActivitiesGenresSchema.Genre,
+			filter.Genres(),
+			false,
+		)
 	}
 	if len(filter.Tags()) > 0 {
-		q = q.AndWhere(dbx.OrLike("tags", filter.Tags()...))
+		applyActivityRelationFilter(
+			app,
+			q,
+			schema.CollectionActivitiesTags,
+			schema.ActivitiesTagsSchema.Activity,
+			schema.ActivitiesTagsSchema.Tag,
+			filter.Tags(),
+			false,
+		)
 	}
 	if len(filter.Themes()) > 0 {
-		q = q.AndWhere(dbx.OrLike("themes", filter.Themes()...))
+		applyActivityRelationFilter(
+			app,
+			q,
+			schema.CollectionActivitiesThemes,
+			schema.ActivitiesThemesSchema.Activity,
+			schema.ActivitiesThemesSchema.Theme,
+			filter.Themes(),
+			false,
+		)
 	}
 	if len(filter.GameTypes()) > 0 {
-		exp := make([]dbx.Expression, len(filter.GameTypes()))
-		for i, id := range filter.GameTypes() {
-			exp[i] = dbx.HashExp{"game_type": id}
-		}
-		q = q.AndWhere(dbx.Or(exp...))
+		q.AndWhere(dbx.In(schema.ActivitySchema.GameType, sliceToAny(filter.GameTypes())...))
 	}
 	if len(filter.Activities()) > 0 {
-		exp := make([]dbx.Expression, len(filter.Activities()))
-		for i, id := range filter.Activities() {
-			exp[i] = dbx.HashExp{"id": id}
-		}
-		q = q.AndWhere(dbx.Or(exp...))
+		q.AndWhere(dbx.In("id", sliceToAny(filter.Activities())...))
 	}
 
 	if filter.MinPrice() > 0 {
-		q = q.AndWhere(dbx.NewExp("steam_app_price > {:price}", dbx.Params{"price": filter.MinPrice()}))
+		q.AndWhere(dbx.NewExp("steam_app_price > {:price}", dbx.Params{"price": filter.MinPrice()}))
 	}
 	if filter.MaxPrice() > 0 {
-		q = q.AndWhere(dbx.NewExp("steam_app_price < {:price}", dbx.Params{"price": filter.MaxPrice()}))
+		q.AndWhere(dbx.NewExp("steam_app_price < {:price}", dbx.Params{"price": filter.MaxPrice()}))
 	}
 
 	if !filter.ReleaseDateFrom().IsZero() {
-		q = q.AndWhere(dbx.NewExp("release_date > {:date}", dbx.Params{"date": filter.ReleaseDateFrom()}))
+		q.AndWhere(dbx.NewExp("release_date > {:date}", dbx.Params{"date": filter.ReleaseDateFrom()}))
 	}
 	if !filter.ReleaseDateTo().IsZero() {
-		q = q.AndWhere(dbx.NewExp("release_date < {:date}", dbx.Params{"date": filter.ReleaseDateTo()}))
+		q.AndWhere(dbx.NewExp("release_date < {:date}", dbx.Params{"date": filter.ReleaseDateTo()}))
 	}
 
 	if filter.MinCampaignTime() > 0 {
-		q = q.AndWhere(dbx.NewExp("hltb_campaign_time > {:min_time}", dbx.Params{"min_time": filter.MinCampaignTime()}))
+		q.AndWhere(dbx.NewExp("hltb_campaign_time > {:min_time}", dbx.Params{"min_time": filter.MinCampaignTime()}))
 	}
 	if filter.MaxCampaignTime() > 0 {
-		q = q.AndWhere(dbx.NewExp("hltb_campaign_time < {:max_time}", dbx.Params{"max_time": filter.MaxCampaignTime()}))
+		q.AndWhere(dbx.NewExp("hltb_campaign_time < {:max_time}", dbx.Params{"max_time": filter.MaxCampaignTime()}))
+	}
+}
+
+func sliceToAny[T any](slice []T) []any {
+	res := make([]any, len(slice))
+	for i, v := range slice {
+		res[i] = v
+	}
+	return res
+}
+
+func applyActivityRelationFilter(
+	app core.App,
+	query *dbx.SelectQuery,
+	collectionName,
+	activityField,
+	relationField string,
+	values []string,
+	strict bool,
+) {
+	if len(values) == 0 {
+		return
 	}
 
-	return q
+	quotedValues := make([]string, len(values))
+	for i, v := range values {
+		quotedValues[i] = fmt.Sprintf("'%s'", v)
+	}
+	inClause := strings.Join(quotedValues, ", ")
+
+	subQuery := app.DB().
+		Select(activityField).
+		From(collectionName).
+		Where(dbx.NewExp(fmt.Sprintf("%s IN (%s)", relationField, inClause))).
+		Build()
+
+	query.AndWhere(dbx.NewExp(fmt.Sprintf("id IN (%s)", subQuery.SQL())))
+
+	if strict {
+		mainIdField := fmt.Sprintf("%s.id", schema.CollectionActivities)
+		subQuery := app.DB().
+			Select(activityField).
+			From(collectionName).
+			GroupBy(activityField).
+			Having(dbx.NewExp("COUNT(*) = 1")).
+			Build()
+
+		query.AndWhere(
+			dbx.NewExp(
+				fmt.Sprintf("%s IN (%s)", mainIdField, subQuery.SQL()),
+			),
+		)
+	}
 }

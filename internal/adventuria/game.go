@@ -87,6 +87,8 @@ func (g *Game) init(ctx AppContext) error {
 	_ = NewCellVerifier(ctx)
 	_ = NewTimers(ctx)
 
+	BindActivitiesHooks(ctx)
+
 	return nil
 }
 
