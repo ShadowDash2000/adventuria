@@ -3,6 +3,7 @@ package actions
 import (
 	"adventuria/internal/adventuria"
 	"adventuria/internal/adventuria/schema"
+	"adventuria/pkg/result"
 	"errors"
 	"fmt"
 	"slices"
@@ -32,35 +33,25 @@ func (a *BuyAction) CanDo(ctx adventuria.ActionContext) bool {
 	return true
 }
 
-func (a *BuyAction) Do(ctx adventuria.ActionContext, req adventuria.ActionRequest) (*adventuria.ActionResult, error) {
+func (a *BuyAction) Do(ctx adventuria.ActionContext, req adventuria.ActionRequest) (*result.Result, error) {
 	if _, ok := req["item_id"]; !ok {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   "request error: item_id not specified",
-		}, nil
+		return result.Err("item_id not specified"), nil
 	}
 
 	itemId, ok := req["item_id"].(string)
 	if !ok {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   "request error: item_id is not string",
-		}, nil
+		return result.Err("item_id is not string"), nil
 	}
 
 	ids, err := ctx.User.LastAction().ItemsList()
 	if err != nil {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   "internal error: can't get items list",
-		}, fmt.Errorf("buy.do(): can't get items list: %w", err)
+		return result.Err("internal error: can't get items list"),
+			fmt.Errorf("buy.do(): can't get items list: %w", err)
 	}
 
 	if !slices.Contains(ids, itemId) {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   fmt.Sprintf("item with id = %s not found", itemId),
-		}, fmt.Errorf("buy.do(): item with id = %s not found", itemId)
+		return result.Err(fmt.Sprintf("item with id = %s not found", itemId)),
+			fmt.Errorf("buy.do(): item with id = %s not found", itemId)
 	}
 
 	itemRecord, err := ctx.AppContext.App.FindRecordById(
@@ -68,42 +59,31 @@ func (a *BuyAction) Do(ctx adventuria.ActionContext, req adventuria.ActionReques
 		itemId,
 	)
 	if err != nil {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   "internal error: can't get item record",
-		}, fmt.Errorf("buy.do(): can't get item record: %w", err)
+		return result.Err("internal error: can't get item record"),
+			fmt.Errorf("buy.do(): can't get item record: %w", err)
 	}
 
 	item := adventuria.NewItemFromRecord(itemRecord)
 	onBuyGetVariants, err := a.triggerOnBuyGetVariants(ctx, item)
 	if err != nil {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   "internal error: can't check item price",
-		}, fmt.Errorf("buy.do(): can't check item price: %w", err)
+		return result.Err("internal error: can't check item price"),
+			fmt.Errorf("buy.do(): can't check item price: %w", err)
 	}
 
 	if ctx.User.Balance() < onBuyGetVariants.Price {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   "not enough money",
-		}, nil
+		return result.Err("not enough money"), nil
 	}
 
 	_, err = a.triggerOnBeforeItemBuy(ctx, item)
 	if err != nil {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   "internal error: can't check item price",
-		}, fmt.Errorf("buy.do(): can't check item price: %w", err)
+		return result.Err("internal error: can't check item price"),
+			fmt.Errorf("buy.do(): can't check item price: %w", err)
 	}
 
 	invItemId, err := ctx.User.Inventory().AddItemById(ctx.AppContext, itemId)
 	if err != nil {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   "internal error: can't add item to inventory",
-		}, fmt.Errorf("buy.do(): can't add item to inventory: %w", err)
+		return result.Err("internal error: can't add item to inventory"),
+			fmt.Errorf("buy.do(): can't add item to inventory: %w", err)
 	}
 
 	if index := slices.Index(ids, itemId); index != -1 {
@@ -113,10 +93,7 @@ func (a *BuyAction) Do(ctx adventuria.ActionContext, req adventuria.ActionReques
 	ctx.User.LastAction().SetItemsList(ids)
 	ctx.User.AddBalance(-onBuyGetVariants.Price)
 
-	return &adventuria.ActionResult{
-		Success: true,
-		Data:    invItemId,
-	}, nil
+	return result.Ok().WithData(invItemId), nil
 }
 
 func (a *BuyAction) GetVariants(ctx adventuria.ActionContext) any {

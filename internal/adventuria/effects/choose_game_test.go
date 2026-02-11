@@ -62,7 +62,7 @@ func Test_ChooseGame(t *testing.T) {
 	}
 
 	gameId := helper.RandomItemFromSlice(itemsList)
-	err = game.UseItem(ctx.App, user.ID(), adventuria.UseItemRequest{
+	_, err = game.UseItem(ctx.App, user.ID(), adventuria.UseItemRequest{
 		InvItemId: invItemId,
 		Data: map[string]any{
 			"game_id": gameId,

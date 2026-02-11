@@ -3,6 +3,7 @@ package effects
 import (
 	"adventuria/internal/adventuria"
 	"adventuria/pkg/event"
+	"adventuria/pkg/result"
 	"strconv"
 )
 
@@ -19,7 +20,7 @@ func (ef *DropPointsDivideEffect) Subscribe(
 	callback adventuria.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		ctx.User.OnBeforeDrop().BindFunc(func(e *adventuria.OnBeforeDropEvent) (*event.Result, error) {
+		ctx.User.OnBeforeDrop().BindFunc(func(e *adventuria.OnBeforeDropEvent) (*result.Result, error) {
 			if i := ef.GetInt("value"); i != 0 {
 				e.PointsForDrop = e.PointsForDrop / i
 

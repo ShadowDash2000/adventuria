@@ -3,6 +3,7 @@ package effects
 import (
 	"adventuria/internal/adventuria"
 	"adventuria/pkg/event"
+	"adventuria/pkg/result"
 	"strconv"
 )
 
@@ -19,7 +20,7 @@ func (ef *ReplaceDiceRollEffect) Subscribe(
 	callback adventuria.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		ctx.User.OnBeforeRollMove().BindFunc(func(e *adventuria.OnBeforeRollMoveEvent) (*event.Result, error) {
+		ctx.User.OnBeforeRollMove().BindFunc(func(e *adventuria.OnBeforeRollMoveEvent) (*result.Result, error) {
 			e.N = ef.GetInt("value")
 
 			callback(e.AppContext)

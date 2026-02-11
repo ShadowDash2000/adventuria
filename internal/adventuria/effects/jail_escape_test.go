@@ -45,7 +45,7 @@ func Test_JailEscape(t *testing.T) {
 		t.Fatalf("Test_Buy(): Error saving user: %s", err)
 	}
 
-	err = game.UseItem(ctx.App, user.ID(), adventuria.UseItemRequest{InvItemId: invItemId})
+	_, err = game.UseItem(ctx.App, user.ID(), adventuria.UseItemRequest{InvItemId: invItemId})
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -4,6 +4,8 @@ import (
 	"adventuria/internal/adventuria"
 	"adventuria/internal/adventuria/schema"
 	"adventuria/pkg/event"
+	"adventuria/pkg/result"
+	"errors"
 	"fmt"
 	"strconv"
 )
@@ -52,42 +54,33 @@ func (ef *ChangeMinGamePriceEffect) Subscribe(
 	callback adventuria.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*event.Result, error) {
+		ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*result.Result, error) {
 			if e.InvItemId == ctx.InvItemID {
 				cell, ok := ctx.User.CurrentCell()
 				if !ok {
-					return &event.Result{
-						Success: false,
-						Error:   "current cell not found",
-					}, nil
+					return result.Err("internal error: current cell not found"),
+						errors.New("changeMaxGamePrice: current cell not found")
 				}
 
 				cellGame, ok := cell.(adventuria.CellWheel)
 				if !ok {
-					return &event.Result{
-						Success: false,
-						Error:   "current cell isn't game cell",
-					}, nil
+					return result.Err("current cell isn't game cell"), nil
 				}
 
 				if i := ef.GetInt("value"); i != 0 {
 					filter, err := ctx.User.LastAction().CustomActivityFilter()
 					if err != nil {
-						return &event.Result{
-							Success: false,
-							Error:   "internal error: can't get custom activity filter",
-						}, fmt.Errorf("changeMinGamePrice: %w", err)
+						return result.Err("internal error: failed to decode effect value"),
+							fmt.Errorf("changeMinGamePrice: %w", err)
 					}
 
 					filter.MinPrice = i
 					filter.MaxPrice = -1
 					ctx.User.LastAction().SetCustomActivityFilter(*filter)
 
-					if err := cellGame.RefreshItems(e.AppContext, ctx.User); err != nil {
-						return &event.Result{
-							Success: false,
-							Error:   "internal error: can't refresh cell items in \"change_min_game_price\" effect",
-						}, fmt.Errorf("changeMinGamePrice: %w", err)
+					if err = cellGame.RefreshItems(e.AppContext, ctx.User); err != nil {
+						return result.Err("internal error: failed to refresh action's items"),
+							fmt.Errorf("changeMinGamePrice: %w", err)
 					}
 
 					callback(e.AppContext)

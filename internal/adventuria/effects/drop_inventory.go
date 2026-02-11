@@ -3,6 +3,7 @@ package effects
 import (
 	"adventuria/internal/adventuria"
 	"adventuria/pkg/event"
+	"adventuria/pkg/result"
 	"fmt"
 )
 
@@ -19,14 +20,12 @@ func (ef *DropInventoryEffect) Subscribe(
 	callback adventuria.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		ctx.User.OnAfterItemSave().BindFunc(func(e *adventuria.OnAfterItemSave) (*event.Result, error) {
+		ctx.User.OnAfterItemSave().BindFunc(func(e *adventuria.OnAfterItemSave) (*result.Result, error) {
 			if e.Item.IDInventory() == ctx.InvItemID {
 				err := ctx.User.Inventory().DropInventory(e.AppContext)
 				if err != nil {
-					return &event.Result{
-						Success: false,
-						Error:   "internal error: can't drop inventory",
-					}, fmt.Errorf("dropInventory: %w", err)
+					return result.Err("internal error: failed to drop inventory"),
+						fmt.Errorf("dropInventory: %w", err)
 				}
 
 				callback(e.AppContext)

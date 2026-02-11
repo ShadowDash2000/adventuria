@@ -2,7 +2,7 @@ package adventuria
 
 import (
 	"adventuria/pkg/collections"
-	"adventuria/pkg/event"
+	"adventuria/pkg/result"
 	"context"
 	"errors"
 	"fmt"
@@ -92,42 +92,31 @@ func (g *Game) init(ctx AppContext) error {
 	return nil
 }
 
-func (g *Game) DoAction(app core.App, userId string, actionType ActionType, req ActionRequest) (*ActionResult, error) {
+func (g *Game) DoAction(app core.App, userId string, actionType ActionType, req ActionRequest) (*result.Result, error) {
 	ctx := AppContext{App: app}
 	user, err := GameUsers.GetByID(ctx, userId)
 	if err != nil {
-		return &ActionResult{
-			Success: false,
-			Error:   "request error: user not found",
-		}, nil
+		return result.Err("user not found"), nil
 	}
 
 	if user.Locked() {
-		return &ActionResult{
-			Success: false,
-			Error:   "request error: user is already in action",
-		}, nil
+		return result.Err("user is already in action"), nil
 	}
 
 	user.Lock()
 	defer user.Unlock()
 
 	if ok := GameActions.CanDo(ctx, user, actionType); !ok {
-		return &ActionResult{
-			Success: false,
-			Error:   "request error: cannot do action",
-		}, nil
+		return result.Err("action is not available"), nil
 	}
 
-	var (
-		res *ActionResult
-	)
+	var res *result.Result
 	err = ctx.App.RunInTransaction(func(txApp core.App) error {
 		ctx := AppContext{App: txApp}
 
 		res, err = GameActions.Do(ctx, user, req, actionType)
 		if err != nil {
-			app.Logger().Error(
+			txApp.Logger().Error(
 				"Failed to complete user action",
 				"error", err,
 			)
@@ -136,56 +125,33 @@ func (g *Game) DoAction(app core.App, userId string, actionType ActionType, req 
 			return errors.New(res.Error)
 		}
 
+		_, err = user.OnAfterAction().Trigger(&OnAfterActionEvent{
+			AppContext: ctx,
+			ActionType: actionType,
+		})
+		if err != nil {
+			return err
+		}
+
+		err = txApp.Save(user.LastAction().ProxyRecord())
+		if err != nil {
+			txApp.Logger().Error("Failed to save latest user action", "error", err)
+			return err
+		}
+
+		err = txApp.Save(user.ProxyRecord())
+		if err != nil {
+			txApp.Logger().Error("Failed to save user", "error", err)
+			return err
+		}
+
 		return nil
 	})
 	if err != nil {
 		_ = user.Refetch(ctx)
-		if res != nil {
-			return res, err
-		}
-		return &ActionResult{
-			Success: false,
-			Error:   err.Error(),
-		}, err
 	}
 
-	eventRes, err := user.OnAfterAction().Trigger(&OnAfterActionEvent{
-		AppContext: ctx,
-		ActionType: actionType,
-	})
-	if eventRes != nil && !eventRes.Success {
-		return &ActionResult{
-			Success: false,
-			Error:   eventRes.Error,
-		}, fmt.Errorf("doAction(): %w", err)
-	}
-	if err != nil {
-		app.Logger().Error("Failed to trigger onAfterActionEvent", "error", err)
-		return &ActionResult{
-			Success: false,
-			Error:   "internal error",
-		}, fmt.Errorf("doAction(): %w", err)
-	}
-
-	err = app.Save(user.LastAction().ProxyRecord())
-	if err != nil {
-		app.Logger().Error("Failed to save latest user action", "error", err)
-		return &ActionResult{
-			Success: false,
-			Error:   "internal error",
-		}, fmt.Errorf("doAction(): %w", err)
-	}
-
-	err = app.Save(user.ProxyRecord())
-	if err != nil {
-		app.Logger().Error("Failed to save user", "error", err)
-		return &ActionResult{
-			Success: false,
-			Error:   "internal error",
-		}, fmt.Errorf("doAction(): %w", err)
-	}
-
-	return res, nil
+	return res, err
 }
 
 type UseItemRequest struct {
@@ -193,23 +159,21 @@ type UseItemRequest struct {
 	Data      map[string]any `json:"data"`
 }
 
-func (g *Game) UseItem(app core.App, userId string, req UseItemRequest) error {
+func (g *Game) UseItem(app core.App, userId string, req UseItemRequest) (*result.Result, error) {
 	ctx := AppContext{App: app}
 	user, err := GameUsers.GetByID(ctx, userId)
 	if err != nil {
-		return err
+		return result.Err("user not found"), err
 	}
 
 	user.Lock()
 	defer user.Unlock()
 
 	if ok := user.Inventory().CanUseItem(ctx, req.InvItemId); !ok {
-		return fmt.Errorf("item %s cannot be used", req.InvItemId)
+		return result.Err(fmt.Sprintf("item %s cannot be used", req.InvItemId)), nil
 	}
 
-	var (
-		eventRes *event.Result
-	)
+	var res *result.Result
 	err = ctx.App.RunInTransaction(func(txApp core.App) error {
 		ctx := AppContext{App: txApp}
 
@@ -218,49 +182,54 @@ func (g *Game) UseItem(app core.App, userId string, req UseItemRequest) error {
 			return err
 		}
 
-		eventRes, err = user.OnAfterItemUse().Trigger(&OnAfterItemUseEvent{
+		res, err = user.OnAfterItemUse().Trigger(&OnAfterItemUseEvent{
 			AppContext: ctx,
 			InvItemId:  req.InvItemId,
 			Data:       req.Data,
 		})
-		if eventRes != nil && !eventRes.Success {
-			onUseFail()
-			return errors.New(eventRes.Error)
-		}
 		if err != nil {
 			onUseFail()
 			return err
 		}
+		if res.Failed() {
+			onUseFail()
+			return errors.New(res.Error)
+		}
 
-		return onUseSuccess()
+		err = onUseSuccess()
+		if err != nil {
+			return err
+		}
+
+		res, err = user.OnAfterAction().Trigger(&OnAfterActionEvent{
+			AppContext: ctx,
+			ActionType: "useItem",
+		})
+		if err != nil {
+			return err
+		}
+		if res.Failed() {
+			return errors.New(res.Error)
+		}
+
+		err = txApp.Save(user.LastAction().ProxyRecord())
+		if err != nil {
+			return err
+		}
+
+		err = txApp.Save(user.ProxyRecord())
+		if err != nil {
+			return err
+		}
+
+		return nil
 	})
 	if err != nil {
 		_ = user.Refetch(ctx)
-		return err
+		return res, err
 	}
 
-	eventRes, err = user.OnAfterAction().Trigger(&OnAfterActionEvent{
-		AppContext: ctx,
-		ActionType: "useItem",
-	})
-	if eventRes != nil && !eventRes.Success {
-		return errors.New(eventRes.Error)
-	}
-	if err != nil {
-		return err
-	}
-
-	err = app.Save(user.LastAction().ProxyRecord())
-	if err != nil {
-		return err
-	}
-
-	err = app.Save(user.ProxyRecord())
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return res, nil
 }
 
 func (g *Game) DropItem(app core.App, userId, itemId string) error {
@@ -364,24 +333,21 @@ func (g *Game) GetItemEffectVariants(app core.App, userId, invItemId, effectId s
 	return invItem.GetEffectVariants(ctx, effectId)
 }
 
-func (g *Game) GetActionVariants(app core.App, userId, actionType string) (any, error) {
+func (g *Game) GetActionVariants(app core.App, userId, actionType string) (*result.Result, error) {
 	ctx := AppContext{App: app}
 	user, err := GameUsers.GetByID(ctx, userId)
 	if err != nil {
-		return nil, err
+		return result.Err("user not found"), err
 	}
 
 	if ok := GameActions.CanDo(ctx, user, ActionType(actionType)); !ok {
-		return &ActionResult{
-			Success: false,
-			Error:   "request error: cannot do action",
-		}, nil
+		return result.Err("action is not available"), nil
 	}
 
 	variants := GameActions.GetVariants(ctx, user, ActionType(actionType))
 	if variants == nil {
-		return nil, errors.New("action variants not found")
+		return result.Err("action variants not found"), nil
 	}
 
-	return variants, nil
+	return result.Ok().WithData(variants), nil
 }

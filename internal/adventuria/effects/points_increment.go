@@ -3,6 +3,7 @@ package effects
 import (
 	"adventuria/internal/adventuria"
 	"adventuria/pkg/event"
+	"adventuria/pkg/result"
 	"strconv"
 )
 
@@ -19,7 +20,7 @@ func (ef *PointsIncrementEffect) Subscribe(
 	callback adventuria.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		ctx.User.OnAfterAction().BindFunc(func(e *adventuria.OnAfterActionEvent) (*event.Result, error) {
+		ctx.User.OnAfterAction().BindFunc(func(e *adventuria.OnAfterActionEvent) (*result.Result, error) {
 			if i := ef.GetInt("value"); i != 0 {
 				ctx.User.SetPoints(ctx.User.Points() + i)
 

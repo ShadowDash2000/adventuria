@@ -54,7 +54,7 @@ func Test_AddGameGenre(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = game.UseItem(ctx.App, user.ID(), adventuria.UseItemRequest{
+	_, err = game.UseItem(ctx.App, user.ID(), adventuria.UseItemRequest{
 		InvItemId: invItemId,
 		Data: map[string]any{
 			"genre_id": genre.Id,

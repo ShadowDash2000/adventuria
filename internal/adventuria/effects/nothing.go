@@ -3,6 +3,7 @@ package effects
 import (
 	"adventuria/internal/adventuria"
 	"adventuria/pkg/event"
+	"adventuria/pkg/result"
 	"errors"
 	"slices"
 )
@@ -22,14 +23,14 @@ func (ef *NothingEffect) Subscribe(
 	switch ef.GetString("value") {
 	case "onAfterItemAdd":
 		return []event.Unsubscribe{
-			ctx.User.OnAfterItemAdd().BindFunc(func(e *adventuria.OnAfterItemAdd) (*event.Result, error) {
+			ctx.User.OnAfterItemAdd().BindFunc(func(e *adventuria.OnAfterItemAdd) (*result.Result, error) {
 				callback(e.AppContext)
 				return e.Next()
 			}),
 		}, nil
 	case "onAfterItemUse":
 		return []event.Unsubscribe{
-			ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*event.Result, error) {
+			ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*result.Result, error) {
 				if e.InvItemId == ctx.InvItemID {
 					callback(e.AppContext)
 				}
@@ -38,13 +39,11 @@ func (ef *NothingEffect) Subscribe(
 		}, nil
 	case "onBeforeGameDone":
 		return []event.Unsubscribe{
-			ctx.User.OnBeforeDone().BindFunc(func(e *adventuria.OnBeforeDoneEvent) (*event.Result, error) {
+			ctx.User.OnBeforeDone().BindFunc(func(e *adventuria.OnBeforeDoneEvent) (*result.Result, error) {
 				currentCell, ok := ctx.User.CurrentCell()
 				if !ok {
-					return &event.Result{
-						Success: false,
-						Error:   "current cell not found",
-					}, errors.New("nothing.onBeforeGameDone(): current cell not found")
+					return result.Err("internal error: current cell not found"),
+						errors.New("nothing: current cell not found")
 				}
 
 				if currentCell.Type() == "game" {

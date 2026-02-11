@@ -5,6 +5,7 @@ import (
 	"adventuria/internal/adventuria/schema"
 	"adventuria/pkg/event"
 	"adventuria/pkg/helper"
+	"adventuria/pkg/result"
 	"errors"
 	"fmt"
 	"strings"
@@ -25,15 +26,13 @@ func (ef *AddRandomItemToInventoryEffect) Subscribe(
 	callback adventuria.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		ctx.User.OnAfterAction().BindFunc(func(e *adventuria.OnAfterActionEvent) (*event.Result, error) {
+		ctx.User.OnAfterAction().BindFunc(func(e *adventuria.OnAfterActionEvent) (*result.Result, error) {
 			if e.ActionType == "buyItem" {
 				ids, _ := ef.DecodeValue(ef.GetString("value"))
 				_, err := ctx.User.Inventory().AddItemById(e.AppContext, helper.RandomItemFromSlice(ids))
 				if err != nil {
-					return &event.Result{
-						Success: false,
-						Error:   "failed to add item to inventory",
-					}, fmt.Errorf("addRandomItemToInventory: %w", err)
+					return result.Err("internal error: failed to add item to the inventory"),
+						fmt.Errorf("addRandomItemToInventory: %w", err)
 				}
 
 				callback(e.AppContext)

@@ -2,6 +2,7 @@ package actions
 
 import (
 	"adventuria/internal/adventuria"
+	"adventuria/pkg/result"
 	"errors"
 )
 
@@ -13,24 +14,19 @@ func (a *DoneAction) CanDo(ctx adventuria.ActionContext) bool {
 	return ctx.User.LastAction().Type() == ActionTypeRollWheel
 }
 
-func (a *DoneAction) Do(ctx adventuria.ActionContext, req adventuria.ActionRequest) (*adventuria.ActionResult, error) {
+func (a *DoneAction) Do(ctx adventuria.ActionContext, req adventuria.ActionRequest) (*result.Result, error) {
 	var comment string
 	if c, ok := req["comment"]; ok {
 		comment, ok = c.(string)
 		if !ok {
-			return &adventuria.ActionResult{
-				Success: false,
-				Error:   "request error: comment is not string",
-			}, nil
+			return result.Err("comment is not string"), nil
 		}
 	}
 
 	currentCell, ok := ctx.User.CurrentCell()
 	if !ok {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   "internal error: current cell not found",
-		}, errors.New("done.do(): current cell not found")
+		return result.Err("internal error: current cell not found"),
+			errors.New("done.do(): current cell not found")
 	}
 
 	onBeforeDoneEvent := &adventuria.OnBeforeDoneEvent{
@@ -39,17 +35,11 @@ func (a *DoneAction) Do(ctx adventuria.ActionContext, req adventuria.ActionReque
 		CellCoins:  currentCell.Coins(),
 	}
 	res, err := ctx.User.OnBeforeDone().Trigger(onBeforeDoneEvent)
-	if res != nil && !res.Success {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   res.Error,
-		}, err
-	}
 	if err != nil {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   "internal error: failed to trigger onBeforeDone event",
-		}, err
+		return res, err
+	}
+	if res.Failed() {
+		return res, err
 	}
 
 	action := ctx.User.LastAction()
@@ -65,22 +55,14 @@ func (a *DoneAction) Do(ctx adventuria.ActionContext, req adventuria.ActionReque
 	res, err = ctx.User.OnAfterDone().Trigger(&adventuria.OnAfterDoneEvent{
 		AppContext: ctx.AppContext,
 	})
-	if res != nil && !res.Success {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   res.Error,
-		}, err
-	}
 	if err != nil {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   "internal error: failed to trigger onAfterDoneEvent event",
-		}, err
+		return res, err
+	}
+	if res.Failed() {
+		return res, err
 	}
 
-	return &adventuria.ActionResult{
-		Success: true,
-	}, nil
+	return result.Ok(), nil
 }
 
 func (a *DoneAction) GetVariants(_ adventuria.ActionContext) any {

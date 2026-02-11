@@ -5,6 +5,7 @@ import (
 	"adventuria/internal/adventuria/schema"
 	"adventuria/pkg/event"
 	"adventuria/pkg/helper"
+	"adventuria/pkg/result"
 	"errors"
 	"fmt"
 	"strings"
@@ -36,15 +37,13 @@ func (ef *TeleportToRandomCellByNameEffect) Subscribe(
 	callback adventuria.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		ctx.User.OnAfterItemSave().BindFunc(func(e *adventuria.OnAfterItemSave) (*event.Result, error) {
+		ctx.User.OnAfterItemSave().BindFunc(func(e *adventuria.OnAfterItemSave) (*result.Result, error) {
 			if e.Item.IDInventory() == ctx.InvItemID {
 				cellNames, _ := ef.DecodeValue(ef.GetString("value"))
 				_, err := ctx.User.MoveToCellName(e.AppContext, helper.RandomItemFromSlice(cellNames))
 				if err != nil {
-					return &event.Result{
-						Success: false,
-						Error:   "internal error: can't move to cell by name",
-					}, fmt.Errorf("teleportToRandomCellByNameEffect: %w", err)
+					return result.Err("internal error: failed to move to the cell by name"),
+						fmt.Errorf("teleportToRandomCellByNameEffect: %w", err)
 				}
 
 				callback(e.AppContext)

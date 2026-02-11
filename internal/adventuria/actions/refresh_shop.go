@@ -2,6 +2,7 @@ package actions
 
 import (
 	"adventuria/internal/adventuria"
+	"adventuria/pkg/result"
 	"errors"
 	"fmt"
 )
@@ -31,51 +32,38 @@ func (a *RefreshShopAction) CanDo(ctx adventuria.ActionContext) bool {
 	return true
 }
 
-func (a *RefreshShopAction) Do(ctx adventuria.ActionContext, _ adventuria.ActionRequest) (*adventuria.ActionResult, error) {
+func (a *RefreshShopAction) Do(ctx adventuria.ActionContext, _ adventuria.ActionRequest) (*result.Result, error) {
 	value, err := decodeCellShopRefreshValue(ctx)
 	if err != nil {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   "internal error: can't decode cell shop value",
-		}, fmt.Errorf("refreshShop.do(): %w", err)
+		return result.Err("internal error: can't decode cell shop value"),
+			fmt.Errorf("refreshShop.do(): %w", err)
 	}
 
 	if ctx.User.Balance() < value.RefreshPrice {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   "not enough money",
-		}, nil
+		return result.Err("not enough money"), nil
 	}
 
 	currentCell, ok := ctx.User.CurrentCell()
 	if !ok {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   "internal error: current cell not found",
-		}, errors.New("refreshShop.do(): current cell not found")
+		return result.Err("internal error: current cell not found"),
+			errors.New("refreshShop.do(): current cell not found")
 	}
 
 	cellRefreshable, ok := currentCell.(adventuria.CellRefreshable)
 	if !ok {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   "internal error: current cell is not refreshable",
-		}, errors.New("refreshShop.do(): current cell is not refreshable")
+		return result.Err("internal error: current cell is not refreshable"),
+			errors.New("refreshShop.do(): current cell is not refreshable")
 	}
 
 	err = cellRefreshable.RefreshItems(ctx.AppContext, ctx.User)
 	if err != nil {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   "internal error: can't refresh items on cell",
-		}, fmt.Errorf("refreshShop.do(): %w", err)
+		return result.Err("internal error: can't refresh items on cell"),
+			fmt.Errorf("refreshShop.do(): %w", err)
 	}
 
 	ctx.User.AddBalance(-value.RefreshPrice)
 
-	return &adventuria.ActionResult{
-		Success: true,
-	}, nil
+	return result.Ok(), nil
 }
 
 func (a *RefreshShopAction) GetVariants(ctx adventuria.ActionContext) any {

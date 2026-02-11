@@ -2,6 +2,7 @@ package actions
 
 import (
 	"adventuria/internal/adventuria"
+	"adventuria/pkg/result"
 	"fmt"
 )
 
@@ -24,23 +25,17 @@ type DiceRoll struct {
 	Roll int    `json:"roll"`
 }
 
-func (a *RollDiceAction) Do(ctx adventuria.ActionContext, _ adventuria.ActionRequest) (*adventuria.ActionResult, error) {
+func (a *RollDiceAction) Do(ctx adventuria.ActionContext, _ adventuria.ActionRequest) (*result.Result, error) {
 	onBeforeRollEvent := &adventuria.OnBeforeRollEvent{
 		AppContext: ctx.AppContext,
 		Dices:      []*adventuria.Dice{adventuria.DiceTypeD6, adventuria.DiceTypeD6},
 	}
 	res, err := ctx.User.OnBeforeRoll().Trigger(onBeforeRollEvent)
-	if res != nil && !res.Success {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   res.Error,
-		}, err
-	}
 	if err != nil {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   "internal error: failed to trigger onBeforeRollEvent event",
-		}, err
+		return res, err
+	}
+	if res.Failed() {
+		return res, err
 	}
 
 	onBeforeRollMoveEvent := &adventuria.OnBeforeRollMoveEvent{
@@ -57,25 +52,17 @@ func (a *RollDiceAction) Do(ctx adventuria.ActionContext, _ adventuria.ActionReq
 	}
 
 	res, err = ctx.User.OnBeforeRollMove().Trigger(onBeforeRollMoveEvent)
-	if res != nil && !res.Success {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   res.Error,
-		}, err
-	}
 	if err != nil {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   "internal error: failed to trigger onBeforeRollMoveEvent event",
-		}, err
+		return res, err
+	}
+	if res.Failed() {
+		return res, err
 	}
 
 	moveRes, err := ctx.User.Move(ctx.AppContext, onBeforeRollMoveEvent.N)
 	if err != nil {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   "internal error",
-		}, fmt.Errorf("roll_dice.do(): %w", err)
+		return result.Err("internal error: failed to move to the new cell"),
+			fmt.Errorf("roll_dice.do(): %w", err)
 	}
 
 	ctx.User.LastAction().SetType(ActionTypeRollDice)
@@ -85,27 +72,18 @@ func (a *RollDiceAction) Do(ctx adventuria.ActionContext, _ adventuria.ActionReq
 		Dices:      onBeforeRollEvent.Dices,
 		N:          onBeforeRollMoveEvent.N,
 	})
-	if res != nil && !res.Success {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   res.Error,
-		}, err
-	}
 	if err != nil {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   "internal error: failed to trigger onAfterRollEvent event",
-		}, err
+		return res, err
+	}
+	if res.Failed() {
+		return res, err
 	}
 
-	return &adventuria.ActionResult{
-		Success: true,
-		Data: RollDiceResult{
-			Roll:      onBeforeRollMoveEvent.N,
-			DiceRolls: diceRolls,
-			Path:      moveRes,
-		},
-	}, nil
+	return result.Ok().WithData(RollDiceResult{
+		Roll:      onBeforeRollMoveEvent.N,
+		DiceRolls: diceRolls,
+		Path:      moveRes,
+	}), nil
 }
 
 func (a *RollDiceAction) GetVariants(_ adventuria.ActionContext) any {

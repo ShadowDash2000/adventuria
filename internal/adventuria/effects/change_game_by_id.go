@@ -4,6 +4,7 @@ import (
 	"adventuria/internal/adventuria"
 	"adventuria/internal/adventuria/schema"
 	"adventuria/pkg/event"
+	"adventuria/pkg/result"
 )
 
 type ChangeGameByIdEffect struct {
@@ -27,7 +28,7 @@ func (ef *ChangeGameByIdEffect) Subscribe(
 	callback adventuria.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*event.Result, error) {
+		ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*result.Result, error) {
 			if e.InvItemId == ctx.InvItemID {
 				ctx.User.LastAction().SetActivity(ef.GetString("value"))
 				callback(e.AppContext)
@@ -35,7 +36,7 @@ func (ef *ChangeGameByIdEffect) Subscribe(
 
 			return e.Next()
 		}),
-		ctx.User.OnAfterMove().BindFunc(func(e *adventuria.OnAfterMoveEvent) (*event.Result, error) {
+		ctx.User.OnAfterMove().BindFunc(func(e *adventuria.OnAfterMoveEvent) (*result.Result, error) {
 			callback(e.AppContext)
 			return e.Next()
 		}),

@@ -3,6 +3,8 @@ package effects
 import (
 	"adventuria/internal/adventuria"
 	"adventuria/pkg/event"
+	"adventuria/pkg/result"
+	"errors"
 	"fmt"
 )
 
@@ -32,7 +34,7 @@ func (ef *NoTimeLimitEffect) Subscribe(
 	callback adventuria.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		ctx.User.OnAfterMove().BindFunc(func(e *adventuria.OnAfterMoveEvent) (*event.Result, error) {
+		ctx.User.OnAfterMove().BindFunc(func(e *adventuria.OnAfterMoveEvent) (*result.Result, error) {
 			if !ef.CanUse(e.AppContext, ctx) {
 				return e.Next()
 			}
@@ -42,7 +44,7 @@ func (ef *NoTimeLimitEffect) Subscribe(
 				return res, err
 			}
 
-			if res.Success {
+			if res.Ok() {
 				callback(e.AppContext)
 			} else {
 				return res, nil
@@ -50,7 +52,7 @@ func (ef *NoTimeLimitEffect) Subscribe(
 
 			return e.Next()
 		}),
-		ctx.User.OnAfterItemSave().BindFunc(func(e *adventuria.OnAfterItemSave) (*event.Result, error) {
+		ctx.User.OnAfterItemSave().BindFunc(func(e *adventuria.OnAfterItemSave) (*result.Result, error) {
 			if e.Item.IDInventory() != ctx.InvItemID {
 				return e.Next()
 			}
@@ -64,7 +66,7 @@ func (ef *NoTimeLimitEffect) Subscribe(
 				return res, err
 			}
 
-			if res.Success {
+			if res.Ok() {
 				callback(e.AppContext)
 			} else {
 				return res, nil
@@ -75,45 +77,34 @@ func (ef *NoTimeLimitEffect) Subscribe(
 	}, nil
 }
 
-func (ef *NoTimeLimitEffect) tryToApplyEffect(ctx adventuria.AppContext, user adventuria.User) (*event.Result, error) {
+func (ef *NoTimeLimitEffect) tryToApplyEffect(ctx adventuria.AppContext, user adventuria.User) (*result.Result, error) {
 	cell, ok := user.CurrentCell()
 	if !ok {
-		return &event.Result{
-			Success: false,
-			Error:   "current cell not found",
-		}, nil
+		return result.Err("internal error: current cell not found"),
+			errors.New("noTimeLimit: current cell not found")
 	}
 
 	cellGame, ok := cell.(adventuria.CellWheel)
 	if !ok {
-		return &event.Result{
-			Success: false,
-			Error:   "current cell isn't game cell",
-		}, nil
+		return result.Err("current cell isn't wheel cell"), nil
 	}
 
 	filter, err := user.LastAction().CustomActivityFilter()
 	if err != nil {
-		return &event.Result{
-			Success: false,
-			Error:   "internal error: can't get custom activity filter",
-		}, fmt.Errorf("noTimeLimit: %w", err)
+		return result.Err("internal error: can't get custom activity filter"),
+			fmt.Errorf("noTimeLimit: %w", err)
 	}
 
 	filter.MinCampaignTime = -1
 	filter.MaxCampaignTime = -1
 	if err := cellGame.RefreshItems(ctx, user); err != nil {
-		return &event.Result{
-			Success: false,
-			Error:   "internal error: can't refresh cell items in \"no_time_limit\" effect",
-		}, fmt.Errorf("noTimeLimit: %w", err)
+		return result.Err("internal error: can't refresh cell items"),
+			fmt.Errorf("noTimeLimit: %w", err)
 	}
 
 	user.LastAction().SetCustomActivityFilter(*filter)
 
-	return &event.Result{
-		Success: true,
-	}, nil
+	return result.Ok(), nil
 }
 
 func (ef *NoTimeLimitEffect) Verify(_ adventuria.AppContext, _ string) error {

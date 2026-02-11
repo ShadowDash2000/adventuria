@@ -2,6 +2,7 @@ package adventuria
 
 import (
 	"adventuria/internal/adventuria/schema"
+	"adventuria/pkg/result"
 	"database/sql"
 	"errors"
 	"iter"
@@ -90,14 +91,14 @@ func (a *Actions) CanDo(ctx AppContext, user User, t ActionType) bool {
 	return false
 }
 
-func (a *Actions) Do(ctx AppContext, user User, req ActionRequest, t ActionType) (*ActionResult, error) {
+func (a *Actions) Do(ctx AppContext, user User, req ActionRequest, t ActionType) (*result.Result, error) {
 	if action, ok := a.actions[t]; ok {
 		return action.Do(ActionContext{
 			AppContext: ctx,
 			User:       user,
 		}, req)
 	}
-	return nil, errors.New("actions: unknown action")
+	return result.Err("unknown action"), errors.New("actions: unknown action")
 }
 
 func (a *Actions) AvailableActions(ctx AppContext, user User) iter.Seq[ActionType] {

@@ -2,6 +2,7 @@ package actions
 
 import (
 	"adventuria/internal/adventuria"
+	"adventuria/pkg/result"
 	"fmt"
 )
 
@@ -33,32 +34,25 @@ func (a *RerollAction) CanDo(ctx adventuria.ActionContext) bool {
 	return ctx.User.LastAction().Type() == ActionTypeRollWheel
 }
 
-func (a *RerollAction) Do(ctx adventuria.ActionContext, req adventuria.ActionRequest) (*adventuria.ActionResult, error) {
+func (a *RerollAction) Do(ctx adventuria.ActionContext, req adventuria.ActionRequest) (*result.Result, error) {
 	var comment string
 	if c, ok := req["comment"]; ok {
 		comment, ok = c.(string)
 		if !ok {
-			return &adventuria.ActionResult{
-				Success: false,
-				Error:   "request error: comment is not string",
-			}, nil
+			return result.Err("comment is not string"), nil
 		}
 	}
 
 	cell, ok := ctx.User.CurrentCell()
 	if !ok {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   "internal error: current cell not found",
-		}, fmt.Errorf("reroll.do(): current cell not found")
+		return result.Err("internal error: current cell not found"),
+			fmt.Errorf("reroll.do(): current cell not found")
 	}
 
 	cellWheel, ok := cell.(adventuria.CellWheel)
 	if !ok {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   "internal error: current cell isn't wheel cell",
-		}, fmt.Errorf("reroll.do(): current cell isn't wheel cell")
+		return result.Err("internal error: current cell isn't wheel cell"),
+			fmt.Errorf("reroll.do(): current cell isn't wheel cell")
 	}
 
 	action := ctx.User.LastAction()
@@ -66,40 +60,28 @@ func (a *RerollAction) Do(ctx adventuria.ActionContext, req adventuria.ActionReq
 	action.SetComment(comment)
 	err := ctx.AppContext.App.Save(action.ProxyRecord())
 	if err != nil {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   "internal error: can't save action record",
-		}, fmt.Errorf("reroll.do(): %w", err)
+		return result.Err("internal error: can't save action record"),
+			fmt.Errorf("reroll.do(): %w", err)
 	}
 	action.MarkAsNew()
 
 	err = cellWheel.RefreshItems(ctx.AppContext, ctx.User)
 	if err != nil {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   "internal error: can't refresh items on cell",
-		}, fmt.Errorf("reroll.do(): %w", err)
+		return result.Err("internal error: can't refresh items on cell"),
+			fmt.Errorf("reroll.do(): %w", err)
 	}
 
 	res, err := ctx.User.OnAfterReroll().Trigger(&adventuria.OnAfterRerollEvent{
 		AppContext: ctx.AppContext,
 	})
-	if res != nil && !res.Success {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   res.Error,
-		}, err
-	}
 	if err != nil {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   "internal error: failed to trigger onAfterRerollEvent event",
-		}, err
+		return res, err
+	}
+	if res.Failed() {
+		return res, err
 	}
 
-	return &adventuria.ActionResult{
-		Success: true,
-	}, nil
+	return result.Ok(), nil
 }
 
 func (a *RerollAction) GetVariants(_ adventuria.ActionContext) any {

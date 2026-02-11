@@ -77,13 +77,15 @@ func (i *Items) GetAll() iter.Seq2[string, ItemRecord] {
 	return i.items.GetAll()
 }
 
-func (i *Items) GetAllRollable() []ItemRecord {
-	var res []ItemRecord
-	for _, item := range i.items.GetAll() {
-		if !item.IsRollable() {
-			continue
+func (i *Items) GetAllRollable() iter.Seq[ItemRecord] {
+	return func(yield func(ItemRecord) bool) {
+		for _, item := range i.items.GetAll() {
+			if !item.IsRollable() {
+				continue
+			}
+			if !yield(item) {
+				return
+			}
 		}
-		res = append(res, item)
 	}
-	return res
 }

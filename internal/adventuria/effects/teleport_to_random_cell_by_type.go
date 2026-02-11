@@ -4,6 +4,7 @@ import (
 	"adventuria/internal/adventuria"
 	"adventuria/pkg/event"
 	"adventuria/pkg/helper"
+	"adventuria/pkg/result"
 	"fmt"
 	"slices"
 	"strings"
@@ -40,14 +41,12 @@ func (ef *TeleportToRandomCellByTypeEffect) Subscribe(
 	switch decodedValue.Event {
 	case "onAfterItemSave":
 		return []event.Unsubscribe{
-			ctx.User.OnAfterItemSave().BindFunc(func(e *adventuria.OnAfterItemSave) (*event.Result, error) {
+			ctx.User.OnAfterItemSave().BindFunc(func(e *adventuria.OnAfterItemSave) (*result.Result, error) {
 				if e.Item.IDInventory() == ctx.InvItemID {
-					err = teleportToRandomCellByType(e.AppContext, ctx.User, decodedValue.CellTypes)
+					err := teleportToRandomCellByType(e.AppContext, ctx.User, decodedValue.CellTypes)
 					if err != nil {
-						return &event.Result{
-							Success: false,
-							Error:   "",
-						}, fmt.Errorf("teleportToRandomCellByTypeEffect: %w", err)
+						return result.Err("internal error: failed to teleport to the cell"),
+							fmt.Errorf("teleportToRandomCellByTypeEffect: %w", err)
 					}
 
 					callback(e.AppContext)
@@ -58,14 +57,12 @@ func (ef *TeleportToRandomCellByTypeEffect) Subscribe(
 		}, nil
 	case "onAfterItemUse":
 		return []event.Unsubscribe{
-			ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*event.Result, error) {
+			ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*result.Result, error) {
 				if e.InvItemId == ctx.InvItemID {
-					err = teleportToRandomCellByType(e.AppContext, ctx.User, decodedValue.CellTypes)
+					err := teleportToRandomCellByType(e.AppContext, ctx.User, decodedValue.CellTypes)
 					if err != nil {
-						return &event.Result{
-							Success: false,
-							Error:   "",
-						}, fmt.Errorf("teleportToRandomCellByTypeEffect: %w", err)
+						return result.Err("internal error: failed to teleport to the cell"),
+							fmt.Errorf("teleportToRandomCellByTypeEffect: %w", err)
 					}
 
 					callback(e.AppContext)

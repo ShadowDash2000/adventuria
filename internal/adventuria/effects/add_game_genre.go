@@ -4,6 +4,8 @@ import (
 	"adventuria/internal/adventuria"
 	"adventuria/internal/adventuria/schema"
 	"adventuria/pkg/event"
+	"adventuria/pkg/result"
+	"errors"
 	"fmt"
 	"slices"
 )
@@ -54,22 +56,17 @@ func (ef *AddGameGenreEffect) Subscribe(
 	callback adventuria.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*event.Result, error) {
+		ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*result.Result, error) {
 			if ctx.InvItemID == e.InvItemId {
 				cell, ok := ctx.User.CurrentCell()
 				if !ok {
-					return &event.Result{
-						Success: false,
-						Error:   "current cell not found",
-					}, nil
+					return result.Err("internal error: current cell not found"),
+						errors.New("addGameGenre: current cell not found")
 				}
 
 				cellGame, ok := cell.(adventuria.CellWheel)
 				if !ok {
-					return &event.Result{
-						Success: false,
-						Error:   "current cell isn't wheel cell",
-					}, nil
+					return result.Err("current cell isn't wheel cell"), nil
 				}
 
 				if genreId, ok := e.Data["genre_id"].(string); ok {
@@ -78,43 +75,30 @@ func (ef *AddGameGenreEffect) Subscribe(
 						genreId,
 					)
 					if err != nil {
-						return &event.Result{
-							Success: false,
-							Error:   "genre_id not found",
-						}, fmt.Errorf("addGameGenre: %w", err)
+						return result.Err("genre_id not found"), nil
 					}
 
 					filter, err := ctx.User.LastAction().CustomActivityFilter()
 					if err != nil {
-						return &event.Result{
-							Success: false,
-							Error:   "internal error: can't get custom activity filter",
-						}, fmt.Errorf("addGameGenre: %w", err)
+						return result.Err("internal error: can't get custom activity filter"),
+							fmt.Errorf("addGameGenre: %w", err)
 					}
 
 					if index := slices.Index(filter.Tags, genreId); index != -1 {
-						return &event.Result{
-							Success: false,
-							Error:   "genre already exists",
-						}, nil
+						return result.Err("genre already exists"), nil
 					}
 
 					filter.Genres = append(filter.Genres, genreId)
 					if err = cellGame.RefreshItems(e.AppContext, ctx.User); err != nil {
-						return &event.Result{
-							Success: false,
-							Error:   "internal error: can't refresh cell items",
-						}, fmt.Errorf("addGameGenre: %w", err)
+						return result.Err("internal error: can't refresh cell items"),
+							fmt.Errorf("addGameGenre: %w", err)
 					}
 
 					ctx.User.LastAction().SetCustomActivityFilter(*filter)
 
 					callback(e.AppContext)
 				} else {
-					return &event.Result{
-						Success: false,
-						Error:   "genre_id not found",
-					}, nil
+					return result.Err("genre_id not specified"), nil
 				}
 			}
 

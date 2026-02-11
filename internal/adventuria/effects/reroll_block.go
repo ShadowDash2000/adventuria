@@ -3,6 +3,7 @@ package effects
 import (
 	"adventuria/internal/adventuria"
 	"adventuria/pkg/event"
+	"adventuria/pkg/result"
 )
 
 type RerollBlockedEffect struct {
@@ -18,11 +19,11 @@ func (ef *RerollBlockedEffect) Subscribe(
 	callback adventuria.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		ctx.User.OnBeforeRerollCheck().BindFunc(func(e *adventuria.OnBeforeRerollCheckEvent) (*event.Result, error) {
+		ctx.User.OnBeforeRerollCheck().BindFunc(func(e *adventuria.OnBeforeRerollCheckEvent) (*result.Result, error) {
 			e.IsRerollBlocked = true
 			return e.Next()
 		}),
-		ctx.User.OnAfterDone().BindFunc(func(e *adventuria.OnAfterDoneEvent) (*event.Result, error) {
+		ctx.User.OnAfterDone().BindFunc(func(e *adventuria.OnAfterDoneEvent) (*result.Result, error) {
 			callback(e.AppContext)
 			return e.Next()
 		}),

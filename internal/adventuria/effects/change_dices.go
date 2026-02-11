@@ -3,6 +3,7 @@ package effects
 import (
 	"adventuria/internal/adventuria"
 	"adventuria/pkg/event"
+	"adventuria/pkg/result"
 	"errors"
 	"fmt"
 	"strings"
@@ -21,7 +22,7 @@ func (ef *ChangeDicesEffect) Subscribe(
 	callback adventuria.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		ctx.User.OnBeforeRoll().BindFunc(func(e *adventuria.OnBeforeRollEvent) (*event.Result, error) {
+		ctx.User.OnBeforeRoll().BindFunc(func(e *adventuria.OnBeforeRollEvent) (*result.Result, error) {
 			dicesAny, _ := ef.DecodeValue(ef.GetString("value"))
 			dices := dicesAny.([]string)
 			diceList := make([]*adventuria.Dice, len(dices))

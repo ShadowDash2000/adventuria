@@ -1,6 +1,8 @@
 package adventuria
 
 import (
+	"adventuria/pkg/result"
+
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/tools/types"
 )
@@ -11,7 +13,7 @@ type Action interface {
 	InCategory(string) bool
 	InCategories(categories []string) bool
 	CanDo(ActionContext) bool
-	Do(ActionContext, ActionRequest) (*ActionResult, error)
+	Do(ActionContext, ActionRequest) (*result.Result, error)
 	GetVariants(ActionContext) any
 
 	setType(ActionType)
@@ -72,12 +74,6 @@ const (
 )
 
 type ActionRequest map[string]any
-
-type ActionResult struct {
-	Success bool   `json:"success"`
-	Data    any    `json:"data,omitempty"`
-	Error   string `json:"error,omitempty"`
-}
 
 var actionsList = map[ActionType]ActionDef{
 	ActionTypeNone: NewAction(ActionTypeNone, &NoneAction{}),

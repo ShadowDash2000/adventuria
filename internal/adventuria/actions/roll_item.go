@@ -3,7 +3,7 @@ package actions
 import (
 	"adventuria/internal/adventuria"
 	"adventuria/pkg/helper"
-	"errors"
+	"adventuria/pkg/result"
 	"fmt"
 )
 
@@ -23,15 +23,16 @@ func (a *RollItemAction) CanDo(ctx adventuria.ActionContext) bool {
 	return true
 }
 
-func (a *RollItemAction) Do(ctx adventuria.ActionContext, _ adventuria.ActionRequest) (*adventuria.ActionResult, error) {
+func (a *RollItemAction) Do(ctx adventuria.ActionContext, _ adventuria.ActionRequest) (*result.Result, error) {
 	res := &adventuria.WheelRollResult{}
 
-	items := adventuria.GameItems.GetAllRollable()
+	var items []adventuria.ItemRecord
+	for item := range adventuria.GameItems.GetAllRollable() {
+		items = append(items, item)
+	}
+
 	if len(items) == 0 {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   "internal error: no items found",
-		}, errors.New("roll_item.do(): no items found")
+		return result.Err("no items to roll"), nil
 	}
 
 	for _, item := range items {
@@ -46,10 +47,8 @@ func (a *RollItemAction) Do(ctx adventuria.ActionContext, _ adventuria.ActionReq
 
 	_, err := ctx.User.Inventory().MustAddItemById(ctx.AppContext, res.WinnerId)
 	if err != nil {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   "internal error: can't add item to inventory",
-		}, fmt.Errorf("roll_item.do(): %w", err)
+		return result.Err("internal error: failed to add item to the inventory"),
+			fmt.Errorf("roll_item.do(): %w", err)
 	}
 
 	ctx.User.SetItemWheelsCount(ctx.User.ItemWheelsCount() - 1)
@@ -58,40 +57,25 @@ func (a *RollItemAction) Do(ctx adventuria.ActionContext, _ adventuria.ActionReq
 		AppContext: ctx.AppContext,
 		ItemId:     res.WinnerId,
 	})
-	if eventRes != nil && !eventRes.Success {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   eventRes.Error,
-		}, err
-	}
 	if err != nil {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   "internal error: failed to trigger onAfterItemRollEvent event",
-		}, err
+		return eventRes, err
+	}
+	if eventRes.Failed() {
+		return eventRes, err
 	}
 
 	eventRes, err = ctx.User.OnAfterWheelRoll().Trigger(&adventuria.OnAfterWheelRollEvent{
 		AppContext: ctx.AppContext,
 		ItemId:     res.WinnerId,
 	})
-	if eventRes != nil && !eventRes.Success {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   eventRes.Error,
-		}, err
-	}
 	if err != nil {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   "internal error: failed to trigger onAfterWheelRollEvent event",
-		}, err
+		return eventRes, err
+	}
+	if eventRes.Failed() {
+		return eventRes, err
 	}
 
-	return &adventuria.ActionResult{
-		Success: true,
-		Data:    res,
-	}, nil
+	return result.Ok().WithData(res), nil
 }
 
 func (a *RollItemAction) GetVariants(_ adventuria.ActionContext) any {

@@ -3,6 +3,7 @@ package actions
 import (
 	"adventuria/internal/adventuria"
 	"adventuria/internal/adventuria/schema"
+	"adventuria/pkg/result"
 	"errors"
 	"fmt"
 
@@ -26,13 +27,11 @@ func (a *RollWheelAction) CanDo(ctx adventuria.ActionContext) bool {
 	return !ctx.User.LastAction().CanMove() && ctx.User.LastAction().Type() != ActionTypeRollWheel
 }
 
-func (a *RollWheelAction) Do(ctx adventuria.ActionContext, req adventuria.ActionRequest) (*adventuria.ActionResult, error) {
+func (a *RollWheelAction) Do(ctx adventuria.ActionContext, req adventuria.ActionRequest) (*result.Result, error) {
 	currentCell, ok := ctx.User.CurrentCell()
 	if !ok {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   "internal error: current cell not found",
-		}, errors.New("roll_wheel.do(): current cell not found")
+		return result.Err("internal error: current cell not found"),
+			errors.New("roll_wheel.do(): current cell not found")
 	}
 
 	onBeforeWheelRollEvent := &adventuria.OnBeforeWheelRollEvent{
@@ -40,25 +39,17 @@ func (a *RollWheelAction) Do(ctx adventuria.ActionContext, req adventuria.Action
 		CurrentCell: currentCell.(adventuria.CellWheel),
 	}
 	eventRes, err := ctx.User.OnBeforeWheelRoll().Trigger(onBeforeWheelRollEvent)
-	if eventRes != nil && !eventRes.Success {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   eventRes.Error,
-		}, err
-	}
 	if err != nil {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   "internal error: failed to trigger onBeforeWheelRollEvent event",
-		}, err
+		return eventRes, err
+	}
+	if eventRes.Failed() {
+		return eventRes, err
 	}
 
 	res, err := onBeforeWheelRollEvent.CurrentCell.Roll(ctx.AppContext, ctx.User, adventuria.RollWheelRequest(req))
 	if err != nil {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   "internal error",
-		}, fmt.Errorf("roll_wheel.do(): %w", err)
+		return result.Err("internal error: failed to roll wheel"),
+			fmt.Errorf("roll_wheel.do(): %w", err)
 	}
 
 	action := ctx.User.LastAction()
@@ -69,23 +60,14 @@ func (a *RollWheelAction) Do(ctx adventuria.ActionContext, req adventuria.Action
 		AppContext: ctx.AppContext,
 		ItemId:     res.WinnerId,
 	})
-	if eventRes != nil && !eventRes.Success {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   eventRes.Error,
-		}, err
-	}
 	if err != nil {
-		return &adventuria.ActionResult{
-			Success: false,
-			Error:   "internal error: failed to trigger onAfterWheelRollEvent event",
-		}, err
+		return eventRes, err
+	}
+	if eventRes.Failed() {
+		return eventRes, err
 	}
 
-	return &adventuria.ActionResult{
-		Success: true,
-		Data:    res,
-	}, nil
+	return result.Ok().WithData(res), nil
 }
 
 func (a *RollWheelAction) GetVariants(ctx adventuria.ActionContext) any {

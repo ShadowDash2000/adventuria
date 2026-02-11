@@ -4,6 +4,7 @@ import (
 	"adventuria/internal/adventuria"
 	"adventuria/internal/adventuria/schema"
 	"adventuria/pkg/event"
+	"adventuria/pkg/result"
 	"errors"
 	"fmt"
 	"strings"
@@ -24,34 +25,27 @@ func (ef *AddItemsToInventoryEffect) Subscribe(
 	callback adventuria.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*event.Result, error) {
+		ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*result.Result, error) {
 			if e.InvItemId != ctx.InvItemID {
 				return e.Next()
 			}
 
 			ids, err := ef.DecodeValue(ef.GetString("value"))
 			if err != nil {
-				return &event.Result{
-					Success: false,
-					Error:   "internal error: failed to decode effect value",
-				}, fmt.Errorf("addItemsToInventory: %w", err)
+				return result.Err("internal error: failed to decode effect value"),
+					fmt.Errorf("addItemsToInventory: %w", err)
 			}
 
 			for _, id := range ids {
 				item, ok := adventuria.GameItems.GetById(id)
 				if !ok {
-					return &event.Result{
-						Success: false,
-						Error:   fmt.Sprintf("item with id %s not found", id),
-					}, nil
+					return result.Err(fmt.Sprintf("item with id %s not found", id)), nil
 				}
 
 				_, err = ctx.User.Inventory().AddItem(e.AppContext, item)
 				if err != nil {
-					return &event.Result{
-						Success: false,
-						Error:   "failed to add item to inventory",
-					}, fmt.Errorf("addItemsToInventory: %w", err)
+					return result.Err("internal error: failed to add item to the inventory"),
+						fmt.Errorf("addItemsToInventory: %w", err)
 				}
 			}
 

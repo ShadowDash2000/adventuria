@@ -41,7 +41,7 @@ func Test_TimerIncrement(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = game.UseItem(ctx.App, user.ID(), adventuria.UseItemRequest{InvItemId: invItemId})
+	_, err = game.UseItem(ctx.App, user.ID(), adventuria.UseItemRequest{InvItemId: invItemId})
 	if err != nil {
 		t.Fatal(err)
 	}

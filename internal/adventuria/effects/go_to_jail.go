@@ -3,6 +3,7 @@ package effects
 import (
 	"adventuria/internal/adventuria"
 	"adventuria/pkg/event"
+	"adventuria/pkg/result"
 	"fmt"
 	"slices"
 )
@@ -39,7 +40,7 @@ func (ef *GoToJailEffect) Subscribe(
 	switch decodedValue.Event {
 	case "onAfterItemSave":
 		return []event.Unsubscribe{
-			ctx.User.OnAfterItemSave().BindFunc(func(e *adventuria.OnAfterItemSave) (*event.Result, error) {
+			ctx.User.OnAfterItemSave().BindFunc(func(e *adventuria.OnAfterItemSave) (*result.Result, error) {
 				if e.Item.IDInventory() != ctx.InvItemID {
 					return e.Next()
 				}
@@ -49,7 +50,7 @@ func (ef *GoToJailEffect) Subscribe(
 					return res, err
 				}
 
-				if res.Success {
+				if res.Ok() {
 					callback(e.AppContext)
 				} else {
 					return res, nil
@@ -60,7 +61,7 @@ func (ef *GoToJailEffect) Subscribe(
 		}, nil
 	case "onAfterItemUse":
 		return []event.Unsubscribe{
-			ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*event.Result, error) {
+			ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*result.Result, error) {
 				if e.InvItemId != ctx.InvItemID {
 					return e.Next()
 				}
@@ -70,7 +71,7 @@ func (ef *GoToJailEffect) Subscribe(
 					return res, err
 				}
 
-				if res.Success {
+				if res.Ok() {
 					callback(e.AppContext)
 				} else {
 					return res, nil
@@ -84,18 +85,16 @@ func (ef *GoToJailEffect) Subscribe(
 	}
 }
 
-func (ef *GoToJailEffect) tryToApplyEffect(ctx adventuria.AppContext, user adventuria.User) (*event.Result, error) {
+func (ef *GoToJailEffect) tryToApplyEffect(ctx adventuria.AppContext, user adventuria.User) (*result.Result, error) {
 	user.SetIsInJail(true)
 
 	_, err := user.MoveToClosestCellType(ctx, "jail")
 	if err != nil {
-		return &event.Result{
-			Success: false,
-			Error:   "internal error: can't move to jail cell",
-		}, fmt.Errorf("goToJailEffect: %w", err)
+		return result.Err("internal error: failed to move to the jail cell"),
+			fmt.Errorf("goToJailEffect: %w", err)
 	}
 
-	return &event.Result{Success: true}, nil
+	return result.Ok(), nil
 }
 
 func (ef *GoToJailEffect) Verify(_ adventuria.AppContext, value string) error {

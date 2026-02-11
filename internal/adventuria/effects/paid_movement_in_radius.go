@@ -3,6 +3,8 @@ package effects
 import (
 	"adventuria/internal/adventuria"
 	"adventuria/pkg/event"
+	"adventuria/pkg/result"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -52,49 +54,35 @@ func (ef *PaidMovementInRadiusEffect) Subscribe(
 	callback adventuria.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*event.Result, error) {
+		ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*result.Result, error) {
 			if ctx.InvItemID == e.InvItemId {
 				if cellId, ok := e.Data["cell_id"].(string); ok {
 					currentCell, ok := ctx.User.CurrentCell()
 					if !ok {
-						return &event.Result{
-							Success: false,
-							Error:   "current cell not found",
-						}, nil
+						return result.Err("internal error: current cell not found"),
+							errors.New("paidMovementInRadius: current cell not found")
 					}
 
 					distance, ok := adventuria.GameCells.GetDistanceByIds(currentCell.ID(), cellId)
 					if !ok {
-						return &event.Result{
-							Success: false,
-							Error:   "destination cell not found",
-						}, nil
+						return result.Err("destination cell not found"), nil
 					}
 
 					value, _ := ef.DecodeValue(ef.GetString("value"))
 					if distance == 0 || distance > value.Radius {
-						return &event.Result{
-							Success: false,
-							Error:   "destination cell is too far",
-						}, nil
+						return result.Err("destination cell is too far"), nil
 					}
 
 					_, err := ctx.User.MoveToCellId(e.AppContext, cellId)
 					if err != nil {
-						return &event.Result{
-							Success: false,
-							Error:   "failed to move to cell",
-						}, nil
+						return result.Err("internal error: failed to move to the cell"), err
 					}
 
 					ctx.User.AddBalance(-value.Price)
 
 					callback(e.AppContext)
 				} else {
-					return &event.Result{
-						Success: false,
-						Error:   "cell_id not found in request",
-					}, nil
+					return result.Err("cell_id not specified"), nil
 				}
 			}
 

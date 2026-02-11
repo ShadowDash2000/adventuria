@@ -3,6 +3,7 @@ package effects
 import (
 	"adventuria/internal/adventuria"
 	"adventuria/pkg/event"
+	"adventuria/pkg/result"
 	"fmt"
 	"strconv"
 	"strings"
@@ -26,7 +27,7 @@ func (ef *CoinsForAllEffect) Subscribe(
 	}
 
 	return []event.Unsubscribe{
-		ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*event.Result, error) {
+		ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*result.Result, error) {
 			if e.InvItemId == ctx.InvItemID {
 				ctx.User.AddBalance(decodedValue.CoinsForPlayer)
 
@@ -36,6 +37,10 @@ func (ef *CoinsForAllEffect) Subscribe(
 					}
 					user.Lock()
 					user.AddBalance(decodedValue.CoinsForOther)
+					err := e.App.Save(user.ProxyRecord())
+					if err != nil {
+						return result.Err("internal error: failed to save user"), err
+					}
 					user.Unlock()
 				}
 

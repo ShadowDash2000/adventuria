@@ -3,6 +3,7 @@ package effects
 import (
 	"adventuria/internal/adventuria"
 	"adventuria/pkg/event"
+	"adventuria/pkg/result"
 )
 
 type DebuffBlockEffect struct {
@@ -18,7 +19,7 @@ func (ef *DebuffBlockEffect) Subscribe(
 	callback adventuria.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		ctx.User.OnBeforeItemAdd().BindFunc(func(e *adventuria.OnBeforeItemAdd) (*event.Result, error) {
+		ctx.User.OnBeforeItemAdd().BindFunc(func(e *adventuria.OnBeforeItemAdd) (*result.Result, error) {
 			if e.ItemRecord.Type() == "debuff" {
 				e.ShouldAddItem = false
 				callback(e.AppContext)

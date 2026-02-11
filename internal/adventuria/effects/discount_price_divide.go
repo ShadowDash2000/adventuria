@@ -3,6 +3,7 @@ package effects
 import (
 	"adventuria/internal/adventuria"
 	"adventuria/pkg/event"
+	"adventuria/pkg/result"
 	"errors"
 	"strconv"
 )
@@ -20,12 +21,12 @@ func (ef *DiscountPriceDivideEffect) Subscribe(
 	callback adventuria.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		ctx.User.OnBeforeItemBuy().BindFunc(func(e *adventuria.OnBeforeItemBuy) (*event.Result, error) {
+		ctx.User.OnBeforeItemBuy().BindFunc(func(e *adventuria.OnBeforeItemBuy) (*result.Result, error) {
 			e.Price /= ef.GetInt("value")
 			callback(e.AppContext)
 			return e.Next()
 		}),
-		ctx.User.OnBuyGetVariants().BindFunc(func(e *adventuria.OnBuyGetVariants) (*event.Result, error) {
+		ctx.User.OnBuyGetVariants().BindFunc(func(e *adventuria.OnBuyGetVariants) (*result.Result, error) {
 			e.Price /= ef.GetInt("value")
 			return e.Next()
 		}),

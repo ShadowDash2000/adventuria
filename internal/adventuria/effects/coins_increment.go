@@ -3,6 +3,7 @@ package effects
 import (
 	"adventuria/internal/adventuria"
 	"adventuria/pkg/event"
+	"adventuria/pkg/result"
 	"fmt"
 	"slices"
 	"strconv"
@@ -29,7 +30,7 @@ func (ef *CoinsIncrementEffect) Subscribe(
 	switch value.Event {
 	case "onAfterItemSave":
 		return []event.Unsubscribe{
-			ctx.User.OnAfterItemSave().BindFunc(func(e *adventuria.OnAfterItemSave) (*event.Result, error) {
+			ctx.User.OnAfterItemSave().BindFunc(func(e *adventuria.OnAfterItemSave) (*result.Result, error) {
 				if e.Item.IDInventory() == ctx.InvItemID {
 					ctx.User.AddBalance(value.Value)
 					callback(e.AppContext)
