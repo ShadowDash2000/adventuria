@@ -1,6 +1,6 @@
 module adventuria
 
-go 1.25.6
+go 1.26.0
 
 require (
 	git.nite07.com/shadod/go-igdb v1.0.2
@@ -8,9 +8,9 @@ require (
 	github.com/ShadowDash2000/is-stream-live v0.3.0
 	github.com/ShadowDash2000/steam-store-go v0.0.13
 	github.com/joho/godotenv v1.5.1
-	github.com/pocketbase/dbx v1.11.0
+	github.com/pocketbase/dbx v1.12.0
 	github.com/pocketbase/pocketbase v0.36.2
-	golang.org/x/exp v0.0.0-20260112195511-716be5621a96
+	golang.org/x/exp v0.0.0-20260211191109-2735e65f0518
 	google.golang.org/protobuf v1.36.11
 )
 
@@ -38,17 +38,17 @@ require (
 	github.com/spf13/cobra v1.10.2 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
 	github.com/stretchr/testify v1.11.1 // indirect
-	golang.org/x/crypto v0.47.0 // indirect
-	golang.org/x/image v0.35.0 // indirect
-	golang.org/x/net v0.49.0 // indirect
-	golang.org/x/oauth2 v0.34.0 // indirect
+	golang.org/x/crypto v0.48.0 // indirect
+	golang.org/x/image v0.36.0 // indirect
+	golang.org/x/net v0.50.0 // indirect
+	golang.org/x/oauth2 v0.35.0 // indirect
 	golang.org/x/sync v0.19.0 // indirect
-	golang.org/x/sys v0.40.0 // indirect
-	golang.org/x/text v0.33.0 // indirect
+	golang.org/x/sys v0.41.0 // indirect
+	golang.org/x/text v0.34.0 // indirect
 	golang.org/x/time v0.14.0 // indirect
 	modernc.org/libc v1.67.7 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
-	modernc.org/sqlite v1.44.3 // indirect
+	modernc.org/sqlite v1.45.0 // indirect
 	resty.dev/v3 v3.0.0-beta.6 // indirect
 )
