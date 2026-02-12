@@ -3,7 +3,7 @@ module adventuria
 go 1.26.0
 
 require (
-	git.nite07.com/shadod/go-igdb v1.0.2
+	git.nite07.com/shadod/go-igdb v1.0.3
 	github.com/ShadowDash2000/howlongtobeat v1.1.4
 	github.com/ShadowDash2000/is-stream-live v0.3.0
 	github.com/ShadowDash2000/steam-store-go v0.0.13
