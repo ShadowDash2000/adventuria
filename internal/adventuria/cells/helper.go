@@ -102,13 +102,13 @@ func updateActivitiesFromFilter(app core.App, user adventuria.User, filter adven
 }
 
 func fetchActivitiesByFilter(app core.App, filter adventuria.ActivityFilterRecord) ([]string, error) {
-	countQuery := app.RecordQuery(adventuria.GameCollections.Get(schema.CollectionActivities))
+	countQuery := app.DB().Select("count(*)")
 	if filter != nil {
-		setFilters(app, filter, countQuery)
+		buildQuery(app, filter, countQuery)
 	}
 
 	var totalCount int
-	err := countQuery.Select("count(activities.id)").Row(&totalCount)
+	err := countQuery.Row(&totalCount)
 	if err != nil {
 		return nil, err
 	}
@@ -126,12 +126,12 @@ func fetchActivitiesByFilter(app core.App, filter adventuria.ActivityFilterRecor
 		offset = rand.N(totalCount - maxPoolSize + 1)
 	}
 
-	q := app.RecordQuery(adventuria.GameCollections.Get(schema.CollectionActivities)).
-		Select("activities.id").
+	q := app.DB().
+		Select("f.id").
 		Limit(int64(limit)).
 		Offset(int64(offset))
 	if filter != nil {
-		setFilters(app, filter, q)
+		buildQuery(app, filter, q)
 	}
 
 	var records []struct {
@@ -159,11 +159,65 @@ func fetchActivitiesByFilter(app core.App, filter adventuria.ActivityFilterRecor
 	return res, nil
 }
 
-func setFilters(app core.App, filter adventuria.ActivityFilterRecord, q *dbx.SelectQuery) {
+func buildQuery(app core.App, filter adventuria.ActivityFilterRecord, mainQuery *dbx.SelectQuery) {
+	q := app.DB().
+		Select("id").
+		From(schema.CollectionActivities)
+
 	if filter.Type() != "" {
-		q = q.Where(dbx.NewExp(fmt.Sprintf("%s = '%s'", schema.ActivitySchema.Type, filter.Type())))
+		q.Where(dbx.NewExp(fmt.Sprintf("%s = '%s'", schema.ActivitySchema.Type, filter.Type())))
 	}
 
+	if len(filter.GameTypes()) > 0 {
+		q.AndWhere(dbx.NewExp(
+			fmt.Sprintf("%s IN (%s)", schema.ActivitySchema.GameType, sliceToSqlString(filter.GameTypes())),
+		))
+	}
+	if len(filter.Activities()) > 0 {
+		q.AndWhere(dbx.NewExp(
+			fmt.Sprintf("%s IN (%s)", schema.ActivitySchema.Id, sliceToSqlString(filter.Activities())),
+		))
+	}
+
+	if filter.MinPrice() > 0 {
+		q.AndWhere(dbx.NewExp(
+			fmt.Sprintf("%s > %d", schema.ActivitySchema.SteamAppPrice, filter.MinPrice()),
+		))
+	}
+	if filter.MaxPrice() > 0 {
+		q.AndWhere(dbx.NewExp(
+			fmt.Sprintf("%s < %d", schema.ActivitySchema.SteamAppPrice, filter.MaxPrice()),
+		))
+	}
+
+	if !filter.ReleaseDateFrom().IsZero() {
+		q.AndWhere(dbx.NewExp(
+			fmt.Sprintf("%s > %s", schema.ActivitySchema.ReleaseDate, filter.ReleaseDateFrom().String()),
+		))
+	}
+	if !filter.ReleaseDateTo().IsZero() {
+		q.AndWhere(dbx.NewExp(
+			fmt.Sprintf("%s < %s", schema.ActivitySchema.ReleaseDate, filter.ReleaseDateTo().String()),
+		))
+	}
+
+	if filter.MinCampaignTime() > 0 {
+		q.AndWhere(dbx.NewExp(
+			fmt.Sprintf("%s > %f", schema.ActivitySchema.HltbCampaignTime, filter.MinCampaignTime()),
+		))
+	}
+	if filter.MaxCampaignTime() > 0 {
+		q.AndWhere(dbx.NewExp(
+			fmt.Sprintf("%s < %f", schema.ActivitySchema.HltbCampaignTime, filter.MaxCampaignTime()),
+		))
+	}
+
+	mainQuery.From(fmt.Sprintf("(%s) AS f", q.Build().SQL()))
+
+	setSubTablesFilters(app, filter, mainQuery)
+}
+
+func setSubTablesFilters(app core.App, filter adventuria.ActivityFilterRecord, q *dbx.SelectQuery) {
 	if len(filter.Platforms()) > 0 {
 		applyActivityRelationFilter(
 			app,
@@ -230,33 +284,6 @@ func setFilters(app core.App, filter adventuria.ActivityFilterRecord, q *dbx.Sel
 			false,
 		)
 	}
-	if len(filter.GameTypes()) > 0 {
-		q.AndWhere(dbx.In(schema.ActivitySchema.GameType, sliceToAny(filter.GameTypes())...))
-	}
-	if len(filter.Activities()) > 0 {
-		q.AndWhere(dbx.In("id", sliceToAny(filter.Activities())...))
-	}
-
-	if filter.MinPrice() > 0 {
-		q.AndWhere(dbx.NewExp("steam_app_price > {:price}", dbx.Params{"price": filter.MinPrice()}))
-	}
-	if filter.MaxPrice() > 0 {
-		q.AndWhere(dbx.NewExp("steam_app_price < {:price}", dbx.Params{"price": filter.MaxPrice()}))
-	}
-
-	if !filter.ReleaseDateFrom().IsZero() {
-		q.AndWhere(dbx.NewExp("release_date > {:date}", dbx.Params{"date": filter.ReleaseDateFrom()}))
-	}
-	if !filter.ReleaseDateTo().IsZero() {
-		q.AndWhere(dbx.NewExp("release_date < {:date}", dbx.Params{"date": filter.ReleaseDateTo()}))
-	}
-
-	if filter.MinCampaignTime() > 0 {
-		q.AndWhere(dbx.NewExp("hltb_campaign_time > {:min_time}", dbx.Params{"min_time": filter.MinCampaignTime()}))
-	}
-	if filter.MaxCampaignTime() > 0 {
-		q.AndWhere(dbx.NewExp("hltb_campaign_time < {:max_time}", dbx.Params{"max_time": filter.MaxCampaignTime()}))
-	}
 }
 
 func sliceToAny[T any](slice []T) []any {
@@ -280,11 +307,7 @@ func applyActivityRelationFilter(
 		return
 	}
 
-	quotedValues := make([]string, len(values))
-	for i, v := range values {
-		quotedValues[i] = fmt.Sprintf("'%s'", v)
-	}
-	inClause := strings.Join(quotedValues, ", ")
+	inClause := sliceToSqlString(values)
 
 	subQuery := app.DB().
 		Select(activityField).
@@ -295,7 +318,7 @@ func applyActivityRelationFilter(
 	query.AndWhere(dbx.NewExp(fmt.Sprintf("id IN (%s)", subQuery.SQL())))
 
 	if strict {
-		mainIdField := fmt.Sprintf("%s.id", schema.CollectionActivities)
+		mainIdField := fmt.Sprintf("%s.id", "f")
 		subQuery := app.DB().
 			Select(activityField).
 			From(collectionName).
@@ -309,4 +332,12 @@ func applyActivityRelationFilter(
 			),
 		)
 	}
+}
+
+func sliceToSqlString(slice []string) string {
+	quotedValues := make([]string, len(slice))
+	for i, v := range slice {
+		quotedValues[i] = fmt.Sprintf("'%s'", v)
+	}
+	return strings.Join(quotedValues, ", ")
 }
