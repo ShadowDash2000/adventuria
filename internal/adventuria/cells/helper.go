@@ -164,6 +164,17 @@ func buildQuery(app core.App, filter adventuria.ActivityFilterRecord, mainQuery 
 		Select("id").
 		From(schema.CollectionActivities)
 
+	// if ids are specified, then we don't need any other filters
+	if len(filter.Activities()) > 0 {
+		q.AndWhere(dbx.NewExp(
+			fmt.Sprintf("%s IN (%s)", schema.ActivitySchema.Id, sliceToSqlString(filter.Activities())),
+		))
+
+		mainQuery.From(fmt.Sprintf("(%s) AS f", q.Build().SQL()))
+
+		return
+	}
+
 	if filter.Type() != "" {
 		q.Where(dbx.NewExp(fmt.Sprintf("%s = '%s'", schema.ActivitySchema.Type, filter.Type())))
 	}
@@ -171,11 +182,6 @@ func buildQuery(app core.App, filter adventuria.ActivityFilterRecord, mainQuery 
 	if len(filter.GameTypes()) > 0 {
 		q.AndWhere(dbx.NewExp(
 			fmt.Sprintf("%s IN (%s)", schema.ActivitySchema.GameType, sliceToSqlString(filter.GameTypes())),
-		))
-	}
-	if len(filter.Activities()) > 0 {
-		q.AndWhere(dbx.NewExp(
-			fmt.Sprintf("%s IN (%s)", schema.ActivitySchema.Id, sliceToSqlString(filter.Activities())),
 		))
 	}
 
@@ -284,14 +290,6 @@ func setSubTablesFilters(app core.App, filter adventuria.ActivityFilterRecord, q
 			false,
 		)
 	}
-}
-
-func sliceToAny[T any](slice []T) []any {
-	res := make([]any, len(slice))
-	for i, v := range slice {
-		res[i] = v
-	}
-	return res
 }
 
 func applyActivityRelationFilter(
