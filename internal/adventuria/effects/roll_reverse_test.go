@@ -88,7 +88,6 @@ func createRollReverseItem() (*core.Record, error) {
 	record.Set("name", "Roll Reverse")
 	record.Set("effects", []string{effectRecord.Id})
 	record.Set("icon", icon)
-	record.Set("order", 1)
 	record.Set("isUsingSlot", true)
 	record.Set("canDrop", true)
 	err = adventuria.PocketBase.Save(record)

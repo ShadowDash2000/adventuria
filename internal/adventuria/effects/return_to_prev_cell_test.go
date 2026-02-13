@@ -74,7 +74,6 @@ func createReturnToPrevCellItem() (*core.Record, error) {
 	record.Set("name", "Return To Previous Cell")
 	record.Set("effects", []string{effectRecord.Id})
 	record.Set("icon", icon)
-	record.Set("order", 1)
 	record.Set("isUsingSlot", true)
 	record.Set("canDrop", true)
 	err = adventuria.PocketBase.Save(record)

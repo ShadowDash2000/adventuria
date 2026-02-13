@@ -62,7 +62,6 @@ func createCoinsIncrementItem(ctx adventuria.AppContext) (*core.Record, error) {
 	record.Set("name", "Coins Increment")
 	record.Set("effects", []string{effectRecord.Id})
 	record.Set("icon", icon)
-	record.Set("order", 1)
 	record.Set("isUsingSlot", false)
 	record.Set("isActiveByDefault", true)
 	record.Set("canDrop", true)

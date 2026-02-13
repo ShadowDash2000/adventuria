@@ -67,7 +67,6 @@ func createTimerIncrementItem() (*core.Record, error) {
 	record.Set("name", "Timer Increment")
 	record.Set("effects", []string{effectRecord.Id})
 	record.Set("icon", icon)
-	record.Set("order", 1)
 	record.Set("isUsingSlot", true)
 	record.Set("canDrop", true)
 	err = adventuria.PocketBase.Save(record)

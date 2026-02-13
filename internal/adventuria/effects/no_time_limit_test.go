@@ -75,7 +75,6 @@ func createNoTimeLimitItem() (*core.Record, error) {
 	record.Set("name", "No Time Limit")
 	record.Set("effects", []string{effectRecord.Id})
 	record.Set("icon", icon)
-	record.Set("order", 1)
 	record.Set("isUsingSlot", true)
 	record.Set("canDrop", true)
 	record.Set("isActiveByDefault", true)

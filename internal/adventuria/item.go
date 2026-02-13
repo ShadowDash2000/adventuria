@@ -8,7 +8,6 @@ type ItemRecord interface {
 	IsActiveByDefault() bool
 	CanDrop() bool
 	IsRollable() bool
-	Order() int
 	Type() string
 	Price() int
 }

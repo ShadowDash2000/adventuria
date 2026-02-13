@@ -44,10 +44,6 @@ func (i *ItemRecordBase) IsRollable() bool {
 	return i.itemRecord.GetBool(schema.ItemSchema.IsRollable)
 }
 
-func (i *ItemRecordBase) Order() int {
-	return i.itemRecord.GetInt(schema.ItemSchema.Order)
-}
-
 func (i *ItemRecordBase) Type() string {
 	return i.itemRecord.GetString(schema.ItemSchema.Type)
 }

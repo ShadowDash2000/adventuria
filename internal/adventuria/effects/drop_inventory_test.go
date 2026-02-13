@@ -70,7 +70,6 @@ func createDropInventoryItem() (*core.Record, error) {
 	record.Set("name", "Drop Inventory")
 	record.Set("effects", []string{effectRecord.Id})
 	record.Set("icon", icon)
-	record.Set("order", 1)
 	record.Set("isUsingSlot", false)
 	record.Set("canDrop", false)
 	record.Set("isActiveByDefault", true)

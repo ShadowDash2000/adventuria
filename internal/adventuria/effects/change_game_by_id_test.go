@@ -87,7 +87,6 @@ func createChangeGameByIdItem(gameId string) (*core.Record, error) {
 	record.Set("name", "Change Activity By Id")
 	record.Set("effects", []string{effectRecord.Id})
 	record.Set("icon", icon)
-	record.Set("order", 1)
 	record.Set("isUsingSlot", true)
 	record.Set("canDrop", true)
 	record.Set("isActiveByDefault", false)
