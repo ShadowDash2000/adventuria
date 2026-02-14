@@ -2751,7 +2751,7 @@ func init() {
 					{
 						"autogeneratePattern": "",
 						"hidden": false,
-						"id": "_clone_nu5k",
+						"id": "_clone_QKXt",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -2764,7 +2764,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_Kz7z",
+						"id": "_clone_owyF",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_id",
@@ -2776,7 +2776,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_7zwl",
+						"id": "_clone_MMYB",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_price",
@@ -3002,7 +3002,7 @@ func init() {
 					{
 						"autogeneratePattern": "",
 						"hidden": false,
-						"id": "_clone_Mbnz",
+						"id": "_clone_NXOD",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -3015,7 +3015,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_8faW",
+						"id": "_clone_W5ty",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_id",
@@ -3027,7 +3027,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_OwQw",
+						"id": "_clone_f7Yi",
 						"max": null,
 						"min": 0,
 						"name": "hltb_id",
@@ -3039,7 +3039,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_Rg3Y",
+						"id": "_clone_TNOs",
 						"max": null,
 						"min": 0,
 						"name": "hltb_campaign_time",
@@ -3342,7 +3342,7 @@ func init() {
 					{
 						"autogeneratePattern": "",
 						"hidden": false,
-						"id": "_clone_XcLb",
+						"id": "_clone_Vqwy",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -3355,7 +3355,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_AgxD",
+						"id": "_clone_3rBd",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_id",
@@ -3367,7 +3367,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_iGuf",
+						"id": "_clone_rbnq",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_price",
@@ -3409,7 +3409,7 @@ func init() {
 					{
 						"autogeneratePattern": "",
 						"hidden": false,
-						"id": "_clone_sQ0b",
+						"id": "_clone_GcuV",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -3422,7 +3422,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_yYZX",
+						"id": "_clone_tGR9",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_id",
@@ -3434,7 +3434,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_2cx6",
+						"id": "_clone_Rf2L",
 						"max": null,
 						"min": 0,
 						"name": "hltb_id",
@@ -3446,7 +3446,7 @@ func init() {
 					},
 					{
 						"hidden": false,
-						"id": "_clone_SX76",
+						"id": "_clone_8Doa",
 						"max": null,
 						"min": 0,
 						"name": "hltb_campaign_time",
@@ -4457,6 +4457,68 @@ func init() {
 				],
 				"listRule": null,
 				"name": "activities_themes",
+				"system": false,
+				"type": "base",
+				"updateRule": null,
+				"viewRule": null
+			},
+			{
+				"createRule": null,
+				"deleteRule": null,
+				"fields": [
+					{
+						"autogeneratePattern": "[a-z0-9]{15}",
+						"hidden": false,
+						"id": "text3208210256",
+						"max": 15,
+						"min": 15,
+						"name": "id",
+						"pattern": "^[a-z0-9]+$",
+						"presentable": false,
+						"primaryKey": true,
+						"required": true,
+						"system": true,
+						"type": "text"
+					},
+					{
+						"hidden": false,
+						"id": "autodate2990389176",
+						"name": "created",
+						"onCreate": true,
+						"onUpdate": false,
+						"presentable": false,
+						"system": false,
+						"type": "autodate"
+					},
+					{
+						"hidden": false,
+						"id": "autodate3332085495",
+						"name": "updated",
+						"onCreate": true,
+						"onUpdate": true,
+						"presentable": false,
+						"system": false,
+						"type": "autodate"
+					},
+					{
+						"hidden": false,
+						"id": "file2359244304",
+						"maxSelect": 1,
+						"maxSize": 10000000,
+						"mimeTypes": [],
+						"name": "file",
+						"presentable": false,
+						"protected": false,
+						"required": true,
+						"system": false,
+						"thumbs": [],
+						"type": "file"
+					}
+				],
+				"id": "pbc_3446931122",
+				"indexes": [],
+				"listRule": null,
+				"name": "files",
 				"system": false,
 				"type": "base",
 				"updateRule": null,
