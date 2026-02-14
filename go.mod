@@ -9,8 +9,8 @@ require (
 	github.com/ShadowDash2000/steam-store-go v0.0.13
 	github.com/joho/godotenv v1.5.1
 	github.com/pocketbase/dbx v1.12.0
-	github.com/pocketbase/pocketbase v0.36.2
-	golang.org/x/exp v0.0.0-20260211191109-2735e65f0518
+	github.com/pocketbase/pocketbase v0.36.3
+	golang.org/x/exp v0.0.0-20260212183809-81e46e3db34a
 	google.golang.org/protobuf v1.36.11
 )
 
