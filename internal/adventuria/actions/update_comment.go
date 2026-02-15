@@ -39,19 +39,11 @@ func (a *UpdateCommentAction) Do(ctx adventuria.ActionContext, req adventuria.Ac
 	var record core.Record
 	err := ctx.AppContext.App.
 		RecordQuery(adventuria.GameCollections.Get(schema.CollectionActions)).
-		AndWhere(
+		Where(
 			dbx.HashExp{
 				"user": ctx.User.ID(),
 				"id":   actionId,
 			},
-		).
-		AndWhere(
-			dbx.Or(
-				// TODO get rid of hard coded types
-				dbx.HashExp{"type": "done"},
-				dbx.HashExp{"type": "drop"},
-				dbx.HashExp{"type": "reroll"},
-			),
 		).
 		Limit(1).
 		One(&record)
