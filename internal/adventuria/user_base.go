@@ -421,7 +421,11 @@ func (u *UserBase) Balance() int {
 }
 
 func (u *UserBase) AddBalance(amount int) {
-	u.Set(schema.UserSchema.Balance+"+", amount)
+	if u.Balance()+amount < 0 {
+		u.Set(schema.UserSchema.Balance, 0)
+	} else {
+		u.Set(schema.UserSchema.Balance+"+", amount)
+	}
 }
 
 func (u *UserBase) IsStreamLive() bool {
