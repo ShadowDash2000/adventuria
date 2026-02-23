@@ -104,7 +104,6 @@ func (u *UserBase) bindHooks(ctx AppContext) {
 		if e.Record.Id == u.Id {
 			if e.Record.GetBool(schema.UserSchema.ClearStats) {
 				e.Record.Set(schema.UserSchema.ClearStats, false)
-				e.Record.Set(schema.UserSchema.Stats, "null")
 			} else {
 				e.Record.Set(schema.UserSchema.Stats, u.stats)
 			}
