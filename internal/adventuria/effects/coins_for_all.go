@@ -31,14 +31,21 @@ func (ef *CoinsForAllEffect) Subscribe(
 			if e.InvItemId == ctx.InvItemID {
 				ctx.User.AddBalance(decodedValue.CoinsForPlayer)
 
-				for _, user := range adventuria.GameUsers.GetAll() {
+				users, err := adventuria.GameUsers.GetAll(e.AppContext)
+				if err != nil {
+					return result.Err("internal error: failed to get users"), err
+				}
+
+				for _, user := range users {
 					if user.ID() == ctx.User.ID() {
 						continue
 					}
+
 					user.Lock()
 					user.AddBalance(decodedValue.CoinsForOther)
-					err := e.App.Save(user.ProxyRecord())
+					err = e.App.Save(user.ProxyRecord())
 					if err != nil {
+						user.Unlock()
 						return result.Err("internal error: failed to save user"), err
 					}
 					user.Unlock()

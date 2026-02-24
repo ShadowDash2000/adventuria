@@ -63,6 +63,34 @@ func (u *Users) GetByName(ctx AppContext, name string) (User, error) {
 	return user, nil
 }
 
-func (u *Users) GetAll() iter.Seq2[string, User] {
+func (u *Users) GetAll(ctx AppContext) (iter.Seq2[string, User], error) {
+	var users []struct {
+		Id string `db:"id"`
+	}
+	err := ctx.App.RecordQuery(schema.CollectionUsers).
+		Select(schema.UserSchema.Id).
+		All(&users)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, user := range users {
+		_, ok := u.users.Get(user.Id)
+		if ok {
+			continue
+		}
+
+		user, err := NewUser(ctx, user.Id)
+		if err != nil {
+			return nil, err
+		}
+
+		u.users.Set(user.ID(), user)
+	}
+
+	return u.GetAllInMemory(), nil
+}
+
+func (u *Users) GetAllInMemory() iter.Seq2[string, User] {
 	return u.users.GetAll()
 }
