@@ -4,6 +4,7 @@ import (
 	"adventuria/internal/adventuria"
 	"adventuria/pkg/event"
 	"adventuria/pkg/result"
+	"errors"
 	"strconv"
 )
 
@@ -21,6 +22,16 @@ func (ef *DropPointsDivideEffect) Subscribe(
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
 		ctx.User.OnBeforeDrop().BindFunc(func(e *adventuria.OnBeforeDropEvent) (*result.Result, error) {
+			cell, ok := ctx.User.CurrentCell()
+			if !ok {
+				return result.Err("internal error: current cell not found"),
+					errors.New("dropPointsDivide: current cell not found")
+			}
+
+			if cell.IsSafeDrop() {
+				return e.Next()
+			}
+
 			if i := ef.GetInt("value"); i != 0 {
 				e.PointsForDrop = e.PointsForDrop / i
 
