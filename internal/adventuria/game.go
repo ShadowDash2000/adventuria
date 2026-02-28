@@ -136,6 +136,7 @@ func (g *Game) DoAction(app core.App, userId string, actionType ActionType, req 
 		err = txApp.Save(user.LastAction().ProxyRecord())
 		if err != nil {
 			txApp.Logger().Error("Failed to save latest user action", "error", err)
+			res = result.Err(err.Error())
 			return err
 		}
 

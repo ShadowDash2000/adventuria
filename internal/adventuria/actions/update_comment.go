@@ -4,8 +4,10 @@ import (
 	"adventuria/internal/adventuria"
 	"adventuria/internal/adventuria/schema"
 	"adventuria/pkg/result"
+	"errors"
 	"fmt"
 
+	validation "github.com/go-ozzo/ozzo-validation/v4"
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
 )
@@ -54,6 +56,10 @@ func (a *UpdateCommentAction) Do(ctx adventuria.ActionContext, req adventuria.Ac
 	record.Set(schema.ActionSchema.Comment, comment)
 	err = ctx.AppContext.App.Save(&record)
 	if err != nil {
+		if errs, ok := errors.AsType[validation.Errors](err); ok {
+			return result.Err(errs.Error()), nil
+		}
+
 		return result.Err("internal error: failed to update action's comment"),
 			fmt.Errorf("update_comment.do(): %w", err)
 	}

@@ -5,6 +5,8 @@ import (
 	"adventuria/pkg/result"
 	"errors"
 	"fmt"
+
+	validation "github.com/go-ozzo/ozzo-validation/v4"
 )
 
 type DropAction struct {
@@ -77,6 +79,10 @@ func (a *DropAction) Do(ctx adventuria.ActionContext, req adventuria.ActionReque
 	action.SetComment(comment)
 	err = ctx.AppContext.App.Save(action.ProxyRecord())
 	if err != nil {
+		if errs, ok := errors.AsType[validation.Errors](err); ok {
+			return result.Err(errs.Error()), nil
+		}
+
 		return result.Err("internal error: can't save action record"),
 			fmt.Errorf("drop.do(): %w", err)
 	}
