@@ -46,7 +46,7 @@ func (ef *NothingEffect) Subscribe(
 						errors.New("nothing: current cell not found")
 				}
 
-				if currentCell.Type() == "game" {
+				if currentCell.InCategories([]string{"activity", "game"}) {
 					callback(e.AppContext)
 				}
 

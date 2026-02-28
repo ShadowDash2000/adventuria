@@ -16,6 +16,7 @@ type Cell interface {
 	setType(CellType)
 	Categories() []string
 	InCategory(string) bool
+	InCategories([]string) bool
 	Filter() string
 	AudioPreset() string
 	Icon() string

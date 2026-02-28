@@ -40,6 +40,10 @@ func (c *CellRecord) InCategory(category string) bool {
 	return slices.Contains(c.Categories(), category)
 }
 
+func (c *CellRecord) InCategories(categories []string) bool {
+	return SliceContainsAll(c.Categories(), categories)
+}
+
 func (c *CellRecord) Filter() string {
 	return c.GetString(schema.CellSchema.Filter)
 }

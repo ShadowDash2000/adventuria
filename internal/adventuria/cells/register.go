@@ -7,7 +7,7 @@ func WithBaseCells() {
 		adventuria.NewCell(
 			"game",
 			NewCellActivity(adventuria.ActivityTypeGame),
-			"wheel", "activity",
+			"wheel", "activity", "game",
 		),
 		adventuria.NewCell(
 			"movie",
@@ -31,7 +31,7 @@ func WithBaseCells() {
 		adventuria.NewCell(
 			"jail",
 			NewCellJail(),
-			"wheel", "activity",
+			"wheel", "activity", "game",
 		),
 		adventuria.NewCell(
 			"casino",
