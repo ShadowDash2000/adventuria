@@ -195,6 +195,9 @@ func (u *UserBase) Points() int {
 }
 
 func (u *UserBase) SetPoints(points int) {
+	if points < 0 {
+		points = 0
+	}
 	u.Set(schema.UserSchema.Points, points)
 }
 

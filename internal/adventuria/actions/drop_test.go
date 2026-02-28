@@ -32,6 +32,7 @@ func Test_Drop(t *testing.T) {
 		t.Fatalf("Test_Drop(): Error moving: %s", err)
 	}
 
+	user.SetPoints(2)
 	_, err = game.DoAction(ctx.App, user.ID(), ActionTypeRollWheel, adventuria.ActionRequest{})
 	if err != nil {
 		t.Fatalf("Test_Drop(): Error action roll wheel: %s", err)
