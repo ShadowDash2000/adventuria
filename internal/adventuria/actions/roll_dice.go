@@ -59,6 +59,13 @@ func (a *RollDiceAction) Do(ctx adventuria.ActionContext, _ adventuria.ActionReq
 		return res, err
 	}
 
+	// we need to save the latest action before ctx.User.Move, because Move() creates a new one
+	err = ctx.AppContext.App.Save(ctx.User.LastAction().ProxyRecord())
+	if err != nil {
+		return result.Err("internal error: can't save action record"),
+			fmt.Errorf("roll_dice.do(): %w", err)
+	}
+
 	moveRes, err := ctx.User.Move(ctx.AppContext, onBeforeRollMoveEvent.N)
 	if err != nil {
 		return result.Err("internal error: failed to move to the new cell"),
