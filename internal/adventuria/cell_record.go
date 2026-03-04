@@ -16,6 +16,10 @@ func (c *CellRecord) ID() string {
 	return c.Id
 }
 
+func (c *CellRecord) Disabled() bool {
+	return c.GetBool(schema.CellSchema.Disabled)
+}
+
 func (c *CellRecord) Sort() int {
 	return c.GetInt(schema.CellSchema.Sort)
 }

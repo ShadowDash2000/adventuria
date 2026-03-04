@@ -52,7 +52,7 @@ func (c *CellTeleport) Verify(ctx adventuria.AppContext, value string) error {
 	err := ctx.App.
 		RecordQuery(schema.CollectionCells).
 		Select("count(*)").
-		Where(dbx.HashExp{"name": decodedValue.CellName}).
+		Where(dbx.HashExp{schema.CellSchema.Name: decodedValue.CellName}).
 		Limit(1).
 		Row(&exists)
 	if err != nil {

@@ -11,6 +11,7 @@ type CellType string
 type Cell interface {
 	core.RecordProxy
 	ID() string
+	Disabled() bool
 	Sort() int
 	Type() CellType
 	setType(CellType)

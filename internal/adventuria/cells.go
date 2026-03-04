@@ -8,12 +8,12 @@ import (
 	"sort"
 	"sync"
 
+	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
 )
 
 type Cells struct {
 	cells         cache.Cache[string, Cell]
-	cellsByCode   cache.Cache[string, Cell]
 	cellsOrder    []string
 	cellsIdsOrder map[string]int
 	mx            sync.Mutex
@@ -21,8 +21,7 @@ type Cells struct {
 
 func NewCells(ctx AppContext) (*Cells, error) {
 	cells := &Cells{
-		cells:       cache.NewMemoryCache[string, Cell](0, true),
-		cellsByCode: cache.NewMemoryCache[string, Cell](0, true),
+		cells: cache.NewMemoryCache[string, Cell](0, true),
 	}
 
 	if err := cells.fetch(ctx); err != nil {
@@ -35,16 +34,22 @@ func NewCells(ctx AppContext) (*Cells, error) {
 
 func (c *Cells) bindHooks(ctx AppContext) {
 	ctx.App.OnRecordAfterCreateSuccess(schema.CollectionCells).BindFunc(func(e *core.RecordEvent) error {
-		err := c.add(e.Record)
-		if err != nil {
-			return err
+		if disabled := e.Record.GetBool(schema.CellSchema.Disabled); !disabled {
+			err := c.add(e.Record)
+			if err != nil {
+				return err
+			}
 		}
 		return e.Next()
 	})
 	ctx.App.OnRecordAfterUpdateSuccess(schema.CollectionCells).BindFunc(func(e *core.RecordEvent) error {
-		err := c.add(e.Record)
-		if err != nil {
-			return err
+		if disabled := e.Record.GetBool(schema.CellSchema.Disabled); !disabled {
+			err := c.add(e.Record)
+			if err != nil {
+				return err
+			}
+		} else {
+			c.delete(e.Record)
 		}
 		return e.Next()
 	})
@@ -56,21 +61,18 @@ func (c *Cells) bindHooks(ctx AppContext) {
 
 func (c *Cells) fetch(ctx AppContext) error {
 	c.cells.Clear()
-	c.cellsByCode.Clear()
 
-	cells, err := ctx.App.FindRecordsByFilter(
-		schema.CollectionCells,
-		"",
-		"sort",
-		0,
-		0,
-	)
+	var cells []*core.Record
+	err := ctx.App.RecordQuery(schema.CollectionCells).
+		OrderBy("sort ASC").
+		Where(dbx.HashExp{schema.CellSchema.Disabled: false}).
+		All(&cells)
 	if err != nil {
 		return err
 	}
 
 	for _, cell := range cells {
-		if err = c.add(cell); err != nil {
+		if err = c.addNoSort(cell); err != nil {
 			ctx.App.Logger().Error("Cells: unknown cell type", "cell", cell)
 		}
 	}
@@ -86,21 +88,22 @@ func (c *Cells) add(record *core.Record) error {
 	}
 
 	c.cells.Set(record.Id, cell)
-	if code := record.GetString("code"); code != "" {
-		c.cellsByCode.Set(code, cell)
+	c.sort()
+	return nil
+}
+
+func (c *Cells) addNoSort(record *core.Record) error {
+	cell, err := NewCellFromRecord(record)
+	if err != nil {
+		return err
 	}
 
-	c.sort()
-
+	c.cells.Set(record.Id, cell)
 	return nil
 }
 
 func (c *Cells) delete(record *core.Record) {
 	c.cells.Delete(record.Id)
-	if code := record.GetString("code"); code != "" {
-		c.cellsByCode.Delete(code)
-	}
-
 	c.sort()
 }
 
@@ -167,10 +170,6 @@ func (c *Cells) GetOrderByName(n string) (int, bool) {
 		return c.GetOrderById(cell.ID())
 	}
 	return 0, false
-}
-
-func (c *Cells) GetByCode(code string) (Cell, bool) {
-	return c.cellsByCode.Get(code)
 }
 
 func (c *Cells) GetAllByType(t CellType) iter.Seq[Cell] {

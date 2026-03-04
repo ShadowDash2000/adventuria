@@ -182,6 +182,7 @@ var ItemSchema = struct {
 
 var CellSchema = struct {
 	Id                       string
+	Disabled                 string
 	Sort                     string
 	Type                     string
 	Filter                   string
@@ -199,6 +200,7 @@ var CellSchema = struct {
 	Value                    string
 }{
 	Id:                       "id",
+	Disabled:                 "disabled",
 	Sort:                     "sort",
 	Type:                     "type",
 	Filter:                   "filter",
