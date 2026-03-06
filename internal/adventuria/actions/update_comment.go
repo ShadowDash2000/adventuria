@@ -38,30 +38,34 @@ func (a *UpdateCommentAction) Do(ctx adventuria.ActionContext, req adventuria.Ac
 		return result.Err("comment is not string"), nil
 	}
 
-	var record core.Record
-	err := ctx.AppContext.App.
-		RecordQuery(adventuria.GameCollections.Get(schema.CollectionActions)).
-		Where(
-			dbx.HashExp{
-				"user": ctx.User.ID(),
-				"id":   actionId,
-			},
-		).
-		Limit(1).
-		One(&record)
-	if err != nil {
-		return result.Err("can't find action with id"), nil
-	}
-
-	record.Set(schema.ActionSchema.Comment, comment)
-	err = ctx.AppContext.App.Save(&record)
-	if err != nil {
-		if errs, ok := errors.AsType[validation.Errors](err); ok {
-			return result.Err(errs.Error()), nil
+	if actionId == ctx.User.LastAction().ID() {
+		ctx.User.LastAction().SetComment(comment)
+	} else {
+		var record core.Record
+		err := ctx.AppContext.App.
+			RecordQuery(adventuria.GameCollections.Get(schema.CollectionActions)).
+			Where(
+				dbx.HashExp{
+					"user": ctx.User.ID(),
+					"id":   actionId,
+				},
+			).
+			Limit(1).
+			One(&record)
+		if err != nil {
+			return result.Err("can't find action with id"), nil
 		}
 
-		return result.Err("internal error: failed to update action's comment"),
-			fmt.Errorf("update_comment.do(): %w", err)
+		record.Set(schema.ActionSchema.Comment, comment)
+		err = ctx.AppContext.App.Save(&record)
+		if err != nil {
+			if errs, ok := errors.AsType[validation.Errors](err); ok {
+				return result.Err(errs.Error()), nil
+			}
+
+			return result.Err("internal error: failed to update action's comment"),
+				fmt.Errorf("update_comment.do(): %w", err)
+		}
 	}
 
 	return result.Ok(), nil
