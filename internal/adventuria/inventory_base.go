@@ -45,6 +45,7 @@ func (i *InventoryBase) bindHooks(ctx AppContext) {
 		if _, ok := i.items[e.Record.Id]; ok {
 			e.Record.WithCustomData(true)
 			e.Record.Set("can_use", i.CanUseItem(AppContext{App: e.App}, e.Record.Id))
+			e.Record.Set("can_drop", i.CanDropItem(e.Record.Id))
 		}
 		return e.Next()
 	})
@@ -214,6 +215,15 @@ func (i *InventoryBase) CanUseItem(ctx AppContext, itemId string) bool {
 	}
 
 	return item.CanUse(ctx)
+}
+
+func (i *InventoryBase) CanDropItem(itemId string) bool {
+	item, ok := i.items[itemId]
+	if !ok {
+		return false
+	}
+
+	return item.CanDrop()
 }
 
 func (i *InventoryBase) UseItem(ctx AppContext, itemId string) (OnUseSuccess, OnUseFail, error) {

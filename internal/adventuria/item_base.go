@@ -201,6 +201,18 @@ func (i *ItemBase) CanUse(ctx AppContext) bool {
 	return true
 }
 
+func (i *ItemBase) CanDrop() bool {
+	if !i.ItemRecordBase.CanDrop() {
+		return false
+	}
+
+	if i.IsActive() {
+		return false
+	}
+
+	return true
+}
+
 func (i *ItemBase) Use(ctx AppContext) (OnUseSuccess, OnUseFail, error) {
 	if i.IsActive() {
 		return nil, nil, errors.New("item is already active")
@@ -226,11 +238,7 @@ func (i *ItemBase) Use(ctx AppContext) (OnUseSuccess, OnUseFail, error) {
 
 func (i *ItemBase) Drop(ctx AppContext) error {
 	if !i.CanDrop() {
-		return nil
-	}
-
-	if i.IsActive() {
-		i.sleep()
+		return errors.New("item cannot be dropped")
 	}
 
 	return ctx.App.Delete(i.invItemRecord.ProxyRecord())

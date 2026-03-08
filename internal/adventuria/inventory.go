@@ -14,6 +14,7 @@ type Inventory interface {
 	AddItemById(AppContext, string) (string, error)
 	MustAddItemById(AppContext, string) (string, error)
 	CanUseItem(AppContext, string) bool
+	CanDropItem(string) bool
 	UseItem(AppContext, string) (OnUseSuccess, OnUseFail, error)
 	DropItem(AppContext, string) error
 	MustDropItem(ctx AppContext, invItemId string) error
