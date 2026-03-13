@@ -138,3 +138,9 @@ type OnBuyGetVariants struct {
 	Item  ItemRecord
 	Price int
 }
+type OnBeforeTeleportOnCell struct {
+	event.Event
+	AppContext
+	CellName     string
+	SkipTeleport bool
+}

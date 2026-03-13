@@ -74,6 +74,7 @@ type UserEvent interface {
 	OnAfterItemSave() *event.Hook[*OnAfterItemSave]
 	OnBeforeItemBuy() *event.Hook[*OnBeforeItemBuy]
 	OnBuyGetVariants() *event.Hook[*OnBuyGetVariants]
+	OnBeforeTeleportOnCell() *event.Hook[*OnBeforeTeleportOnCell]
 }
 
 type Stats struct {

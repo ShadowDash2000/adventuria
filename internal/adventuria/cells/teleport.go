@@ -23,6 +23,22 @@ func (c *CellTeleport) OnCellReached(ctx *adventuria.CellReachedContext) error {
 		return fmt.Errorf("teleport.verify: invalid JSON: %w", err)
 	}
 
+	onBeforeTeleportOnCell := &adventuria.OnBeforeTeleportOnCell{
+		AppContext:   ctx.AppContext,
+		CellName:     decodedValue.CellName,
+		SkipTeleport: false,
+	}
+
+	_, err := ctx.User.OnBeforeTeleportOnCell().Trigger(onBeforeTeleportOnCell)
+	if err != nil {
+		return fmt.Errorf("teleport.onBeforeTeleportOnCell: %w", err)
+	}
+
+	if onBeforeTeleportOnCell.SkipTeleport {
+		ctx.User.LastAction().SetCanMove(true)
+		return nil
+	}
+
 	ctx.User.LastAction().SetType("teleport")
 	if err := ctx.App.Save(ctx.User.LastAction().ProxyRecord()); err != nil {
 		return err

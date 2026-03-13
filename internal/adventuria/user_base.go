@@ -22,32 +22,33 @@ type UserBase struct {
 	hookIds            []string
 	pEffectsUnsubGroup []event.UnsubGroup
 
-	onAfterChooseGame   *event.Hook[*OnAfterChooseGameEvent]
-	onAfterReroll       *event.Hook[*OnAfterRerollEvent]
-	onBeforeDrop        *event.Hook[*OnBeforeDropEvent]
-	onBeforeDropCheck   *event.Hook[*OnBeforeDropCheckEvent]
-	onAfterDrop         *event.Hook[*OnAfterDropEvent]
-	onAfterGoToJail     *event.Hook[*OnAfterGoToJailEvent]
-	onBeforeDone        *event.Hook[*OnBeforeDoneEvent]
-	onAfterDone         *event.Hook[*OnAfterDoneEvent]
-	onBeforeRerollCheck *event.Hook[*OnBeforeRerollCheckEvent]
-	onBeforeRoll        *event.Hook[*OnBeforeRollEvent]
-	onBeforeRollMove    *event.Hook[*OnBeforeRollMoveEvent]
-	onAfterRoll         *event.Hook[*OnAfterRollEvent]
-	onBeforeWheelRoll   *event.Hook[*OnBeforeWheelRollEvent]
-	onAfterWheelRoll    *event.Hook[*OnAfterWheelRollEvent]
-	onAfterItemRoll     *event.Hook[*OnAfterItemRollEvent]
-	onAfterItemUse      *event.Hook[*OnAfterItemUseEvent]
-	onNewLap            *event.Hook[*OnNewLapEvent]
-	onBeforeNextStep    *event.Hook[*OnBeforeNextStepEvent]
-	onAfterAction       *event.Hook[*OnAfterActionEvent]
-	onAfterMove         *event.Hook[*OnAfterMoveEvent]
-	onBeforeCurrentCell *event.Hook[*OnBeforeCurrentCellEvent]
-	onBeforeItemAdd     *event.Hook[*OnBeforeItemAdd]
-	onAfterItemAdd      *event.Hook[*OnAfterItemAdd]
-	onAfterItemSave     *event.Hook[*OnAfterItemSave]
-	onBeforeItemBuy     *event.Hook[*OnBeforeItemBuy]
-	onBuyGetVariants    *event.Hook[*OnBuyGetVariants]
+	onAfterChooseGame      *event.Hook[*OnAfterChooseGameEvent]
+	onAfterReroll          *event.Hook[*OnAfterRerollEvent]
+	onBeforeDrop           *event.Hook[*OnBeforeDropEvent]
+	onBeforeDropCheck      *event.Hook[*OnBeforeDropCheckEvent]
+	onAfterDrop            *event.Hook[*OnAfterDropEvent]
+	onAfterGoToJail        *event.Hook[*OnAfterGoToJailEvent]
+	onBeforeDone           *event.Hook[*OnBeforeDoneEvent]
+	onAfterDone            *event.Hook[*OnAfterDoneEvent]
+	onBeforeRerollCheck    *event.Hook[*OnBeforeRerollCheckEvent]
+	onBeforeRoll           *event.Hook[*OnBeforeRollEvent]
+	onBeforeRollMove       *event.Hook[*OnBeforeRollMoveEvent]
+	onAfterRoll            *event.Hook[*OnAfterRollEvent]
+	onBeforeWheelRoll      *event.Hook[*OnBeforeWheelRollEvent]
+	onAfterWheelRoll       *event.Hook[*OnAfterWheelRollEvent]
+	onAfterItemRoll        *event.Hook[*OnAfterItemRollEvent]
+	onAfterItemUse         *event.Hook[*OnAfterItemUseEvent]
+	onNewLap               *event.Hook[*OnNewLapEvent]
+	onBeforeNextStep       *event.Hook[*OnBeforeNextStepEvent]
+	onAfterAction          *event.Hook[*OnAfterActionEvent]
+	onAfterMove            *event.Hook[*OnAfterMoveEvent]
+	onBeforeCurrentCell    *event.Hook[*OnBeforeCurrentCellEvent]
+	onBeforeItemAdd        *event.Hook[*OnBeforeItemAdd]
+	onAfterItemAdd         *event.Hook[*OnAfterItemAdd]
+	onAfterItemSave        *event.Hook[*OnAfterItemSave]
+	onBeforeItemBuy        *event.Hook[*OnBeforeItemBuy]
+	onBuyGetVariants       *event.Hook[*OnBuyGetVariants]
+	onBeforeTeleportOnCell *event.Hook[*OnBeforeTeleportOnCell]
 }
 
 func NewUser(ctx AppContext, userId string) (User, error) {
@@ -481,6 +482,7 @@ func (u *UserBase) initHooks() {
 	u.onAfterItemSave = &event.Hook[*OnAfterItemSave]{}
 	u.onBeforeItemBuy = &event.Hook[*OnBeforeItemBuy]{}
 	u.onBuyGetVariants = &event.Hook[*OnBuyGetVariants]{}
+	u.onBeforeTeleportOnCell = &event.Hook[*OnBeforeTeleportOnCell]{}
 }
 
 func (u *UserBase) OnAfterChooseGame() *event.Hook[*OnAfterChooseGameEvent] {
@@ -585,4 +587,8 @@ func (u *UserBase) OnBeforeItemBuy() *event.Hook[*OnBeforeItemBuy] {
 
 func (u *UserBase) OnBuyGetVariants() *event.Hook[*OnBuyGetVariants] {
 	return u.onBuyGetVariants
+}
+
+func (u *UserBase) OnBeforeTeleportOnCell() *event.Hook[*OnBeforeTeleportOnCell] {
+	return u.onBeforeTeleportOnCell
 }

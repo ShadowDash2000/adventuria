@@ -39,6 +39,7 @@ func WithBaseEffects() {
 		"coinsIncrement":              adventuria.NewEffect(func() adventuria.Effect { return &CoinsIncrementEffect{} }),
 		"discountPriceDivide":         adventuria.NewEffect(func() adventuria.Effect { return &DiscountPriceDivideEffect{} }),
 		"coinsForAll":                 adventuria.NewEffect(func() adventuria.Effect { return &CoinsForAllEffect{} }),
+		"saveFromHole":                adventuria.NewEffect(func() adventuria.Effect { return &SaveFromHoleEffect{} }),
 	})
 
 	adventuria.RegisterPersistentEffects(map[string]adventuria.PersistentEffectCreator{
