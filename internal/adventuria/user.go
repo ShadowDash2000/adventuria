@@ -33,6 +33,7 @@ type User interface {
 	MoveToClosestCellType(ctx AppContext, cellType CellType) ([]*MoveResult, error)
 	MoveToCellId(ctx AppContext, cellId string) ([]*MoveResult, error)
 	MoveToCellName(ctx AppContext, cellName string) ([]*MoveResult, error)
+	MoveToCellOrder(ctx AppContext, cellOrder int) ([]*MoveResult, error)
 	MoveToClosestCellByNames(ctx AppContext, cellNames ...string) ([]*MoveResult, error)
 	Inventory() Inventory
 	LastAction() ActionRecord

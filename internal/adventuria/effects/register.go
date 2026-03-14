@@ -40,6 +40,7 @@ func WithBaseEffects() {
 		"discountPriceDivide":         adventuria.NewEffect(func() adventuria.Effect { return &DiscountPriceDivideEffect{} }),
 		"coinsForAll":                 adventuria.NewEffect(func() adventuria.Effect { return &CoinsForAllEffect{} }),
 		"saveFromHole":                adventuria.NewEffect(func() adventuria.Effect { return &SaveFromHoleEffect{} }),
+		"teleportToRandomCell":        adventuria.NewEffect(func() adventuria.Effect { return &TeleportToRandomCellEffect{} }),
 	})
 
 	adventuria.RegisterPersistentEffects(map[string]adventuria.PersistentEffectCreator{

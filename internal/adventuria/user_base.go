@@ -367,6 +367,10 @@ func (u *UserBase) MoveToCellName(ctx AppContext, cellName string) ([]*MoveResul
 	return u.Move(ctx, cellPos-u.CurrentCellOrder())
 }
 
+func (u *UserBase) MoveToCellOrder(ctx AppContext, cellOrder int) ([]*MoveResult, error) {
+	return u.Move(ctx, cellOrder-u.CurrentCellOrder())
+}
+
 func (u *UserBase) MoveToClosestCellByNames(ctx AppContext, cellNames ...string) ([]*MoveResult, error) {
 	if len(cellNames) == 0 {
 		return nil, errors.New("moveToClosestCellByNames: cellNames is empty")
