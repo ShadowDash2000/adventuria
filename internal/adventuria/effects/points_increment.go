@@ -20,10 +20,9 @@ func (ef *PointsIncrementEffect) Subscribe(
 	callback adventuria.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		ctx.User.OnAfterAction().BindFunc(func(e *adventuria.OnAfterActionEvent) (*result.Result, error) {
+		ctx.User.OnBeforeDone().BindFunc(func(e *adventuria.OnBeforeDoneEvent) (*result.Result, error) {
 			if i := ef.GetInt("value"); i != 0 {
-				ctx.User.SetPoints(ctx.User.Points() + i)
-
+				e.CellPoints += i
 				callback(e.AppContext)
 			}
 

@@ -45,7 +45,27 @@ func Test_PointsIncrement(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	wantPoints := 2
+	_, err = user.Move(ctx, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = game.DoAction(ctx.App, user.ID(), actions.ActionTypeRollWheel, adventuria.ActionRequest{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = game.DoAction(ctx.App, user.ID(), actions.ActionTypeDone, adventuria.ActionRequest{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	cell, ok := user.CurrentCell()
+	if !ok {
+		t.Fatal("Test_PointsIncrement(): Current cell not found")
+	}
+
+	wantPoints := cell.Points() + 2
 	if user.Points() != wantPoints {
 		t.Fatalf("Test_PointsIncrement(): Points = %d, want = %d", user.Points(), wantPoints)
 	}
