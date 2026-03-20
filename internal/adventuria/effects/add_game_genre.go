@@ -89,12 +89,12 @@ func (ef *AddGameGenreEffect) Subscribe(
 					}
 
 					filter.Genres = append(filter.Genres, genreId)
+					ctx.User.LastAction().SetCustomActivityFilter(*filter)
+
 					if err = cellGame.RefreshItems(e.AppContext, ctx.User); err != nil {
 						return result.Err("internal error: can't refresh cell items"),
 							fmt.Errorf("addGameGenre: %w", err)
 					}
-
-					ctx.User.LastAction().SetCustomActivityFilter(*filter)
 
 					callback(e.AppContext)
 				} else {
