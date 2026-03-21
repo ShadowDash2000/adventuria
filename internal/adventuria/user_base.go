@@ -337,7 +337,9 @@ func (u *UserBase) MoveToClosestCellType(ctx AppContext, cellType CellType) ([]*
 	currentCellOrder := u.CurrentCellOrder()
 	for order := range GameCells.GetOrderByType(cellType) {
 		distance := abs(order - currentCellOrder)
-		if !found || distance < minDistance {
+		if !found ||
+			distance < minDistance ||
+			(distance == minDistance && order > closest) {
 			closest = order
 			minDistance = distance
 			found = true
@@ -393,7 +395,9 @@ func (u *UserBase) MoveToClosestCellByNames(ctx AppContext, cellNames ...string)
 	currentCellOrder := u.CurrentCellOrder()
 	for _, order := range cellsOrder {
 		distance := abs(order - currentCellOrder)
-		if !found || distance < minDistance {
+		if !found ||
+			distance < minDistance ||
+			(distance == minDistance && order > closest) {
 			closest = order
 			minDistance = distance
 			found = true
