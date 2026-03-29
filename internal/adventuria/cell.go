@@ -30,6 +30,7 @@ type Cell interface {
 	CantReroll() bool
 	IsSafeDrop() bool
 	IsCustomFilterNotAllowed() bool
+	IsChangeGameNotAllowed() bool
 	OnCellReached(*CellReachedContext) error
 	OnCellLeft(*CellLeftContext) error
 	Verify(AppContext, string) error

@@ -197,6 +197,7 @@ var CellSchema = struct {
 	CantReroll               string
 	IsSafeDrop               string
 	IsCustomFilterNotAllowed string
+	IsChangeGameNotAllowed   string
 	Value                    string
 }{
 	Id:                       "id",
@@ -215,6 +216,7 @@ var CellSchema = struct {
 	CantReroll:               "cantReroll",
 	IsSafeDrop:               "isSafeDrop",
 	IsCustomFilterNotAllowed: "is_custom_filter_not_allowed",
+	IsChangeGameNotAllowed:   "is_change_game_not_allowed",
 	Value:                    "value",
 }
 

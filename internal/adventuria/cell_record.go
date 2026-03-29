@@ -96,6 +96,10 @@ func (c *CellRecord) IsCustomFilterNotAllowed() bool {
 	return c.GetBool(schema.CellSchema.IsCustomFilterNotAllowed)
 }
 
+func (c *CellRecord) IsChangeGameNotAllowed() bool {
+	return c.GetBool(schema.CellSchema.IsChangeGameNotAllowed)
+}
+
 func (c *CellRecord) Value() string {
 	return c.GetString(schema.CellSchema.Value)
 }

@@ -12,11 +12,20 @@ type ChangeGameByIdEffect struct {
 }
 
 func (ef *ChangeGameByIdEffect) CanUse(appCtx adventuria.AppContext, ctx adventuria.EffectContext) bool {
-	if ok := adventuria.GameActions.CanDo(appCtx, ctx.User, "drop"); !ok {
+	cell, ok := ctx.User.CurrentCell()
+	if !ok {
 		return false
 	}
 
-	if ok := adventuria.GameActions.CanDo(appCtx, ctx.User, "done"); !ok {
+	if ok = cell.IsChangeGameNotAllowed(); ok {
+		return false
+	}
+
+	if ok = adventuria.GameActions.CanDo(appCtx, ctx.User, "drop"); !ok {
+		return false
+	}
+
+	if ok = adventuria.GameActions.CanDo(appCtx, ctx.User, "done"); !ok {
 		return false
 	}
 
