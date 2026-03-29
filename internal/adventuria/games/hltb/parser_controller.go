@@ -32,6 +32,10 @@ func (p *ParserController) parseGames(ctx context.Context) error {
 		return err
 	}
 
+	adventuria.PocketBase.Logger().Info("hltb.parseGames", "games_count", len(games))
+
+	gamesProcessed := 0
+	gamesSkipped := 0
 	for _, game := range games {
 		select {
 		case <-ctx.Done():
@@ -40,6 +44,7 @@ func (p *ParserController) parseGames(ctx context.Context) error {
 		}
 
 		if ok := p.isGameExist(ctx, game.GameID); ok {
+			gamesSkipped++
 			continue
 		}
 
@@ -54,7 +59,14 @@ func (p *ParserController) parseGames(ctx context.Context) error {
 		if err = adventuria.PocketBase.Save(gameRecord.ProxyRecord()); err != nil {
 			return err
 		}
+
+		gamesProcessed++
 	}
+
+	adventuria.PocketBase.Logger().Info("hltb.parseGames",
+		"games_processed", gamesProcessed,
+		"games_skipped", gamesSkipped,
+	)
 
 	return nil
 }
