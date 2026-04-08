@@ -24,7 +24,7 @@ func (ef *AddGameGenreEffect) CanUse(appCtx adventuria.AppContext, ctx adventuri
 		return false
 	}
 
-	if cell.Type() != "game" {
+	if !cell.InCategory("game") {
 		return false
 	}
 
