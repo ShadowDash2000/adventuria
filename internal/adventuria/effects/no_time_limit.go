@@ -97,12 +97,12 @@ func (ef *NoTimeLimitEffect) tryToApplyEffect(ctx adventuria.AppContext, user ad
 
 	filter.MinCampaignTime = -1
 	filter.MaxCampaignTime = -1
+	user.LastAction().SetCustomActivityFilter(*filter)
+
 	if err := cellGame.RefreshItems(ctx, user); err != nil {
 		return result.Err("internal error: can't refresh cell items"),
 			fmt.Errorf("noTimeLimit: %w", err)
 	}
-
-	user.LastAction().SetCustomActivityFilter(*filter)
 
 	return result.Ok(), nil
 }
