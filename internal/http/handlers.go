@@ -277,3 +277,14 @@ func (h *Handlers) RefreshShopHandler(e *core.RequestEvent) error {
 
 	return e.JSON(http.StatusOK, res)
 }
+
+func (h *Handlers) EventStats(e *core.RequestEvent) error {
+	res, err := adventuria.ComputeEventStats(e.App)
+	if err != nil {
+		return e.JSON(http.StatusInternalServerError, err.Error())
+	} else if res.Failed() {
+		return e.JSON(http.StatusBadRequest, res)
+	}
+
+	return e.JSON(http.StatusOK, res)
+}

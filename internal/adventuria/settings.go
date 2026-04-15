@@ -98,6 +98,10 @@ func (s *Settings) init(ctx AppContext) error {
 	return nil
 }
 
+func (s *Settings) EventEnded() bool {
+	return s.GetBool(schema.SettingsSchema.EventEnded)
+}
+
 func (s *Settings) EventDateStart() types.DateTime {
 	return s.GetDateTime(schema.SettingsSchema.EventDateStart)
 }

@@ -221,6 +221,7 @@ var CellSchema = struct {
 }
 
 var SettingsSchema = struct {
+	EventEnded         string
 	EventDateStart     string
 	CurrentWeek        string
 	TimerTimeLimit     string
@@ -237,6 +238,7 @@ var SettingsSchema = struct {
 	KillParser              string
 	IgdbForceUpdateGames    string
 }{
+	EventEnded:              "event_ended",
 	EventDateStart:          "eventDateStart",
 	CurrentWeek:             "currentWeek",
 	TimerTimeLimit:          "timerTimeLimit",

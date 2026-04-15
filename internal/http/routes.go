@@ -13,6 +13,8 @@ func Route(game *adventuria.Game, router *router.Router[*core.RequestEvent]) {
 
 	g := router.Group("/api")
 
+	g.GET("/event-stats", handlers.EventStats)
+
 	timer := g.Group("/timer")
 	timer.GET("/left/{userId}", handlers.GetTimeLeftByUserHandler)
 	timer.GET("/left", handlers.GetTimeLeftHandler)
