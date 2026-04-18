@@ -208,6 +208,10 @@ func (s *Settings) DisableHLTBParser() bool {
 	return s.GetBool(schema.SettingsSchema.DisableHltbParser)
 }
 
+func (s *Settings) DisableRefreshHltbTime() bool {
+	return s.GetBool(schema.SettingsSchema.DisableRefreshHltbTime)
+}
+
 func (s *Settings) OnKillParser() *event.Hook[*OnKillParserEvent] {
 	return s.onKillParser
 }

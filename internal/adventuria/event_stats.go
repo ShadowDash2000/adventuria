@@ -108,7 +108,7 @@ func ComputeEventStats(app core.App) (*result.Result, error) {
 		UNION ALL
 		SELECT actions.%[5]s as "record_id", COUNT(*) as "count", 'cell_visits' as "stat_type"
 		FROM %[2]s as actions
-		WHERE actions.%[6]s IN ('done', 'drop', 'rollDice', 'move')
+		WHERE actions.%[6]s IN ('done', 'drop', 'rollDice', 'rollWheel', 'move', 'rollItemOnCell')
 		GROUP BY actions.%[5]s
 		UNION ALL
 		SELECT items.value as "record_id", COUNT(*) as "count", 'items' as "stat_type"

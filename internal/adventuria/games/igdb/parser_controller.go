@@ -63,6 +63,10 @@ func (p *ParserController) Parse(ctx context.Context, limit uint64) {
 	}
 }
 
+func (p *ParserController) RefreshHltbTime(ctx context.Context, limit int64) {
+	_ = p.refreshHltbTime(ctx, limit)
+}
+
 func (p *ParserController) parseGames(ctx context.Context, limit uint64, forceUpdate bool) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -125,7 +129,7 @@ func (p *ParserController) parseGames(ctx context.Context, limit uint64, forceUp
 				}
 			}
 
-			hltbRecord, err := p.findHltbByGameName(ctx, game.Name)
+			hltbRecord, err := p.findHltbByGameNameAndYear(ctx, game.Name, game.ReleaseDate.Time().Year())
 			if err == nil {
 				gameRecord.SetHltbId(hltbRecord.IdDb())
 				gameRecord.SetCampaign(hltbRecord.Campaign())
@@ -547,7 +551,7 @@ func (p *ParserController) collectionReferenceToIds(reference games.CollectionRe
 	return ids, nil
 }
 
-func (p *ParserController) findHltbByGameName(ctx context.Context, gameName string) (*hltb.HowLongToBeatRecord, error) {
+func (p *ParserController) findHltbByGameNameAndYear(ctx context.Context, gameName string, gameYear int) (*hltb.HowLongToBeatRecord, error) {
 	parts := strings.Fields(normalizeTitle(gameName))
 	if len(parts) == 0 {
 		return nil, errors.New("game name is empty")
@@ -557,7 +561,11 @@ func (p *ParserController) findHltbByGameName(ctx context.Context, gameName stri
 	err := adventuria.PocketBase.
 		RecordQuery(adventuria.GameCollections.Get(schema.CollectionHowLongToBeat)).
 		WithContext(ctx).
-		Where(dbx.Like("name", parts...)).
+		Where(dbx.Like(schema.HowLongToBeatSchema.Name, parts...)).
+		AndWhere(dbx.Or(
+			dbx.HashExp{schema.HowLongToBeatSchema.Year: gameYear},
+			dbx.HashExp{schema.HowLongToBeatSchema.Year: 0},
+		)).
 		All(&records)
 	if err != nil {
 		return nil, err
@@ -568,29 +576,43 @@ func (p *ParserController) findHltbByGameName(ctx context.Context, gameName stri
 	}
 
 	type match struct {
-		record   *core.Record
-		distance int
-		diffLen  int
+		record    *core.Record
+		exact     bool
+		distance  int
+		diffLen   int
+		yearMatch bool
 	}
 
 	matches := make([]match, len(records))
-	targetName := strings.ToLower(gameName)
+	targetName := normalizeTitle(gameName)
 
 	for i, r := range records {
-		dbName := r.GetString("name")
-		dist := levenshteinDistance(targetName, dbName)
+		dbName := normalizeTitle(r.GetString(schema.HowLongToBeatSchema.Name))
+		dbYear := r.GetInt(schema.HowLongToBeatSchema.Year)
+
 		matches[i] = match{
-			record:   r,
-			distance: dist,
-			diffLen:  int(math.Abs(float64(len(targetName) - len(dbName)))),
+			record:    r,
+			exact:     dbName == targetName,
+			distance:  levenshteinDistance(targetName, dbName),
+			diffLen:   int(math.Abs(float64(len(targetName) - len(dbName)))),
+			yearMatch: dbYear == gameYear,
 		}
 	}
 
 	sort.Slice(matches, func(i, j int) bool {
-		if matches[i].distance == matches[j].distance {
-			return matches[i].diffLen < matches[j].diffLen
+		if matches[i].exact != matches[j].exact {
+			return matches[i].exact && !matches[j].exact
 		}
-		return matches[i].distance < matches[j].distance
+
+		if matches[i].distance != matches[j].distance {
+			return matches[i].distance < matches[j].distance
+		}
+
+		if matches[i].yearMatch != matches[j].yearMatch {
+			return matches[i].yearMatch && !matches[j].yearMatch
+		}
+
+		return matches[i].diffLen < matches[j].diffLen
 	})
 
 	return hltb.NewHowLongToBeatRecordFromRecord(matches[0].record), nil
@@ -702,4 +724,72 @@ func (p *ParserController) findCheapsharkByAppId(ctx context.Context, appId uint
 	}
 
 	return cheapshark.NewCheapsharkRecordFromRecord(&record), nil
+}
+
+func (p *ParserController) refreshHltbTime(ctx context.Context, limit int64) error {
+	if limit <= 0 {
+		return errors.New("igdb.refreshHltbTime: limit must be positive")
+	}
+
+	adventuria.PocketBase.Logger().Info("igdb.refreshHltbTime")
+
+	count, err := adventuria.PocketBase.CountRecords(
+		schema.CollectionActivities,
+		dbx.HashExp{schema.ActivitySchema.Type: adventuria.ActivityTypeGame},
+	)
+	if err != nil {
+		return err
+	}
+
+	for offset := int64(0); offset < count; offset += limit {
+		select {
+		case <-ctx.Done():
+			return nil
+		default:
+			var records []*core.Record
+			err = adventuria.PocketBase.
+				RecordQuery(schema.CollectionActivities).
+				WithContext(ctx).
+				Where(dbx.HashExp{schema.ActivitySchema.Type: adventuria.ActivityTypeGame}).
+				Limit(limit).
+				Offset(offset).
+				All(&records)
+			if err != nil {
+				return err
+			}
+
+			for _, record := range records {
+				gameRecord := games.NewGameFromRecord(record)
+
+				hltbRecord, err := p.findHltbByGameNameAndYear(ctx, gameRecord.Name(), gameRecord.ReleaseDate().Time().Year())
+				if err != nil {
+					if errors.Is(err, sql.ErrNoRows) {
+						gameRecord.SetHltbId(0)
+						gameRecord.SetCampaign(0)
+					} else {
+						adventuria.PocketBase.Logger().Warn(
+							"igdb.refreshHltbTime: error finding hltb",
+							"game", gameRecord.Name(),
+							"error", err,
+						)
+						continue
+					}
+				} else {
+					gameRecord.SetHltbId(hltbRecord.IdDb())
+					gameRecord.SetCampaign(hltbRecord.Campaign())
+				}
+
+				err = adventuria.PocketBase.Save(record)
+				if err != nil {
+					adventuria.PocketBase.Logger().Error(
+						"igdb.refreshHltbTime: failed to save game record",
+						"game", gameRecord.Name(),
+						"error", err,
+					)
+				}
+			}
+		}
+	}
+
+	return nil
 }

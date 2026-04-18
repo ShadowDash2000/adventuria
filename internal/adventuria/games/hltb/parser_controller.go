@@ -55,6 +55,7 @@ func (p *ParserController) parseGames(ctx context.Context) error {
 		)
 		gameRecord.SetIdDb(game.GameID)
 		gameRecord.SetName(game.GameName)
+		gameRecord.SetYear(game.ReleaseWorld)
 		gameRecord.SetCampaign(math.Round(float64(game.CompMain) / 3600))
 		if err = adventuria.PocketBase.Save(gameRecord.ProxyRecord()); err != nil {
 			return err

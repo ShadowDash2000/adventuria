@@ -28,6 +28,14 @@ func (r *HowLongToBeatRecord) SetName(name string) {
 	r.Set("name", name)
 }
 
+func (r *HowLongToBeatRecord) Year() int {
+	return r.GetInt("year")
+}
+
+func (r *HowLongToBeatRecord) SetYear(year int) {
+	r.Set("year", year)
+}
+
 func (r *HowLongToBeatRecord) Campaign() float64 {
 	return r.GetFloat("campaign")
 }

@@ -33,6 +33,9 @@ func main() {
 			adventuria.PocketBase.Cron().MustAdd("games_parser", "0 0 1 * *", func() {
 				gamesParser.Parse(game.Context())
 			})
+			adventuria.PocketBase.Cron().MustAdd("refresh_hltb_time", "0 0 1 * *", func() {
+				gamesParser.RefreshHltbTime(game.Context())
+			})
 		}
 
 		st, err := stracker.NewStreamTracker()

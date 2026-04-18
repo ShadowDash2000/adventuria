@@ -32,10 +32,21 @@ func OnAfterActivityCreateSuccess(e *core.RecordEvent) error {
 }
 
 func OnAfterActivityUpdateSuccess(e *core.RecordEvent) error {
+	original := e.Record.Original()
 	err := e.App.RunInTransaction(func(txApp core.App) error {
 		ctx := AppContext{App: txApp}
 		for field, collection := range indexCollections {
-			err := collection.updateRecords(ctx, e.Record.Id, e.Record.GetStringSlice(field))
+			currentSlice := e.Record.GetStringSlice(field)
+			originalSlice := original.GetStringSlice(field)
+
+			changed := len(currentSlice) != len(originalSlice) ||
+				!SliceContainsAll(currentSlice, originalSlice)
+
+			if !changed {
+				continue
+			}
+
+			err := collection.updateRecords(ctx, e.Record.Id, currentSlice)
 			if err != nil {
 				return err
 			}

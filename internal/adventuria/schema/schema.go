@@ -136,6 +136,20 @@ var ActivitySchema = struct {
 	Checksum:         "checksum",
 }
 
+var HowLongToBeatSchema = struct {
+	Id       string
+	IdDb     string
+	Name     string
+	Year     string
+	Campaign string
+}{
+	Id:       "id",
+	IdDb:     "id_db",
+	Name:     "name",
+	Year:     "year",
+	Campaign: "campaign",
+}
+
 var InventorySchema = struct {
 	Id             string
 	Activated      string
@@ -235,6 +249,7 @@ var SettingsSchema = struct {
 	DisableSteamParser      string
 	DisableCheapsharkParser string
 	DisableHltbParser       string
+	DisableRefreshHltbTime  string
 	KillParser              string
 	IgdbForceUpdateGames    string
 }{
@@ -251,6 +266,7 @@ var SettingsSchema = struct {
 	DisableSteamParser:      "disable_steam_parser",
 	DisableCheapsharkParser: "disable_cheapshark_parser",
 	DisableHltbParser:       "disable_hltb_parser",
+	DisableRefreshHltbTime:  "disable_refresh_hltb_time",
 	KillParser:              "kill_parser",
 	IgdbForceUpdateGames:    "igdb_force_update_games",
 }

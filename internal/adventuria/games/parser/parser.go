@@ -67,3 +67,18 @@ func (p *GamesParser) Parse(ctx context.Context) {
 		adventuria.PocketBase.Logger().Info("IGDB parser finished")
 	}
 }
+
+func (p *GamesParser) RefreshHltbTime(ctx context.Context) {
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	unsub := adventuria.GameSettings.OnKillParser().BindFunc(func(e *adventuria.OnKillParserEvent) (*result.Result, error) {
+		cancel()
+		return e.Next()
+	})
+	defer unsub()
+
+	if !adventuria.GameSettings.DisableRefreshHltbTime() {
+		p.igdbParser.RefreshHltbTime(ctx, 500)
+	}
+}
