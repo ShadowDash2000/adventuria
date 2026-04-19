@@ -10,7 +10,7 @@ require (
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
 	github.com/joho/godotenv v1.5.1
 	github.com/pocketbase/dbx v1.12.0
-	github.com/pocketbase/pocketbase v0.36.9
+	github.com/pocketbase/pocketbase v0.37.1
 	golang.org/x/exp v0.0.0-20260410095643-746e56fc9e2f
 	google.golang.org/protobuf v1.36.11
 )
@@ -49,6 +49,6 @@ require (
 	modernc.org/libc v1.72.0 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
-	modernc.org/sqlite v1.48.2 // indirect
+	modernc.org/sqlite v1.49.1 // indirect
 	resty.dev/v3 v3.0.0-beta.6 // indirect
 )
