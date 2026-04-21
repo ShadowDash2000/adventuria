@@ -20,7 +20,7 @@ func (ef *ReplaceDiceRollEffect) Subscribe(
 	callback adventuria.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		ctx.User.OnBeforeRollMove().BindFunc(func(e *adventuria.OnBeforeRollMoveEvent) (*result.Result, error) {
+		ctx.Player.OnBeforeRollMove().BindFunc(func(e *adventuria.OnBeforeRollMoveEvent) (*result.Result, error) {
 			e.N = ef.GetInt("value")
 
 			callback(e.AppContext)

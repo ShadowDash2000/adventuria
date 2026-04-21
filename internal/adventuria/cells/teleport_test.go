@@ -31,17 +31,17 @@ func Test_TeleportCell(t *testing.T) {
 	ctx := adventuria.AppContext{
 		App: adventuria.PocketBase,
 	}
-	user, err := adventuria.GameUsers.GetByName(ctx, "user1")
+	player, err := adventuria.GamePlayers.GetByName(ctx, "player1")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = user.Move(ctx, 4)
+	_, err = player.Move(ctx, 4)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	currentCell, ok := user.CurrentCell()
+	currentCell, ok := player.Progress().CurrentCell()
 	if !ok {
 		t.Fatal("Test_CellTeleport(): Current cell not found")
 	}

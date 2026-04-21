@@ -30,51 +30,51 @@ func Test_CellPointsDivide(t *testing.T) {
 	ctx := adventuria.AppContext{
 		App: adventuria.PocketBase,
 	}
-	user, err := adventuria.GameUsers.GetByName(ctx, "user1")
+	player, err := adventuria.GamePlayers.GetByName(ctx, "player1")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = user.Move(ctx, 1)
+	_, err = player.Move(ctx, 1)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	const points = 100
-	user.SetPoints(points)
+	player.Progress().AddPoints(points)
 
-	if err = ctx.App.Save(user.ProxyRecord()); err != nil {
-		t.Fatalf("Test_Buy(): Error saving user: %s", err)
+	if err = ctx.App.Save(player.ProxyRecord()); err != nil {
+		t.Fatalf("Test_Buy(): Error saving player: %s", err)
 	}
 
-	invItemId, err := user.Inventory().AddItemById(ctx, item.Id)
+	invItemId, err := player.Inventory().AddItemById(ctx, item.Id)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = game.UseItem(ctx.App, user.ID(), adventuria.UseItemRequest{InvItemId: invItemId})
+	_, err = game.UseItem(ctx.App, player.ID(), adventuria.UseItemRequest{InvItemId: invItemId})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = game.DoAction(ctx.App, user.ID(), actions.ActionTypeRollWheel, adventuria.ActionRequest{})
+	_, err = game.DoAction(ctx.App, player.ID(), actions.ActionTypeRollWheel, adventuria.ActionRequest{})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = game.DoAction(ctx.App, user.ID(), actions.ActionTypeDone, adventuria.ActionRequest{})
+	_, err = game.DoAction(ctx.App, player.ID(), actions.ActionTypeDone, adventuria.ActionRequest{})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	cell, ok := user.CurrentCell()
+	cell, ok := player.Progress().CurrentCell()
 	if !ok {
 		t.Fatal("Test_CellPointsDivide(): Current cell not found")
 	}
 
 	wantPoints := points + cell.Points()/2
-	if user.Points() != wantPoints {
-		t.Fatalf("Test_CellPointsDivide(): Points not divided, want = %d, got = %d", wantPoints, user.Points())
+	if player.Progress().Points() != wantPoints {
+		t.Fatalf("Test_CellPointsDivide(): Points not divided, want = %d, got = %d", wantPoints, player.Progress().Points())
 	}
 }
 
@@ -90,11 +90,11 @@ func createCellPointsDivideItem() (*core.Record, error) {
 	}
 
 	record := core.NewRecord(adventuria.GameCollections.Get(schema.CollectionItems))
-	record.Set("name", "Cell Points Divide")
-	record.Set("effects", []string{effectRecord.Id})
-	record.Set("icon", icon)
-	record.Set("isUsingSlot", true)
-	record.Set("canDrop", true)
+	record.Set(schema.ItemSchema.Name, "Cell Points Divide")
+	record.Set(schema.ItemSchema.Effects, []string{effectRecord.Id})
+	record.Set(schema.ItemSchema.Icon, icon)
+	record.Set(schema.ItemSchema.IsUsingSlot, true)
+	record.Set(schema.ItemSchema.CanDrop, true)
 	err = adventuria.PocketBase.Save(record)
 	if err != nil {
 		return nil, err
@@ -105,9 +105,9 @@ func createCellPointsDivideItem() (*core.Record, error) {
 
 func createCellPointsDivideEffect() (*core.Record, error) {
 	record := core.NewRecord(adventuria.GameCollections.Get(schema.CollectionEffects))
-	record.Set("name", "Cell Points Divide")
-	record.Set("type", "cellPointsDivide")
-	record.Set("value", 2)
+	record.Set(schema.EffectSchema.Name, "Cell Points Divide")
+	record.Set(schema.EffectSchema.Type, "cellPointsDivide")
+	record.Set(schema.EffectSchema.Value, 2)
 	err := adventuria.PocketBase.Save(record)
 	if err != nil {
 		return nil, err

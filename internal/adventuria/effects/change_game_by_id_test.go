@@ -27,27 +27,27 @@ func Test_ChangeGameById(t *testing.T) {
 	ctx := adventuria.AppContext{
 		App: adventuria.PocketBase,
 	}
-	user, err := adventuria.GameUsers.GetByName(ctx, "user1")
+	player, err := adventuria.GamePlayers.GetByName(ctx, "player1")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = user.Move(ctx, 1)
+	_, err = player.Move(ctx, 1)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = game.DoAction(ctx.App, user.ID(), "rollWheel", adventuria.ActionRequest{})
+	_, err = game.DoAction(ctx.App, player.ID(), "rollWheel", adventuria.ActionRequest{})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	itemsList, err := user.LastAction().ItemsList()
+	itemsList, err := player.LastAction().ItemsList()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if index := slices.Index(itemsList, user.LastAction().Activity()); index != -1 {
+	if index := slices.Index(itemsList, player.LastAction().Activity()); index != -1 {
 		itemsList = slices.Delete(itemsList, index, index+1)
 	}
 
@@ -57,18 +57,18 @@ func Test_ChangeGameById(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	invItemId, err := user.Inventory().AddItemById(ctx, item.Id)
+	invItemId, err := player.Inventory().AddItemById(ctx, item.Id)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = game.UseItem(ctx.App, user.ID(), adventuria.UseItemRequest{InvItemId: invItemId})
+	_, err = game.UseItem(ctx.App, player.ID(), adventuria.UseItemRequest{InvItemId: invItemId})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if user.LastAction().Activity() != gameId {
-		t.Fatalf("Test_ChangeGameById(): Activity id = %s, want = %s", user.LastAction().Activity(), gameId)
+	if player.LastAction().Activity() != gameId {
+		t.Fatalf("Test_ChangeGameById(): Activity id = %s, want = %s", player.LastAction().Activity(), gameId)
 	}
 }
 
@@ -84,12 +84,12 @@ func createChangeGameByIdItem(gameId string) (*core.Record, error) {
 	}
 
 	record := core.NewRecord(adventuria.GameCollections.Get(schema.CollectionItems))
-	record.Set("name", "Change Activity By Id")
-	record.Set("effects", []string{effectRecord.Id})
-	record.Set("icon", icon)
-	record.Set("isUsingSlot", true)
-	record.Set("canDrop", true)
-	record.Set("isActiveByDefault", false)
+	record.Set(schema.ItemSchema.Name, "Change Activity By Id")
+	record.Set(schema.ItemSchema.Effects, []string{effectRecord.Id})
+	record.Set(schema.ItemSchema.Icon, icon)
+	record.Set(schema.ItemSchema.IsUsingSlot, true)
+	record.Set(schema.ItemSchema.CanDrop, true)
+	record.Set(schema.ItemSchema.IsActiveByDefault, false)
 
 	err = adventuria.PocketBase.Save(record)
 	if err != nil {
@@ -101,9 +101,9 @@ func createChangeGameByIdItem(gameId string) (*core.Record, error) {
 
 func createChangeGameByIdEffect(gameId string) (*core.Record, error) {
 	record := core.NewRecord(adventuria.GameCollections.Get(schema.CollectionEffects))
-	record.Set("name", "Change Activity By Id")
-	record.Set("type", "changeGameById")
-	record.Set("value", gameId)
+	record.Set(schema.EffectSchema.Name, "Change Activity By Id")
+	record.Set(schema.EffectSchema.Type, "changeGameById")
+	record.Set(schema.EffectSchema.Value, gameId)
 	err := adventuria.PocketBase.Save(record)
 	if err != nil {
 		return nil, err

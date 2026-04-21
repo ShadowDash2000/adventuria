@@ -15,7 +15,7 @@ type RollWheelAction struct {
 }
 
 func (a *RollWheelAction) CanDo(ctx adventuria.ActionContext) bool {
-	currentCell, ok := ctx.User.CurrentCell()
+	currentCell, ok := ctx.Player.Progress().CurrentCell()
 	if !ok {
 		return false
 	}
@@ -24,11 +24,11 @@ func (a *RollWheelAction) CanDo(ctx adventuria.ActionContext) bool {
 		return false
 	}
 
-	return !ctx.User.LastAction().CanMove() && ctx.User.LastAction().Type() != ActionTypeRollWheel
+	return !ctx.Player.LastAction().CanMove() && ctx.Player.LastAction().Type() != ActionTypeRollWheel
 }
 
 func (a *RollWheelAction) Do(ctx adventuria.ActionContext, req adventuria.ActionRequest) (*result.Result, error) {
-	currentCell, ok := ctx.User.CurrentCell()
+	currentCell, ok := ctx.Player.Progress().CurrentCell()
 	if !ok {
 		return result.Err("internal error: current cell not found"),
 			errors.New("roll_wheel.do(): current cell not found")
@@ -38,7 +38,7 @@ func (a *RollWheelAction) Do(ctx adventuria.ActionContext, req adventuria.Action
 		AppContext:  ctx.AppContext,
 		CurrentCell: currentCell.(adventuria.CellWheel),
 	}
-	eventRes, err := ctx.User.OnBeforeWheelRoll().Trigger(onBeforeWheelRollEvent)
+	eventRes, err := ctx.Player.OnBeforeWheelRoll().Trigger(onBeforeWheelRollEvent)
 	if err != nil {
 		return eventRes, err
 	}
@@ -46,17 +46,17 @@ func (a *RollWheelAction) Do(ctx adventuria.ActionContext, req adventuria.Action
 		return eventRes, err
 	}
 
-	res, err := onBeforeWheelRollEvent.CurrentCell.Roll(ctx.AppContext, ctx.User, adventuria.RollWheelRequest(req))
+	res, err := onBeforeWheelRollEvent.CurrentCell.Roll(ctx.AppContext, ctx.Player, adventuria.RollWheelRequest(req))
 	if err != nil {
 		return result.Err("internal error: failed to roll wheel"),
 			fmt.Errorf("roll_wheel.do(): %w", err)
 	}
 
-	action := ctx.User.LastAction()
+	action := ctx.Player.LastAction()
 	action.SetType(ActionTypeRollWheel)
 	action.SetActivity(res.WinnerId)
 
-	eventRes, err = ctx.User.OnAfterWheelRoll().Trigger(&adventuria.OnAfterWheelRollEvent{
+	eventRes, err = ctx.Player.OnAfterWheelRoll().Trigger(&adventuria.OnAfterWheelRollEvent{
 		AppContext: ctx.AppContext,
 		ItemId:     res.WinnerId,
 	})
@@ -71,12 +71,12 @@ func (a *RollWheelAction) Do(ctx adventuria.ActionContext, req adventuria.Action
 }
 
 func (a *RollWheelAction) GetVariants(ctx adventuria.ActionContext) any {
-	ids, err := ctx.User.LastAction().ItemsList()
+	ids, err := ctx.Player.LastAction().ItemsList()
 	if err != nil {
 		return nil
 	}
 
-	currentCell, ok := ctx.User.CurrentCell()
+	currentCell, ok := ctx.Player.Progress().CurrentCell()
 	if !ok {
 		return nil
 	}

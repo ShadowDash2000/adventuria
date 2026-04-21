@@ -13,13 +13,13 @@ type GoToJailEffect struct {
 }
 
 func (ef *GoToJailEffect) CanUse(appCtx adventuria.AppContext, ctx adventuria.EffectContext) bool {
-	canRollWheel := adventuria.GameActions.CanDo(appCtx, ctx.User, "rollWheel")
+	canRollWheel := adventuria.GameActions.CanDo(appCtx, ctx.Player, "rollWheel")
 	if canRollWheel {
 		return false
 	}
 
-	canDone := adventuria.GameActions.CanDo(appCtx, ctx.User, "done")
-	canDrop := adventuria.GameActions.CanDo(appCtx, ctx.User, "drop")
+	canDone := adventuria.GameActions.CanDo(appCtx, ctx.Player, "done")
+	canDrop := adventuria.GameActions.CanDo(appCtx, ctx.Player, "drop")
 
 	if canDone && !canDrop {
 		return false
@@ -40,12 +40,12 @@ func (ef *GoToJailEffect) Subscribe(
 	switch decodedValue.Event {
 	case "onAfterItemSave":
 		return []event.Unsubscribe{
-			ctx.User.OnAfterItemSave().BindFunc(func(e *adventuria.OnAfterItemSave) (*result.Result, error) {
+			ctx.Player.OnAfterItemSave().BindFunc(func(e *adventuria.OnAfterItemSave) (*result.Result, error) {
 				if e.Item.IDInventory() != ctx.InvItemID {
 					return e.Next()
 				}
 
-				res, err := ef.tryToApplyEffect(e.AppContext, ctx.User)
+				res, err := ef.tryToApplyEffect(e.AppContext, ctx.Player)
 				if err != nil {
 					return res, err
 				}
@@ -61,12 +61,12 @@ func (ef *GoToJailEffect) Subscribe(
 		}, nil
 	case "onAfterItemUse":
 		return []event.Unsubscribe{
-			ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*result.Result, error) {
+			ctx.Player.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*result.Result, error) {
 				if e.InvItemId != ctx.InvItemID {
 					return e.Next()
 				}
 
-				res, err := ef.tryToApplyEffect(e.AppContext, ctx.User)
+				res, err := ef.tryToApplyEffect(e.AppContext, ctx.Player)
 				if err != nil {
 					return res, err
 				}
@@ -85,10 +85,10 @@ func (ef *GoToJailEffect) Subscribe(
 	}
 }
 
-func (ef *GoToJailEffect) tryToApplyEffect(ctx adventuria.AppContext, user adventuria.User) (*result.Result, error) {
-	user.SetIsInJail(true)
+func (ef *GoToJailEffect) tryToApplyEffect(ctx adventuria.AppContext, player adventuria.Player) (*result.Result, error) {
+	player.Progress().SetIsInJail(true)
 
-	_, err := user.MoveToClosestCellType(ctx, "jail")
+	_, err := player.MoveToClosestCellType(ctx, "jail")
 	if err != nil {
 		return result.Err("internal error: failed to move to the jail cell"),
 			fmt.Errorf("goToJailEffect: %w", err)

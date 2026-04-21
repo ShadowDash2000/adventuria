@@ -12,7 +12,7 @@ type ChangeGameByIdEffect struct {
 }
 
 func (ef *ChangeGameByIdEffect) CanUse(appCtx adventuria.AppContext, ctx adventuria.EffectContext) bool {
-	cell, ok := ctx.User.CurrentCell()
+	cell, ok := ctx.Player.Progress().CurrentCell()
 	if !ok {
 		return false
 	}
@@ -21,11 +21,11 @@ func (ef *ChangeGameByIdEffect) CanUse(appCtx adventuria.AppContext, ctx adventu
 		return false
 	}
 
-	if ok = adventuria.GameActions.CanDo(appCtx, ctx.User, "drop"); !ok {
+	if ok = adventuria.GameActions.CanDo(appCtx, ctx.Player, "drop"); !ok {
 		return false
 	}
 
-	if ok = adventuria.GameActions.CanDo(appCtx, ctx.User, "done"); !ok {
+	if ok = adventuria.GameActions.CanDo(appCtx, ctx.Player, "done"); !ok {
 		return false
 	}
 
@@ -37,15 +37,15 @@ func (ef *ChangeGameByIdEffect) Subscribe(
 	callback adventuria.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*result.Result, error) {
+		ctx.Player.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*result.Result, error) {
 			if e.InvItemId == ctx.InvItemID {
-				ctx.User.LastAction().SetActivity(ef.GetString("value"))
+				ctx.Player.LastAction().SetActivity(ef.GetString("value"))
 				callback(e.AppContext)
 			}
 
 			return e.Next()
 		}),
-		ctx.User.OnAfterMove().BindFunc(func(e *adventuria.OnAfterMoveEvent) (*result.Result, error) {
+		ctx.Player.OnAfterMove().BindFunc(func(e *adventuria.OnAfterMoveEvent) (*result.Result, error) {
 			callback(e.AppContext)
 			return e.Next()
 		}),

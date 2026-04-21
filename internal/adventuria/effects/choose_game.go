@@ -13,7 +13,7 @@ type ChooseGameEffect struct {
 }
 
 func (ef *ChooseGameEffect) CanUse(appCtx adventuria.AppContext, ctx adventuria.EffectContext) bool {
-	return adventuria.GameActions.CanDo(appCtx, ctx.User, "done")
+	return adventuria.GameActions.CanDo(appCtx, ctx.Player, "done")
 }
 
 func (ef *ChooseGameEffect) Subscribe(
@@ -21,10 +21,10 @@ func (ef *ChooseGameEffect) Subscribe(
 	callback adventuria.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*result.Result, error) {
+		ctx.Player.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*result.Result, error) {
 			if ctx.InvItemID == e.InvItemId {
 				if gameId, ok := e.Data["game_id"].(string); ok {
-					itemsList, err := ctx.User.LastAction().ItemsList()
+					itemsList, err := ctx.Player.LastAction().ItemsList()
 					if err != nil {
 						return result.Err("internal error: failed to decode action's items list"),
 							fmt.Errorf("chooseGame: %w", err)
@@ -34,7 +34,7 @@ func (ef *ChooseGameEffect) Subscribe(
 						return result.Err("game_id not found in items list"), nil
 					}
 
-					ctx.User.LastAction().SetActivity(gameId)
+					ctx.Player.LastAction().SetActivity(gameId)
 
 					callback(e.AppContext)
 				} else {

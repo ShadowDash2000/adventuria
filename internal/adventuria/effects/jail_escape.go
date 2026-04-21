@@ -11,7 +11,7 @@ type JailEscapeEffect struct {
 }
 
 func (ef *JailEscapeEffect) CanUse(_ adventuria.AppContext, ctx adventuria.EffectContext) bool {
-	return ctx.User.IsInJail()
+	return ctx.Player.Progress().IsInJail()
 }
 
 func (ef *JailEscapeEffect) Subscribe(
@@ -19,11 +19,11 @@ func (ef *JailEscapeEffect) Subscribe(
 	callback adventuria.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*result.Result, error) {
+		ctx.Player.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*result.Result, error) {
 			if e.InvItemId == ctx.InvItemID {
-				ctx.User.SetIsInJail(false)
-				ctx.User.SetDropsInARow(0)
-				ctx.User.LastAction().SetCanMove(true)
+				ctx.Player.Progress().SetIsInJail(false)
+				ctx.Player.Progress().SetDropsInARow(0)
+				ctx.Player.LastAction().SetCanMove(true)
 
 				callback(e.AppContext)
 			}

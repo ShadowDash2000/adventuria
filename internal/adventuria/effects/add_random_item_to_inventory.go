@@ -26,10 +26,10 @@ func (ef *AddRandomItemToInventoryEffect) Subscribe(
 	callback adventuria.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		ctx.User.OnAfterAction().BindFunc(func(e *adventuria.OnAfterActionEvent) (*result.Result, error) {
+		ctx.Player.OnAfterAction().BindFunc(func(e *adventuria.OnAfterActionEvent) (*result.Result, error) {
 			if e.ActionType == "buyItem" {
 				ids, _ := ef.DecodeValue(ef.GetString("value"))
-				_, err := ctx.User.Inventory().AddItemById(e.AppContext, helper.RandomItemFromSlice(ids))
+				_, err := ctx.Player.Inventory().AddItemById(e.AppContext, helper.RandomItemFromSlice(ids))
 				if err != nil {
 					return result.Err("internal error: failed to add item to the inventory"),
 						fmt.Errorf("addRandomItemToInventory: %w", err)

@@ -30,9 +30,9 @@ func (ef *CoinsIncrementEffect) Subscribe(
 	switch value.Event {
 	case "onAfterItemSave":
 		return []event.Unsubscribe{
-			ctx.User.OnAfterItemSave().BindFunc(func(e *adventuria.OnAfterItemSave) (*result.Result, error) {
+			ctx.Player.OnAfterItemSave().BindFunc(func(e *adventuria.OnAfterItemSave) (*result.Result, error) {
 				if e.Item.IDInventory() == ctx.InvItemID {
-					ctx.User.AddBalance(value.Value)
+					ctx.Player.Progress().AddBalance(value.Value)
 					callback(e.AppContext)
 				}
 

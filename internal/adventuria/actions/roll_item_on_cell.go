@@ -12,7 +12,7 @@ type RollItemOnCellAction struct {
 }
 
 func (a *RollItemOnCellAction) CanDo(ctx adventuria.ActionContext) bool {
-	currentCell, ok := ctx.User.CurrentCell()
+	currentCell, ok := ctx.Player.Progress().CurrentCell()
 	if !ok {
 		return false
 	}
@@ -21,11 +21,11 @@ func (a *RollItemOnCellAction) CanDo(ctx adventuria.ActionContext) bool {
 		return false
 	}
 
-	return !ctx.User.LastAction().CanMove() && ctx.User.LastAction().Type() != ActionTypeRollItemOnCell
+	return !ctx.Player.LastAction().CanMove() && ctx.Player.LastAction().Type() != ActionTypeRollItemOnCell
 }
 
 func (a *RollItemOnCellAction) Do(ctx adventuria.ActionContext, req adventuria.ActionRequest) (*result.Result, error) {
-	currentCell, ok := ctx.User.CurrentCell()
+	currentCell, ok := ctx.Player.Progress().CurrentCell()
 	if !ok {
 		return result.Err("internal error: current cell not found"),
 			errors.New("roll_item_on_cell.do(): current cell not found")
@@ -33,19 +33,19 @@ func (a *RollItemOnCellAction) Do(ctx adventuria.ActionContext, req adventuria.A
 
 	cellWheel := currentCell.(adventuria.CellWheel)
 
-	res, err := cellWheel.Roll(ctx.AppContext, ctx.User, adventuria.RollWheelRequest(req))
+	res, err := cellWheel.Roll(ctx.AppContext, ctx.Player, adventuria.RollWheelRequest(req))
 	if err != nil {
 		return result.Err("internal error: failed to roll an item"),
 			fmt.Errorf("roll_item_on_cell.do(): %w", err)
 	}
 
-	_, err = ctx.User.Inventory().MustAddItemById(ctx.AppContext, res.WinnerId)
+	_, err = ctx.Player.Inventory().MustAddItemById(ctx.AppContext, res.WinnerId)
 	if err != nil {
 		return result.Err("internal error: failed to add item to the inventory"),
 			fmt.Errorf("roll_item_on_cell.do(): can't add item to inventory: %w", err)
 	}
 
-	action := ctx.User.LastAction()
+	action := ctx.Player.LastAction()
 	action.SetType(ActionTypeRollItemOnCell)
 	action.SetCanMove(true)
 

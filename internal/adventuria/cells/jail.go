@@ -19,27 +19,27 @@ func NewCellJail() adventuria.CellCreator {
 }
 
 func (c *CellJail) OnCellReached(ctx *adventuria.CellReachedContext) error {
-	if ctx.User.IsInJail() {
-		ctx.User.LastAction().SetCanMove(false)
-		if err := c.refreshItems(ctx.AppContext, ctx.User); err != nil {
+	if ctx.Player.Progress().IsInJail() {
+		ctx.Player.LastAction().SetCanMove(false)
+		if err := c.refreshItems(ctx.AppContext, ctx.Player); err != nil {
 			return err
 		}
 
-		_, err := ctx.User.OnAfterGoToJail().Trigger(&adventuria.OnAfterGoToJailEvent{})
+		_, err := ctx.Player.OnAfterGoToJail().Trigger(&adventuria.OnAfterGoToJailEvent{})
 		if err != nil {
 			return err
 		}
 	} else {
-		ctx.User.LastAction().SetCanMove(true)
+		ctx.Player.LastAction().SetCanMove(true)
 	}
 	return nil
 }
 
 func (c *CellJail) OnCellLeft(ctx *adventuria.CellLeftContext) error {
 	// If a player somehow left a jail, we need to free them
-	if ctx.User.IsInJail() {
-		ctx.User.SetIsInJail(false)
-		ctx.User.SetDropsInARow(0)
+	if ctx.Player.Progress().IsInJail() {
+		ctx.Player.Progress().SetIsInJail(false)
+		ctx.Player.Progress().SetDropsInARow(0)
 	}
 
 	return nil

@@ -19,7 +19,7 @@ func (ef *RollReverseEffect) Subscribe(
 	callback adventuria.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		ctx.User.OnBeforeRollMove().BindFunc(func(e *adventuria.OnBeforeRollMoveEvent) (*result.Result, error) {
+		ctx.Player.OnBeforeRollMove().BindFunc(func(e *adventuria.OnBeforeRollMoveEvent) (*result.Result, error) {
 			e.N *= -1
 
 			callback(e.AppContext)

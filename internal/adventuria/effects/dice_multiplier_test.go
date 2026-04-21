@@ -30,22 +30,22 @@ func Test_DiceMultiplier(t *testing.T) {
 	ctx := adventuria.AppContext{
 		App: adventuria.PocketBase,
 	}
-	user, err := adventuria.GameUsers.GetByName(ctx, "user1")
+	player, err := adventuria.GamePlayers.GetByName(ctx, "player1")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	invItemId, err := user.Inventory().AddItemById(ctx, item.Id)
+	invItemId, err := player.Inventory().AddItemById(ctx, item.Id)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = game.UseItem(ctx.App, user.ID(), adventuria.UseItemRequest{InvItemId: invItemId})
+	_, err = game.UseItem(ctx.App, player.ID(), adventuria.UseItemRequest{InvItemId: invItemId})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	res, err := game.DoAction(ctx.App, user.ID(), actions.ActionTypeRollDice, adventuria.ActionRequest{})
+	res, err := game.DoAction(ctx.App, player.ID(), actions.ActionTypeRollDice, adventuria.ActionRequest{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -80,11 +80,11 @@ func createDiceMultiplierItem() (*core.Record, error) {
 	}
 
 	record := core.NewRecord(adventuria.GameCollections.Get(schema.CollectionItems))
-	record.Set("name", "Dice Multiplier")
-	record.Set("effects", []string{effectRecord.Id})
-	record.Set("icon", icon)
-	record.Set("isUsingSlot", true)
-	record.Set("canDrop", true)
+	record.Set(schema.ItemSchema.Name, "Dice Multiplier")
+	record.Set(schema.ItemSchema.Effects, []string{effectRecord.Id})
+	record.Set(schema.ItemSchema.Icon, icon)
+	record.Set(schema.ItemSchema.IsUsingSlot, true)
+	record.Set(schema.ItemSchema.CanDrop, true)
 	err = adventuria.PocketBase.Save(record)
 	if err != nil {
 		return nil, err
@@ -95,9 +95,9 @@ func createDiceMultiplierItem() (*core.Record, error) {
 
 func createDiceMultiplierEffect() (*core.Record, error) {
 	record := core.NewRecord(adventuria.GameCollections.Get(schema.CollectionEffects))
-	record.Set("name", "Dice Multiplier")
-	record.Set("type", "diceMultiplier")
-	record.Set("value", 2)
+	record.Set(schema.EffectSchema.Name, "Dice Multiplier")
+	record.Set(schema.EffectSchema.Type, "diceMultiplier")
+	record.Set(schema.EffectSchema.Value, 2)
 	err := adventuria.PocketBase.Save(record)
 	if err != nil {
 		return nil, err

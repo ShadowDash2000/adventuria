@@ -14,14 +14,14 @@ type DropAction struct {
 }
 
 func (a *DropAction) CanDo(ctx adventuria.ActionContext) bool {
-	currentCell, ok := ctx.User.CurrentCell()
+	currentCell, ok := ctx.Player.Progress().CurrentCell()
 	if ok {
 		if currentCell.CantDrop() {
 			return false
 		}
 	}
 
-	if ctx.User.IsInJail() {
+	if ctx.Player.Progress().IsInJail() {
 		return false
 	}
 
@@ -29,7 +29,7 @@ func (a *DropAction) CanDo(ctx adventuria.ActionContext) bool {
 		AppContext:    ctx.AppContext,
 		IsDropBlocked: false,
 	}
-	_, err := ctx.User.OnBeforeDropCheck().Trigger(onBeforeDropCheckEvent)
+	_, err := ctx.Player.OnBeforeDropCheck().Trigger(onBeforeDropCheckEvent)
 	if err != nil {
 		return false
 	}
@@ -38,7 +38,7 @@ func (a *DropAction) CanDo(ctx adventuria.ActionContext) bool {
 		return false
 	}
 
-	return ctx.User.LastAction().Type() == ActionTypeRollWheel
+	return ctx.Player.LastAction().Type() == ActionTypeRollWheel
 }
 
 func (a *DropAction) Do(ctx adventuria.ActionContext, req adventuria.ActionRequest) (*result.Result, error) {
@@ -50,7 +50,7 @@ func (a *DropAction) Do(ctx adventuria.ActionContext, req adventuria.ActionReque
 		}
 	}
 
-	currentCell, ok := ctx.User.CurrentCell()
+	currentCell, ok := ctx.Player.Progress().CurrentCell()
 	if !ok {
 		return result.Err("internal error: current cell not found"),
 			errors.New("drop.do(): current cell not found")
@@ -62,7 +62,7 @@ func (a *DropAction) Do(ctx adventuria.ActionContext, req adventuria.ActionReque
 		IsDropBlocked: false,
 		PointsForDrop: adventuria.GameSettings.PointsForDrop(),
 	}
-	res, err := ctx.User.OnBeforeDrop().Trigger(onBeforeDropEvent)
+	res, err := ctx.Player.OnBeforeDrop().Trigger(onBeforeDropEvent)
 	if err != nil {
 		return res, err
 	}
@@ -74,7 +74,7 @@ func (a *DropAction) Do(ctx adventuria.ActionContext, req adventuria.ActionReque
 		return result.Err("drop is not allowed"), nil
 	}
 
-	action := ctx.User.LastAction()
+	action := ctx.Player.LastAction()
 	action.SetType(ActionTypeDrop)
 	action.SetComment(comment)
 	err = ctx.AppContext.App.Save(action.ProxyRecord())
@@ -89,13 +89,13 @@ func (a *DropAction) Do(ctx adventuria.ActionContext, req adventuria.ActionReque
 	action.SetCanMove(true)
 
 	if !onBeforeDropEvent.IsSafeDrop && !currentCell.IsSafeDrop() {
-		ctx.User.SetPoints(ctx.User.Points() + onBeforeDropEvent.PointsForDrop)
-		ctx.User.SetDropsInARow(ctx.User.DropsInARow() + 1)
+		ctx.Player.Progress().AddPoints(onBeforeDropEvent.PointsForDrop)
+		ctx.Player.Progress().SetDropsInARow(ctx.Player.Progress().DropsInARow() + 1)
 
-		if !ctx.User.IsSafeDrop() {
-			ctx.User.SetIsInJail(true)
+		if !ctx.Player.Progress().IsSafeDrop() {
+			ctx.Player.Progress().SetIsInJail(true)
 
-			_, err = ctx.User.MoveToClosestCellType(ctx.AppContext, "jail")
+			_, err = ctx.Player.MoveToClosestCellType(ctx.AppContext, "jail")
 			if err != nil {
 				return result.Err("internal error: failed to move to the jail cell"),
 					fmt.Errorf("drop.do(): %w", err)
@@ -103,7 +103,7 @@ func (a *DropAction) Do(ctx adventuria.ActionContext, req adventuria.ActionReque
 		}
 	}
 
-	res, err = ctx.User.OnAfterDrop().Trigger(&adventuria.OnAfterDropEvent{
+	res, err = ctx.Player.OnAfterDrop().Trigger(&adventuria.OnAfterDropEvent{
 		AppContext: ctx.AppContext,
 	})
 	if err != nil {

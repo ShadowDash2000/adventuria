@@ -18,16 +18,16 @@ type CellShop struct {
 	adventuria.CellRecord
 }
 
-func (c *CellShop) RefreshItems(ctx adventuria.AppContext, user adventuria.User) error {
-	return c.refreshItems(ctx, user)
+func (c *CellShop) RefreshItems(ctx adventuria.AppContext, player adventuria.Player) error {
+	return c.refreshItems(ctx, player)
 }
 
 func (c *CellShop) OnCellReached(ctx *adventuria.CellReachedContext) error {
-	if err := c.refreshItems(ctx.AppContext, ctx.User); err != nil {
+	if err := c.refreshItems(ctx.AppContext, ctx.Player); err != nil {
 		return err
 	}
 
-	ctx.User.LastAction().SetCanMove(true)
+	ctx.Player.LastAction().SetCanMove(true)
 
 	return nil
 }
@@ -40,7 +40,7 @@ func (c *CellShop) Verify(_ adventuria.AppContext, _ string) error {
 	return nil
 }
 
-func (c *CellShop) refreshItems(ctx adventuria.AppContext, user adventuria.User) error {
+func (c *CellShop) refreshItems(ctx adventuria.AppContext, player adventuria.Player) error {
 	var records []*core.Record
 	err := ctx.App.RecordQuery(adventuria.GameCollections.Get(schema.CollectionItems)).
 		Where(dbx.And(
@@ -62,7 +62,7 @@ func (c *CellShop) refreshItems(ctx adventuria.AppContext, user adventuria.User)
 		res[i] = records[rand.N(len(records))].Id
 	}
 
-	user.LastAction().SetItemsList(res)
+	player.LastAction().SetItemsList(res)
 
 	return nil
 }

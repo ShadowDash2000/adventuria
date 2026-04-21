@@ -14,7 +14,7 @@ type RerollAction struct {
 }
 
 func (a *RerollAction) CanDo(ctx adventuria.ActionContext) bool {
-	currentCell, ok := ctx.User.CurrentCell()
+	currentCell, ok := ctx.Player.Progress().CurrentCell()
 	if ok {
 		if currentCell.CantReroll() {
 			return false
@@ -25,7 +25,7 @@ func (a *RerollAction) CanDo(ctx adventuria.ActionContext) bool {
 		AppContext:      ctx.AppContext,
 		IsRerollBlocked: false,
 	}
-	_, err := ctx.User.OnBeforeRerollCheck().Trigger(onBeforeRerollCheckEvent)
+	_, err := ctx.Player.OnBeforeRerollCheck().Trigger(onBeforeRerollCheckEvent)
 	if err != nil {
 		return false
 	}
@@ -34,7 +34,7 @@ func (a *RerollAction) CanDo(ctx adventuria.ActionContext) bool {
 		return false
 	}
 
-	return ctx.User.LastAction().Type() == ActionTypeRollWheel
+	return ctx.Player.LastAction().Type() == ActionTypeRollWheel
 }
 
 func (a *RerollAction) Do(ctx adventuria.ActionContext, req adventuria.ActionRequest) (*result.Result, error) {
@@ -46,7 +46,7 @@ func (a *RerollAction) Do(ctx adventuria.ActionContext, req adventuria.ActionReq
 		}
 	}
 
-	cell, ok := ctx.User.CurrentCell()
+	cell, ok := ctx.Player.Progress().CurrentCell()
 	if !ok {
 		return result.Err("internal error: current cell not found"),
 			fmt.Errorf("reroll.do(): current cell not found")
@@ -58,7 +58,7 @@ func (a *RerollAction) Do(ctx adventuria.ActionContext, req adventuria.ActionReq
 			fmt.Errorf("reroll.do(): current cell isn't wheel cell")
 	}
 
-	action := ctx.User.LastAction()
+	action := ctx.Player.LastAction()
 	action.SetType(ActionTypeReroll)
 	action.SetComment(comment)
 	err := ctx.AppContext.App.Save(action.ProxyRecord())
@@ -72,13 +72,13 @@ func (a *RerollAction) Do(ctx adventuria.ActionContext, req adventuria.ActionReq
 	}
 	action.MarkAsNew()
 
-	err = cellWheel.RefreshItems(ctx.AppContext, ctx.User)
+	err = cellWheel.RefreshItems(ctx.AppContext, ctx.Player)
 	if err != nil {
 		return result.Err("internal error: can't refresh items on cell"),
 			fmt.Errorf("reroll.do(): %w", err)
 	}
 
-	res, err := ctx.User.OnAfterReroll().Trigger(&adventuria.OnAfterRerollEvent{
+	res, err := ctx.Player.OnAfterReroll().Trigger(&adventuria.OnAfterRerollEvent{
 		AppContext: ctx.AppContext,
 	})
 	if err != nil {

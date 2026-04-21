@@ -31,19 +31,19 @@ func Test_CoinsIncrement(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	user, err := adventuria.GameUsers.GetByName(ctx, "user1")
+	player, err := adventuria.GamePlayers.GetByName(ctx, "player1")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = user.Inventory().AddItemById(ctx, item.Id)
+	_, err = player.Inventory().AddItemById(ctx, item.Id)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	wantBalance := 2
-	if user.Balance() != wantBalance {
-		t.Fatalf("Test_CoinsIncrement(): Balance = %d, want = %d", user.Balance(), wantBalance)
+	if player.Progress().Balance() != wantBalance {
+		t.Fatalf("Test_CoinsIncrement(): Balance = %d, want = %d", player.Progress().Balance(), wantBalance)
 	}
 }
 
@@ -59,12 +59,12 @@ func createCoinsIncrementItem(ctx adventuria.AppContext) (*core.Record, error) {
 	}
 
 	record := core.NewRecord(adventuria.GameCollections.Get(schema.CollectionItems))
-	record.Set("name", "Coins Increment")
-	record.Set("effects", []string{effectRecord.Id})
-	record.Set("icon", icon)
-	record.Set("isUsingSlot", false)
-	record.Set("isActiveByDefault", true)
-	record.Set("canDrop", true)
+	record.Set(schema.ItemSchema.Name, "Coins Increment")
+	record.Set(schema.ItemSchema.Effects, []string{effectRecord.Id})
+	record.Set(schema.ItemSchema.Icon, icon)
+	record.Set(schema.ItemSchema.IsUsingSlot, false)
+	record.Set(schema.ItemSchema.IsActiveByDefault, true)
+	record.Set(schema.ItemSchema.CanDrop, true)
 	err = ctx.App.Save(record)
 	if err != nil {
 		return nil, err
@@ -75,9 +75,9 @@ func createCoinsIncrementItem(ctx adventuria.AppContext) (*core.Record, error) {
 
 func createCoinsIncrementEffect(ctx adventuria.AppContext) (*core.Record, error) {
 	record := core.NewRecord(adventuria.GameCollections.Get(schema.CollectionEffects))
-	record.Set("name", "Coins Increment")
-	record.Set("type", "coinsIncrement")
-	record.Set("value", "2;onAfterItemSave")
+	record.Set(schema.EffectSchema.Name, "Coins Increment")
+	record.Set(schema.EffectSchema.Type, "coinsIncrement")
+	record.Set(schema.EffectSchema.Value, "2;onAfterItemSave")
 	err := ctx.App.Save(record)
 	if err != nil {
 		return nil, err

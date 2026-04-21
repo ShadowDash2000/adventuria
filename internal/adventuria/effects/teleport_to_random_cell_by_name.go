@@ -18,12 +18,12 @@ type TeleportToRandomCellByNameEffect struct {
 }
 
 func (ef *TeleportToRandomCellByNameEffect) CanUse(appCtx adventuria.AppContext, ctx adventuria.EffectContext) bool {
-	if adventuria.GameActions.HasActionsInCategories(appCtx, ctx.User, []string{"wheel_roll", "on_cell"}) {
+	if adventuria.GameActions.HasActionsInCategories(appCtx, ctx.Player, []string{"wheel_roll", "on_cell"}) {
 		return false
 	}
 
-	canDone := adventuria.GameActions.CanDo(appCtx, ctx.User, "done")
-	canDrop := adventuria.GameActions.CanDo(appCtx, ctx.User, "drop")
+	canDone := adventuria.GameActions.CanDo(appCtx, ctx.Player, "done")
+	canDrop := adventuria.GameActions.CanDo(appCtx, ctx.Player, "drop")
 
 	if canDone && !canDrop {
 		return false
@@ -37,10 +37,10 @@ func (ef *TeleportToRandomCellByNameEffect) Subscribe(
 	callback adventuria.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		ctx.User.OnAfterItemSave().BindFunc(func(e *adventuria.OnAfterItemSave) (*result.Result, error) {
+		ctx.Player.OnAfterItemSave().BindFunc(func(e *adventuria.OnAfterItemSave) (*result.Result, error) {
 			if e.Item.IDInventory() == ctx.InvItemID {
 				cellNames, _ := ef.DecodeValue(ef.GetString("value"))
-				_, err := ctx.User.MoveToCellName(e.AppContext, helper.RandomItemFromSlice(cellNames))
+				_, err := ctx.Player.MoveToCellName(e.AppContext, helper.RandomItemFromSlice(cellNames))
 				if err != nil {
 					return result.Err("internal error: failed to move to the cell by name"),
 						fmt.Errorf("teleportToRandomCellByNameEffect: %w", err)

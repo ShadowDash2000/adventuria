@@ -21,19 +21,19 @@ func Test_RollDice(t *testing.T) {
 	ctx := adventuria.AppContext{
 		App: adventuria.PocketBase,
 	}
-	user, err := adventuria.GameUsers.GetByName(ctx, "user1")
+	player, err := adventuria.GamePlayers.GetByName(ctx, "player1")
 	if err != nil {
-		t.Fatalf("Test_RollDice(): Error getting user: %s", err)
+		t.Fatalf("Test_RollDice(): Error getting player: %s", err)
 	}
 
-	initialCellsPassed := user.CellsPassed()
+	initialCellsPassed := player.Progress().CellsPassed()
 
-	_, err = game.DoAction(ctx.App, user.ID(), ActionTypeRollDice, adventuria.ActionRequest{})
+	_, err = game.DoAction(ctx.App, player.ID(), ActionTypeRollDice, adventuria.ActionRequest{})
 	if err != nil {
 		t.Fatalf("Test_RollDice(): Error action roll dice: %s", err)
 	}
 
-	if user.CellsPassed() <= initialCellsPassed {
-		t.Fatalf("Test_RollDice(): Expected that cells passed increased, got %d", user.CellsPassed())
+	if player.Progress().CellsPassed() <= initialCellsPassed {
+		t.Fatalf("Test_RollDice(): Expected that cells passed increased, got %d", player.Progress().CellsPassed())
 	}
 }

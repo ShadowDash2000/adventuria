@@ -21,15 +21,15 @@ type Action interface {
 
 type ActionContext struct {
 	AppContext
-	User User
+	Player Player
 }
 
 type ActionRecord interface {
 	core.RecordProxy
 
 	ID() string
-	User() string
-	SetUser(string)
+	Player() string
+	SetPlayer(string)
 	CellId() string
 	setCell(string)
 	Comment() string
@@ -38,8 +38,8 @@ type ActionRecord interface {
 	SetActivity(string)
 	Type() ActionType
 	SetType(ActionType)
-	DiceRoll() int
-	SetDiceRoll(int)
+	CellsPassed() int
+	SetCellsPassed(int)
 	UsedItemAppend(string)
 	ItemsList() ([]string, error)
 	SetItemsList([]string)

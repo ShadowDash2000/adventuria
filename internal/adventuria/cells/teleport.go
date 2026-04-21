@@ -29,22 +29,22 @@ func (c *CellTeleport) OnCellReached(ctx *adventuria.CellReachedContext) error {
 		SkipTeleport: false,
 	}
 
-	_, err := ctx.User.OnBeforeTeleportOnCell().Trigger(onBeforeTeleportOnCell)
+	_, err := ctx.Player.OnBeforeTeleportOnCell().Trigger(onBeforeTeleportOnCell)
 	if err != nil {
 		return fmt.Errorf("teleport.onBeforeTeleportOnCell: %w", err)
 	}
 
 	if onBeforeTeleportOnCell.SkipTeleport {
-		ctx.User.LastAction().SetCanMove(true)
+		ctx.Player.LastAction().SetCanMove(true)
 		return nil
 	}
 
-	ctx.User.LastAction().SetType("teleport")
-	if err := ctx.App.Save(ctx.User.LastAction().ProxyRecord()); err != nil {
+	ctx.Player.LastAction().SetType("teleport")
+	if err := ctx.App.Save(ctx.Player.LastAction().ProxyRecord()); err != nil {
 		return err
 	}
 
-	res, err := ctx.User.MoveToCellName(ctx.AppContext, decodedValue.CellName)
+	res, err := ctx.Player.MoveToCellName(ctx.AppContext, decodedValue.CellName)
 	if err != nil {
 		return err
 	}

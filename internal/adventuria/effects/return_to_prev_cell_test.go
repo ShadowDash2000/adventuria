@@ -30,31 +30,31 @@ func Test_ReturnToPrevCell(t *testing.T) {
 	ctx := adventuria.AppContext{
 		App: adventuria.PocketBase,
 	}
-	user, err := adventuria.GameUsers.GetByName(ctx, "user1")
+	player, err := adventuria.GamePlayers.GetByName(ctx, "player1")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	invItemId, err := user.Inventory().AddItemById(ctx, item.Id)
+	invItemId, err := player.Inventory().AddItemById(ctx, item.Id)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = user.Move(ctx, 1)
+	_, err = player.Move(ctx, 1)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = game.UseItem(ctx.App, user.ID(), adventuria.UseItemRequest{InvItemId: invItemId})
+	_, err = game.UseItem(ctx.App, player.ID(), adventuria.UseItemRequest{InvItemId: invItemId})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if user.CellsPassed() != 0 {
-		t.Fatalf("Test_ReturnToPrevCell(): Cells passed = %d, want = 0", user.CellsPassed())
+	if player.Progress().CellsPassed() != 0 {
+		t.Fatalf("Test_ReturnToPrevCell(): Cells passed = %d, want = 0", player.Progress().CellsPassed())
 	}
 
-	if !adventuria.GameActions.CanDo(ctx, user, "rollDice") {
+	if !adventuria.GameActions.CanDo(ctx, player, "rollDice") {
 		t.Fatalf("Test_ReturnToPrevCell(): Expected that roll dice action to be allowed")
 	}
 }
@@ -71,11 +71,11 @@ func createReturnToPrevCellItem() (*core.Record, error) {
 	}
 
 	record := core.NewRecord(adventuria.GameCollections.Get(schema.CollectionItems))
-	record.Set("name", "Return To Previous Cell")
-	record.Set("effects", []string{effectRecord.Id})
-	record.Set("icon", icon)
-	record.Set("isUsingSlot", true)
-	record.Set("canDrop", true)
+	record.Set(schema.ItemSchema.Name, "Return To Previous Cell")
+	record.Set(schema.ItemSchema.Effects, []string{effectRecord.Id})
+	record.Set(schema.ItemSchema.Icon, icon)
+	record.Set(schema.ItemSchema.IsUsingSlot, true)
+	record.Set(schema.ItemSchema.CanDrop, true)
 	err = adventuria.PocketBase.Save(record)
 	if err != nil {
 		return nil, err
@@ -86,8 +86,8 @@ func createReturnToPrevCellItem() (*core.Record, error) {
 
 func createReturnToPrevCellEffect() (*core.Record, error) {
 	record := core.NewRecord(adventuria.GameCollections.Get(schema.CollectionEffects))
-	record.Set("name", "Return To Previous Cell")
-	record.Set("type", "returnToPrevCell")
+	record.Set(schema.EffectSchema.Name, "Return To Previous Cell")
+	record.Set(schema.EffectSchema.Type, "returnToPrevCell")
 	err := adventuria.PocketBase.Save(record)
 	if err != nil {
 		return nil, err

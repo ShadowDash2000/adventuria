@@ -31,17 +31,17 @@ func Test_AddGameGenre(t *testing.T) {
 	ctx := adventuria.AppContext{
 		App: adventuria.PocketBase,
 	}
-	user, err := adventuria.GameUsers.GetByName(ctx, "user1")
+	player, err := adventuria.GamePlayers.GetByName(ctx, "player1")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	invItemId, err := user.Inventory().AddItemById(ctx, item.Id)
+	invItemId, err := player.Inventory().AddItemById(ctx, item.Id)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = user.Move(ctx, 1)
+	_, err = player.Move(ctx, 1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -54,7 +54,7 @@ func Test_AddGameGenre(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err = game.UseItem(ctx.App, user.ID(), adventuria.UseItemRequest{
+	_, err = game.UseItem(ctx.App, player.ID(), adventuria.UseItemRequest{
 		InvItemId: invItemId,
 		Data: map[string]any{
 			"genre_id": genre.Id,
@@ -64,13 +64,13 @@ func Test_AddGameGenre(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	filter, err := user.LastAction().CustomActivityFilter()
+	filter, err := player.LastAction().CustomActivityFilter()
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	if !slices.Contains(filter.Genres, genre.Id) {
-		t.Fatalf("Test_AddGameGenre(): Genre not added to user, want = %s, got = %s", genre.Id, filter.Genres)
+		t.Fatalf("Test_AddGameGenre(): Genre not added to player, want = %s, got = %s", genre.Id, filter.Genres)
 	}
 }
 
@@ -86,11 +86,11 @@ func createAddGameGenreItem() (*core.Record, error) {
 	}
 
 	record := core.NewRecord(adventuria.GameCollections.Get(schema.CollectionItems))
-	record.Set("name", "Add Game Genre")
-	record.Set("effects", []string{effectRecord.Id})
-	record.Set("icon", icon)
-	record.Set("isUsingSlot", true)
-	record.Set("canDrop", true)
+	record.Set(schema.ItemSchema.Name, "Add Game Genre")
+	record.Set(schema.ItemSchema.Effects, []string{effectRecord.Id})
+	record.Set(schema.ItemSchema.Icon, icon)
+	record.Set(schema.ItemSchema.IsUsingSlot, true)
+	record.Set(schema.ItemSchema.CanDrop, true)
 	err = adventuria.PocketBase.Save(record)
 	if err != nil {
 		return nil, err
@@ -101,8 +101,8 @@ func createAddGameGenreItem() (*core.Record, error) {
 
 func createAddGameGenreEffect() (*core.Record, error) {
 	record := core.NewRecord(adventuria.GameCollections.Get(schema.CollectionEffects))
-	record.Set("name", "Add Game Genre")
-	record.Set("type", "addGameGenre")
+	record.Set(schema.EffectSchema.Name, "Add Game Genre")
+	record.Set(schema.EffectSchema.Type, "addGameGenre")
 	err := adventuria.PocketBase.Save(record)
 	if err != nil {
 		return nil, err

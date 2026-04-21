@@ -15,11 +15,11 @@ type ChangeMinGamePriceEffect struct {
 }
 
 func (ef *ChangeMinGamePriceEffect) CanUse(appCtx adventuria.AppContext, ctx adventuria.EffectContext) bool {
-	if ok := adventuria.GameActions.CanDo(appCtx, ctx.User, "rollWheel"); !ok {
+	if ok := adventuria.GameActions.CanDo(appCtx, ctx.Player, "rollWheel"); !ok {
 		return false
 	}
 
-	cell, ok := ctx.User.CurrentCell()
+	cell, ok := ctx.Player.Progress().CurrentCell()
 	if !ok {
 		return false
 	}
@@ -54,9 +54,9 @@ func (ef *ChangeMinGamePriceEffect) Subscribe(
 	callback adventuria.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*result.Result, error) {
+		ctx.Player.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*result.Result, error) {
 			if e.InvItemId == ctx.InvItemID {
-				cell, ok := ctx.User.CurrentCell()
+				cell, ok := ctx.Player.Progress().CurrentCell()
 				if !ok {
 					return result.Err("internal error: current cell not found"),
 						errors.New("changeMaxGamePrice: current cell not found")
@@ -68,7 +68,7 @@ func (ef *ChangeMinGamePriceEffect) Subscribe(
 				}
 
 				if i := ef.GetInt("value"); i != 0 {
-					filter, err := ctx.User.LastAction().CustomActivityFilter()
+					filter, err := ctx.Player.LastAction().CustomActivityFilter()
 					if err != nil {
 						return result.Err("internal error: failed to decode effect value"),
 							fmt.Errorf("changeMinGamePrice: %w", err)
@@ -76,9 +76,9 @@ func (ef *ChangeMinGamePriceEffect) Subscribe(
 
 					filter.MinPrice = i
 					filter.MaxPrice = -1
-					ctx.User.LastAction().SetCustomActivityFilter(*filter)
+					ctx.Player.LastAction().SetCustomActivityFilter(*filter)
 
-					if err = cellGame.RefreshItems(e.AppContext, ctx.User); err != nil {
+					if err = cellGame.RefreshItems(e.AppContext, ctx.Player); err != nil {
 						return result.Err("internal error: failed to refresh action's items"),
 							fmt.Errorf("changeMinGamePrice: %w", err)
 					}

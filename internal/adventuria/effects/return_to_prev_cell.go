@@ -12,12 +12,12 @@ type ReturnToPrevCellEffect struct {
 }
 
 func (ef *ReturnToPrevCellEffect) CanUse(appCtx adventuria.AppContext, ctx adventuria.EffectContext) bool {
-	latestDiceRoll := ctx.User.LastAction().DiceRoll()
+	latestDiceRoll := ctx.Player.LastAction().CellsPassed()
 	if latestDiceRoll == 0 {
 		return false
 	}
 
-	return !adventuria.GameActions.CanDo(appCtx, ctx.User, "done")
+	return !adventuria.GameActions.CanDo(appCtx, ctx.Player, "done")
 }
 
 func (ef *ReturnToPrevCellEffect) Subscribe(
@@ -25,19 +25,19 @@ func (ef *ReturnToPrevCellEffect) Subscribe(
 	callback adventuria.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*result.Result, error) {
+		ctx.Player.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*result.Result, error) {
 			if e.InvItemId != ctx.InvItemID {
 				return e.Next()
 			}
 
-			latestDiceRoll := ctx.User.LastAction().DiceRoll()
-			_, err := ctx.User.Move(e.AppContext, -latestDiceRoll)
+			latestDiceRoll := ctx.Player.LastAction().CellsPassed()
+			_, err := ctx.Player.Move(e.AppContext, -latestDiceRoll)
 			if err != nil {
 				return result.Err("internal error: failed to move to the previous cell"),
 					fmt.Errorf("returnToPrevCell: %w", err)
 			}
 
-			ctx.User.LastAction().SetCanMove(true)
+			ctx.Player.LastAction().SetCanMove(true)
 
 			callback(e.AppContext)
 

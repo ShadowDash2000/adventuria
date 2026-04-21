@@ -40,13 +40,13 @@ type Cell interface {
 
 type CellReachedContext struct {
 	AppContext
-	User  User
-	Moves []*MoveResult
+	Player Player
+	Moves  []*MoveResult
 }
 
 type CellLeftContext struct {
 	AppContext
-	User User
+	Player Player
 }
 
 var cellsList = map[CellType]CellDef{}

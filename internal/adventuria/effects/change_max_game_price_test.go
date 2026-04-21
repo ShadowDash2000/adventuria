@@ -30,27 +30,27 @@ func Test_ChangeMaxGamePriceUsable(t *testing.T) {
 	ctx := adventuria.AppContext{
 		App: adventuria.PocketBase,
 	}
-	user, err := adventuria.GameUsers.GetByName(ctx, "user1")
+	player, err := adventuria.GamePlayers.GetByName(ctx, "player1")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = user.Move(ctx, 1)
+	_, err = player.Move(ctx, 1)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	invItemId, err := user.Inventory().AddItemById(ctx, item.Id)
+	invItemId, err := player.Inventory().AddItemById(ctx, item.Id)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = game.UseItem(ctx.App, user.ID(), adventuria.UseItemRequest{InvItemId: invItemId})
+	_, err = game.UseItem(ctx.App, player.ID(), adventuria.UseItemRequest{InvItemId: invItemId})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	filter, err := user.LastAction().CustomActivityFilter()
+	filter, err := player.LastAction().CustomActivityFilter()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -72,12 +72,12 @@ func createChangeMaxGamePriceUsableItem() (*core.Record, error) {
 	}
 
 	record := core.NewRecord(adventuria.GameCollections.Get(schema.CollectionItems))
-	record.Set("name", "Change Max Activity Price Usable")
-	record.Set("effects", []string{effectRecord.Id})
-	record.Set("icon", icon)
-	record.Set("isUsingSlot", true)
-	record.Set("canDrop", false)
-	record.Set("isActiveByDefault", false)
+	record.Set(schema.ItemSchema.Name, "Change Max Activity Price Usable")
+	record.Set(schema.ItemSchema.Effects, []string{effectRecord.Id})
+	record.Set(schema.ItemSchema.Icon, icon)
+	record.Set(schema.ItemSchema.IsUsingSlot, true)
+	record.Set(schema.ItemSchema.CanDrop, false)
+	record.Set(schema.ItemSchema.IsActiveByDefault, false)
 
 	err = adventuria.PocketBase.Save(record)
 	if err != nil {
@@ -89,9 +89,9 @@ func createChangeMaxGamePriceUsableItem() (*core.Record, error) {
 
 func createChangeMaxGamePriceUsableEffect() (*core.Record, error) {
 	record := core.NewRecord(adventuria.GameCollections.Get(schema.CollectionEffects))
-	record.Set("name", "Change Max Activity Price Usable")
-	record.Set("type", "changeMaxGamePrice")
-	record.Set("value", "20;usable")
+	record.Set(schema.EffectSchema.Name, "Change Max Activity Price Usable")
+	record.Set(schema.EffectSchema.Type, "changeMaxGamePrice")
+	record.Set(schema.EffectSchema.Value, "20;usable")
 	err := adventuria.PocketBase.Save(record)
 	if err != nil {
 		return nil, err
@@ -118,29 +118,29 @@ func Test_ChangeMaxGamePriceUnusable(t *testing.T) {
 	ctx := adventuria.AppContext{
 		App: adventuria.PocketBase,
 	}
-	user, err := adventuria.GameUsers.GetByName(ctx, "user1")
+	player, err := adventuria.GamePlayers.GetByName(ctx, "player1")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = user.Move(ctx, 1)
+	_, err = player.Move(ctx, 1)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = user.Inventory().AddItemById(ctx, item.Id)
+	_, err = player.Inventory().AddItemById(ctx, item.Id)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = ctx.App.Save(user.LastAction().ProxyRecord())
+	err = ctx.App.Save(player.LastAction().ProxyRecord())
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_ = user.Refetch(ctx)
+	_ = player.Refetch(ctx)
 
-	filter, err := user.LastAction().CustomActivityFilter()
+	filter, err := player.LastAction().CustomActivityFilter()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -162,12 +162,12 @@ func createChangeMaxGamePriceUnusableItem() (*core.Record, error) {
 	}
 
 	record := core.NewRecord(adventuria.GameCollections.Get(schema.CollectionItems))
-	record.Set("name", "Change Max Activity Price Unusable")
-	record.Set("effects", []string{effectRecord.Id})
-	record.Set("icon", icon)
-	record.Set("isUsingSlot", false)
-	record.Set("canDrop", false)
-	record.Set("isActiveByDefault", true)
+	record.Set(schema.ItemSchema.Name, "Change Max Activity Price Unusable")
+	record.Set(schema.ItemSchema.Effects, []string{effectRecord.Id})
+	record.Set(schema.ItemSchema.Icon, icon)
+	record.Set(schema.ItemSchema.IsUsingSlot, false)
+	record.Set(schema.ItemSchema.CanDrop, false)
+	record.Set(schema.ItemSchema.IsActiveByDefault, true)
 
 	err = adventuria.PocketBase.Save(record)
 	if err != nil {
@@ -179,9 +179,9 @@ func createChangeMaxGamePriceUnusableItem() (*core.Record, error) {
 
 func createChangeMaxGamePriceUnusableEffect() (*core.Record, error) {
 	record := core.NewRecord(adventuria.GameCollections.Get(schema.CollectionEffects))
-	record.Set("name", "Change Max Activity Price Unusable")
-	record.Set("type", "changeMaxGamePrice")
-	record.Set("value", "20;unusable")
+	record.Set(schema.EffectSchema.Name, "Change Max Activity Price Unusable")
+	record.Set(schema.EffectSchema.Type, "changeMaxGamePrice")
+	record.Set(schema.EffectSchema.Value, "20;unusable")
 	err := adventuria.PocketBase.Save(record)
 	if err != nil {
 		return nil, err

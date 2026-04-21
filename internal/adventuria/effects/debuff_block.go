@@ -19,7 +19,7 @@ func (ef *DebuffBlockEffect) Subscribe(
 	callback adventuria.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		ctx.User.OnBeforeItemAdd().BindFunc(func(e *adventuria.OnBeforeItemAdd) (*result.Result, error) {
+		ctx.Player.OnBeforeItemAdd().BindFunc(func(e *adventuria.OnBeforeItemAdd) (*result.Result, error) {
 			if e.ItemRecord.Type() == "debuff" {
 				e.ShouldAddItem = false
 				callback(e.AppContext)

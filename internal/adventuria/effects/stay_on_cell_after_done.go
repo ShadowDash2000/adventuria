@@ -21,13 +21,13 @@ func (ef *StayOnCellAfterDoneEffect) Subscribe(
 	callback adventuria.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		ctx.User.OnAfterDone().BindFunc(func(e *adventuria.OnAfterDoneEvent) (*result.Result, error) {
-			lastAction := ctx.User.LastAction()
+		ctx.Player.OnAfterDone().BindFunc(func(e *adventuria.OnAfterDoneEvent) (*result.Result, error) {
+			lastAction := ctx.Player.LastAction()
 			if lastAction.Type() != "done" {
 				return e.Next()
 			}
 
-			cell, ok := ctx.User.CurrentCell()
+			cell, ok := ctx.Player.Progress().CurrentCell()
 			if !ok {
 				return result.Err("internal error: current cell not found"),
 					errors.New("stayOnCellAfterDone: current cell not found")
@@ -44,7 +44,7 @@ func (ef *StayOnCellAfterDoneEffect) Subscribe(
 					fmt.Errorf("stayOnCellAfterDone: %w", err)
 			}
 
-			err = cellWheel.RefreshItems(e.AppContext, ctx.User)
+			err = cellWheel.RefreshItems(e.AppContext, ctx.Player)
 			if err != nil {
 				return result.Err("internal error: failed to refresh items"),
 					fmt.Errorf("stayOnCellAfterDone: %w", err)

@@ -33,9 +33,9 @@ func newActivityFilterById(app core.App, filterId string) (adventuria.ActivityFi
 	return filter, nil
 }
 
-func updateActivitiesFromFilter(app core.App, user adventuria.User, filter adventuria.ActivityFilterRecord, forceUpdate bool) error {
+func updateActivitiesFromFilter(app core.App, player adventuria.Player, filter adventuria.ActivityFilterRecord, forceUpdate bool) error {
 	needToUpdate := forceUpdate
-	customFilter, err := user.LastAction().CustomActivityFilter()
+	customFilter, err := player.LastAction().CustomActivityFilter()
 	if err != nil {
 		return err
 	}
@@ -95,7 +95,7 @@ func updateActivitiesFromFilter(app core.App, user adventuria.User, filter adven
 			return err
 		}
 
-		user.LastAction().SetItemsList(res)
+		player.LastAction().SetItemsList(res)
 	}
 
 	return nil
@@ -198,12 +198,12 @@ func buildQuery(app core.App, filter adventuria.ActivityFilterRecord, mainQuery 
 
 	if !filter.ReleaseDateFrom().IsZero() {
 		q.AndWhere(dbx.NewExp(
-			fmt.Sprintf("%s > %s", schema.ActivitySchema.ReleaseDate, filter.ReleaseDateFrom().String()),
+			fmt.Sprintf("%s > '%s'", schema.ActivitySchema.ReleaseDate, filter.ReleaseDateFrom().String()),
 		))
 	}
 	if !filter.ReleaseDateTo().IsZero() {
 		q.AndWhere(dbx.NewExp(
-			fmt.Sprintf("%s < %s", schema.ActivitySchema.ReleaseDate, filter.ReleaseDateTo().String()),
+			fmt.Sprintf("%s < '%s'", schema.ActivitySchema.ReleaseDate, filter.ReleaseDateTo().String()),
 		))
 	}
 

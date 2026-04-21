@@ -34,8 +34,8 @@ func (c *CellRollItem) Verify(_ adventuria.AppContext, value string) error {
 	return nil
 }
 
-func (c *CellRollItem) Roll(ctx adventuria.AppContext, user adventuria.User, _ adventuria.RollWheelRequest) (*adventuria.WheelRollResult, error) {
-	items, err := user.LastAction().ItemsList()
+func (c *CellRollItem) Roll(ctx adventuria.AppContext, player adventuria.Player, _ adventuria.RollWheelRequest) (*adventuria.WheelRollResult, error) {
+	items, err := player.LastAction().ItemsList()
 	if err != nil {
 		return &adventuria.WheelRollResult{
 			Success: false,
@@ -77,19 +77,19 @@ func (c *CellRollItem) Roll(ctx adventuria.AppContext, user adventuria.User, _ a
 	}, nil
 }
 
-func (c *CellRollItem) RefreshItems(ctx adventuria.AppContext, user adventuria.User) error {
-	return c.refreshItems(ctx, user)
+func (c *CellRollItem) RefreshItems(ctx adventuria.AppContext, player adventuria.Player) error {
+	return c.refreshItems(ctx, player)
 }
 
 func (c *CellRollItem) OnCellReached(ctx *adventuria.CellReachedContext) error {
-	return c.refreshItems(ctx.AppContext, ctx.User)
+	return c.refreshItems(ctx.AppContext, ctx.Player)
 }
 
 func (c *CellRollItem) OnCellLeft(_ *adventuria.CellLeftContext) error {
 	return nil
 }
 
-func (c *CellRollItem) refreshItems(ctx adventuria.AppContext, user adventuria.User) error {
+func (c *CellRollItem) refreshItems(ctx adventuria.AppContext, player adventuria.Player) error {
 	var decodedValue cellRollItemValue
 	if err := c.UnmarshalJSONField("value", &decodedValue); err != nil {
 		return fmt.Errorf("roll_item.refreshItems: invalid JSON: %w", err)
@@ -115,7 +115,7 @@ func (c *CellRollItem) refreshItems(ctx adventuria.AppContext, user adventuria.U
 		ids[i] = record.Id
 	}
 
-	user.LastAction().SetItemsList(ids)
+	player.LastAction().SetItemsList(ids)
 
 	return nil
 }

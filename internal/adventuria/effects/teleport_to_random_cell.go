@@ -12,21 +12,21 @@ type TeleportToRandomCellEffect struct {
 }
 
 func (ef *TeleportToRandomCellEffect) CanUse(appCtx adventuria.AppContext, ctx adventuria.EffectContext) bool {
-	if adventuria.GameActions.CanDo(appCtx, ctx.User, "rollDice") {
+	if adventuria.GameActions.CanDo(appCtx, ctx.Player, "rollDice") {
 		return true
 	}
 
-	if adventuria.GameActions.HasActionsInCategories(appCtx, ctx.User, []string{"wheel_roll", "on_cell"}) {
+	if adventuria.GameActions.HasActionsInCategories(appCtx, ctx.Player, []string{"wheel_roll", "on_cell"}) {
 		return false
 	}
 
-	currentCell, ok := ctx.User.CurrentCell()
+	currentCell, ok := ctx.Player.Progress().CurrentCell()
 	if !ok {
 		return false
 	}
 
-	canDone := adventuria.GameActions.CanDo(appCtx, ctx.User, "done")
-	canDrop := adventuria.GameActions.CanDo(appCtx, ctx.User, "drop")
+	canDone := adventuria.GameActions.CanDo(appCtx, ctx.Player, "done")
+	canDrop := adventuria.GameActions.CanDo(appCtx, ctx.Player, "drop")
 
 	if canDone && !canDrop {
 		if currentCell.Type() != "jail" {
@@ -42,7 +42,7 @@ func (ef *TeleportToRandomCellEffect) Subscribe(
 	callback adventuria.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*result.Result, error) {
+		ctx.Player.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*result.Result, error) {
 			if ctx.InvItemID == e.InvItemId {
 				totalCells := adventuria.GameCells.Count()
 				if totalCells <= 1 {
@@ -50,11 +50,11 @@ func (ef *TeleportToRandomCellEffect) Subscribe(
 				}
 
 				randomCellOrder := rand.Intn(totalCells - 1)
-				if randomCellOrder >= ctx.User.CurrentCellOrder() {
+				if randomCellOrder >= ctx.Player.Progress().CurrentCellOrder() {
 					randomCellOrder++
 				}
 
-				_, err := ctx.User.MoveToCellOrder(e.AppContext, randomCellOrder)
+				_, err := ctx.Player.MoveToCellOrder(e.AppContext, randomCellOrder)
 				if err != nil {
 					return result.Err("internal error: failed to move to the cell"), err
 				}

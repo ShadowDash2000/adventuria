@@ -11,7 +11,7 @@ type DoneAction struct {
 }
 
 func (a *DoneAction) CanDo(ctx adventuria.ActionContext) bool {
-	return ctx.User.LastAction().Type() == ActionTypeRollWheel
+	return ctx.Player.LastAction().Type() == ActionTypeRollWheel
 }
 
 func (a *DoneAction) Do(ctx adventuria.ActionContext, req adventuria.ActionRequest) (*result.Result, error) {
@@ -23,7 +23,7 @@ func (a *DoneAction) Do(ctx adventuria.ActionContext, req adventuria.ActionReque
 		}
 	}
 
-	currentCell, ok := ctx.User.CurrentCell()
+	currentCell, ok := ctx.Player.Progress().CurrentCell()
 	if !ok {
 		return result.Err("internal error: current cell not found"),
 			errors.New("done.do(): current cell not found")
@@ -34,7 +34,7 @@ func (a *DoneAction) Do(ctx adventuria.ActionContext, req adventuria.ActionReque
 		CellPoints: currentCell.Points(),
 		CellCoins:  currentCell.Coins(),
 	}
-	res, err := ctx.User.OnBeforeDone().Trigger(onBeforeDoneEvent)
+	res, err := ctx.Player.OnBeforeDone().Trigger(onBeforeDoneEvent)
 	if err != nil {
 		return res, err
 	}
@@ -42,17 +42,17 @@ func (a *DoneAction) Do(ctx adventuria.ActionContext, req adventuria.ActionReque
 		return res, err
 	}
 
-	action := ctx.User.LastAction()
+	action := ctx.Player.LastAction()
 	action.SetType(ActionTypeDone)
 	action.SetComment(comment)
 	action.SetCanMove(true)
 
-	ctx.User.SetDropsInARow(0)
-	ctx.User.SetIsInJail(false)
-	ctx.User.SetPoints(ctx.User.Points() + onBeforeDoneEvent.CellPoints)
-	ctx.User.AddBalance(onBeforeDoneEvent.CellCoins)
+	ctx.Player.Progress().SetDropsInARow(0)
+	ctx.Player.Progress().SetIsInJail(false)
+	ctx.Player.Progress().AddPoints(onBeforeDoneEvent.CellPoints)
+	ctx.Player.Progress().AddBalance(onBeforeDoneEvent.CellCoins)
 
-	res, err = ctx.User.OnAfterDone().Trigger(&adventuria.OnAfterDoneEvent{
+	res, err = ctx.Player.OnAfterDone().Trigger(&adventuria.OnAfterDoneEvent{
 		AppContext: ctx.AppContext,
 	})
 	if err != nil {

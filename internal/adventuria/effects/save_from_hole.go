@@ -20,7 +20,7 @@ func (ef *SaveFromHoleEffect) Subscribe(
 	callback adventuria.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		ctx.User.OnBeforeTeleportOnCell().BindFunc(func(e *adventuria.OnBeforeTeleportOnCell) (*result.Result, error) {
+		ctx.Player.OnBeforeTeleportOnCell().BindFunc(func(e *adventuria.OnBeforeTeleportOnCell) (*result.Result, error) {
 			if e.SkipTeleport {
 				return e.Next()
 			}
@@ -31,7 +31,7 @@ func (ef *SaveFromHoleEffect) Subscribe(
 					errors.New("saveFromHole: current cell not found")
 			}
 
-			if targetCellOrder < ctx.User.CurrentCellOrder() {
+			if targetCellOrder < ctx.Player.Progress().CurrentCellOrder() {
 				e.SkipTeleport = true
 				callback(e.AppContext)
 			}

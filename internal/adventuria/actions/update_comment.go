@@ -38,16 +38,16 @@ func (a *UpdateCommentAction) Do(ctx adventuria.ActionContext, req adventuria.Ac
 		return result.Err("comment is not string"), nil
 	}
 
-	if actionId == ctx.User.LastAction().ID() {
-		ctx.User.LastAction().SetComment(comment)
+	if actionId == ctx.Player.LastAction().ID() {
+		ctx.Player.LastAction().SetComment(comment)
 	} else {
 		var record core.Record
 		err := ctx.AppContext.App.
 			RecordQuery(adventuria.GameCollections.Get(schema.CollectionActions)).
 			Where(
 				dbx.HashExp{
-					"user": ctx.User.ID(),
-					"id":   actionId,
+					schema.ActionSchema.Id:     actionId,
+					schema.ActionSchema.Player: ctx.Player.ID(),
 				},
 			).
 			Limit(1).

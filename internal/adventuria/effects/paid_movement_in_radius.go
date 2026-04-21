@@ -20,25 +20,25 @@ func (ef *PaidMovementInRadiusEffect) CanUse(appCtx adventuria.AppContext, ctx a
 		return false
 	}
 
-	if ctx.User.Balance() < value.Price {
+	if ctx.Player.Progress().Balance() < value.Price {
 		return false
 	}
 
-	if adventuria.GameActions.CanDo(appCtx, ctx.User, "rollDice") {
+	if adventuria.GameActions.CanDo(appCtx, ctx.Player, "rollDice") {
 		return true
 	}
 
-	if adventuria.GameActions.HasActionsInCategories(appCtx, ctx.User, []string{"wheel_roll", "on_cell"}) {
+	if adventuria.GameActions.HasActionsInCategories(appCtx, ctx.Player, []string{"wheel_roll", "on_cell"}) {
 		return false
 	}
 
-	currentCell, ok := ctx.User.CurrentCell()
+	currentCell, ok := ctx.Player.Progress().CurrentCell()
 	if !ok {
 		return false
 	}
 
-	canDone := adventuria.GameActions.CanDo(appCtx, ctx.User, "done")
-	canDrop := adventuria.GameActions.CanDo(appCtx, ctx.User, "drop")
+	canDone := adventuria.GameActions.CanDo(appCtx, ctx.Player, "done")
+	canDrop := adventuria.GameActions.CanDo(appCtx, ctx.Player, "drop")
 
 	if canDone && !canDrop {
 		if currentCell.Type() != "jail" {
@@ -54,10 +54,10 @@ func (ef *PaidMovementInRadiusEffect) Subscribe(
 	callback adventuria.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*result.Result, error) {
+		ctx.Player.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*result.Result, error) {
 			if ctx.InvItemID == e.InvItemId {
 				if cellId, ok := e.Data["cell_id"].(string); ok {
-					currentCell, ok := ctx.User.CurrentCell()
+					currentCell, ok := ctx.Player.Progress().CurrentCell()
 					if !ok {
 						return result.Err("internal error: current cell not found"),
 							errors.New("paidMovementInRadius: current cell not found")
@@ -73,12 +73,12 @@ func (ef *PaidMovementInRadiusEffect) Subscribe(
 						return result.Err("destination cell is too far"), nil
 					}
 
-					_, err := ctx.User.MoveToCellId(e.AppContext, cellId)
+					_, err := ctx.Player.MoveToCellId(e.AppContext, cellId)
 					if err != nil {
 						return result.Err("internal error: failed to move to the cell"), err
 					}
 
-					ctx.User.AddBalance(-value.Price)
+					ctx.Player.Progress().AddBalance(-value.Price)
 
 					callback(e.AppContext)
 				} else {
@@ -98,7 +98,7 @@ func (ef *PaidMovementInRadiusEffect) Verify(_ adventuria.AppContext, value stri
 
 func (ef *PaidMovementInRadiusEffect) GetVariants(_ adventuria.AppContext, ctx adventuria.EffectContext) any {
 	value, _ := ef.DecodeValue(ef.GetString("value"))
-	currentCellOrder := ctx.User.CurrentCellOrder()
+	currentCellOrder := ctx.Player.Progress().CurrentCellOrder()
 
 	var variants []any
 

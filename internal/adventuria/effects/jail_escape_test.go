@@ -30,28 +30,28 @@ func Test_JailEscape(t *testing.T) {
 	ctx := adventuria.AppContext{
 		App: adventuria.PocketBase,
 	}
-	user, err := adventuria.GameUsers.GetByName(ctx, "user1")
+	player, err := adventuria.GamePlayers.GetByName(ctx, "player1")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	invItemId, err := user.Inventory().AddItemById(ctx, item.Id)
+	invItemId, err := player.Inventory().AddItemById(ctx, item.Id)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	user.SetIsInJail(true)
-	if err = ctx.App.Save(user.ProxyRecord()); err != nil {
-		t.Fatalf("Test_Buy(): Error saving user: %s", err)
+	player.Progress().SetIsInJail(true)
+	if err = ctx.App.Save(player.ProxyRecord()); err != nil {
+		t.Fatalf("Test_Buy(): Error saving player: %s", err)
 	}
 
-	_, err = game.UseItem(ctx.App, user.ID(), adventuria.UseItemRequest{InvItemId: invItemId})
+	_, err = game.UseItem(ctx.App, player.ID(), adventuria.UseItemRequest{InvItemId: invItemId})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if user.IsInJail() {
-		t.Fatalf("Test_JailEscape(): User is in jail, expected not in jail")
+	if player.Progress().IsInJail() {
+		t.Fatalf("Test_JailEscape(): Player is in jail, expected not in jail")
 	}
 }
 
@@ -67,11 +67,11 @@ func createJailEscapeItem() (*core.Record, error) {
 	}
 
 	record := core.NewRecord(adventuria.GameCollections.Get(schema.CollectionItems))
-	record.Set("name", "Jail Escape")
-	record.Set("effects", []string{effectRecord.Id})
-	record.Set("icon", icon)
-	record.Set("isUsingSlot", true)
-	record.Set("canDrop", true)
+	record.Set(schema.ItemSchema.Name, "Jail Escape")
+	record.Set(schema.ItemSchema.Effects, []string{effectRecord.Id})
+	record.Set(schema.ItemSchema.Icon, icon)
+	record.Set(schema.ItemSchema.IsUsingSlot, true)
+	record.Set(schema.ItemSchema.CanDrop, true)
 	err = adventuria.PocketBase.Save(record)
 	if err != nil {
 		return nil, err
@@ -82,8 +82,8 @@ func createJailEscapeItem() (*core.Record, error) {
 
 func createJailEscapeEffect() (*core.Record, error) {
 	record := core.NewRecord(adventuria.GameCollections.Get(schema.CollectionEffects))
-	record.Set("name", "Jail Escape")
-	record.Set("type", "jailEscape")
+	record.Set(schema.EffectSchema.Name, "Jail Escape")
+	record.Set(schema.EffectSchema.Type, "jailEscape")
 	err := adventuria.PocketBase.Save(record)
 	if err != nil {
 		return nil, err

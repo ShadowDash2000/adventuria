@@ -7,7 +7,7 @@ type CellStart struct {
 }
 
 func (c *CellStart) OnCellReached(ctx *adventuria.CellReachedContext) error {
-	ctx.User.LastAction().SetCanMove(true)
+	ctx.Player.LastAction().SetCanMove(true)
 	return nil
 }
 

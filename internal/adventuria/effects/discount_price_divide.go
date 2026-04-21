@@ -21,12 +21,12 @@ func (ef *DiscountPriceDivideEffect) Subscribe(
 	callback adventuria.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		ctx.User.OnBeforeItemBuy().BindFunc(func(e *adventuria.OnBeforeItemBuy) (*result.Result, error) {
+		ctx.Player.OnBeforeItemBuy().BindFunc(func(e *adventuria.OnBeforeItemBuy) (*result.Result, error) {
 			e.Price /= ef.GetInt("value")
 			callback(e.AppContext)
 			return e.Next()
 		}),
-		ctx.User.OnBuyGetVariants().BindFunc(func(e *adventuria.OnBuyGetVariants) (*result.Result, error) {
+		ctx.Player.OnBuyGetVariants().BindFunc(func(e *adventuria.OnBuyGetVariants) (*result.Result, error) {
 			e.Price /= ef.GetInt("value")
 			return e.Next()
 		}),

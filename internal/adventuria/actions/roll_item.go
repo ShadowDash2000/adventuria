@@ -12,11 +12,11 @@ type RollItemAction struct {
 }
 
 func (a *RollItemAction) CanDo(ctx adventuria.ActionContext) bool {
-	if ctx.User.ItemWheelsCount() <= 0 {
+	if ctx.Player.Progress().ItemWheelsCount() <= 0 {
 		return false
 	}
 
-	if adventuria.GameActions.CanDo(ctx.AppContext, ctx.User, "done") {
+	if adventuria.GameActions.CanDo(ctx.AppContext, ctx.Player, "done") {
 		return false
 	}
 
@@ -45,15 +45,15 @@ func (a *RollItemAction) Do(ctx adventuria.ActionContext, _ adventuria.ActionReq
 
 	res.WinnerId = helper.RandomItemFromSlice(items).ID()
 
-	_, err := ctx.User.Inventory().MustAddItemById(ctx.AppContext, res.WinnerId)
+	_, err := ctx.Player.Inventory().MustAddItemById(ctx.AppContext, res.WinnerId)
 	if err != nil {
 		return result.Err("internal error: failed to add item to the inventory"),
 			fmt.Errorf("roll_item.do(): %w", err)
 	}
 
-	ctx.User.SetItemWheelsCount(ctx.User.ItemWheelsCount() - 1)
+	ctx.Player.Progress().AddItemWheelsCount(-1)
 
-	eventRes, err := ctx.User.OnAfterItemRoll().Trigger(&adventuria.OnAfterItemRollEvent{
+	eventRes, err := ctx.Player.OnAfterItemRoll().Trigger(&adventuria.OnAfterItemRollEvent{
 		AppContext: ctx.AppContext,
 		ItemId:     res.WinnerId,
 	})
@@ -64,7 +64,7 @@ func (a *RollItemAction) Do(ctx adventuria.ActionContext, _ adventuria.ActionReq
 		return eventRes, err
 	}
 
-	eventRes, err = ctx.User.OnAfterWheelRoll().Trigger(&adventuria.OnAfterWheelRollEvent{
+	eventRes, err = ctx.Player.OnAfterWheelRoll().Trigger(&adventuria.OnAfterWheelRollEvent{
 		AppContext: ctx.AppContext,
 		ItemId:     res.WinnerId,
 	})

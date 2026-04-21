@@ -22,12 +22,12 @@ func (a *ActionRecordBase) ID() string {
 	return a.Id
 }
 
-func (a *ActionRecordBase) User() string {
-	return a.GetString(schema.ActionSchema.User)
+func (a *ActionRecordBase) Player() string {
+	return a.GetString(schema.ActionSchema.Player)
 }
 
-func (a *ActionRecordBase) SetUser(id string) {
-	a.Set(schema.ActionSchema.User, id)
+func (a *ActionRecordBase) SetPlayer(id string) {
+	a.Set(schema.ActionSchema.Player, id)
 }
 
 func (a *ActionRecordBase) CellId() string {
@@ -62,12 +62,12 @@ func (a *ActionRecordBase) SetType(t ActionType) {
 	a.Set(schema.ActionSchema.Type, string(t))
 }
 
-func (a *ActionRecordBase) DiceRoll() int {
-	return a.GetInt(schema.ActionSchema.DiceRoll)
+func (a *ActionRecordBase) CellsPassed() int {
+	return a.GetInt(schema.ActionSchema.CellsPassed)
 }
 
-func (a *ActionRecordBase) SetDiceRoll(roll int) {
-	a.Set(schema.ActionSchema.DiceRoll, roll)
+func (a *ActionRecordBase) SetCellsPassed(roll int) {
+	a.Set(schema.ActionSchema.CellsPassed, roll)
 }
 
 func (a *ActionRecordBase) UsedItemAppend(itemId string) {
@@ -120,6 +120,6 @@ func (a *ActionRecordBase) MarkAsNew() {
 	a.ProxyRecord().Set(schema.ActionSchema.Id, "")
 	a.SetComment("")
 	a.SetActivity("")
-	a.SetDiceRoll(0)
+	a.SetCellsPassed(0)
 	a.SetUsedItems([]string{})
 }

@@ -16,7 +16,7 @@ type cellShopRefreshValue struct {
 }
 
 func (a *RefreshShopAction) CanDo(ctx adventuria.ActionContext) bool {
-	currentCell, ok := ctx.User.CurrentCell()
+	currentCell, ok := ctx.Player.Progress().CurrentCell()
 	if !ok {
 		return false
 	}
@@ -39,11 +39,11 @@ func (a *RefreshShopAction) Do(ctx adventuria.ActionContext, _ adventuria.Action
 			fmt.Errorf("refreshShop.do(): %w", err)
 	}
 
-	if ctx.User.Balance() < value.RefreshPrice {
+	if ctx.Player.Progress().Balance() < value.RefreshPrice {
 		return result.Err("not enough money"), nil
 	}
 
-	currentCell, ok := ctx.User.CurrentCell()
+	currentCell, ok := ctx.Player.Progress().CurrentCell()
 	if !ok {
 		return result.Err("internal error: current cell not found"),
 			errors.New("refreshShop.do(): current cell not found")
@@ -55,13 +55,13 @@ func (a *RefreshShopAction) Do(ctx adventuria.ActionContext, _ adventuria.Action
 			errors.New("refreshShop.do(): current cell is not refreshable")
 	}
 
-	err = cellRefreshable.RefreshItems(ctx.AppContext, ctx.User)
+	err = cellRefreshable.RefreshItems(ctx.AppContext, ctx.Player)
 	if err != nil {
 		return result.Err("internal error: can't refresh items on cell"),
 			fmt.Errorf("refreshShop.do(): %w", err)
 	}
 
-	ctx.User.AddBalance(-value.RefreshPrice)
+	ctx.Player.Progress().AddBalance(-value.RefreshPrice)
 
 	return result.Ok(), nil
 }
@@ -82,7 +82,7 @@ func (a *RefreshShopAction) GetVariants(ctx adventuria.ActionContext) any {
 const defaultCellShopRefreshPrice = 10
 
 func decodeCellShopRefreshValue(ctx adventuria.ActionContext) (*cellShopRefreshValue, error) {
-	currentCell, ok := ctx.User.CurrentCell()
+	currentCell, ok := ctx.Player.Progress().CurrentCell()
 	if !ok {
 		return nil, errors.New("refreshShop.decodeCellShopRefreshValue(): current cell not found")
 	}

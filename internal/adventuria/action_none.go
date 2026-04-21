@@ -7,7 +7,7 @@ type NoneAction struct {
 }
 
 func (a *NoneAction) CanDo(ctx ActionContext) bool {
-	return ctx.User.LastAction().Type() == ""
+	return ctx.Player.LastAction().Type() == ""
 }
 
 func (a *NoneAction) Do(_ ActionContext, _ ActionRequest) (*result.Result, error) {

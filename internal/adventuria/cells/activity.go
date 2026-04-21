@@ -26,8 +26,8 @@ func (c *CellActivity) Verify(_ adventuria.AppContext, _ string) error {
 	return nil
 }
 
-func (c *CellActivity) Roll(ctx adventuria.AppContext, user adventuria.User, _ adventuria.RollWheelRequest) (*adventuria.WheelRollResult, error) {
-	items, err := user.LastAction().ItemsList()
+func (c *CellActivity) Roll(ctx adventuria.AppContext, player adventuria.Player, _ adventuria.RollWheelRequest) (*adventuria.WheelRollResult, error) {
+	items, err := player.LastAction().ItemsList()
 	if err != nil {
 		return &adventuria.WheelRollResult{
 			Success: false,
@@ -69,23 +69,23 @@ func (c *CellActivity) Roll(ctx adventuria.AppContext, user adventuria.User, _ a
 	}, nil
 }
 
-func (c *CellActivity) RefreshItems(ctx adventuria.AppContext, user adventuria.User) error {
-	return c.refreshItems(ctx, user)
+func (c *CellActivity) RefreshItems(ctx adventuria.AppContext, player adventuria.Player) error {
+	return c.refreshItems(ctx, player)
 }
 
 func (c *CellActivity) OnCellReached(ctx *adventuria.CellReachedContext) error {
-	return c.refreshItems(ctx.AppContext, ctx.User)
+	return c.refreshItems(ctx.AppContext, ctx.Player)
 }
 
 func (c *CellActivity) OnCellLeft(_ *adventuria.CellLeftContext) error {
 	return nil
 }
 
-func (c *CellActivity) refreshItems(ctx adventuria.AppContext, user adventuria.User) error {
+func (c *CellActivity) refreshItems(ctx adventuria.AppContext, player adventuria.Player) error {
 	filter, err := newActivityFilterById(ctx.App, c.Filter())
 	if err != nil {
 		return err
 	}
 	filter.SetType(c.activityType)
-	return updateActivitiesFromFilter(ctx.App, user, filter, true)
+	return updateActivitiesFromFilter(ctx.App, player, filter, true)
 }

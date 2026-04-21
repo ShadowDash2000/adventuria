@@ -22,18 +22,18 @@ func Test_Drop(t *testing.T) {
 	ctx := adventuria.AppContext{
 		App: adventuria.PocketBase,
 	}
-	user, err := adventuria.GameUsers.GetByName(ctx, "user1")
+	player, err := adventuria.GamePlayers.GetByName(ctx, "player1")
 	if err != nil {
-		t.Fatalf("Test_Drop(): Error getting user: %s", err)
+		t.Fatalf("Test_Drop(): Error getting player: %s", err)
 	}
 
-	_, err = user.Move(ctx, 1)
+	_, err = player.Move(ctx, 1)
 	if err != nil {
 		t.Fatalf("Test_Drop(): Error moving: %s", err)
 	}
 
-	user.SetPoints(2)
-	_, err = game.DoAction(ctx.App, user.ID(), ActionTypeRollWheel, adventuria.ActionRequest{})
+	player.Progress().AddPoints(2)
+	_, err = game.DoAction(ctx.App, player.ID(), ActionTypeRollWheel, adventuria.ActionRequest{})
 	if err != nil {
 		t.Fatalf("Test_Drop(): Error action roll wheel: %s", err)
 	}
@@ -47,18 +47,18 @@ func Test_Drop(t *testing.T) {
 	want := &testCompare{
 		false,
 		1,
-		user.Points() + adventuria.GameSettings.PointsForDrop(),
+		player.Progress().Points() + adventuria.GameSettings.PointsForDrop(),
 	}
 
-	_, err = game.DoAction(ctx.App, user.ID(), ActionTypeDrop, adventuria.ActionRequest{})
+	_, err = game.DoAction(ctx.App, player.ID(), ActionTypeDrop, adventuria.ActionRequest{})
 	if err != nil {
 		t.Fatalf("Test_Drop(): Error action drop: %s", err)
 	}
 
 	got := &testCompare{
-		user.IsInJail(),
-		user.DropsInARow(),
-		user.Points(),
+		player.Progress().IsInJail(),
+		player.Progress().DropsInARow(),
+		player.Progress().Points(),
 	}
 
 	if !reflect.DeepEqual(want, got) {
@@ -79,24 +79,24 @@ func Test_Drop_inJail(t *testing.T) {
 	ctx := adventuria.AppContext{
 		App: adventuria.PocketBase,
 	}
-	user, err := adventuria.GameUsers.GetByName(ctx, "user1")
+	player, err := adventuria.GamePlayers.GetByName(ctx, "player1")
 	if err != nil {
-		t.Fatalf("Test_Drop_inJail(): Error getting user: %s", err)
+		t.Fatalf("Test_Drop_inJail(): Error getting player: %s", err)
 	}
 
-	user.SetIsInJail(true)
+	player.Progress().SetIsInJail(true)
 
-	_, err = user.Move(ctx, 1)
+	_, err = player.Move(ctx, 1)
 	if err != nil {
 		t.Fatalf("Test_Drop_inJail(): Error moving: %s", err)
 	}
 
-	_, err = game.DoAction(ctx.App, user.ID(), ActionTypeRollWheel, adventuria.ActionRequest{})
+	_, err = game.DoAction(ctx.App, player.ID(), ActionTypeRollWheel, adventuria.ActionRequest{})
 	if err != nil {
 		t.Fatalf("Test_Drop_inJail(): Error action roll wheel: %s", err)
 	}
 
-	canDo := adventuria.GameActions.CanDo(ctx, user, ActionTypeDrop)
+	canDo := adventuria.GameActions.CanDo(ctx, player, ActionTypeDrop)
 	if canDo {
 		t.Fatalf("Test_Drop_inJail(): Expected that you can't drop in jail: %s", err)
 	}

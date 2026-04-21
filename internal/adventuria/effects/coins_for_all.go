@@ -27,28 +27,28 @@ func (ef *CoinsForAllEffect) Subscribe(
 	}
 
 	return []event.Unsubscribe{
-		ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*result.Result, error) {
+		ctx.Player.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*result.Result, error) {
 			if e.InvItemId == ctx.InvItemID {
-				ctx.User.AddBalance(decodedValue.CoinsForPlayer)
+				ctx.Player.Progress().AddBalance(decodedValue.CoinsForPlayer)
 
-				users, err := adventuria.GameUsers.GetAll(e.AppContext)
+				players, err := adventuria.GamePlayers.GetAll(e.AppContext)
 				if err != nil {
-					return result.Err("internal error: failed to get users"), err
+					return result.Err("internal error: failed to get players"), err
 				}
 
-				for _, user := range users {
-					if user.ID() == ctx.User.ID() {
+				for _, player := range players {
+					if player.ID() == ctx.Player.ID() {
 						continue
 					}
 
-					user.Lock()
-					user.AddBalance(decodedValue.CoinsForOther)
-					err = e.App.Save(user.ProxyRecord())
+					player.Lock()
+					player.Progress().AddBalance(decodedValue.CoinsForOther)
+					err = e.App.Save(player.ProxyRecord())
 					if err != nil {
-						user.Unlock()
-						return result.Err("internal error: failed to save user"), err
+						player.Unlock()
+						return result.Err("internal error: failed to save player"), err
 					}
-					user.Unlock()
+					player.Unlock()
 				}
 
 				callback(e.AppContext)

@@ -20,12 +20,12 @@ type Effect interface {
 }
 
 type EffectContext struct {
-	User      User
+	Player    Player
 	InvItemID string
 }
 
 type PersistentEffect interface {
-	Subscribe(User) []event.Unsubscribe
+	Subscribe(Player) []event.Unsubscribe
 }
 
 var effectsList = map[string]EffectCreator{}

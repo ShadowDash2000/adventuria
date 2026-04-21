@@ -11,7 +11,6 @@ func WithBaseEffects() {
 		"diceIncrement":               adventuria.NewEffect(func() adventuria.Effect { return &DiceIncrementEffect{} }),
 		"changeDices":                 adventuria.NewEffect(func() adventuria.Effect { return &ChangeDicesEffect{} }),
 		"safeDrop":                    adventuria.NewEffect(func() adventuria.Effect { return &SafeDropEffect{} }),
-		"timerIncrement":              adventuria.NewEffect(func() adventuria.Effect { return &TimerIncrementEffect{} }),
 		"rollReverse":                 adventuria.NewEffect(func() adventuria.Effect { return &RollReverseEffect{} }),
 		"dropInventory":               adventuria.NewEffect(func() adventuria.Effect { return &DropInventoryEffect{} }),
 		"cellPointsDivide":            adventuria.NewEffect(func() adventuria.Effect { return &CellPointsDivideEffect{} }),

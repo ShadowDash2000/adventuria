@@ -12,14 +12,14 @@ import (
 type ItemBase struct {
 	ItemRecordBase
 	isAwake           bool
-	user              User
+	player            Player
 	invItemRecord     core.BaseRecordProxy
 	effects           map[string]Effect
 	effectsUnsubGroup map[string]event.UnsubGroup
 	hookIds           []string
 }
 
-func NewItemFromInventoryRecord(ctx AppContext, user User, invItemRecord *core.Record) (Item, error) {
+func NewItemFromInventoryRecord(ctx AppContext, player Player, invItemRecord *core.Record) (Item, error) {
 	itemRecord, err := GetRecordById(
 		schema.CollectionItems,
 		invItemRecord.GetString(schema.InventorySchema.Item),
@@ -40,7 +40,7 @@ func NewItemFromInventoryRecord(ctx AppContext, user User, invItemRecord *core.R
 	}
 
 	item := &ItemBase{
-		user:    user,
+		player:  player,
 		effects: effects,
 	}
 
@@ -72,7 +72,7 @@ func (i *ItemBase) awake() error {
 
 		unsubs, err := effect.Subscribe(
 			EffectContext{
-				User:      i.user,
+				Player:    i.player,
 				InvItemID: i.invItemRecord.Id,
 			},
 			func(ctx AppContext) {
@@ -80,7 +80,7 @@ func (i *ItemBase) awake() error {
 				i.unsubEffectByID(effect.ID())
 
 				if i.AppliedEffectsCount() == i.EffectsCount() {
-					i.user.LastAction().UsedItemAppend(i.itemRecord.Id)
+					i.player.LastAction().UsedItemAppend(i.itemRecord.Id)
 					i.sleep()
 					if err := ctx.App.Delete(i.invItemRecord.ProxyRecord()); err != nil {
 						ctx.App.Logger().Error(
@@ -192,7 +192,7 @@ func (i *ItemBase) addAppliedEffect(effect Effect) {
 func (i *ItemBase) CanUse(ctx AppContext) bool {
 	for _, effect := range i.effects {
 		if !effect.CanUse(ctx, EffectContext{
-			User:      i.user,
+			Player:    i.player,
 			InvItemID: i.invItemRecord.Id,
 		}) {
 			return false
@@ -259,7 +259,7 @@ func (i *ItemBase) GetEffectVariants(ctx AppContext, effectId string) (any, erro
 	}
 
 	return effect.GetVariants(ctx, EffectContext{
-		User:      i.user,
+		Player:    i.player,
 		InvItemID: i.invItemRecord.Id,
 	}), nil
 }

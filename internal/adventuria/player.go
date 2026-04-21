@@ -6,49 +6,34 @@ import (
 	"github.com/pocketbase/pocketbase/core"
 )
 
-type User interface {
+type Player interface {
 	core.RecordProxy
-	UserEvent
+	PlayerEvent
 	Closable
 
 	Refetch(ctx AppContext) error
 	ID() string
 	Name() string
-	IsSafeDrop() bool
-	IsInJail() bool
-	SetIsInJail(b bool)
-	CurrentCell() (Cell, bool)
-	Points() int
-	SetPoints(points int)
-	DropsInARow() int
-	SetDropsInARow(drops int)
-	CellsPassed() int
-	addCellsPassed(amount int)
-	MaxInventorySlots() int
-	SetMaxInventorySlots(maxInventorySlots int)
-	ItemWheelsCount() int
-	SetItemWheelsCount(itemWheelsCount int)
+	IsStreamLive() bool
+	SetIsStreamLive(bool)
+
 	Move(ctx AppContext, steps int) ([]*MoveResult, error)
-	CurrentCellOrder() int
 	MoveToClosestCellType(ctx AppContext, cellType CellType) ([]*MoveResult, error)
 	MoveToCellId(ctx AppContext, cellId string) ([]*MoveResult, error)
 	MoveToCellName(ctx AppContext, cellName string) ([]*MoveResult, error)
 	MoveToCellOrder(ctx AppContext, cellOrder int) ([]*MoveResult, error)
 	MoveToClosestCellByNames(ctx AppContext, cellNames ...string) ([]*MoveResult, error)
+
 	Inventory() Inventory
 	LastAction() ActionRecord
-	Timer() Timer
-	Stats() *Stats
-	Balance() int
-	AddBalance(amount int)
-	IsStreamLive() bool
-	SetIsStreamLive(bool)
+	Progress() PlayerProgress
+
 	Locked() bool
 	Lock()
 	Unlock()
 }
 
-type UserEvent interface {
+type PlayerEvent interface {
 	OnAfterChooseGame() *event.Hook[*OnAfterChooseGameEvent]
 	OnAfterReroll() *event.Hook[*OnAfterRerollEvent]
 	OnBeforeDrop() *event.Hook[*OnBeforeDropEvent]

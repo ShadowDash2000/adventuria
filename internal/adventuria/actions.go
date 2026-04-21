@@ -31,43 +31,43 @@ func NewActions(ctx AppContext) *Actions {
 
 func (a *Actions) bindHooks(ctx AppContext) {
 	ctx.App.OnRecordAfterCreateSuccess(schema.CollectionActions).BindFunc(func(e *core.RecordEvent) error {
-		userId := e.Record.GetString(schema.ActionSchema.User)
+		playerId := e.Record.GetString(schema.ActionSchema.Player)
 
-		user, err := GameUsers.GetByID(AppContext{App: e.App}, userId)
+		player, err := GamePlayers.GetByID(AppContext{App: e.App}, playerId)
 		if err != nil {
 			return e.Next()
 		}
 
-		user.LastAction().SetProxyRecord(e.Record)
+		player.LastAction().SetProxyRecord(e.Record)
 
 		return e.Next()
 	})
 	ctx.App.OnRecordAfterUpdateSuccess(schema.CollectionActions).BindFunc(func(e *core.RecordEvent) error {
-		userId := e.Record.GetString(schema.ActionSchema.User)
+		playerId := e.Record.GetString(schema.ActionSchema.Player)
 
-		user, err := GameUsers.GetByID(AppContext{App: e.App}, userId)
+		player, err := GamePlayers.GetByID(AppContext{App: e.App}, playerId)
 		if err != nil {
 			return e.Next()
 		}
 
-		user.LastAction().SetProxyRecord(e.Record)
+		player.LastAction().SetProxyRecord(e.Record)
 
 		return e.Next()
 	})
 	ctx.App.OnRecordAfterDeleteSuccess(schema.CollectionActions).BindFunc(func(e *core.RecordEvent) error {
-		userId := e.Record.GetString(schema.ActionSchema.User)
+		playerId := e.Record.GetString(schema.ActionSchema.Player)
 
-		user, err := GameUsers.GetByID(AppContext{App: e.App}, userId)
+		player, err := GamePlayers.GetByID(AppContext{App: e.App}, playerId)
 		if err != nil {
 			return e.Next()
 		}
 
-		record, err := fetchLastUserAction(AppContext{App: e.App}, userId)
+		record, err := fetchLastPlayerAction(AppContext{App: e.App}, playerId)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
-				user.LastAction().SetProxyRecord(core.NewRecord(GameCollections.Get(schema.CollectionActions)))
-				user.LastAction().SetType(ActionTypeNone)
-				user.LastAction().SetCanMove(true)
+				player.LastAction().SetProxyRecord(core.NewRecord(GameCollections.Get(schema.CollectionActions)))
+				player.LastAction().SetType(ActionTypeNone)
+				player.LastAction().SetCanMove(true)
 
 				return e.Next()
 			}
@@ -75,36 +75,36 @@ func (a *Actions) bindHooks(ctx AppContext) {
 			return e.Next()
 		}
 
-		user.LastAction().SetProxyRecord(record)
+		player.LastAction().SetProxyRecord(record)
 
 		return e.Next()
 	})
 }
 
-func (a *Actions) CanDo(ctx AppContext, user User, t ActionType) bool {
+func (a *Actions) CanDo(ctx AppContext, player Player, t ActionType) bool {
 	if action, ok := a.actions[t]; ok {
 		return action.CanDo(ActionContext{
 			AppContext: ctx,
-			User:       user,
+			Player:     player,
 		})
 	}
 	return false
 }
 
-func (a *Actions) Do(ctx AppContext, user User, req ActionRequest, t ActionType) (*result.Result, error) {
+func (a *Actions) Do(ctx AppContext, player Player, req ActionRequest, t ActionType) (*result.Result, error) {
 	if action, ok := a.actions[t]; ok {
 		return action.Do(ActionContext{
 			AppContext: ctx,
-			User:       user,
+			Player:     player,
 		}, req)
 	}
 	return result.Err("unknown action"), errors.New("actions: unknown action")
 }
 
-func (a *Actions) AvailableActions(ctx AppContext, user User) iter.Seq[ActionType] {
+func (a *Actions) AvailableActions(ctx AppContext, player Player) iter.Seq[ActionType] {
 	return func(yield func(ActionType) bool) {
 		for t := range a.actions {
-			if !a.CanDo(ctx, user, t) {
+			if !a.CanDo(ctx, player, t) {
 				continue
 			}
 			if !yield(t) {
@@ -114,11 +114,11 @@ func (a *Actions) AvailableActions(ctx AppContext, user User) iter.Seq[ActionTyp
 	}
 }
 
-func (a *Actions) HasActionsInCategory(ctx AppContext, user User, category string) bool {
+func (a *Actions) HasActionsInCategory(ctx AppContext, player Player, category string) bool {
 	for _, action := range a.actions {
 		if !action.CanDo(ActionContext{
 			AppContext: ctx,
-			User:       user,
+			Player:     player,
 		}) {
 			continue
 		}
@@ -129,11 +129,11 @@ func (a *Actions) HasActionsInCategory(ctx AppContext, user User, category strin
 	return false
 }
 
-func (a *Actions) HasActionsInCategories(ctx AppContext, user User, categories []string) bool {
+func (a *Actions) HasActionsInCategories(ctx AppContext, player Player, categories []string) bool {
 	for _, action := range a.actions {
 		if !action.CanDo(ActionContext{
 			AppContext: ctx,
-			User:       user,
+			Player:     player,
 		}) {
 			continue
 		}
@@ -144,11 +144,11 @@ func (a *Actions) HasActionsInCategories(ctx AppContext, user User, categories [
 	return false
 }
 
-func (a *Actions) GetVariants(ctx AppContext, user User, t ActionType) any {
+func (a *Actions) GetVariants(ctx AppContext, player Player, t ActionType) any {
 	if action, ok := a.actions[t]; ok {
 		return action.GetVariants(ActionContext{
 			AppContext: ctx,
-			User:       user,
+			Player:     player,
 		})
 	}
 	return nil

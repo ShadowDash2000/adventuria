@@ -25,7 +25,7 @@ func (ef *AddItemsToInventoryEffect) Subscribe(
 	callback adventuria.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		ctx.User.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*result.Result, error) {
+		ctx.Player.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*result.Result, error) {
 			if e.InvItemId != ctx.InvItemID {
 				return e.Next()
 			}
@@ -42,7 +42,7 @@ func (ef *AddItemsToInventoryEffect) Subscribe(
 					return result.Err(fmt.Sprintf("item with id %s not found", id)), nil
 				}
 
-				_, err = ctx.User.Inventory().AddItem(e.AppContext, item)
+				_, err = ctx.Player.Inventory().AddItem(e.AppContext, item)
 				if err != nil {
 					return result.Err("internal error: failed to add item to the inventory"),
 						fmt.Errorf("addItemsToInventory: %w", err)

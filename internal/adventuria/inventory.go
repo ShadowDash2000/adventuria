@@ -5,7 +5,6 @@ type Inventory interface {
 
 	Refetch(ctx AppContext) error
 	MaxSlots() int
-	SetMaxSlots(int)
 	AvailableSlots() int
 	HasEmptySlots() bool
 	HasItem(invItemId string) bool

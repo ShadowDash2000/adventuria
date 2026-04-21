@@ -181,52 +181,6 @@ func (h *Handlers) DropItemHandler(e *core.RequestEvent) error {
 	return e.JSON(http.StatusOK, "")
 }
 
-func (h *Handlers) StartTimerHandler(e *core.RequestEvent) error {
-	err := h.Game.StartTimer(e.App, e.Auth.Id)
-	if err != nil {
-		return e.JSON(http.StatusInternalServerError, err.Error())
-	}
-
-	return e.JSON(http.StatusOK, "")
-}
-
-func (h *Handlers) StopTimerHandler(e *core.RequestEvent) error {
-	err := h.Game.StopTimer(e.App, e.Auth.Id)
-	if err != nil {
-		return e.JSON(http.StatusInternalServerError, err.Error())
-	}
-
-	return e.JSON(http.StatusOK, "")
-}
-
-func (h *Handlers) GetTimeLeftHandler(e *core.RequestEvent) error {
-	time, isActive, nextTimerResetDate, err := h.Game.GetTimeLeft(e.App, e.Auth.Id)
-	if err != nil {
-		return e.JSON(http.StatusInternalServerError, err.Error())
-	}
-
-	return e.JSON(http.StatusOK, map[string]interface{}{
-		"time":               time,
-		"isActive":           isActive,
-		"nextTimerResetDate": nextTimerResetDate,
-	})
-}
-
-func (h *Handlers) GetTimeLeftByUserHandler(e *core.RequestEvent) error {
-	userId := e.Request.PathValue("userId")
-
-	time, isActive, nextTimerResetDate, err := h.Game.GetTimeLeft(e.App, userId)
-	if err != nil {
-		return e.JSON(http.StatusInternalServerError, err.Error())
-	}
-
-	return e.JSON(http.StatusOK, map[string]interface{}{
-		"time":               time,
-		"isActive":           isActive,
-		"nextTimerResetDate": nextTimerResetDate,
-	})
-}
-
 func (h *Handlers) GetAvailableActions(e *core.RequestEvent) error {
 	actions, err := h.Game.GetAvailableActions(e.App, e.Auth.Id)
 	if err != nil {

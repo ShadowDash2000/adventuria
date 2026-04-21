@@ -31,19 +31,19 @@ func Test_Buy(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	user, err := adventuria.GameUsers.GetByName(ctx, "user1")
+	player, err := adventuria.GamePlayers.GetByName(ctx, "player1")
 	if err != nil {
-		t.Fatalf("Test_Buy(): Error getting user: %s", err)
+		t.Fatalf("Test_Buy(): Error getting player: %s", err)
 	}
 
-	_, err = user.Move(ctx, 3)
+	_, err = player.Move(ctx, 3)
 	if err != nil {
 		t.Fatalf("Test_Buy(): Error moving: %s", err)
 	}
 
-	user.AddBalance(2)
+	player.Progress().AddBalance(2)
 
-	res, err := game.DoAction(ctx.App, user.ID(), ActionTypeBuyItem, adventuria.ActionRequest{
+	res, err := game.DoAction(ctx.App, player.ID(), ActionTypeBuyItem, adventuria.ActionRequest{
 		"item_id": item.Id,
 	})
 	if err != nil {
@@ -56,11 +56,11 @@ func Test_Buy(t *testing.T) {
 		t.Fatalf("Test_Buy(): Error getting item id from response: %s", err)
 	}
 
-	if user.Balance() != 0 {
-		t.Fatalf("Test_Buy(): User balance = %d, want = 0", user.Balance())
+	if player.Progress().Balance() != 0 {
+		t.Fatalf("Test_Buy(): Player balance = %d, want = 0", player.Progress().Balance())
 	}
 
-	if _, _, err = user.Inventory().UseItem(ctx, invItemId); err != nil {
+	if _, _, err = player.Inventory().UseItem(ctx, invItemId); err != nil {
 		t.Fatalf("Test_Buy(): Error using item: %s", err)
 	}
 }
@@ -77,14 +77,14 @@ func createCellPointsDivideItem(ctx adventuria.AppContext) (*core.Record, error)
 	}
 
 	record := core.NewRecord(adventuria.GameCollections.Get(schema.CollectionItems))
-	record.Set("name", "Cell Points Divide")
-	record.Set("effects", []string{effectRecord.Id})
-	record.Set("icon", icon)
-	record.Set("isUsingSlot", true)
-	record.Set("canDrop", true)
-	record.Set("type", "buff")
-	record.Set("isRollable", true)
-	record.Set("price", 2)
+	record.Set(schema.ItemSchema.Name, "Cell Points Divide")
+	record.Set(schema.ItemSchema.Effects, []string{effectRecord.Id})
+	record.Set(schema.ItemSchema.Icon, icon)
+	record.Set(schema.ItemSchema.IsUsingSlot, true)
+	record.Set(schema.ItemSchema.CanDrop, true)
+	record.Set(schema.ItemSchema.Type, "buff")
+	record.Set(schema.ItemSchema.IsRollable, true)
+	record.Set(schema.ItemSchema.Price, 2)
 	err = ctx.App.Save(record)
 	if err != nil {
 		return nil, err
@@ -95,9 +95,9 @@ func createCellPointsDivideItem(ctx adventuria.AppContext) (*core.Record, error)
 
 func createCellPointsDivideEffect(ctx adventuria.AppContext) (*core.Record, error) {
 	record := core.NewRecord(adventuria.GameCollections.Get(schema.CollectionEffects))
-	record.Set("name", "Cell Points Divide")
-	record.Set("type", "cellPointsDivide")
-	record.Set("value", 2)
+	record.Set(schema.EffectSchema.Name, "Cell Points Divide")
+	record.Set(schema.EffectSchema.Type, "cellPointsDivide")
+	record.Set(schema.EffectSchema.Value, 2)
 	err := ctx.App.Save(record)
 	if err != nil {
 		return nil, err

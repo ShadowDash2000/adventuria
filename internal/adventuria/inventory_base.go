@@ -10,16 +10,14 @@ import (
 )
 
 type InventoryBase struct {
-	user     User
-	items    map[string]Item
-	maxSlots int
-	hookIds  []string
+	player  Player
+	items   map[string]Item
+	hookIds []string
 }
 
-func NewInventory(ctx AppContext, user User, maxSlots int) (Inventory, error) {
+func NewInventory(ctx AppContext, player Player) (Inventory, error) {
 	i := &InventoryBase{
-		user:     user,
-		maxSlots: maxSlots,
+		player: player,
 	}
 
 	err := i.fetchInventory(ctx)
@@ -63,7 +61,7 @@ func (i *InventoryBase) fetchInventory(ctx AppContext) error {
 	var records []*core.Record
 	err := ctx.App.
 		RecordQuery(schema.CollectionInventory).
-		Where(dbx.HashExp{schema.InventorySchema.User: i.user.ID()}).
+		Where(dbx.HashExp{schema.InventorySchema.Player: i.player.ID()}).
 		OrderBy(schema.InventorySchema.Activated, "created").
 		All(&records)
 	if err != nil {
@@ -72,7 +70,7 @@ func (i *InventoryBase) fetchInventory(ctx AppContext) error {
 
 	i.items = make(map[string]Item)
 	for _, record := range records {
-		i.items[record.Id], err = NewItemFromInventoryRecord(ctx, i.user, record)
+		i.items[record.Id], err = NewItemFromInventoryRecord(ctx, i.player, record)
 		if err != nil {
 			return err
 		}
@@ -90,11 +88,7 @@ func (i *InventoryBase) Refetch(ctx AppContext) error {
 }
 
 func (i *InventoryBase) MaxSlots() int {
-	return i.maxSlots
-}
-
-func (i *InventoryBase) SetMaxSlots(maxSlots int) {
-	i.maxSlots = maxSlots
+	return i.player.Progress().MaxInventorySlots()
 }
 
 func (i *InventoryBase) AvailableSlots() int {
@@ -104,7 +98,7 @@ func (i *InventoryBase) AvailableSlots() int {
 			usedSlots++
 		}
 	}
-	return i.maxSlots - usedSlots
+	return i.MaxSlots() - usedSlots
 }
 
 func (i *InventoryBase) HasEmptySlots() bool {
@@ -127,7 +121,7 @@ func (i *InventoryBase) AddItem(ctx AppContext, item ItemRecord) (string, error)
 		ShouldAddItem: true,
 	}
 
-	res, err := i.user.OnBeforeItemAdd().Trigger(&onBeforeItemAddEvent)
+	res, err := i.player.OnBeforeItemAdd().Trigger(&onBeforeItemAddEvent)
 	if res != nil && !res.Success {
 		return "", errors.New(res.Error)
 	}
@@ -140,7 +134,7 @@ func (i *InventoryBase) AddItem(ctx AppContext, item ItemRecord) (string, error)
 	}
 
 	record := core.NewRecord(GameCollections.Get(schema.CollectionInventory))
-	record.Set(schema.InventorySchema.User, i.user.ID())
+	record.Set(schema.InventorySchema.Player, i.player.ID())
 	record.Set(schema.InventorySchema.Item, item.ID())
 	record.Set(schema.InventorySchema.IsActive, item.IsActiveByDefault())
 	err = ctx.App.Save(record)
@@ -148,13 +142,13 @@ func (i *InventoryBase) AddItem(ctx AppContext, item ItemRecord) (string, error)
 		return "", err
 	}
 
-	newItem, err := NewItemFromInventoryRecord(ctx, i.user, record)
+	newItem, err := NewItemFromInventoryRecord(ctx, i.player, record)
 	if err != nil {
 		return "", err
 	}
 	i.items[newItem.IDInventory()] = newItem
 
-	_, err = i.user.OnAfterItemSave().Trigger(&OnAfterItemSave{
+	_, err = i.player.OnAfterItemSave().Trigger(&OnAfterItemSave{
 		AppContext: ctx,
 		Item:       newItem,
 	})
@@ -162,7 +156,7 @@ func (i *InventoryBase) AddItem(ctx AppContext, item ItemRecord) (string, error)
 		return "", err
 	}
 
-	res, err = i.user.OnAfterItemAdd().Trigger(&OnAfterItemAdd{
+	res, err = i.player.OnAfterItemAdd().Trigger(&OnAfterItemAdd{
 		AppContext: ctx,
 		ItemRecord: item,
 	})

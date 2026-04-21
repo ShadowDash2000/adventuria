@@ -19,11 +19,11 @@ func (ef *DropBlockedEffect) Subscribe(
 	callback adventuria.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		ctx.User.OnBeforeDropCheck().BindFunc(func(e *adventuria.OnBeforeDropCheckEvent) (*result.Result, error) {
+		ctx.Player.OnBeforeDropCheck().BindFunc(func(e *adventuria.OnBeforeDropCheckEvent) (*result.Result, error) {
 			e.IsDropBlocked = true
 			return e.Next()
 		}),
-		ctx.User.OnAfterDone().BindFunc(func(e *adventuria.OnAfterDoneEvent) (*result.Result, error) {
+		ctx.Player.OnAfterDone().BindFunc(func(e *adventuria.OnAfterDoneEvent) (*result.Result, error) {
 			callback(e.AppContext)
 			return e.Next()
 		}),

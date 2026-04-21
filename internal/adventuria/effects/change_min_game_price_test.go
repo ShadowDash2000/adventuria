@@ -30,27 +30,27 @@ func Test_ChangeMinGamePrice(t *testing.T) {
 	ctx := adventuria.AppContext{
 		App: adventuria.PocketBase,
 	}
-	user, err := adventuria.GameUsers.GetByName(ctx, "user1")
+	player, err := adventuria.GamePlayers.GetByName(ctx, "player1")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = user.Move(ctx, 1)
+	_, err = player.Move(ctx, 1)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	invItemId, err := user.Inventory().AddItemById(ctx, item.Id)
+	invItemId, err := player.Inventory().AddItemById(ctx, item.Id)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = game.UseItem(ctx.App, user.ID(), adventuria.UseItemRequest{InvItemId: invItemId})
+	_, err = game.UseItem(ctx.App, player.ID(), adventuria.UseItemRequest{InvItemId: invItemId})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	filter, err := user.LastAction().CustomActivityFilter()
+	filter, err := player.LastAction().CustomActivityFilter()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -72,12 +72,12 @@ func createChangeMinGamePriceItem() (*core.Record, error) {
 	}
 
 	record := core.NewRecord(adventuria.GameCollections.Get(schema.CollectionItems))
-	record.Set("name", "Change Min Activity Price")
-	record.Set("effects", []string{effectRecord.Id})
-	record.Set("icon", icon)
-	record.Set("isUsingSlot", true)
-	record.Set("canDrop", false)
-	record.Set("isActiveByDefault", false)
+	record.Set(schema.ItemSchema.Name, "Change Min Activity Price")
+	record.Set(schema.ItemSchema.Effects, []string{effectRecord.Id})
+	record.Set(schema.ItemSchema.Icon, icon)
+	record.Set(schema.ItemSchema.IsUsingSlot, true)
+	record.Set(schema.ItemSchema.CanDrop, false)
+	record.Set(schema.ItemSchema.IsActiveByDefault, false)
 
 	err = adventuria.PocketBase.Save(record)
 	if err != nil {
@@ -89,9 +89,9 @@ func createChangeMinGamePriceItem() (*core.Record, error) {
 
 func createChangeMinGamePriceEffect() (*core.Record, error) {
 	record := core.NewRecord(adventuria.GameCollections.Get(schema.CollectionEffects))
-	record.Set("name", "Change Min Activity Price")
-	record.Set("type", "changeMinGamePrice")
-	record.Set("value", 20)
+	record.Set(schema.EffectSchema.Name, "Change Min Activity Price")
+	record.Set(schema.EffectSchema.Type, "changeMinGamePrice")
+	record.Set(schema.EffectSchema.Value, 20)
 	err := adventuria.PocketBase.Save(record)
 	if err != nil {
 		return nil, err

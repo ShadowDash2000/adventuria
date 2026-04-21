@@ -8,10 +8,10 @@ import (
 
 type GiveWheelOnNewLapEffect struct{}
 
-func (ef *GiveWheelOnNewLapEffect) Subscribe(user adventuria.User) []event.Unsubscribe {
+func (ef *GiveWheelOnNewLapEffect) Subscribe(player adventuria.Player) []event.Unsubscribe {
 	return []event.Unsubscribe{
-		user.OnNewLap().BindFunc(func(e *adventuria.OnNewLapEvent) (*result.Result, error) {
-			user.SetItemWheelsCount(user.ItemWheelsCount() + e.Laps)
+		player.OnNewLap().BindFunc(func(e *adventuria.OnNewLapEvent) (*result.Result, error) {
+			player.Progress().AddItemWheelsCount(e.Laps)
 
 			return e.Next()
 		}),

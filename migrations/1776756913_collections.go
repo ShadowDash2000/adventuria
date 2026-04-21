@@ -14,6 +14,7 @@ func init() {
 				"fields": [
 					{
 						"autogeneratePattern": "[a-z0-9]{15}",
+						"help": "",
 						"hidden": false,
 						"id": "text3208210256",
 						"max": 15,
@@ -28,6 +29,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text455797646",
 						"max": 0,
@@ -42,6 +44,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text127846527",
 						"max": 0,
@@ -56,6 +59,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text1582905952",
 						"max": 0,
@@ -106,6 +110,7 @@ func init() {
 				"fields": [
 					{
 						"autogeneratePattern": "[a-z0-9]{15}",
+						"help": "",
 						"hidden": false,
 						"id": "text3208210256",
 						"max": 15,
@@ -120,6 +125,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text455797646",
 						"max": 0,
@@ -134,6 +140,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text127846527",
 						"max": 0,
@@ -148,6 +155,7 @@ func init() {
 					},
 					{
 						"cost": 8,
+						"help": "",
 						"hidden": true,
 						"id": "password901924565",
 						"max": 0,
@@ -161,6 +169,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": true,
 						"id": "text3866985172",
 						"max": 0,
@@ -211,6 +220,7 @@ func init() {
 				"fields": [
 					{
 						"autogeneratePattern": "[a-z0-9]{15}",
+						"help": "",
 						"hidden": false,
 						"id": "text3208210256",
 						"max": 15,
@@ -225,6 +235,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text455797646",
 						"max": 0,
@@ -239,6 +250,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text127846527",
 						"max": 0,
@@ -253,6 +265,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text2462348188",
 						"max": 0,
@@ -267,6 +280,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text1044722854",
 						"max": 0,
@@ -318,6 +332,7 @@ func init() {
 				"fields": [
 					{
 						"autogeneratePattern": "[a-z0-9]{15}",
+						"help": "",
 						"hidden": false,
 						"id": "text3208210256",
 						"max": 15,
@@ -332,6 +347,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text455797646",
 						"max": 0,
@@ -346,6 +362,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text127846527",
 						"max": 0,
@@ -360,6 +377,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text4228609354",
 						"max": 0,
@@ -428,6 +446,7 @@ func init() {
 				"fields": [
 					{
 						"autogeneratePattern": "[a-z0-9]{15}",
+						"help": "",
 						"hidden": false,
 						"id": "text3208210256",
 						"max": 15,
@@ -442,6 +461,7 @@ func init() {
 					},
 					{
 						"cost": 0,
+						"help": "",
 						"hidden": true,
 						"id": "password901924565",
 						"max": 0,
@@ -455,6 +475,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "[a-zA-Z0-9]{50}",
+						"help": "",
 						"hidden": true,
 						"id": "text2504183744",
 						"max": 60,
@@ -469,6 +490,7 @@ func init() {
 					},
 					{
 						"exceptDomains": null,
+						"help": "",
 						"hidden": false,
 						"id": "email3885137012",
 						"name": "email",
@@ -479,6 +501,7 @@ func init() {
 						"type": "email"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "bool1547992806",
 						"name": "emailVisibility",
@@ -488,6 +511,7 @@ func init() {
 						"type": "bool"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "bool256245529",
 						"name": "verified",
@@ -600,6 +624,7 @@ func init() {
 				"fields": [
 					{
 						"autogeneratePattern": "[a-z0-9]{15}",
+						"help": "",
 						"hidden": false,
 						"id": "text3208210256",
 						"max": 15,
@@ -614,6 +639,7 @@ func init() {
 					},
 					{
 						"cost": 0,
+						"help": "",
 						"hidden": true,
 						"id": "password901924565",
 						"max": 0,
@@ -627,6 +653,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "[a-zA-Z0-9]{50}",
+						"help": "",
 						"hidden": true,
 						"id": "text2504183744",
 						"max": 60,
@@ -641,6 +668,7 @@ func init() {
 					},
 					{
 						"exceptDomains": null,
+						"help": "",
 						"hidden": false,
 						"id": "email3885137012",
 						"name": "email",
@@ -651,6 +679,7 @@ func init() {
 						"type": "email"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "bool1547992806",
 						"name": "emailVisibility",
@@ -660,6 +689,7 @@ func init() {
 						"type": "bool"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "bool256245529",
 						"name": "verified",
@@ -690,6 +720,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text1579384326",
 						"max": 255,
@@ -703,6 +734,7 @@ func init() {
 						"type": "text"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "file376926767",
 						"maxSelect": 1,
@@ -724,6 +756,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text1716930793",
 						"max": 0,
@@ -737,76 +770,8 @@ func init() {
 						"type": "text"
 					},
 					{
-						"hidden": false,
-						"id": "number666537513",
-						"max": null,
-						"min": null,
-						"name": "points",
-						"onlyInt": true,
-						"presentable": false,
-						"required": false,
-						"system": false,
-						"type": "number"
-					},
-					{
-						"hidden": false,
-						"id": "number1363962730",
-						"max": null,
-						"min": null,
-						"name": "cellsPassed",
-						"onlyInt": true,
-						"presentable": false,
-						"required": false,
-						"system": false,
-						"type": "number"
-					},
-					{
-						"hidden": false,
-						"id": "bool886364180",
-						"name": "isInJail",
-						"presentable": false,
-						"required": false,
-						"system": false,
-						"type": "bool"
-					},
-					{
-						"hidden": false,
-						"id": "number3858616409",
-						"max": null,
-						"min": 0,
-						"name": "dropsInARow",
-						"onlyInt": true,
-						"presentable": false,
-						"required": false,
-						"system": false,
-						"type": "number"
-					},
-					{
-						"hidden": false,
-						"id": "number4104235874",
-						"max": null,
-						"min": 1,
-						"name": "maxInventorySlots",
-						"onlyInt": true,
-						"presentable": false,
-						"required": true,
-						"system": false,
-						"type": "number"
-					},
-					{
-						"hidden": false,
-						"id": "number3954002444",
-						"max": null,
-						"min": 0,
-						"name": "itemWheelsCount",
-						"onlyInt": true,
-						"presentable": false,
-						"required": false,
-						"system": false,
-						"type": "number"
-					},
-					{
 						"convertURLs": false,
+						"help": "",
 						"hidden": false,
 						"id": "editor1843675174",
 						"maxSize": 0,
@@ -817,38 +782,8 @@ func init() {
 						"type": "editor"
 					},
 					{
-						"hidden": false,
-						"id": "json1464297386",
-						"maxSize": 0,
-						"name": "stats",
-						"presentable": false,
-						"required": false,
-						"system": false,
-						"type": "json"
-					},
-					{
-						"hidden": false,
-						"id": "bool1955932786",
-						"name": "clear_stats",
-						"presentable": false,
-						"required": false,
-						"system": false,
-						"type": "bool"
-					},
-					{
-						"hidden": false,
-						"id": "number2901680126",
-						"max": null,
-						"min": null,
-						"name": "balance",
-						"onlyInt": true,
-						"presentable": false,
-						"required": false,
-						"system": false,
-						"type": "number"
-					},
-					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text1928100768",
 						"max": 0,
@@ -863,6 +798,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text4034435380",
 						"max": 0,
@@ -877,6 +813,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text10731496",
 						"max": 0,
@@ -890,6 +827,7 @@ func init() {
 						"type": "text"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "bool897480825",
 						"name": "is_stream_live",
@@ -904,9 +842,9 @@ func init() {
 				},
 				"id": "_pb_users_auth_",
 				"indexes": [
-					"CREATE UNIQUE INDEX ` + "`" + `idx_tokenKey__pb_users_auth_` + "`" + ` ON ` + "`" + `users` + "`" + ` (` + "`" + `tokenKey` + "`" + `)",
-					"CREATE UNIQUE INDEX ` + "`" + `idx_email__pb_users_auth_` + "`" + ` ON ` + "`" + `users` + "`" + ` (` + "`" + `email` + "`" + `) WHERE ` + "`" + `email` + "`" + ` != ''",
-					"CREATE UNIQUE INDEX ` + "`" + `idx_40tlFImcw9` + "`" + ` ON ` + "`" + `users` + "`" + ` (` + "`" + `name` + "`" + `)"
+					"CREATE UNIQUE INDEX ` + "`" + `idx_tokenKey__pb_users_auth_` + "`" + ` ON ` + "`" + `players` + "`" + ` (` + "`" + `tokenKey` + "`" + `)",
+					"CREATE UNIQUE INDEX ` + "`" + `idx_email__pb_users_auth_` + "`" + ` ON ` + "`" + `players` + "`" + ` (` + "`" + `email` + "`" + `) WHERE ` + "`" + `email` + "`" + ` != ''",
+					"CREATE UNIQUE INDEX ` + "`" + `idx_40tlFImcw9` + "`" + ` ON ` + "`" + `players` + "`" + ` (` + "`" + `name` + "`" + `)"
 				],
 				"listRule": "",
 				"manageRule": null,
@@ -915,7 +853,7 @@ func init() {
 					"enabled": false,
 					"rule": ""
 				},
-				"name": "users",
+				"name": "players",
 				"oauth2": {
 					"enabled": false,
 					"mappedFields": {
@@ -965,6 +903,7 @@ func init() {
 				"fields": [
 					{
 						"autogeneratePattern": "[a-z0-9]{15}",
+						"help": "",
 						"hidden": false,
 						"id": "text3208210256",
 						"max": 15,
@@ -1000,11 +939,12 @@ func init() {
 					{
 						"cascadeDelete": false,
 						"collectionId": "_pb_users_auth_",
+						"help": "",
 						"hidden": false,
 						"id": "relation2375276105",
 						"maxSelect": 1,
 						"minSelect": 0,
-						"name": "user",
+						"name": "player",
 						"presentable": false,
 						"required": true,
 						"system": false,
@@ -1013,6 +953,7 @@ func init() {
 					{
 						"cascadeDelete": false,
 						"collectionId": "pbc_2659677491",
+						"help": "",
 						"hidden": false,
 						"id": "relation3414656994",
 						"maxSelect": 1,
@@ -1025,6 +966,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text2363381545",
 						"max": 0,
@@ -1040,6 +982,7 @@ func init() {
 					{
 						"cascadeDelete": false,
 						"collectionId": "pbc_2224754354",
+						"help": "",
 						"hidden": false,
 						"id": "relation590033292",
 						"maxSelect": 1,
@@ -1052,6 +995,7 @@ func init() {
 					},
 					{
 						"convertURLs": false,
+						"help": "",
 						"hidden": false,
 						"id": "editor2490651244",
 						"maxSize": 0,
@@ -1062,11 +1006,12 @@ func init() {
 						"type": "editor"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "number1608302395",
 						"max": null,
 						"min": null,
-						"name": "diceRoll",
+						"name": "cells_passed",
 						"onlyInt": true,
 						"presentable": false,
 						"required": false,
@@ -1074,6 +1019,7 @@ func init() {
 						"type": "number"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "json1126454942",
 						"maxSize": 0,
@@ -1084,6 +1030,7 @@ func init() {
 						"type": "json"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "json131251169",
 						"maxSize": 0,
@@ -1094,6 +1041,7 @@ func init() {
 						"type": "json"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "bool1346429236",
 						"name": "can_move",
@@ -1103,6 +1051,7 @@ func init() {
 						"type": "bool"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "json49410773",
 						"maxSize": 0,
@@ -1128,6 +1077,7 @@ func init() {
 				"fields": [
 					{
 						"autogeneratePattern": "[a-z0-9]{15}",
+						"help": "",
 						"hidden": false,
 						"id": "text3208210256",
 						"max": 15,
@@ -1161,6 +1111,7 @@ func init() {
 						"type": "autodate"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "bool2231267043",
 						"name": "disabled",
@@ -1170,6 +1121,7 @@ func init() {
 						"type": "bool"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "number1361375778",
 						"max": null,
@@ -1183,6 +1135,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text2363381545",
 						"max": 0,
@@ -1198,6 +1151,7 @@ func init() {
 					{
 						"cascadeDelete": false,
 						"collectionId": "pbc_3123535012",
+						"help": "",
 						"hidden": false,
 						"id": "relation2143575837",
 						"maxSelect": 1,
@@ -1211,6 +1165,7 @@ func init() {
 					{
 						"cascadeDelete": false,
 						"collectionId": "pbc_91682242",
+						"help": "",
 						"hidden": false,
 						"id": "relation777053588",
 						"maxSelect": 1,
@@ -1222,6 +1177,7 @@ func init() {
 						"type": "relation"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "file1704208859",
 						"maxSelect": 1,
@@ -1239,6 +1195,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text1579384326",
 						"max": 0,
@@ -1252,6 +1209,7 @@ func init() {
 						"type": "text"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "number666537513",
 						"max": null,
@@ -1264,6 +1222,7 @@ func init() {
 						"type": "number"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "number243370965",
 						"max": null,
@@ -1277,6 +1236,7 @@ func init() {
 					},
 					{
 						"convertURLs": false,
+						"help": "",
 						"hidden": false,
 						"id": "editor1843675174",
 						"maxSize": 0,
@@ -1288,6 +1248,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text1716930793",
 						"max": 0,
@@ -1301,33 +1262,37 @@ func init() {
 						"type": "text"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "bool3645399621",
-						"name": "cantDrop",
+						"name": "cant_drop",
 						"presentable": false,
 						"required": false,
 						"system": false,
 						"type": "bool"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "bool1348581440",
-						"name": "cantReroll",
+						"name": "cant_reroll",
 						"presentable": false,
 						"required": false,
 						"system": false,
 						"type": "bool"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "bool337669937",
-						"name": "isSafeDrop",
+						"name": "is_safe_drop",
 						"presentable": false,
 						"required": false,
 						"system": false,
 						"type": "bool"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "bool3259985200",
 						"name": "is_custom_filter_not_allowed",
@@ -1337,6 +1302,7 @@ func init() {
 						"type": "bool"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "bool1345858758",
 						"name": "is_change_game_not_allowed",
@@ -1346,6 +1312,7 @@ func init() {
 						"type": "bool"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "json494360628",
 						"maxSize": 0,
@@ -1373,6 +1340,7 @@ func init() {
 				"fields": [
 					{
 						"autogeneratePattern": "[a-z0-9]{15}",
+						"help": "",
 						"hidden": false,
 						"id": "text3208210256",
 						"max": 15,
@@ -1406,6 +1374,7 @@ func init() {
 						"type": "autodate"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "date806155165",
 						"max": "",
@@ -1419,11 +1388,12 @@ func init() {
 					{
 						"cascadeDelete": false,
 						"collectionId": "_pb_users_auth_",
+						"help": "",
 						"hidden": false,
 						"id": "relation2375276105",
 						"maxSelect": 1,
 						"minSelect": 0,
-						"name": "user",
+						"name": "player",
 						"presentable": false,
 						"required": true,
 						"system": false,
@@ -1432,6 +1402,7 @@ func init() {
 					{
 						"cascadeDelete": false,
 						"collectionId": "pbc_710432678",
+						"help": "",
 						"hidden": false,
 						"id": "relation521872670",
 						"maxSelect": 1,
@@ -1443,9 +1414,10 @@ func init() {
 						"type": "relation"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "bool2323052248",
-						"name": "isActive",
+						"name": "is_active",
 						"presentable": false,
 						"required": false,
 						"system": false,
@@ -1454,11 +1426,12 @@ func init() {
 					{
 						"cascadeDelete": false,
 						"collectionId": "pbc_3646440256",
+						"help": "",
 						"hidden": false,
 						"id": "relation1902408015",
 						"maxSelect": 999,
 						"minSelect": 0,
-						"name": "appliedEffects",
+						"name": "applied_effects",
 						"presentable": false,
 						"required": false,
 						"system": false,
@@ -1480,6 +1453,7 @@ func init() {
 				"fields": [
 					{
 						"autogeneratePattern": "[a-z0-9]{15}",
+						"help": "",
 						"hidden": false,
 						"id": "text3208210256",
 						"max": 15,
@@ -1514,6 +1488,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text1579384326",
 						"max": 0,
@@ -1527,6 +1502,7 @@ func init() {
 						"type": "text"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "file1704208859",
 						"maxSelect": 1,
@@ -1543,6 +1519,7 @@ func init() {
 					{
 						"cascadeDelete": false,
 						"collectionId": "pbc_3646440256",
+						"help": "",
 						"hidden": false,
 						"id": "relation1208695978",
 						"maxSelect": 999,
@@ -1554,36 +1531,40 @@ func init() {
 						"type": "relation"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "bool1841310084",
-						"name": "isUsingSlot",
+						"name": "is_using_slot",
 						"presentable": false,
 						"required": false,
 						"system": false,
 						"type": "bool"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "bool3232851734",
-						"name": "isActiveByDefault",
+						"name": "is_active_by_default",
 						"presentable": false,
 						"required": false,
 						"system": false,
 						"type": "bool"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "bool872147413",
-						"name": "canDrop",
+						"name": "can_drop",
 						"presentable": false,
 						"required": false,
 						"system": false,
 						"type": "bool"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "bool1913002834",
-						"name": "isRollable",
+						"name": "is_rollable",
 						"presentable": false,
 						"required": false,
 						"system": false,
@@ -1591,6 +1572,7 @@ func init() {
 					},
 					{
 						"convertURLs": false,
+						"help": "",
 						"hidden": false,
 						"id": "editor1843675174",
 						"maxSize": 0,
@@ -1601,6 +1583,7 @@ func init() {
 						"type": "editor"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "select2363381545",
 						"maxSelect": 1,
@@ -1617,6 +1600,7 @@ func init() {
 						]
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "number3402113753",
 						"max": null,
@@ -1644,6 +1628,7 @@ func init() {
 				"fields": [
 					{
 						"autogeneratePattern": "[a-z0-9]{15}",
+						"help": "",
 						"hidden": false,
 						"id": "text3208210256",
 						"max": 15,
@@ -1678,6 +1663,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text1579384326",
 						"max": 0,
@@ -1692,6 +1678,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text2363381545",
 						"max": 0,
@@ -1706,6 +1693,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text494360628",
 						"max": 0,
@@ -1734,6 +1722,7 @@ func init() {
 				"fields": [
 					{
 						"autogeneratePattern": "[a-z0-9]{15}",
+						"help": "",
 						"hidden": false,
 						"id": "text3208210256",
 						"max": 15,
@@ -1767,6 +1756,34 @@ func init() {
 						"type": "autodate"
 					},
 					{
+						"cascadeDelete": false,
+						"collectionId": "pbc_631721974",
+						"help": "",
+						"hidden": false,
+						"id": "relation4146954695",
+						"maxSelect": 0,
+						"minSelect": 0,
+						"name": "current_season",
+						"presentable": false,
+						"required": true,
+						"system": false,
+						"type": "relation"
+					},
+					{
+						"help": "",
+						"hidden": false,
+						"id": "number3221168178",
+						"max": null,
+						"min": 0,
+						"name": "current_week",
+						"onlyInt": true,
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "number"
+					},
+					{
+						"help": "",
 						"hidden": false,
 						"id": "bool278488931",
 						"name": "event_ended",
@@ -1776,67 +1793,22 @@ func init() {
 						"type": "bool"
 					},
 					{
-						"hidden": false,
-						"id": "date3382619511",
-						"max": "",
-						"min": "",
-						"name": "eventDateStart",
-						"presentable": false,
-						"required": true,
-						"system": false,
-						"type": "date"
-					},
-					{
-						"hidden": false,
-						"id": "number3221168178",
-						"max": null,
-						"min": 0,
-						"name": "currentWeek",
-						"onlyInt": true,
-						"presentable": false,
-						"required": false,
-						"system": false,
-						"type": "number"
-					},
-					{
-						"hidden": false,
-						"id": "number3840655177",
-						"max": null,
-						"min": 0,
-						"name": "timerTimeLimit",
-						"onlyInt": true,
-						"presentable": false,
-						"required": true,
-						"system": false,
-						"type": "number"
-					},
-					{
-						"hidden": false,
-						"id": "number3129271783",
-						"max": null,
-						"min": 0,
-						"name": "limitExceedPenalty",
-						"onlyInt": true,
-						"presentable": false,
-						"required": true,
-						"system": false,
-						"type": "number"
-					},
-					{
+						"help": "",
 						"hidden": false,
 						"id": "bool2232153513",
-						"name": "blockAllActions",
+						"name": "block_all_actions",
 						"presentable": false,
 						"required": false,
 						"system": false,
 						"type": "bool"
 					},
 					{
+						"help": "",
 						"hidden": false,
-						"id": "number677997256",
+						"id": "number2300186201",
 						"max": null,
-						"min": null,
-						"name": "pointsForDrop",
+						"min": 0,
+						"name": "max_inventory_slots",
 						"onlyInt": true,
 						"presentable": false,
 						"required": false,
@@ -1844,11 +1816,25 @@ func init() {
 						"type": "number"
 					},
 					{
+						"help": "",
+						"hidden": false,
+						"id": "number677997256",
+						"max": null,
+						"min": null,
+						"name": "points_for_drop",
+						"onlyInt": true,
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "number"
+					},
+					{
+						"help": "",
 						"hidden": false,
 						"id": "number1254513166",
 						"max": null,
 						"min": 0,
-						"name": "dropsToJail",
+						"name": "drops_to_jail",
 						"onlyInt": true,
 						"presentable": false,
 						"required": true,
@@ -1856,7 +1842,8 @@ func init() {
 						"type": "number"
 					},
 					{
-						"hidden": false,
+						"help": "",
+						"hidden": true,
 						"id": "number4136927524",
 						"max": null,
 						"min": null,
@@ -1868,7 +1855,8 @@ func init() {
 						"type": "number"
 					},
 					{
-						"hidden": false,
+						"help": "",
+						"hidden": true,
 						"id": "bool915307263",
 						"name": "disable_igdb_parser",
 						"presentable": false,
@@ -1877,7 +1865,8 @@ func init() {
 						"type": "bool"
 					},
 					{
-						"hidden": false,
+						"help": "",
+						"hidden": true,
 						"id": "bool4060771310",
 						"name": "disable_steam_parser",
 						"presentable": false,
@@ -1886,7 +1875,8 @@ func init() {
 						"type": "bool"
 					},
 					{
-						"hidden": false,
+						"help": "",
+						"hidden": true,
 						"id": "bool3572996312",
 						"name": "disable_cheapshark_parser",
 						"presentable": false,
@@ -1895,7 +1885,8 @@ func init() {
 						"type": "bool"
 					},
 					{
-						"hidden": false,
+						"help": "",
+						"hidden": true,
 						"id": "bool2736790713",
 						"name": "disable_hltb_parser",
 						"presentable": false,
@@ -1904,7 +1895,8 @@ func init() {
 						"type": "bool"
 					},
 					{
-						"hidden": false,
+						"help": "",
+						"hidden": true,
 						"id": "bool1220027233",
 						"name": "disable_refresh_hltb_time",
 						"presentable": false,
@@ -1913,7 +1905,8 @@ func init() {
 						"type": "bool"
 					},
 					{
-						"hidden": false,
+						"help": "",
+						"hidden": true,
 						"id": "bool1132377056",
 						"name": "kill_parser",
 						"presentable": false,
@@ -1922,7 +1915,8 @@ func init() {
 						"type": "bool"
 					},
 					{
-						"hidden": false,
+						"help": "",
+						"hidden": true,
 						"id": "bool3586201991",
 						"name": "igdb_force_update_games",
 						"presentable": false,
@@ -1946,6 +1940,7 @@ func init() {
 				"fields": [
 					{
 						"autogeneratePattern": "[a-z0-9]{15}",
+						"help": "",
 						"hidden": false,
 						"id": "text3208210256",
 						"max": 15,
@@ -1980,6 +1975,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text1579384326",
 						"max": 0,
@@ -1993,6 +1989,7 @@ func init() {
 						"type": "text"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "file410859157",
 						"maxSelect": 1,
@@ -2007,6 +2004,7 @@ func init() {
 						"type": "file"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "number2254405824",
 						"max": null,
@@ -2034,113 +2032,7 @@ func init() {
 				"fields": [
 					{
 						"autogeneratePattern": "[a-z0-9]{15}",
-						"hidden": false,
-						"id": "text3208210256",
-						"max": 15,
-						"min": 15,
-						"name": "id",
-						"pattern": "^[a-z0-9]+$",
-						"presentable": false,
-						"primaryKey": true,
-						"required": true,
-						"system": true,
-						"type": "text"
-					},
-					{
-						"hidden": true,
-						"id": "autodate2990389176",
-						"name": "created",
-						"onCreate": true,
-						"onUpdate": false,
-						"presentable": false,
-						"system": false,
-						"type": "autodate"
-					},
-					{
-						"hidden": true,
-						"id": "autodate3332085495",
-						"name": "updated",
-						"onCreate": true,
-						"onUpdate": true,
-						"presentable": false,
-						"system": false,
-						"type": "autodate"
-					},
-					{
-						"cascadeDelete": false,
-						"collectionId": "_pb_users_auth_",
-						"hidden": false,
-						"id": "relation2375276105",
-						"maxSelect": 1,
-						"minSelect": 0,
-						"name": "user",
-						"presentable": false,
-						"required": true,
-						"system": false,
-						"type": "relation"
-					},
-					{
-						"hidden": false,
-						"id": "bool2323052248",
-						"name": "isActive",
-						"presentable": false,
-						"required": false,
-						"system": false,
-						"type": "bool"
-					},
-					{
-						"hidden": false,
-						"id": "number2872842641",
-						"max": null,
-						"min": 0,
-						"name": "timePassed",
-						"onlyInt": true,
-						"presentable": false,
-						"required": false,
-						"system": false,
-						"type": "number"
-					},
-					{
-						"hidden": false,
-						"id": "number1322237522",
-						"max": null,
-						"min": null,
-						"name": "timeLimit",
-						"onlyInt": true,
-						"presentable": false,
-						"required": true,
-						"system": false,
-						"type": "number"
-					},
-					{
-						"hidden": false,
-						"id": "date2393256231",
-						"max": "",
-						"min": "",
-						"name": "startTime",
-						"presentable": false,
-						"required": false,
-						"system": false,
-						"type": "date"
-					}
-				],
-				"id": "pbc_3507854305",
-				"indexes": [
-					"CREATE UNIQUE INDEX ` + "`" + `idx_VVS3Yj8154` + "`" + ` ON ` + "`" + `timers` + "`" + ` (` + "`" + `user` + "`" + `)"
-				],
-				"listRule": "",
-				"name": "timers",
-				"system": false,
-				"type": "base",
-				"updateRule": null,
-				"viewRule": ""
-			},
-			{
-				"createRule": null,
-				"deleteRule": null,
-				"fields": [
-					{
-						"autogeneratePattern": "[a-z0-9]{15}",
+						"help": "",
 						"hidden": false,
 						"id": "text3208210256",
 						"max": 15,
@@ -2175,6 +2067,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text1579384326",
 						"max": 0,
@@ -2189,6 +2082,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text2560465762",
 						"max": 0,
@@ -2204,6 +2098,7 @@ func init() {
 					{
 						"cascadeDelete": false,
 						"collectionId": "pbc_3543894142",
+						"help": "",
 						"hidden": false,
 						"id": "relation2608059894",
 						"maxSelect": 999,
@@ -2230,6 +2125,7 @@ func init() {
 				"fields": [
 					{
 						"autogeneratePattern": "[a-z0-9]{15}",
+						"help": "",
 						"hidden": false,
 						"id": "text3208210256",
 						"max": 15,
@@ -2264,6 +2160,7 @@ func init() {
 					},
 					{
 						"convertURLs": false,
+						"help": "",
 						"hidden": false,
 						"id": "editor999008199",
 						"maxSize": 0,
@@ -2289,6 +2186,7 @@ func init() {
 				"fields": [
 					{
 						"autogeneratePattern": "[a-z0-9]{15}",
+						"help": "",
 						"hidden": false,
 						"id": "text3208210256",
 						"max": 15,
@@ -2323,6 +2221,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text596198703",
 						"max": 0,
@@ -2337,6 +2236,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text1579384326",
 						"max": 0,
@@ -2351,6 +2251,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text3731873690",
 						"max": 0,
@@ -2381,6 +2282,7 @@ func init() {
 				"fields": [
 					{
 						"autogeneratePattern": "[a-z0-9]{15}",
+						"help": "",
 						"hidden": false,
 						"id": "text3208210256",
 						"max": 15,
@@ -2415,6 +2317,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text596198703",
 						"max": 0,
@@ -2428,6 +2331,7 @@ func init() {
 						"type": "text"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "select2363381545",
 						"maxSelect": 1,
@@ -2445,6 +2349,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text1579384326",
 						"max": 0,
@@ -2459,6 +2364,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text2560465762",
 						"max": 0,
@@ -2472,6 +2378,7 @@ func init() {
 						"type": "text"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "date1985597558",
 						"max": "",
@@ -2485,6 +2392,7 @@ func init() {
 					{
 						"cascadeDelete": false,
 						"collectionId": "pbc_1025546041",
+						"help": "",
 						"hidden": false,
 						"id": "relation394364643",
 						"maxSelect": 999,
@@ -2498,6 +2406,7 @@ func init() {
 					{
 						"cascadeDelete": false,
 						"collectionId": "pbc_2833628128",
+						"help": "",
 						"hidden": false,
 						"id": "relation196169434",
 						"maxSelect": 999,
@@ -2511,6 +2420,7 @@ func init() {
 					{
 						"cascadeDelete": false,
 						"collectionId": "pbc_2833628128",
+						"help": "",
 						"hidden": false,
 						"id": "relation2217591675",
 						"maxSelect": 999,
@@ -2524,6 +2434,7 @@ func init() {
 					{
 						"cascadeDelete": false,
 						"collectionId": "pbc_2683869272",
+						"help": "",
 						"hidden": false,
 						"id": "relation2834031894",
 						"maxSelect": 999,
@@ -2537,6 +2448,7 @@ func init() {
 					{
 						"cascadeDelete": false,
 						"collectionId": "pbc_1219621782",
+						"help": "",
 						"hidden": false,
 						"id": "relation1874629670",
 						"maxSelect": 999,
@@ -2550,6 +2462,7 @@ func init() {
 					{
 						"cascadeDelete": false,
 						"collectionId": "pbc_575754128",
+						"help": "",
 						"hidden": false,
 						"id": "relation356659934",
 						"maxSelect": 999,
@@ -2563,6 +2476,7 @@ func init() {
 					{
 						"cascadeDelete": false,
 						"collectionId": "pbc_2511585327",
+						"help": "",
 						"hidden": false,
 						"id": "relation1741372165",
 						"maxSelect": 1,
@@ -2574,6 +2488,7 @@ func init() {
 						"type": "relation"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "number1276789363",
 						"max": null,
@@ -2586,6 +2501,7 @@ func init() {
 						"type": "number"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "number3126295302",
 						"max": null,
@@ -2598,6 +2514,7 @@ func init() {
 						"type": "number"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "number1585346424",
 						"max": null,
@@ -2610,6 +2527,7 @@ func init() {
 						"type": "number"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "number2148206572",
 						"max": null,
@@ -2623,6 +2541,7 @@ func init() {
 					},
 					{
 						"exceptDomains": null,
+						"help": "",
 						"hidden": false,
 						"id": "url2366146245",
 						"name": "cover",
@@ -2633,6 +2552,7 @@ func init() {
 						"type": "url"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "file2598698210",
 						"maxSelect": 1,
@@ -2648,6 +2568,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text3731873690",
 						"max": 0,
@@ -2680,6 +2601,7 @@ func init() {
 				"fields": [
 					{
 						"autogeneratePattern": "[a-z0-9]{15}",
+						"help": "",
 						"hidden": false,
 						"id": "text3208210256",
 						"max": 15,
@@ -2714,6 +2636,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text596198703",
 						"max": 0,
@@ -2728,6 +2651,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text1579384326",
 						"max": 0,
@@ -2742,6 +2666,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text3731873690",
 						"max": 0,
@@ -2772,6 +2697,7 @@ func init() {
 				"fields": [
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text3208210256",
 						"max": 0,
@@ -2786,8 +2712,9 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
-						"id": "_clone_5vB7",
+						"id": "_clone_x9ea",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -2799,8 +2726,9 @@ func init() {
 						"type": "text"
 					},
 					{
+						"help": "",
 						"hidden": false,
-						"id": "_clone_hF5d",
+						"id": "_clone_paaV",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_id",
@@ -2811,8 +2739,9 @@ func init() {
 						"type": "number"
 					},
 					{
+						"help": "",
 						"hidden": false,
-						"id": "_clone_Tcpv",
+						"id": "_clone_Zujk",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_price",
@@ -2839,6 +2768,7 @@ func init() {
 				"fields": [
 					{
 						"autogeneratePattern": "[a-z0-9]{15}",
+						"help": "",
 						"hidden": false,
 						"id": "text3208210256",
 						"max": 15,
@@ -2873,6 +2803,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text596198703",
 						"max": 0,
@@ -2887,6 +2818,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text1579384326",
 						"max": 0,
@@ -2901,6 +2833,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text3731873690",
 						"max": 0,
@@ -2931,6 +2864,7 @@ func init() {
 				"fields": [
 					{
 						"autogeneratePattern": "[a-z0-9]{15}",
+						"help": "",
 						"hidden": false,
 						"id": "text3208210256",
 						"max": 15,
@@ -2965,6 +2899,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text596198703",
 						"max": 0,
@@ -2979,6 +2914,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text1579384326",
 						"max": 0,
@@ -2993,6 +2929,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text3731873690",
 						"max": 0,
@@ -3023,6 +2960,7 @@ func init() {
 				"fields": [
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text3208210256",
 						"max": 0,
@@ -3037,8 +2975,9 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
-						"id": "_clone_42hV",
+						"id": "_clone_4Fek",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -3050,8 +2989,9 @@ func init() {
 						"type": "text"
 					},
 					{
+						"help": "",
 						"hidden": false,
-						"id": "_clone_Dh5l",
+						"id": "_clone_tKkM",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_id",
@@ -3062,8 +3002,9 @@ func init() {
 						"type": "number"
 					},
 					{
+						"help": "",
 						"hidden": false,
-						"id": "_clone_9LCs",
+						"id": "_clone_zg4U",
 						"max": null,
 						"min": 0,
 						"name": "hltb_id",
@@ -3074,8 +3015,9 @@ func init() {
 						"type": "number"
 					},
 					{
+						"help": "",
 						"hidden": false,
-						"id": "_clone_I1tV",
+						"id": "_clone_r0oJ",
 						"max": null,
 						"min": 0,
 						"name": "hltb_campaign_time",
@@ -3102,6 +3044,7 @@ func init() {
 				"fields": [
 					{
 						"autogeneratePattern": "[a-z0-9]{15}",
+						"help": "",
 						"hidden": false,
 						"id": "text3208210256",
 						"max": 15,
@@ -3135,6 +3078,7 @@ func init() {
 						"type": "autodate"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "select2363381545",
 						"maxSelect": 1,
@@ -3152,6 +3096,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text1579384326",
 						"max": 0,
@@ -3167,6 +3112,7 @@ func init() {
 					{
 						"cascadeDelete": false,
 						"collectionId": "pbc_1025546041",
+						"help": "",
 						"hidden": false,
 						"id": "relation394364643",
 						"maxSelect": 999,
@@ -3178,6 +3124,7 @@ func init() {
 						"type": "relation"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "bool3983857650",
 						"name": "platforms_strict",
@@ -3189,6 +3136,7 @@ func init() {
 					{
 						"cascadeDelete": false,
 						"collectionId": "pbc_2511585327",
+						"help": "",
 						"hidden": false,
 						"id": "relation1795420351",
 						"maxSelect": 999,
@@ -3202,6 +3150,7 @@ func init() {
 					{
 						"cascadeDelete": false,
 						"collectionId": "pbc_2833628128",
+						"help": "",
 						"hidden": false,
 						"id": "relation196169434",
 						"maxSelect": 999,
@@ -3215,6 +3164,7 @@ func init() {
 					{
 						"cascadeDelete": false,
 						"collectionId": "pbc_2833628128",
+						"help": "",
 						"hidden": false,
 						"id": "relation2217591675",
 						"maxSelect": 999,
@@ -3228,6 +3178,7 @@ func init() {
 					{
 						"cascadeDelete": false,
 						"collectionId": "pbc_2683869272",
+						"help": "",
 						"hidden": false,
 						"id": "relation2834031894",
 						"maxSelect": 999,
@@ -3241,6 +3192,7 @@ func init() {
 					{
 						"cascadeDelete": false,
 						"collectionId": "pbc_1219621782",
+						"help": "",
 						"hidden": false,
 						"id": "relation1874629670",
 						"maxSelect": 999,
@@ -3254,6 +3206,7 @@ func init() {
 					{
 						"cascadeDelete": false,
 						"collectionId": "pbc_575754128",
+						"help": "",
 						"hidden": false,
 						"id": "relation356659934",
 						"maxSelect": 999,
@@ -3265,6 +3218,7 @@ func init() {
 						"type": "relation"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "number2923073939",
 						"max": null,
@@ -3277,6 +3231,7 @@ func init() {
 						"type": "number"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "number2043749330",
 						"max": null,
@@ -3289,6 +3244,7 @@ func init() {
 						"type": "number"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "date2737469841",
 						"max": "",
@@ -3300,6 +3256,7 @@ func init() {
 						"type": "date"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "date240975680",
 						"max": "",
@@ -3311,6 +3268,7 @@ func init() {
 						"type": "date"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "number4082843936",
 						"max": null,
@@ -3323,6 +3281,7 @@ func init() {
 						"type": "number"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "number3872429522",
 						"max": null,
@@ -3337,6 +3296,7 @@ func init() {
 					{
 						"cascadeDelete": false,
 						"collectionId": "pbc_2224754354",
+						"help": "",
 						"hidden": false,
 						"id": "relation4280494897",
 						"maxSelect": 999,
@@ -3363,6 +3323,7 @@ func init() {
 				"fields": [
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text3208210256",
 						"max": 0,
@@ -3377,8 +3338,9 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
-						"id": "_clone_3eEs",
+						"id": "_clone_OeBY",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -3390,8 +3352,9 @@ func init() {
 						"type": "text"
 					},
 					{
+						"help": "",
 						"hidden": false,
-						"id": "_clone_SYwl",
+						"id": "_clone_6ec1",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_id",
@@ -3402,8 +3365,9 @@ func init() {
 						"type": "number"
 					},
 					{
+						"help": "",
 						"hidden": false,
-						"id": "_clone_jDQV",
+						"id": "_clone_q1NV",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_price",
@@ -3430,6 +3394,7 @@ func init() {
 				"fields": [
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text3208210256",
 						"max": 0,
@@ -3444,8 +3409,9 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
-						"id": "_clone_0Vy7",
+						"id": "_clone_LoHN",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -3457,8 +3423,9 @@ func init() {
 						"type": "text"
 					},
 					{
+						"help": "",
 						"hidden": false,
-						"id": "_clone_vo35",
+						"id": "_clone_1RZj",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_id",
@@ -3469,8 +3436,9 @@ func init() {
 						"type": "number"
 					},
 					{
+						"help": "",
 						"hidden": false,
-						"id": "_clone_Z3Sb",
+						"id": "_clone_XRW4",
 						"max": null,
 						"min": 0,
 						"name": "hltb_id",
@@ -3481,8 +3449,9 @@ func init() {
 						"type": "number"
 					},
 					{
+						"help": "",
 						"hidden": false,
-						"id": "_clone_Ykyb",
+						"id": "_clone_D9Xe",
 						"max": null,
 						"min": 0,
 						"name": "hltb_campaign_time",
@@ -3509,6 +3478,7 @@ func init() {
 				"fields": [
 					{
 						"autogeneratePattern": "[a-z0-9]{15}",
+						"help": "",
 						"hidden": false,
 						"id": "text3208210256",
 						"max": 15,
@@ -3542,6 +3512,7 @@ func init() {
 						"type": "autodate"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "number596198703",
 						"max": null,
@@ -3555,6 +3526,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text1579384326",
 						"max": 0,
@@ -3568,6 +3540,7 @@ func init() {
 						"type": "text"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "number3145888567",
 						"max": null,
@@ -3580,6 +3553,7 @@ func init() {
 						"type": "number"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "number521474781",
 						"max": null,
@@ -3609,6 +3583,7 @@ func init() {
 				"fields": [
 					{
 						"autogeneratePattern": "[a-z0-9]{15}",
+						"help": "",
 						"hidden": false,
 						"id": "text3208210256",
 						"max": 15,
@@ -3642,6 +3617,7 @@ func init() {
 						"type": "autodate"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "number596198703",
 						"max": null,
@@ -3655,6 +3631,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text1579384326",
 						"max": 0,
@@ -3668,6 +3645,7 @@ func init() {
 						"type": "text"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "number3402113753",
 						"max": null,
@@ -3697,6 +3675,7 @@ func init() {
 				"fields": [
 					{
 						"autogeneratePattern": "[a-z0-9]{15}",
+						"help": "",
 						"hidden": false,
 						"id": "text3208210256",
 						"max": 15,
@@ -3730,6 +3709,7 @@ func init() {
 						"type": "autodate"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "number596198703",
 						"max": null,
@@ -3743,6 +3723,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text1579384326",
 						"max": 0,
@@ -3756,6 +3737,7 @@ func init() {
 						"type": "text"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "number3402113753",
 						"max": null,
@@ -3785,6 +3767,7 @@ func init() {
 				"fields": [
 					{
 						"autogeneratePattern": "[a-z0-9]{15}",
+						"help": "",
 						"hidden": false,
 						"id": "text3208210256",
 						"max": 15,
@@ -3818,6 +3801,7 @@ func init() {
 						"type": "autodate"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "number1361375778",
 						"max": null,
@@ -3831,6 +3815,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text724990059",
 						"max": 0,
@@ -3845,6 +3830,7 @@ func init() {
 					},
 					{
 						"convertURLs": false,
+						"help": "",
 						"hidden": false,
 						"id": "editor4274335913",
 						"maxSize": 0,
@@ -3870,6 +3856,7 @@ func init() {
 				"fields": [
 					{
 						"autogeneratePattern": "[a-z0-9]{15}",
+						"help": "",
 						"hidden": false,
 						"id": "text3208210256",
 						"max": 15,
@@ -3904,6 +3891,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text596198703",
 						"max": 0,
@@ -3918,6 +3906,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text1579384326",
 						"max": 0,
@@ -3932,6 +3921,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text3731873690",
 						"max": 0,
@@ -3962,6 +3952,7 @@ func init() {
 				"fields": [
 					{
 						"autogeneratePattern": "[a-z0-9]{15}",
+						"help": "",
 						"hidden": false,
 						"id": "text3208210256",
 						"max": 15,
@@ -3996,6 +3987,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text596198703",
 						"max": 0,
@@ -4010,6 +4002,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text1579384326",
 						"max": 0,
@@ -4024,6 +4017,7 @@ func init() {
 					},
 					{
 						"autogeneratePattern": "",
+						"help": "",
 						"hidden": false,
 						"id": "text3731873690",
 						"max": 0,
@@ -4054,6 +4048,7 @@ func init() {
 				"fields": [
 					{
 						"autogeneratePattern": "[a-z0-9]{15}",
+						"help": "",
 						"hidden": false,
 						"id": "text3208210256",
 						"max": 15,
@@ -4089,6 +4084,7 @@ func init() {
 					{
 						"cascadeDelete": false,
 						"collectionId": "pbc_2224754354",
+						"help": "",
 						"hidden": false,
 						"id": "relation2893285722",
 						"maxSelect": 1,
@@ -4102,6 +4098,7 @@ func init() {
 					{
 						"cascadeDelete": false,
 						"collectionId": "pbc_1025546041",
+						"help": "",
 						"hidden": false,
 						"id": "relation961728715",
 						"maxSelect": 1,
@@ -4131,6 +4128,7 @@ func init() {
 				"fields": [
 					{
 						"autogeneratePattern": "[a-z0-9]{15}",
+						"help": "",
 						"hidden": false,
 						"id": "text3208210256",
 						"max": 15,
@@ -4166,6 +4164,7 @@ func init() {
 					{
 						"cascadeDelete": false,
 						"collectionId": "pbc_2224754354",
+						"help": "",
 						"hidden": false,
 						"id": "relation2893285722",
 						"maxSelect": 1,
@@ -4179,6 +4178,7 @@ func init() {
 					{
 						"cascadeDelete": false,
 						"collectionId": "pbc_2833628128",
+						"help": "",
 						"hidden": false,
 						"id": "relation1710984090",
 						"maxSelect": 1,
@@ -4208,6 +4208,7 @@ func init() {
 				"fields": [
 					{
 						"autogeneratePattern": "[a-z0-9]{15}",
+						"help": "",
 						"hidden": false,
 						"id": "text3208210256",
 						"max": 15,
@@ -4243,6 +4244,7 @@ func init() {
 					{
 						"cascadeDelete": false,
 						"collectionId": "pbc_2224754354",
+						"help": "",
 						"hidden": false,
 						"id": "relation2893285722",
 						"maxSelect": 1,
@@ -4256,6 +4258,7 @@ func init() {
 					{
 						"cascadeDelete": false,
 						"collectionId": "pbc_2833628128",
+						"help": "",
 						"hidden": false,
 						"id": "relation2632504646",
 						"maxSelect": 1,
@@ -4285,6 +4288,7 @@ func init() {
 				"fields": [
 					{
 						"autogeneratePattern": "[a-z0-9]{15}",
+						"help": "",
 						"hidden": false,
 						"id": "text3208210256",
 						"max": 15,
@@ -4320,6 +4324,7 @@ func init() {
 					{
 						"cascadeDelete": false,
 						"collectionId": "pbc_2224754354",
+						"help": "",
 						"hidden": false,
 						"id": "relation2893285722",
 						"maxSelect": 1,
@@ -4333,6 +4338,7 @@ func init() {
 					{
 						"cascadeDelete": false,
 						"collectionId": "pbc_2683869272",
+						"help": "",
 						"hidden": false,
 						"id": "relation2203071480",
 						"maxSelect": 1,
@@ -4362,6 +4368,7 @@ func init() {
 				"fields": [
 					{
 						"autogeneratePattern": "[a-z0-9]{15}",
+						"help": "",
 						"hidden": false,
 						"id": "text3208210256",
 						"max": 15,
@@ -4397,6 +4404,7 @@ func init() {
 					{
 						"cascadeDelete": false,
 						"collectionId": "pbc_2224754354",
+						"help": "",
 						"hidden": false,
 						"id": "relation2893285722",
 						"maxSelect": 1,
@@ -4410,6 +4418,7 @@ func init() {
 					{
 						"cascadeDelete": false,
 						"collectionId": "pbc_1219621782",
+						"help": "",
 						"hidden": false,
 						"id": "relation59357059",
 						"maxSelect": 1,
@@ -4439,6 +4448,7 @@ func init() {
 				"fields": [
 					{
 						"autogeneratePattern": "[a-z0-9]{15}",
+						"help": "",
 						"hidden": false,
 						"id": "text3208210256",
 						"max": 15,
@@ -4474,6 +4484,7 @@ func init() {
 					{
 						"cascadeDelete": false,
 						"collectionId": "pbc_2224754354",
+						"help": "",
 						"hidden": false,
 						"id": "relation2893285722",
 						"maxSelect": 1,
@@ -4487,6 +4498,7 @@ func init() {
 					{
 						"cascadeDelete": false,
 						"collectionId": "pbc_575754128",
+						"help": "",
 						"hidden": false,
 						"id": "relation2541086472",
 						"maxSelect": 1,
@@ -4516,6 +4528,7 @@ func init() {
 				"fields": [
 					{
 						"autogeneratePattern": "[a-z0-9]{15}",
+						"help": "",
 						"hidden": false,
 						"id": "text3208210256",
 						"max": 15,
@@ -4549,6 +4562,7 @@ func init() {
 						"type": "autodate"
 					},
 					{
+						"help": "",
 						"hidden": false,
 						"id": "file2359244304",
 						"maxSelect": 1,
@@ -4567,6 +4581,297 @@ func init() {
 				"indexes": [],
 				"listRule": null,
 				"name": "files",
+				"system": false,
+				"type": "base",
+				"updateRule": null,
+				"viewRule": ""
+			},
+			{
+				"createRule": null,
+				"deleteRule": null,
+				"fields": [
+					{
+						"autogeneratePattern": "[a-z0-9]{15}",
+						"help": "",
+						"hidden": false,
+						"id": "text3208210256",
+						"max": 15,
+						"min": 15,
+						"name": "id",
+						"pattern": "^[a-z0-9]+$",
+						"presentable": false,
+						"primaryKey": true,
+						"required": true,
+						"system": true,
+						"type": "text"
+					},
+					{
+						"hidden": false,
+						"id": "autodate2990389176",
+						"name": "created",
+						"onCreate": true,
+						"onUpdate": false,
+						"presentable": false,
+						"system": false,
+						"type": "autodate"
+					},
+					{
+						"hidden": false,
+						"id": "autodate3332085495",
+						"name": "updated",
+						"onCreate": true,
+						"onUpdate": true,
+						"presentable": false,
+						"system": false,
+						"type": "autodate"
+					},
+					{
+						"autogeneratePattern": "",
+						"help": "",
+						"hidden": false,
+						"id": "text1579384326",
+						"max": 0,
+						"min": 0,
+						"name": "name",
+						"pattern": "",
+						"presentable": false,
+						"primaryKey": false,
+						"required": true,
+						"system": false,
+						"type": "text"
+					},
+					{
+						"autogeneratePattern": "",
+						"help": "",
+						"hidden": false,
+						"id": "text2560465762",
+						"max": 0,
+						"min": 0,
+						"name": "slug",
+						"pattern": "^[-_a-zA-Z0-9]+$",
+						"presentable": false,
+						"primaryKey": false,
+						"required": true,
+						"system": false,
+						"type": "text"
+					},
+					{
+						"help": "",
+						"hidden": false,
+						"id": "date364343460",
+						"max": "",
+						"min": "",
+						"name": "season_date_start",
+						"presentable": false,
+						"required": true,
+						"system": false,
+						"type": "date"
+					},
+					{
+						"help": "",
+						"hidden": false,
+						"id": "date1023832478",
+						"max": "",
+						"min": "",
+						"name": "season_date_end",
+						"presentable": false,
+						"required": true,
+						"system": false,
+						"type": "date"
+					}
+				],
+				"id": "pbc_631721974",
+				"indexes": [],
+				"listRule": null,
+				"name": "seasons",
+				"system": false,
+				"type": "base",
+				"updateRule": null,
+				"viewRule": null
+			},
+			{
+				"createRule": null,
+				"deleteRule": null,
+				"fields": [
+					{
+						"autogeneratePattern": "[a-z0-9]{15}",
+						"help": "",
+						"hidden": false,
+						"id": "text3208210256",
+						"max": 15,
+						"min": 15,
+						"name": "id",
+						"pattern": "^[a-z0-9]+$",
+						"presentable": false,
+						"primaryKey": true,
+						"required": true,
+						"system": true,
+						"type": "text"
+					},
+					{
+						"hidden": false,
+						"id": "autodate2990389176",
+						"name": "created",
+						"onCreate": true,
+						"onUpdate": false,
+						"presentable": false,
+						"system": false,
+						"type": "autodate"
+					},
+					{
+						"hidden": false,
+						"id": "autodate3332085495",
+						"name": "updated",
+						"onCreate": true,
+						"onUpdate": true,
+						"presentable": false,
+						"system": false,
+						"type": "autodate"
+					},
+					{
+						"cascadeDelete": false,
+						"collectionId": "_pb_users_auth_",
+						"help": "",
+						"hidden": false,
+						"id": "relation2551806565",
+						"maxSelect": 0,
+						"minSelect": 0,
+						"name": "player",
+						"presentable": false,
+						"required": true,
+						"system": false,
+						"type": "relation"
+					},
+					{
+						"cascadeDelete": false,
+						"collectionId": "pbc_631721974",
+						"help": "",
+						"hidden": false,
+						"id": "relation4041497513",
+						"maxSelect": 0,
+						"minSelect": 0,
+						"name": "season",
+						"presentable": false,
+						"required": true,
+						"system": false,
+						"type": "relation"
+					},
+					{
+						"help": "",
+						"hidden": false,
+						"id": "number666537513",
+						"max": null,
+						"min": null,
+						"name": "points",
+						"onlyInt": true,
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "number"
+					},
+					{
+						"help": "",
+						"hidden": false,
+						"id": "number2901680126",
+						"max": null,
+						"min": null,
+						"name": "balance",
+						"onlyInt": true,
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "number"
+					},
+					{
+						"help": "",
+						"hidden": false,
+						"id": "number1363962730",
+						"max": null,
+						"min": null,
+						"name": "cells_passed",
+						"onlyInt": true,
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "number"
+					},
+					{
+						"help": "",
+						"hidden": false,
+						"id": "bool4034276701",
+						"name": "is_in_jail",
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "bool"
+					},
+					{
+						"help": "",
+						"hidden": false,
+						"id": "number799799622",
+						"max": null,
+						"min": 0,
+						"name": "drops_in_a_row",
+						"onlyInt": true,
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "number"
+					},
+					{
+						"help": "",
+						"hidden": false,
+						"id": "number3415693672",
+						"max": null,
+						"min": 0,
+						"name": "item_wheels_count",
+						"onlyInt": true,
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "number"
+					},
+					{
+						"help": "",
+						"hidden": false,
+						"id": "number2300186201",
+						"max": null,
+						"min": 0,
+						"name": "max_inventory_slots",
+						"onlyInt": true,
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "number"
+					},
+					{
+						"help": "",
+						"hidden": false,
+						"id": "json1464297386",
+						"maxSize": 0,
+						"name": "stats",
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "json"
+					},
+					{
+						"help": "",
+						"hidden": false,
+						"id": "bool1955932786",
+						"name": "clear_stats",
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "bool"
+					}
+				],
+				"id": "pbc_3888373700",
+				"indexes": [
+					"CREATE UNIQUE INDEX ` + "`" + `idx_6n4c2hk6yv` + "`" + ` ON ` + "`" + `players_progress` + "`" + ` (\n  ` + "`" + `player` + "`" + `,\n  ` + "`" + `season` + "`" + `\n)"
+				],
+				"listRule": "",
+				"name": "players_progress",
 				"system": false,
 				"type": "base",
 				"updateRule": null,

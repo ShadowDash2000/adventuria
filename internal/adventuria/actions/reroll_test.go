@@ -21,27 +21,27 @@ func Test_Reroll(t *testing.T) {
 	ctx := adventuria.AppContext{
 		App: adventuria.PocketBase,
 	}
-	user, err := adventuria.GameUsers.GetByName(ctx, "user1")
+	player, err := adventuria.GamePlayers.GetByName(ctx, "player1")
 	if err != nil {
-		t.Fatalf("Test_Reroll(): Error getting user: %s", err)
+		t.Fatalf("Test_Reroll(): Error getting player: %s", err)
 	}
 
-	_, err = user.Move(ctx, 1)
+	_, err = player.Move(ctx, 1)
 	if err != nil {
 		t.Fatalf("Test_Reroll(): Error moving: %s", err)
 	}
 
-	_, err = game.DoAction(ctx.App, user.ID(), ActionTypeRollWheel, adventuria.ActionRequest{})
+	_, err = game.DoAction(ctx.App, player.ID(), ActionTypeRollWheel, adventuria.ActionRequest{})
 	if err != nil {
 		t.Fatalf("Test_Reroll(): Error action roll wheel: %s", err)
 	}
 
-	_, err = game.DoAction(ctx.App, user.ID(), ActionTypeReroll, adventuria.ActionRequest{})
+	_, err = game.DoAction(ctx.App, player.ID(), ActionTypeReroll, adventuria.ActionRequest{})
 	if err != nil {
 		t.Fatalf("Test_Reroll(): Error action done: %s", err)
 	}
 
-	_, err = game.DoAction(ctx.App, user.ID(), ActionTypeRollWheel, adventuria.ActionRequest{})
+	_, err = game.DoAction(ctx.App, player.ID(), ActionTypeRollWheel, adventuria.ActionRequest{})
 	if err != nil {
 		t.Fatalf("Test_Reroll(): Error action roll wheel: %s", err)
 	}

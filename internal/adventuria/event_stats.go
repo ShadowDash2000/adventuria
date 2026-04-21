@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"slices"
 
+	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
 )
 
@@ -117,7 +118,7 @@ func ComputeEventStats(app core.App) (*result.Result, error) {
 		WHERE actions.%[12]s IS NOT NULL AND actions.%[12]s != '[]' AND actions.%[12]s != 'null'
 		GROUP BY items.value
 	`,
-		schema.ActionSchema.User,      // 1
+		schema.ActionSchema.Player,    // 1
 		schema.CollectionActions,      // 2
 		schema.CollectionCells,        // 3
 		schema.CellSchema.Id,          // 4
@@ -136,7 +137,7 @@ func ComputeEventStats(app core.App) (*result.Result, error) {
 		return result.Err("Failed to fetch statistics"), err
 	}
 
-	userIds := make([]string, 0, len(rawStats))
+	playerIds := make([]string, 0, len(rawStats))
 	cellIds := make([]string, 0, len(rawStats))
 	itemIds := make([]string, 0, len(rawStats))
 	for _, rs := range rawStats {
@@ -153,36 +154,64 @@ func ComputeEventStats(app core.App) (*result.Result, error) {
 				itemIds = append(itemIds, rs.RecordID)
 			}
 		default:
-			if !slices.Contains(userIds, rs.RecordID) {
-				userIds = append(userIds, rs.RecordID)
+			if !slices.Contains(playerIds, rs.RecordID) {
+				playerIds = append(playerIds, rs.RecordID)
 			}
 		}
 	}
 
-	var users []*core.Record
-	if len(userIds) > 0 {
-		users, err = app.FindRecordsByIds(schema.CollectionUsers, userIds)
+	var players []*core.Record
+	var playersProgress []*core.Record
+	if len(playerIds) > 0 {
+		players, err = app.FindRecordsByIds(schema.CollectionPlayers, playerIds)
 		if err != nil {
-			return result.Err("Failed to fetch users"), err
+			return result.Err("Failed to fetch players"), err
+		}
+
+		playerIdsAny := make([]any, len(playerIds))
+		for i, id := range playerIds {
+			playerIdsAny[i] = id
+		}
+
+		err = app.RecordQuery(schema.CollectionPlayersProgress).
+			Where(
+				dbx.In(schema.PlayerProgressSchema.Player, playerIdsAny...),
+			).
+			AndWhere(dbx.HashExp{
+				schema.PlayerProgressSchema.Season: GameSettings.CurrentSeason(),
+			}).
+			All(&playersProgress)
+		if err != nil {
+			return result.Err("Failed to fetch players progress"), err
 		}
 	}
 
-	userMap := make(map[string]*core.Record, len(users))
-	for _, u := range users {
-		userMap[u.Id] = u
+	playersProgressMap := make(map[string]*core.Record, len(playersProgress))
+	for _, p := range playersProgress {
+		playersProgressMap[p.Id] = p
+	}
 
-		var userStats Stats
-		err = u.UnmarshalJSONField(schema.UserSchema.Stats, &userStats)
+	playerMap := make(map[string]*core.Record, len(players))
+	for _, u := range players {
+		playerMap[u.Id] = u
+
+		playerProgress, ok := playersProgressMap[u.Id]
+		if !ok {
+			continue
+		}
+
+		var playerStats Stats
+		err = playerProgress.UnmarshalJSONField(schema.PlayerProgressSchema.Stats, &playerStats)
 		if err != nil {
-			return result.Err("Failed to unmarshal user stats"), err
+			return result.Err("Failed to unmarshal player stats"), err
 		}
 
 		stats.MostWanted = append(stats.MostWanted, EventStatEntry{
-			Count:  userStats.WasInJail,
+			Count:  playerStats.WasInJail,
 			Record: u,
 		})
 		stats.MostItemsUsed = append(stats.MostItemsUsed, EventStatEntry{
-			Count:  userStats.ItemsUsed,
+			Count:  playerStats.ItemsUsed,
 			Record: u,
 		})
 	}
@@ -238,7 +267,7 @@ func ComputeEventStats(app core.App) (*result.Result, error) {
 			continue
 		}
 
-		record, ok := userMap[rs.RecordID]
+		record, ok := playerMap[rs.RecordID]
 		if !ok {
 			continue
 		}

@@ -5,7 +5,7 @@ import (
 	"adventuria/pkg/event"
 	"database/sql"
 	"errors"
-	"time"
+	"fmt"
 
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/tools/hook"
@@ -30,20 +30,8 @@ func NewSettings(ctx AppContext) (*Settings, error) {
 	}
 	s.initHooks()
 	s.bindHooks(ctx)
-	s.RegisterSettingsCron(ctx)
 
 	return s, nil
-}
-
-func DefaultSettings() (*core.Record, error) {
-	record := core.NewRecord(GameCollections.Get(schema.CollectionSettings))
-	record.Set(schema.SettingsSchema.EventDateStart, types.NowDateTime())
-	record.Set(schema.SettingsSchema.CurrentWeek, 0)
-	record.Set(schema.SettingsSchema.TimerTimeLimit, 14400)
-	record.Set(schema.SettingsSchema.LimitExceedPenalty, 2)
-	record.Set(schema.SettingsSchema.PointsForDrop, -2)
-	record.Set(schema.SettingsSchema.DropsToJail, 2)
-	return record, nil
 }
 
 func (s *Settings) initHooks() {
@@ -51,17 +39,25 @@ func (s *Settings) initHooks() {
 }
 
 func (s *Settings) bindHooks(ctx AppContext) {
-	ctx.App.OnRecordAfterCreateSuccess(schema.CollectionSettings).BindFunc(func(e *core.RecordEvent) error {
-		s.SetProxyRecord(e.Record)
+	ctx.App.OnRecordCreate(schema.CollectionSettings).BindFunc(func(e *core.RecordEvent) error {
+		err := expandSettingsWithSeason(AppContext{App: e.App}, e.Record)
+		if err != nil {
+			return err
+		}
 		return e.Next()
 	})
-	ctx.App.OnRecordAfterUpdateSuccess(schema.CollectionSettings).BindFunc(func(e *core.RecordEvent) error {
+	ctx.App.OnRecordAfterCreateSuccess(schema.CollectionSettings).BindFunc(func(e *core.RecordEvent) error {
+		_ = GamePlayers.RefetchAllInMemory(AppContext{App: e.App})
 		s.SetProxyRecord(e.Record)
 		return e.Next()
 	})
 	ctx.App.OnRecordUpdate(schema.CollectionSettings).BindFunc(func(e *core.RecordEvent) error {
+		err := expandSettingsWithSeason(AppContext{App: e.App}, e.Record)
+		if err != nil {
+			return err
+		}
 		if ok := e.Record.GetBool(schema.SettingsSchema.KillParser); ok {
-			_, err := s.onKillParser.Trigger(&OnKillParserEvent{})
+			_, err = s.onKillParser.Trigger(&OnKillParserEvent{})
 			if err != nil {
 				e.App.Logger().Error("Failed to trigger kill parser event", "err", err)
 			}
@@ -69,6 +65,35 @@ func (s *Settings) bindHooks(ctx AppContext) {
 		}
 		return e.Next()
 	})
+	ctx.App.OnRecordAfterUpdateSuccess(schema.CollectionSettings).BindFunc(func(e *core.RecordEvent) error {
+		if s.CurrentSeason() != e.Record.GetString(schema.SettingsSchema.CurrentSeason) {
+			_ = GamePlayers.RefetchAllInMemory(AppContext{App: e.App})
+		}
+		s.SetProxyRecord(e.Record)
+		return e.Next()
+	})
+
+	ctx.App.OnRecordAfterUpdateSuccess(schema.CollectionSeasons).BindFunc(func(e *core.RecordEvent) error {
+		if e.Record.Id == s.CurrentSeason() {
+			expand := s.Expand()
+			oldSeasonDateStart := expand[schema.SettingsSchema.CurrentSeason].(*core.Record).GetDateTime(schema.SeasonSchema.SeasonDateStart)
+			expand[schema.SettingsSchema.CurrentSeason] = e.Record
+			s.SetExpand(expand)
+
+			if oldSeasonDateStart != s.CurrentSeasonDateStart() {
+				_ = GamePlayers.RefetchAllInMemory(AppContext{App: e.App})
+			}
+		}
+		return e.Next()
+	})
+}
+
+func expandSettingsWithSeason(ctx AppContext, record *core.Record) error {
+	errs := ctx.App.ExpandRecord(record, []string{schema.SettingsSchema.CurrentSeason}, nil)
+	if len(errs) > 0 {
+		return fmt.Errorf("failed to expand settings record: %v", errs)
+	}
+	return nil
 }
 
 func (s *Settings) init(ctx AppContext) error {
@@ -80,20 +105,18 @@ func (s *Settings) init(ctx AppContext) error {
 		return err
 	}
 
-	if record != nil {
-		s.SetProxyRecord(record)
+	if record == nil {
+		ctx.App.Logger().Warn("Settings record not found, create new one")
+		record = core.NewRecord(GameCollections.Get(schema.CollectionSettings))
+		record.Set(schema.SettingsSchema.BlockAllActions, true)
 	} else {
-		record, err = DefaultSettings()
-		if err != nil {
-			return err
-		}
-
-		s.SetProxyRecord(record)
-		err = ctx.App.Save(s)
+		err = expandSettingsWithSeason(ctx, record)
 		if err != nil {
 			return err
 		}
 	}
+
+	s.SetProxyRecord(record)
 
 	return nil
 }
@@ -102,8 +125,16 @@ func (s *Settings) EventEnded() bool {
 	return s.GetBool(schema.SettingsSchema.EventEnded)
 }
 
-func (s *Settings) EventDateStart() types.DateTime {
-	return s.GetDateTime(schema.SettingsSchema.EventDateStart)
+func (s *Settings) CurrentSeason() string {
+	return s.GetString(schema.SettingsSchema.CurrentSeason)
+}
+
+func (s *Settings) CurrentSeasonDateStart() types.DateTime {
+	return s.ExpandedOne(schema.SettingsSchema.CurrentSeason).GetDateTime(schema.SeasonSchema.SeasonDateStart)
+}
+
+func (s *Settings) CurrentSeasonDateEnd() types.DateTime {
+	return s.ExpandedOne(schema.SettingsSchema.CurrentSeason).GetDateTime(schema.SeasonSchema.SeasonDateEnd)
 }
 
 func (s *Settings) CurrentWeek() int {
@@ -114,24 +145,12 @@ func (s *Settings) SetCurrentWeek(w int) {
 	s.Set(schema.SettingsSchema.CurrentWeek, w)
 }
 
-func (s *Settings) DaysPassedFromEventStart() int {
-	return int(types.NowDateTime().Sub(s.EventDateStart()).Hours() / 24)
-}
-
-func (s *Settings) GetCurrentWeekNum() int {
-	return (s.DaysPassedFromEventStart() / 7) + 1
-}
-
-func (s *Settings) TimerTimeLimit() int {
-	return s.GetInt(schema.SettingsSchema.TimerTimeLimit)
-}
-
-func (s *Settings) LimitExceedPenalty() int {
-	return s.GetInt(schema.SettingsSchema.LimitExceedPenalty)
-}
-
 func (s *Settings) BlockAllActions() bool {
 	return s.GetBool(schema.SettingsSchema.BlockAllActions)
+}
+
+func (s *Settings) MaxInventorySlots() int {
+	return s.GetInt(schema.SettingsSchema.MaxInventorySlots)
 }
 
 func (s *Settings) PointsForDrop() int {
@@ -140,11 +159,6 @@ func (s *Settings) PointsForDrop() int {
 
 func (s *Settings) DropsToJail() int {
 	return s.GetInt(schema.SettingsSchema.DropsToJail)
-}
-
-func (s *Settings) NextTimerResetDate() types.DateTime {
-	weeks := time.Duration(s.CurrentWeek()*7*24) * time.Hour
-	return s.EventDateStart().Add(weeks)
 }
 
 func (s *Settings) CheckActionsBlock() *hook.Handler[*core.RequestEvent] {
@@ -162,26 +176,6 @@ func (s *Settings) checkActionsBlock() func(*core.RequestEvent) error {
 
 		return e.Next()
 	}
-}
-
-func (s *Settings) RegisterSettingsCron(ctx AppContext) {
-	ctx.App.Cron().MustAdd("settings", "* * * * *", func() {
-		week := s.GetCurrentWeekNum()
-		if s.CurrentWeek() == week {
-			return
-		}
-
-		s.SetCurrentWeek(week)
-		err := ctx.App.Save(s)
-		if err != nil {
-			ctx.App.Logger().Error("save settings failed", "err", err)
-		}
-
-		err = ResetAllTimers(AppContext{App: PocketBase}, s.TimerTimeLimit(), s.LimitExceedPenalty())
-		if err != nil {
-			ctx.App.Logger().Error("failed to clear timers", "err", err)
-		}
-	})
 }
 
 func (s *Settings) IGDBGamesParsed() uint64 {

@@ -18,25 +18,25 @@ func NewInventories(ctx AppContext) *Inventories {
 
 func (i *Inventories) bindHooks(ctx AppContext) {
 	ctx.App.OnRecordAfterCreateSuccess(schema.CollectionInventory).BindFunc(func(e *core.RecordEvent) error {
-		userId := e.Record.GetString(schema.InventorySchema.User)
+		playerId := e.Record.GetString(schema.InventorySchema.Player)
 
 		ctx := AppContext{App: e.App}
-		user, err := GameUsers.GetByID(ctx, userId)
+		player, err := GamePlayers.GetByID(ctx, playerId)
 		if err != nil {
 			return e.Next()
 		}
 
-		if user.Inventory().HasItem(e.Record.Id) {
+		if player.Inventory().HasItem(e.Record.Id) {
 			return e.Next()
 		}
 
-		item, err := NewItemFromInventoryRecord(ctx, user, e.Record)
+		item, err := NewItemFromInventoryRecord(ctx, player, e.Record)
 		if err != nil {
 			return err
 		}
-		user.Inventory().RegisterItem(item)
+		player.Inventory().RegisterItem(item)
 
-		if _, err = user.OnAfterItemSave().Trigger(&OnAfterItemSave{
+		if _, err = player.OnAfterItemSave().Trigger(&OnAfterItemSave{
 			AppContext: ctx,
 			Item:       item,
 		}); err != nil {

@@ -2,8 +2,8 @@ package adventuria
 
 type CellWheel interface {
 	Cell
-	Roll(AppContext, User, RollWheelRequest) (*WheelRollResult, error)
-	RefreshItems(AppContext, User) error
+	Roll(AppContext, Player, RollWheelRequest) (*WheelRollResult, error)
+	RefreshItems(AppContext, Player) error
 }
 
 type RollWheelRequest map[string]any

@@ -20,14 +20,14 @@ type cellCasinoValue struct {
 	PriceMultiplier float32  `json:"price_multiplier"`
 }
 
-func (c *CellCasino) RefreshItems(_ adventuria.AppContext, user adventuria.User) error {
-	return c.refreshItems(user)
+func (c *CellCasino) RefreshItems(_ adventuria.AppContext, player adventuria.Player) error {
+	return c.refreshItems(player)
 }
 
 func (c *CellCasino) OnCellReached(ctx *adventuria.CellReachedContext) error {
-	ctx.User.SetItemWheelsCount(ctx.User.ItemWheelsCount() + 1)
-	ctx.User.LastAction().SetCanMove(true)
-	return c.refreshItems(ctx.User)
+	ctx.Player.Progress().AddItemWheelsCount(1)
+	ctx.Player.LastAction().SetCanMove(true)
+	return c.refreshItems(ctx.Player)
 }
 
 func (c *CellCasino) OnCellLeft(_ *adventuria.CellLeftContext) error {
@@ -68,11 +68,11 @@ func (c *CellCasino) Verify(ctx adventuria.AppContext, value string) error {
 	return nil
 }
 
-func (c *CellCasino) refreshItems(user adventuria.User) error {
+func (c *CellCasino) refreshItems(player adventuria.Player) error {
 	var decodedValue cellCasinoValue
 	if err := c.UnmarshalJSONField(schema.CellSchema.Value, &decodedValue); err != nil {
 		return err
 	}
-	user.LastAction().SetItemsList(decodedValue.ItemIds)
+	player.LastAction().SetItemsList(decodedValue.ItemIds)
 	return nil
 }

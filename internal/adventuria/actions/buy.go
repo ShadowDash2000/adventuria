@@ -21,7 +21,7 @@ type cellShopValue struct {
 }
 
 func (a *BuyAction) CanDo(ctx adventuria.ActionContext) bool {
-	currentCell, ok := ctx.User.CurrentCell()
+	currentCell, ok := ctx.Player.Progress().CurrentCell()
 	if !ok {
 		return false
 	}
@@ -43,7 +43,7 @@ func (a *BuyAction) Do(ctx adventuria.ActionContext, req adventuria.ActionReques
 		return result.Err("item_id is not string"), nil
 	}
 
-	ids, err := ctx.User.LastAction().ItemsList()
+	ids, err := ctx.Player.LastAction().ItemsList()
 	if err != nil {
 		return result.Err("internal error: can't get items list"),
 			fmt.Errorf("buy.do(): can't get items list: %w", err)
@@ -70,7 +70,7 @@ func (a *BuyAction) Do(ctx adventuria.ActionContext, req adventuria.ActionReques
 			fmt.Errorf("buy.do(): can't check item price: %w", err)
 	}
 
-	if ctx.User.Balance() < onBuyGetVariants.Price {
+	if ctx.Player.Progress().Balance() < onBuyGetVariants.Price {
 		return result.Err("not enough money"), nil
 	}
 
@@ -80,7 +80,7 @@ func (a *BuyAction) Do(ctx adventuria.ActionContext, req adventuria.ActionReques
 			fmt.Errorf("buy.do(): can't check item price: %w", err)
 	}
 
-	invItemId, err := ctx.User.Inventory().AddItemById(ctx.AppContext, itemId)
+	invItemId, err := ctx.Player.Inventory().AddItemById(ctx.AppContext, itemId)
 	if err != nil {
 		return result.Err("internal error: can't add item to inventory"),
 			fmt.Errorf("buy.do(): can't add item to inventory: %w", err)
@@ -90,14 +90,14 @@ func (a *BuyAction) Do(ctx adventuria.ActionContext, req adventuria.ActionReques
 		ids = slices.Delete(ids, index, index+1)
 	}
 
-	ctx.User.LastAction().SetItemsList(ids)
-	ctx.User.AddBalance(-onBuyGetVariants.Price)
+	ctx.Player.LastAction().SetItemsList(ids)
+	ctx.Player.Progress().AddBalance(-onBuyGetVariants.Price)
 
 	return result.Ok().WithData(invItemId), nil
 }
 
 func (a *BuyAction) GetVariants(ctx adventuria.ActionContext) any {
-	ids, err := ctx.User.LastAction().ItemsList()
+	ids, err := ctx.Player.LastAction().ItemsList()
 	if err != nil {
 		return nil
 	}
@@ -143,7 +143,7 @@ func (a *BuyAction) GetVariants(ctx adventuria.ActionContext) any {
 }
 
 func decodeCellShopValue(ctx adventuria.ActionContext) (*cellShopValue, error) {
-	currentCell, ok := ctx.User.CurrentCell()
+	currentCell, ok := ctx.Player.Progress().CurrentCell()
 	if !ok {
 		return nil, errors.New("buy.decodeCellShopValue(): current cell not found")
 	}
@@ -184,7 +184,7 @@ func (a *BuyAction) triggerOnBeforeItemBuy(ctx adventuria.ActionContext, item ad
 		Item:       item,
 		Price:      price,
 	}
-	res, err := ctx.User.OnBeforeItemBuy().Trigger(onBeforeItemBuy)
+	res, err := ctx.Player.OnBeforeItemBuy().Trigger(onBeforeItemBuy)
 	if err != nil {
 		return nil, err
 	}
@@ -206,7 +206,7 @@ func (a *BuyAction) triggerOnBuyGetVariants(ctx adventuria.ActionContext, item a
 		Item:       item,
 		Price:      price,
 	}
-	res, err := ctx.User.OnBuyGetVariants().Trigger(onBuyGetVariants)
+	res, err := ctx.Player.OnBuyGetVariants().Trigger(onBuyGetVariants)
 	if err != nil {
 		return nil, err
 	}

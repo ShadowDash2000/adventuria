@@ -11,7 +11,7 @@ type RollDiceAction struct {
 }
 
 func (a *RollDiceAction) CanDo(ctx adventuria.ActionContext) bool {
-	return ctx.User.LastAction().CanMove()
+	return ctx.Player.LastAction().CanMove()
 }
 
 type RollDiceResult struct {
@@ -30,7 +30,7 @@ func (a *RollDiceAction) Do(ctx adventuria.ActionContext, _ adventuria.ActionReq
 		AppContext: ctx.AppContext,
 		Dices:      []*adventuria.Dice{adventuria.DiceTypeD6, adventuria.DiceTypeD6},
 	}
-	res, err := ctx.User.OnBeforeRoll().Trigger(onBeforeRollEvent)
+	res, err := ctx.Player.OnBeforeRoll().Trigger(onBeforeRollEvent)
 	if err != nil {
 		return res, err
 	}
@@ -51,7 +51,7 @@ func (a *RollDiceAction) Do(ctx adventuria.ActionContext, _ adventuria.ActionReq
 		onBeforeRollMoveEvent.N += diceRolls[i].Roll
 	}
 
-	res, err = ctx.User.OnBeforeRollMove().Trigger(onBeforeRollMoveEvent)
+	res, err = ctx.Player.OnBeforeRollMove().Trigger(onBeforeRollMoveEvent)
 	if err != nil {
 		return res, err
 	}
@@ -59,22 +59,22 @@ func (a *RollDiceAction) Do(ctx adventuria.ActionContext, _ adventuria.ActionReq
 		return res, err
 	}
 
-	// we need to save the latest action before ctx.User.Move, because Move() creates a new one
-	err = ctx.AppContext.App.Save(ctx.User.LastAction().ProxyRecord())
+	// we need to save the latest action before ctx.Player.Move, because Move() creates a new one
+	err = ctx.AppContext.App.Save(ctx.Player.LastAction().ProxyRecord())
 	if err != nil {
 		return result.Err("internal error: can't save action record"),
 			fmt.Errorf("roll_dice.do(): %w", err)
 	}
 
-	moveRes, err := ctx.User.Move(ctx.AppContext, onBeforeRollMoveEvent.N)
+	moveRes, err := ctx.Player.Move(ctx.AppContext, onBeforeRollMoveEvent.N)
 	if err != nil {
 		return result.Err("internal error: failed to move to the new cell"),
 			fmt.Errorf("roll_dice.do(): %w", err)
 	}
 
-	ctx.User.LastAction().SetType(ActionTypeRollDice)
+	ctx.Player.LastAction().SetType(ActionTypeRollDice)
 
-	res, err = ctx.User.OnAfterRoll().Trigger(&adventuria.OnAfterRollEvent{
+	res, err = ctx.Player.OnAfterRoll().Trigger(&adventuria.OnAfterRollEvent{
 		AppContext: ctx.AppContext,
 		Dices:      onBeforeRollEvent.Dices,
 		N:          onBeforeRollMoveEvent.N,

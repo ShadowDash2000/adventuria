@@ -6,8 +6,8 @@ import (
 )
 
 type ActionBase struct {
-	t    ActionType
-	user User
+	t      ActionType
+	player Player
 }
 
 func NewActionFromType(actionType ActionType) (Action, error) {

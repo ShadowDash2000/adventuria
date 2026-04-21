@@ -20,8 +20,8 @@ func (ef *SafeDropEffect) Subscribe(
 	callback adventuria.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		ctx.User.OnBeforeDrop().BindFunc(func(e *adventuria.OnBeforeDropEvent) (*result.Result, error) {
-			cell, ok := ctx.User.CurrentCell()
+		ctx.Player.OnBeforeDrop().BindFunc(func(e *adventuria.OnBeforeDropEvent) (*result.Result, error) {
+			cell, ok := ctx.Player.Progress().CurrentCell()
 			if !ok {
 				return result.Err("internal error: current cell not found"),
 					errors.New("safeDrop: current cell not found")

@@ -19,7 +19,7 @@ func (ef *NoCoinsForDoneEffect) Subscribe(
 	callback adventuria.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		ctx.User.OnBeforeDone().BindFunc(func(e *adventuria.OnBeforeDoneEvent) (*result.Result, error) {
+		ctx.Player.OnBeforeDone().BindFunc(func(e *adventuria.OnBeforeDoneEvent) (*result.Result, error) {
 			e.CellCoins = 0
 			callback(e.AppContext)
 			return e.Next()

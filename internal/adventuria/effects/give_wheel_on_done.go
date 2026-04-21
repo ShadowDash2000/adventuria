@@ -8,10 +8,10 @@ import (
 
 type GiveWheelOnDoneEffect struct{}
 
-func (ef *GiveWheelOnDoneEffect) Subscribe(user adventuria.User) []event.Unsubscribe {
+func (ef *GiveWheelOnDoneEffect) Subscribe(player adventuria.Player) []event.Unsubscribe {
 	return []event.Unsubscribe{
-		user.OnAfterDone().BindFunc(func(e *adventuria.OnAfterDoneEvent) (*result.Result, error) {
-			user.SetItemWheelsCount(user.ItemWheelsCount() + 1)
+		player.OnAfterDone().BindFunc(func(e *adventuria.OnAfterDoneEvent) (*result.Result, error) {
+			player.Progress().AddItemWheelsCount(1)
 
 			return e.Next()
 		}),

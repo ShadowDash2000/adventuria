@@ -1,14 +1,15 @@
 package schema
 
 const (
-	CollectionUsers     = "users"
-	CollectionActions   = "actions"
-	CollectionCells     = "cells"
-	CollectionItems     = "items"
-	CollectionEffects   = "effects"
-	CollectionInventory = "inventory"
-	CollectionTimers    = "timers"
-	CollectionSettings  = "settings"
+	CollectionPlayers         = "players"
+	CollectionPlayersProgress = "players_progress"
+	CollectionActions         = "actions"
+	CollectionCells           = "cells"
+	CollectionItems           = "items"
+	CollectionEffects         = "effects"
+	CollectionInventory       = "inventory"
+	CollectionSettings        = "settings"
+	CollectionSeasons         = "seasons"
 
 	CollectionActivities     = "activities"
 	CollectionCompanies      = "companies"
@@ -30,62 +31,88 @@ const (
 	CollectionActivitiesThemes     = "activities_themes"
 )
 
-var UserSchema = struct {
-	Id   string
-	Name string
-
-	Points            string
-	CellsPassed       string
-	IsInJail          string
-	DropsInARow       string
-	MaxInventorySlots string
-	ItemWheelsCount   string
-	Balance           string
-	Stats             string
-	ClearStats        string
-
+var PlayerSchema = struct {
+	Id               string
+	Name             string
+	Avatar           string
+	Color            string
 	Twitch           string
 	YouTube          string
 	YouTubeChannelId string
 	IsStreamLive     string
 }{
+	Id:               "id",
+	Name:             "name",
+	Avatar:           "avatar",
+	Color:            "color",
+	Twitch:           "twitch",
+	YouTube:          "youtube",
+	YouTubeChannelId: "youtube_channel_id",
+	IsStreamLive:     "is_stream_live",
+}
+
+var PlayerProgressSchema = struct {
+	Id                string
+	Player            string
+	Season            string
+	Points            string
+	Balance           string
+	CellsPassed       string
+	IsInJail          string
+	DropsInARow       string
+	ItemWheelsCount   string
+	MaxInventorySlots string
+	Stats             string
+	ClearStats        string
+}{
 	Id:                "id",
-	Name:              "name",
+	Player:            "player",
+	Season:            "season",
 	Points:            "points",
-	CellsPassed:       "cellsPassed",
-	IsInJail:          "isInJail",
-	DropsInARow:       "dropsInARow",
-	MaxInventorySlots: "maxInventorySlots",
-	ItemWheelsCount:   "itemWheelsCount",
 	Balance:           "balance",
+	CellsPassed:       "cells_passed",
+	IsInJail:          "is_in_jail",
+	DropsInARow:       "drops_in_a_row",
+	ItemWheelsCount:   "item_wheels_count",
+	MaxInventorySlots: "max_inventory_slots",
 	Stats:             "stats",
 	ClearStats:        "clear_stats",
-	Twitch:            "twitch",
-	YouTube:           "youtube",
-	YouTubeChannelId:  "youtube_channel_id",
-	IsStreamLive:      "is_stream_live",
+}
+
+var SeasonSchema = struct {
+	Id              string
+	Name            string
+	Slug            string
+	SeasonDateStart string
+	SeasonDateEnd   string
+}{
+	Id:              "id",
+	Name:            "name",
+	Slug:            "slug",
+	SeasonDateStart: "season_date_start",
+	SeasonDateEnd:   "season_date_end",
 }
 
 var ActionSchema = struct {
 	Id                   string
-	User                 string
+	Player               string
 	Cell                 string
 	Type                 string
 	Activity             string
 	Comment              string
-	DiceRoll             string
+	CellsPassed          string
 	ItemsList            string
 	UsedItems            string
 	CanMove              string
 	CustomActivityFilter string
 }{
 	Id:                   "id",
-	User:                 "user",
+	Player:               "player",
 	Cell:                 "cell",
 	Type:                 "type",
 	Activity:             "activity",
 	Comment:              "comment",
-	DiceRoll:             "diceRoll",
+	CellsPassed:          "cells_passed",
 	ItemsList:            "items_list",
 	UsedItems:            "used_items",
 	CanMove:              "can_move",
@@ -153,17 +180,17 @@ var HowLongToBeatSchema = struct {
 var InventorySchema = struct {
 	Id             string
 	Activated      string
-	User           string
+	Player         string
 	Item           string
 	IsActive       string
 	AppliedEffects string
 }{
 	Id:             "id",
 	Activated:      "activated",
-	User:           "user",
+	Player:         "player",
 	Item:           "item",
-	IsActive:       "isActive",
-	AppliedEffects: "appliedEffects",
+	IsActive:       "is_active",
+	AppliedEffects: "applied_effects",
 }
 
 var ItemSchema = struct {
@@ -185,13 +212,25 @@ var ItemSchema = struct {
 	Icon:              "icon",
 	Effects:           "effects",
 	Order:             "order",
-	IsUsingSlot:       "isUsingSlot",
-	IsActiveByDefault: "isActiveByDefault",
-	CanDrop:           "canDrop",
-	IsRollable:        "isRollable",
+	IsUsingSlot:       "is_using_slot",
+	IsActiveByDefault: "is_active_by_default",
+	CanDrop:           "can_drop",
+	IsRollable:        "is_rollable",
 	Description:       "description",
 	Type:              "type",
 	Price:             "price",
+}
+
+var EffectSchema = struct {
+	Id    string
+	Name  string
+	Type  string
+	Value string
+}{
+	Id:    "id",
+	Name:  "name",
+	Type:  "type",
+	Value: "value",
 }
 
 var CellSchema = struct {
@@ -226,23 +265,22 @@ var CellSchema = struct {
 	Coins:                    "coins",
 	Description:              "description",
 	Color:                    "color",
-	CantDrop:                 "cantDrop",
-	CantReroll:               "cantReroll",
-	IsSafeDrop:               "isSafeDrop",
+	CantDrop:                 "cant_drop",
+	CantReroll:               "cant_reroll",
+	IsSafeDrop:               "is_safe_drop",
 	IsCustomFilterNotAllowed: "is_custom_filter_not_allowed",
 	IsChangeGameNotAllowed:   "is_change_game_not_allowed",
 	Value:                    "value",
 }
 
 var SettingsSchema = struct {
-	EventEnded         string
-	EventDateStart     string
-	CurrentWeek        string
-	TimerTimeLimit     string
-	LimitExceedPenalty string
-	BlockAllActions    string
-	PointsForDrop      string
-	DropsToJail        string
+	EventEnded        string
+	CurrentSeason     string
+	CurrentWeek       string
+	BlockAllActions   string
+	MaxInventorySlots string
+	PointsForDrop     string
+	DropsToJail       string
 
 	IgdbGamesParsed         string
 	DisableIgdbParser       string
@@ -254,13 +292,12 @@ var SettingsSchema = struct {
 	IgdbForceUpdateGames    string
 }{
 	EventEnded:              "event_ended",
-	EventDateStart:          "eventDateStart",
-	CurrentWeek:             "currentWeek",
-	TimerTimeLimit:          "timerTimeLimit",
-	LimitExceedPenalty:      "limitExceedPenalty",
-	BlockAllActions:         "blockAllActions",
-	PointsForDrop:           "pointsForDrop",
-	DropsToJail:             "dropsToJail",
+	CurrentSeason:           "current_season",
+	CurrentWeek:             "current_week",
+	BlockAllActions:         "block_all_actions",
+	MaxInventorySlots:       "max_inventory_slots",
+	PointsForDrop:           "points_for_drop",
+	DropsToJail:             "drops_to_jail",
 	IgdbGamesParsed:         "igdb_games_parsed",
 	DisableIgdbParser:       "disable_igdb_parser",
 	DisableSteamParser:      "disable_steam_parser",
@@ -269,22 +306,6 @@ var SettingsSchema = struct {
 	DisableRefreshHltbTime:  "disable_refresh_hltb_time",
 	KillParser:              "kill_parser",
 	IgdbForceUpdateGames:    "igdb_force_update_games",
-}
-
-var TimerSchema = struct {
-	Id         string
-	User       string
-	IsActive   string
-	TimePassed string
-	TimeLimit  string
-	StartTime  string
-}{
-	Id:         "id",
-	User:       "user",
-	IsActive:   "isActive",
-	TimePassed: "timePassed",
-	TimeLimit:  "timeLimit",
-	StartTime:  "startTime",
 }
 
 var ActivitiesPlatformsSchema = struct {
@@ -345,4 +366,28 @@ var ActivitiesThemesSchema = struct {
 	Id:       "id",
 	Activity: "activity",
 	Theme:    "theme",
+}
+
+var TagSchema = struct {
+	Id       string
+	IdDb     string
+	Name     string
+	Checksum string
+}{
+	Id:       "id",
+	IdDb:     "id_db",
+	Name:     "name",
+	Checksum: "checksum",
+}
+
+var GenreSchema = struct {
+	Id       string
+	IdDb     string
+	Name     string
+	Checksum string
+}{
+	Id:       "id",
+	IdDb:     "id_db",
+	Name:     "name",
+	Checksum: "checksum",
 }

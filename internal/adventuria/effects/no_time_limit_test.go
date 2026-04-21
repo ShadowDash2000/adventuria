@@ -30,22 +30,22 @@ func Test_NoTimeLimit(t *testing.T) {
 	ctx := adventuria.AppContext{
 		App: adventuria.PocketBase,
 	}
-	user, err := adventuria.GameUsers.GetByName(ctx, "user1")
+	play, err := adventuria.GamePlayers.GetByName(ctx, "player1")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = user.Inventory().AddItemById(ctx, item.Id)
+	_, err = play.Inventory().AddItemById(ctx, item.Id)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = user.Move(ctx, 1)
+	_, err = play.Move(ctx, 1)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	filter, err := user.LastAction().CustomActivityFilter()
+	filter, err := play.LastAction().CustomActivityFilter()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -72,12 +72,12 @@ func createNoTimeLimitItem() (*core.Record, error) {
 	}
 
 	record := core.NewRecord(adventuria.GameCollections.Get(schema.CollectionItems))
-	record.Set("name", "No Time Limit")
-	record.Set("effects", []string{effectRecord.Id})
-	record.Set("icon", icon)
-	record.Set("isUsingSlot", true)
-	record.Set("canDrop", true)
-	record.Set("isActiveByDefault", true)
+	record.Set(schema.ItemSchema.Name, "No Time Limit")
+	record.Set(schema.ItemSchema.Effects, []string{effectRecord.Id})
+	record.Set(schema.ItemSchema.Icon, icon)
+	record.Set(schema.ItemSchema.IsUsingSlot, true)
+	record.Set(schema.ItemSchema.CanDrop, true)
+	record.Set(schema.ItemSchema.IsActiveByDefault, true)
 
 	err = adventuria.PocketBase.Save(record)
 	if err != nil {
@@ -89,8 +89,8 @@ func createNoTimeLimitItem() (*core.Record, error) {
 
 func createNoTimeLimitEffect() (*core.Record, error) {
 	record := core.NewRecord(adventuria.GameCollections.Get(schema.CollectionEffects))
-	record.Set("name", "No Time Limit")
-	record.Set("type", "noTimeLimit")
+	record.Set(schema.EffectSchema.Name, "No Time Limit")
+	record.Set(schema.EffectSchema.Type, "noTimeLimit")
 	err := adventuria.PocketBase.Save(record)
 	if err != nil {
 		return nil, err
