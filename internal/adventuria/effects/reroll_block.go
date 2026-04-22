@@ -30,10 +30,6 @@ func (ef *RerollBlockedEffect) Subscribe(
 	}, nil
 }
 
-func (ef *RerollBlockedEffect) Verify(_ adventuria.AppContext, _ string) error {
-	return nil
-}
-
 func (ef *RerollBlockedEffect) GetVariants(_ adventuria.AppContext, _ adventuria.EffectContext) any {
 	return nil
 }

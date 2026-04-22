@@ -7,6 +7,8 @@ import (
 	"strconv"
 )
 
+var _ adventuria.EffectVerifiable = (*DiceIncrementEffect)(nil)
+
 type DiceIncrementEffect struct {
 	adventuria.EffectRecord
 }

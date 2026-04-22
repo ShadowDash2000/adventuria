@@ -36,10 +36,6 @@ func (c *CellShop) OnCellLeft(_ *adventuria.CellLeftContext) error {
 	return nil
 }
 
-func (c *CellShop) Verify(_ adventuria.AppContext, _ string) error {
-	return nil
-}
-
 func (c *CellShop) refreshItems(ctx adventuria.AppContext, player adventuria.Player) error {
 	var records []*core.Record
 	err := ctx.App.RecordQuery(adventuria.GameCollections.Get(schema.CollectionItems)).

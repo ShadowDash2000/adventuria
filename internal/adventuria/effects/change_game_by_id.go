@@ -7,6 +7,8 @@ import (
 	"adventuria/pkg/result"
 )
 
+var _ adventuria.EffectVerifiable = (*ChangeGameByIdEffect)(nil)
+
 type ChangeGameByIdEffect struct {
 	adventuria.EffectRecord
 }

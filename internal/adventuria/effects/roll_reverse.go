@@ -29,10 +29,6 @@ func (ef *RollReverseEffect) Subscribe(
 	}, nil
 }
 
-func (ef *RollReverseEffect) Verify(_ adventuria.AppContext, _ string) error {
-	return nil
-}
-
 func (ef *RollReverseEffect) GetVariants(_ adventuria.AppContext, _ adventuria.EffectContext) any {
 	return nil
 }

@@ -7,6 +7,8 @@ import (
 	"strconv"
 )
 
+var _ adventuria.EffectVerifiable = (*CellPointsDivideEffect)(nil)
+
 type CellPointsDivideEffect struct {
 	adventuria.EffectRecord
 }

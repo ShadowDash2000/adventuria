@@ -67,10 +67,6 @@ func (ef *TeleportToRandomCellEffect) Subscribe(
 	}, nil
 }
 
-func (ef *TeleportToRandomCellEffect) Verify(_ adventuria.AppContext, _ string) error {
-	return nil
-}
-
 func (ef *TeleportToRandomCellEffect) GetVariants(_ adventuria.AppContext, _ adventuria.EffectContext) any {
 	return nil
 }

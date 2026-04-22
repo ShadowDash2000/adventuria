@@ -10,6 +10,8 @@ import (
 	"strings"
 )
 
+var _ adventuria.EffectVerifiable = (*PaidMovementInRadiusEffect)(nil)
+
 type PaidMovementInRadiusEffect struct {
 	adventuria.EffectRecord
 }

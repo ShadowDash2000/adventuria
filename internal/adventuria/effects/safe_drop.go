@@ -40,10 +40,6 @@ func (ef *SafeDropEffect) Subscribe(
 	}, nil
 }
 
-func (ef *SafeDropEffect) Verify(_ adventuria.AppContext, _ string) error {
-	return nil
-}
-
 func (ef *SafeDropEffect) GetVariants(_ adventuria.AppContext, _ adventuria.EffectContext) any {
 	return nil
 }

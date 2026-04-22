@@ -9,6 +9,8 @@ import (
 	"strings"
 )
 
+var _ adventuria.EffectVerifiable = (*ChangeDicesEffect)(nil)
+
 type ChangeDicesEffect struct {
 	adventuria.EffectRecord
 }

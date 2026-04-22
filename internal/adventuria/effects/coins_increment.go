@@ -10,6 +10,8 @@ import (
 	"strings"
 )
 
+var _ adventuria.EffectVerifiable = (*CoinsIncrementEffect)(nil)
+
 type CoinsIncrementEffect struct {
 	adventuria.EffectRecord
 }

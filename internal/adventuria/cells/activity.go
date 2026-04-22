@@ -22,10 +22,6 @@ func NewCellActivity(activityType adventuria.ActivityType) adventuria.CellCreato
 	}
 }
 
-func (c *CellActivity) Verify(_ adventuria.AppContext, _ string) error {
-	return nil
-}
-
 func (c *CellActivity) Roll(ctx adventuria.AppContext, player adventuria.Player, _ adventuria.RollWheelRequest) (*adventuria.WheelRollResult, error) {
 	items, err := player.LastAction().ItemsList()
 	if err != nil {

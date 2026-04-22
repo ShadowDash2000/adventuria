@@ -43,8 +43,8 @@ func Test_CellPointsDivide(t *testing.T) {
 	const points = 100
 	player.Progress().AddPoints(points)
 
-	if err = ctx.App.Save(player.ProxyRecord()); err != nil {
-		t.Fatalf("Test_Buy(): Error saving player: %s", err)
+	if err = ctx.App.Save(player.Progress().ProxyRecord()); err != nil {
+		t.Fatalf("Test_Buy(): Error saving player's progress: %s", err)
 	}
 
 	invItemId, err := player.Inventory().AddItemById(ctx, item.Id)

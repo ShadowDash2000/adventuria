@@ -13,6 +13,8 @@ import (
 	"github.com/pocketbase/dbx"
 )
 
+var _ adventuria.EffectVerifiable = (*AddRandomItemToInventoryEffect)(nil)
+
 type AddRandomItemToInventoryEffect struct {
 	adventuria.EffectRecord
 }

@@ -10,6 +10,7 @@ type CellType string
 
 type Cell interface {
 	core.RecordProxy
+
 	ID() string
 	Disabled() bool
 	Sort() int
@@ -31,9 +32,10 @@ type Cell interface {
 	IsSafeDrop() bool
 	IsCustomFilterNotAllowed() bool
 	IsChangeGameNotAllowed() bool
+
 	OnCellReached(*CellReachedContext) error
 	OnCellLeft(*CellLeftContext) error
-	Verify(AppContext, string) error
+
 	Value() string
 	UnmarshalValue(result any) error
 }

@@ -29,8 +29,8 @@ func (cf *CellVerifier) bindHooks(ctx AppContext) {
 }
 
 func (cf *CellVerifier) Verify(ctx AppContext, record *core.Record) error {
-	cellType := record.GetString("type")
-	cellValue := record.GetString("value")
+	cellType := record.GetString(schema.CellSchema.Type)
+	cellValue := record.GetString(schema.CellSchema.Value)
 
 	cellCreator, ok := cellsList[CellType(cellType)]
 	if !ok {
@@ -38,6 +38,15 @@ func (cf *CellVerifier) Verify(ctx AppContext, record *core.Record) error {
 	}
 
 	cell := cellCreator.New(record)
+	cellVerifiable, ok := cell.(CellVerifiable)
 
-	return cell.Verify(ctx, cellValue)
+	if !ok {
+		// cellValue is JSON value so we need to check those empty values
+		if cellValue == "\"\"" || cellValue == "null" {
+			return nil
+		}
+		return errors.New("cell type is not verifiable")
+	}
+
+	return cellVerifiable.Verify(ctx, cellValue)
 }

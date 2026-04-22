@@ -107,10 +107,6 @@ func (ef *NoTimeLimitEffect) tryToApplyEffect(ctx adventuria.AppContext, player 
 	return result.Ok(), nil
 }
 
-func (ef *NoTimeLimitEffect) Verify(_ adventuria.AppContext, _ string) error {
-	return nil
-}
-
 func (ef *NoTimeLimitEffect) GetVariants(_ adventuria.AppContext, _ adventuria.EffectContext) any {
 	return nil
 }

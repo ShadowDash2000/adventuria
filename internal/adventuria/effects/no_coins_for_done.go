@@ -27,10 +27,6 @@ func (ef *NoCoinsForDoneEffect) Subscribe(
 	}, nil
 }
 
-func (ef *NoCoinsForDoneEffect) Verify(_ adventuria.AppContext, _ string) error {
-	return nil
-}
-
 func (ef *NoCoinsForDoneEffect) GetVariants(_ adventuria.AppContext, _ adventuria.EffectContext) any {
 	return nil
 }

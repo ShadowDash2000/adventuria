@@ -41,8 +41,8 @@ func Test_JailEscape(t *testing.T) {
 	}
 
 	player.Progress().SetIsInJail(true)
-	if err = ctx.App.Save(player.ProxyRecord()); err != nil {
-		t.Fatalf("Test_Buy(): Error saving player: %s", err)
+	if err = ctx.App.Save(player.Progress().ProxyRecord()); err != nil {
+		t.Fatalf("Test_Buy(): Error saving player's progress: %s", err)
 	}
 
 	_, err = game.UseItem(ctx.App, player.ID(), adventuria.UseItemRequest{InvItemId: invItemId})

@@ -10,6 +10,7 @@ import (
 )
 
 var _ adventuria.CellRefreshable = (*CellCasino)(nil)
+var _ adventuria.CellVerifiable = (*CellCasino)(nil)
 
 type CellCasino struct {
 	adventuria.CellRecord

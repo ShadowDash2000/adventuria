@@ -10,6 +10,8 @@ import (
 	"strconv"
 )
 
+var _ adventuria.EffectVerifiable = (*ChangeMinGamePriceEffect)(nil)
+
 type ChangeMinGamePriceEffect struct {
 	adventuria.EffectRecord
 }

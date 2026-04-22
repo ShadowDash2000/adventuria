@@ -12,6 +12,8 @@ import (
 	"github.com/pocketbase/dbx"
 )
 
+var _ adventuria.EffectVerifiable = (*AddItemsToInventoryEffect)(nil)
+
 type AddItemsToInventoryEffect struct {
 	adventuria.EffectRecord
 }

@@ -21,24 +21,31 @@ func NewEffectVerifier(ctx AppContext) *EffectVerifier {
 
 func (ef *EffectVerifier) bindHooks(ctx AppContext) {
 	ctx.App.OnRecordValidate(schema.CollectionEffects).BindFunc(func(e *core.RecordEvent) error {
-		if err := ef.Verify(
-			AppContext{App: e.App},
-			e.Record.GetString("type"),
-			e.Record.GetString("value"),
-		); err != nil {
+		if err := ef.Verify(AppContext{App: e.App}, e.Record); err != nil {
 			return err
 		}
 		return e.Next()
 	})
 }
 
-func (ef *EffectVerifier) Verify(ctx AppContext, effectType, value string) error {
+func (ef *EffectVerifier) Verify(ctx AppContext, record *core.Record) error {
+	effectType := record.GetString(schema.EffectSchema.Type)
+	effectValue := record.GetString(schema.EffectSchema.Value)
+
 	effectCreator, ok := effectsList[effectType]
 	if !ok {
 		return errors.New("unknown effect type")
 	}
 
 	effect := effectCreator(core.NewRecord(GameCollections.Get(schema.CollectionEffects)))
+	effectVerifiable, ok := effect.(EffectVerifiable)
 
-	return effect.Verify(ctx, value)
+	if !ok {
+		if effectValue == "" {
+			return nil
+		}
+		return errors.New("effect type is not verifiable")
+	}
+
+	return effectVerifiable.Verify(ctx, effectValue)
 }

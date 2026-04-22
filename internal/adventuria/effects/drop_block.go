@@ -30,10 +30,6 @@ func (ef *DropBlockedEffect) Subscribe(
 	}, nil
 }
 
-func (ef *DropBlockedEffect) Verify(_ adventuria.AppContext, _ string) error {
-	return nil
-}
-
 func (ef *DropBlockedEffect) GetVariants(_ adventuria.AppContext, _ adventuria.EffectContext) any {
 	return nil
 }

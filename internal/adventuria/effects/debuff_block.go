@@ -29,10 +29,6 @@ func (ef *DebuffBlockEffect) Subscribe(
 	}, nil
 }
 
-func (ef *DebuffBlockEffect) Verify(_ adventuria.AppContext, _ string) error {
-	return nil
-}
-
 func (ef *DebuffBlockEffect) GetVariants(_ adventuria.AppContext, _ adventuria.EffectContext) any {
 	return nil
 }

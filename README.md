@@ -61,7 +61,7 @@ IGDB_PARSE_FILTER="game_type = 0 & platforms = (6)"
 
 ## Предметы и эффекты 📦✨
 
-Предметы в игре представляют собой набор эффектов, которые подписываются на события игроков (`user`).
+Предметы в игре представляют собой набор эффектов, которые подписываются на события игроков (`player`).
 Существует множество готовых эффектов, имплементация которых лежит здесь: `internal/adventuria/effects`
 
 Для реализации своего эффекта структура должна имплементировать интерфейс `Effect internal/adventuria/effect.go`.
@@ -72,9 +72,10 @@ adventuria.RegisterEffects(map[string]adventuria.EffectCreator{
 })
 ```
 
-Эффектам не желательно самостоятельно сохранять `user`, так как цепочка эффектов
-может состоять из более, чем одного эффекта. Для этого в конце действия пользователя
-приложение само вызывает сохранение полей `user` и его `lastAction`.
+В большинстве случаев эффектам не нужно самостоятельно вызывать сохранение данных `player`, так как в конце каждого
+действия `action` вызывается сохранение `player.progress` и его `player.lastAction`.
+Есть случаи, когда эффект создаёт новое действие, поэтому ему нужно самостоятельно вызвать сохранение
+`player.lasAction`.
 
 ## Клетки ♿
 
@@ -85,14 +86,14 @@ adventuria.RegisterEffects(map[string]adventuria.EffectCreator{
 OnCellReached(*CellReachedContext) error
 // Вызывается в момент, когда игрок покидает клетку
 OnCellLeft(*CellLeftContext) error
-// Вызывается при сохранении клетки в PocketBase для проверки значения в поле "value"
+// Опционально: Вызывается при сохранении клетки в PocketBase для проверки значения в поле "value"
 Verify(string) error
 ```
-В клетках можно вызывать сохранение `user` и `lastAction`, если на то есть причина. Например, если клетке нужно
+В клетках можно вызывать сохранение `player.progress` и `player.lastAction`, если на то есть причина. Например, если клетке нужно
 создать новый ход, то это можно сделать таким образом:
 
 ```go
-action := user.LastAction()
+action := player.LastAction()
 action.SetType("SOME_ACTION_TYPE")
 err := adventuria.PocketBase.Save(action.ProxyRecord())
 if err != nil {
@@ -102,11 +103,11 @@ if err != nil {
 action.MarkAsNew()
 ```
 
-После выполнения `OnCellReached` и `OnCellLeft`, так же сохраняются поля `user` и его `lastAction`.
+После выполнения `OnCellReached` и `OnCellLeft`, так же сохраняются поля `player.progress` и его `player.lastAction`.
 
 > [!WARNING]
 > Если клетка не представляет собой цепочку вызова `action`, то в `OnCellReached` обязательно нужно
-> вызывать `user.LastAction().SetCanMove(true)` для того, чтобы игрок мог идти дальше.
+> вызывать `player.LastAction().SetCanMove(true)` для того, чтобы игрок мог идти дальше.
 
 ## Действия 🎲
 
@@ -123,7 +124,7 @@ Do(ActionContext, ActionRequest) (*ActionResult, error)
 GetVariants(ActionContext) any
 ```
 
-После выполнения `Do()` так же, вызывается сохранение `user` и его `lastAction`.
+После выполнения `Do()` так же, вызывается сохранение `player.progress` и его `player.lastAction`.
 
 ## Тестирование 🔧
 

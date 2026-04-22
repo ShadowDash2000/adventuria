@@ -9,6 +9,8 @@ import (
 	"github.com/pocketbase/dbx"
 )
 
+var _ adventuria.CellVerifiable = (*CellTeleport)(nil)
+
 type CellTeleport struct {
 	adventuria.CellRecord
 }

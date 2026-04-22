@@ -8,6 +8,8 @@ import (
 	"strconv"
 )
 
+var _ adventuria.EffectVerifiable = (*DropPointsDivideEffect)(nil)
+
 type DropPointsDivideEffect struct {
 	adventuria.EffectRecord
 }

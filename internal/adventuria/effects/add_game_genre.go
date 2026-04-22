@@ -107,10 +107,6 @@ func (ef *AddGameGenreEffect) Subscribe(
 	}, nil
 }
 
-func (ef *AddGameGenreEffect) Verify(_ adventuria.AppContext, _ string) error {
-	return nil
-}
-
 func (ef *AddGameGenreEffect) GetVariants(_ adventuria.AppContext, _ adventuria.EffectContext) any {
 	return nil
 }

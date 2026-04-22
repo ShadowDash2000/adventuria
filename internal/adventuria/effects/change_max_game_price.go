@@ -12,6 +12,8 @@ import (
 	"strings"
 )
 
+var _ adventuria.EffectVerifiable = (*ChangeMaxGamePriceEffect)(nil)
+
 type ChangeMaxGamePriceEffect struct {
 	adventuria.EffectRecord
 }

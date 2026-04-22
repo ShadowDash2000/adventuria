@@ -8,6 +8,8 @@ import (
 	"strconv"
 )
 
+var _ adventuria.EffectVerifiable = (*DiscountPriceDivideEffect)(nil)
+
 type DiscountPriceDivideEffect struct {
 	adventuria.EffectRecord
 }

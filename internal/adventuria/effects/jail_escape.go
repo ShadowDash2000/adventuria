@@ -33,10 +33,6 @@ func (ef *JailEscapeEffect) Subscribe(
 	}, nil
 }
 
-func (ef *JailEscapeEffect) Verify(_ adventuria.AppContext, _ string) error {
-	return nil
-}
-
 func (ef *JailEscapeEffect) GetVariants(_ adventuria.AppContext, _ adventuria.EffectContext) any {
 	return nil
 }

@@ -11,6 +11,7 @@ import (
 )
 
 var _ adventuria.CellWheel = (*CellRollItem)(nil)
+var _ adventuria.CellVerifiable = (*CellRollItem)(nil)
 
 type CellRollItem struct {
 	adventuria.CellRecord

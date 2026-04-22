@@ -13,6 +13,8 @@ import (
 	"github.com/pocketbase/dbx"
 )
 
+var _ adventuria.EffectVerifiable = (*TeleportToRandomCellByNameEffect)(nil)
+
 type TeleportToRandomCellByNameEffect struct {
 	adventuria.EffectRecord
 }

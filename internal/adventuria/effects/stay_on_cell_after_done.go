@@ -62,10 +62,6 @@ func (ef *StayOnCellAfterDoneEffect) Subscribe(
 	}, nil
 }
 
-func (ef *StayOnCellAfterDoneEffect) Verify(_ adventuria.AppContext, _ string) error {
-	return nil
-}
-
 func (ef *StayOnCellAfterDoneEffect) GetVariants(_ adventuria.AppContext, _ adventuria.EffectContext) any {
 	return nil
 }

@@ -10,6 +10,8 @@ import (
 	"strings"
 )
 
+var _ adventuria.EffectVerifiable = (*TeleportToRandomCellByTypeEffect)(nil)
+
 type TeleportToRandomCellByTypeEffect struct {
 	adventuria.EffectRecord
 }

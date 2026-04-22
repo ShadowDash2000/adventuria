@@ -9,6 +9,8 @@ import (
 	"strings"
 )
 
+var _ adventuria.EffectVerifiable = (*CoinsForAllEffect)(nil)
+
 type CoinsForAllEffect struct {
 	adventuria.EffectRecord
 }
@@ -43,7 +45,7 @@ func (ef *CoinsForAllEffect) Subscribe(
 
 					player.Lock()
 					player.Progress().AddBalance(decodedValue.CoinsForOther)
-					err = e.App.Save(player.ProxyRecord())
+					err = e.App.Save(player.Progress().ProxyRecord())
 					if err != nil {
 						player.Unlock()
 						return result.Err("internal error: failed to save player"), err

@@ -7,6 +7,8 @@ import (
 	"strconv"
 )
 
+var _ adventuria.EffectVerifiable = (*ReplaceDiceRollEffect)(nil)
+
 type ReplaceDiceRollEffect struct {
 	adventuria.EffectRecord
 }

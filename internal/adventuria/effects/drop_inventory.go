@@ -36,10 +36,6 @@ func (ef *DropInventoryEffect) Subscribe(
 	}, nil
 }
 
-func (ef *DropInventoryEffect) Verify(_ adventuria.AppContext, _ string) error {
-	return nil
-}
-
 func (ef *DropInventoryEffect) GetVariants(_ adventuria.AppContext, _ adventuria.EffectContext) any {
 	return nil
 }

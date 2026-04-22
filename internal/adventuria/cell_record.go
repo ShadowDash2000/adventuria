@@ -103,6 +103,7 @@ func (c *CellRecord) IsChangeGameNotAllowed() bool {
 func (c *CellRecord) Value() string {
 	return c.GetString(schema.CellSchema.Value)
 }
+
 func (c *CellRecord) UnmarshalValue(result any) error {
 	return c.UnmarshalJSONField(schema.CellSchema.Value, result)
 }

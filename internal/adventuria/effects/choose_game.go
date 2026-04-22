@@ -47,10 +47,6 @@ func (ef *ChooseGameEffect) Subscribe(
 	}, nil
 }
 
-func (ef *ChooseGameEffect) Verify(_ adventuria.AppContext, _ string) error {
-	return nil
-}
-
 func (ef *ChooseGameEffect) GetVariants(_ adventuria.AppContext, _ adventuria.EffectContext) any {
 	return nil
 }

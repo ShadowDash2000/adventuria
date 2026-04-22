@@ -8,6 +8,8 @@ import (
 	"slices"
 )
 
+var _ adventuria.EffectVerifiable = (*GoToJailEffect)(nil)
+
 type GoToJailEffect struct {
 	adventuria.EffectRecord
 }

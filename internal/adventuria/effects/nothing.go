@@ -8,6 +8,8 @@ import (
 	"slices"
 )
 
+var _ adventuria.EffectVerifiable = (*NothingEffect)(nil)
+
 type NothingEffect struct {
 	adventuria.EffectRecord
 }

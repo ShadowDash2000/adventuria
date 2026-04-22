@@ -41,10 +41,6 @@ func (ef *SaveFromHoleEffect) Subscribe(
 	}, nil
 }
 
-func (ef *SaveFromHoleEffect) Verify(_ adventuria.AppContext, _ string) error {
-	return nil
-}
-
 func (ef *SaveFromHoleEffect) GetVariants(_ adventuria.AppContext, _ adventuria.EffectContext) any {
 	return nil
 }

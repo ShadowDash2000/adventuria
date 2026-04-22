@@ -7,6 +7,8 @@ import (
 	"strconv"
 )
 
+var _ adventuria.EffectVerifiable = (*DiceMultiplierEffect)(nil)
+
 type DiceMultiplierEffect struct {
 	adventuria.EffectRecord
 }

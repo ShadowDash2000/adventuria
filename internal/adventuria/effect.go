@@ -15,7 +15,6 @@ type Effect interface {
 	Type() string
 	CanUse(AppContext, EffectContext) bool
 	Subscribe(EffectContext, EffectCallback) ([]event.Unsubscribe, error)
-	Verify(AppContext, string) error
 	GetVariants(AppContext, EffectContext) any
 }
 

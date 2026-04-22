@@ -46,9 +46,6 @@ func (ef *ReturnToPrevCellEffect) Subscribe(
 	}, nil
 }
 
-func (ef *ReturnToPrevCellEffect) Verify(_ adventuria.AppContext, _ string) error {
-	return nil
-}
 func (ef *ReturnToPrevCellEffect) GetVariants(_ adventuria.AppContext, _ adventuria.EffectContext) any {
 	return nil
 }
