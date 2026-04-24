@@ -16,6 +16,7 @@ type Cell interface {
 	Sort() int
 	Type() CellType
 	setType(CellType)
+	World() string
 	Categories() []string
 	InCategory(string) bool
 	InCategories([]string) bool

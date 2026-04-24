@@ -12,6 +12,8 @@ type PlayerProgress interface {
 	Player() string
 	SetPlayer(playerId string)
 	Season() string
+	CurrentWorld() string
+	SetCurrentWorld(worldId string)
 	SetSeason(seasonId string)
 	Points() int
 	AddPoints(amount int)
@@ -21,6 +23,7 @@ type PlayerProgress interface {
 	SetDropsInARow(amount int)
 	CellsPassed() int
 	addCellsPassed(amount int)
+	setCellsPassed(amount int)
 	IsInJail() bool
 	SetIsInJail(b bool)
 	ItemWheelsCount() int
@@ -32,4 +35,5 @@ type PlayerProgress interface {
 	IsSafeDrop() bool
 	CurrentCell() (Cell, bool)
 	CurrentCellOrder() int
+	GlobalCurrentCellOrder() int
 }

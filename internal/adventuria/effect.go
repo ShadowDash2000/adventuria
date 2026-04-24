@@ -21,6 +21,7 @@ type Effect interface {
 type EffectContext struct {
 	Player    Player
 	InvItemID string
+	Priority  int
 }
 
 type PersistentEffect interface {

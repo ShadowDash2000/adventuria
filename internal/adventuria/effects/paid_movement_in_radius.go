@@ -2,6 +2,7 @@ package effects
 
 import (
 	"adventuria/internal/adventuria"
+	"adventuria/internal/adventuria/schema"
 	"adventuria/pkg/event"
 	"adventuria/pkg/result"
 	"errors"
@@ -65,7 +66,7 @@ func (ef *PaidMovementInRadiusEffect) Subscribe(
 							errors.New("paidMovementInRadius: current cell not found")
 					}
 
-					distance, ok := adventuria.GameCells.GetDistanceByIds(currentCell.ID(), cellId)
+					distance, ok := adventuria.GameCells.GetDistanceByIds(currentCell.World(), currentCell.ID(), cellId)
 					if !ok {
 						return result.Err("destination cell not found"), nil
 					}
@@ -99,8 +100,9 @@ func (ef *PaidMovementInRadiusEffect) Verify(_ adventuria.AppContext, value stri
 }
 
 func (ef *PaidMovementInRadiusEffect) GetVariants(_ adventuria.AppContext, ctx adventuria.EffectContext) any {
-	value, _ := ef.DecodeValue(ef.GetString("value"))
+	value, _ := ef.DecodeValue(ef.GetString(schema.EffectSchema.Value))
 	currentCellOrder := ctx.Player.Progress().CurrentCellOrder()
+	currentWorldId := ctx.Player.Progress().CurrentWorld()
 
 	var variants []any
 
@@ -110,8 +112,8 @@ func (ef *PaidMovementInRadiusEffect) GetVariants(_ adventuria.AppContext, ctx a
 	}
 
 	endOrder := currentCellOrder + value.Radius
-	if endOrder > adventuria.GameCells.Count()-1 {
-		endOrder = adventuria.GameCells.Count() - 1
+	if endOrder > adventuria.GameCells.Count(currentWorldId)-1 {
+		endOrder = adventuria.GameCells.Count(currentWorldId) - 1
 	}
 
 	for i := startOrder; i <= endOrder; i++ {
@@ -119,7 +121,7 @@ func (ef *PaidMovementInRadiusEffect) GetVariants(_ adventuria.AppContext, ctx a
 			continue
 		}
 
-		if cell, ok := adventuria.GameCells.GetByOrder(i); ok {
+		if cell, ok := adventuria.GameCells.GetByOrder(currentWorldId, i); ok {
 			variants = append(variants, cell)
 		}
 	}

@@ -25,13 +25,13 @@ func (ef *SaveFromHoleEffect) Subscribe(
 				return e.Next()
 			}
 
-			targetCellOrder, ok := adventuria.GameCells.GetOrderByName(e.CellName)
+			targetCellOrder, ok := adventuria.GameCells.GetGlobalOrderById(e.CellId)
 			if !ok {
 				return result.Err("internal error: target cell not found"),
 					errors.New("saveFromHole: current cell not found")
 			}
 
-			if targetCellOrder < ctx.Player.Progress().CurrentCellOrder() {
+			if targetCellOrder < ctx.Player.Progress().GlobalCurrentCellOrder() {
 				e.SkipTeleport = true
 				callback(e.AppContext)
 			}

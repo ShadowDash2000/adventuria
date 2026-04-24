@@ -32,7 +32,11 @@ func (p *PlayerProgressBase) init(ctx AppContext, playerId, seasonId string) err
 	}
 
 	if record == nil {
-		record = defaultPlayerProgress(playerId, seasonId)
+		record, err = defaultPlayerProgress(playerId, seasonId)
+		if err != nil {
+			return err
+		}
+
 		err = ctx.App.Save(record)
 		if err != nil {
 			return err
@@ -44,12 +48,18 @@ func (p *PlayerProgressBase) init(ctx AppContext, playerId, seasonId string) err
 	return nil
 }
 
-func defaultPlayerProgress(playerId, seasonId string) *core.Record {
+func defaultPlayerProgress(playerId, seasonId string) (*core.Record, error) {
+	defaultWorld, ok := GameWorlds.GetDefault()
+	if !ok {
+		return nil, errors.New("default world not found")
+	}
+
 	record := core.NewRecord(GameCollections.Get(schema.CollectionPlayersProgress))
 	record.Set(schema.PlayerProgressSchema.Player, playerId)
 	record.Set(schema.PlayerProgressSchema.Season, seasonId)
+	record.Set(schema.PlayerProgressSchema.CurrentWorld, defaultWorld.ID())
 	record.Set(schema.PlayerProgressSchema.MaxInventorySlots, GameSettings.MaxInventorySlots())
-	return record
+	return record, nil
 }
 
 func fetchPlayerProgress(ctx AppContext, playerId, seasonId string) (*core.Record, error) {
@@ -112,6 +122,14 @@ func (p *PlayerProgressBase) SetSeason(seasonId string) {
 	p.Set(schema.PlayerProgressSchema.Season, seasonId)
 }
 
+func (p *PlayerProgressBase) CurrentWorld() string {
+	return p.GetString(schema.PlayerProgressSchema.CurrentWorld)
+}
+
+func (p *PlayerProgressBase) SetCurrentWorld(worldId string) {
+	p.Set(schema.PlayerProgressSchema.CurrentWorld, worldId)
+}
+
 func (p *PlayerProgressBase) Points() int {
 	return p.GetInt(schema.PlayerProgressSchema.Points)
 }
@@ -150,6 +168,10 @@ func (p *PlayerProgressBase) CellsPassed() int {
 
 func (p *PlayerProgressBase) addCellsPassed(amount int) {
 	p.Set(schema.PlayerProgressSchema.CellsPassed+"+", amount)
+}
+
+func (p *PlayerProgressBase) setCellsPassed(amount int) {
+	p.Set(schema.PlayerProgressSchema.CellsPassed, amount)
 }
 
 func (p *PlayerProgressBase) IsInJail() bool {
@@ -194,11 +216,24 @@ func (p *PlayerProgressBase) IsSafeDrop() bool {
 }
 
 func (p *PlayerProgressBase) CurrentCell() (Cell, bool) {
-	currentCellNum := p.CellsPassed() % GameCells.Count()
-	cell, ok := GameCells.GetByOrder(currentCellNum)
+	worldId := p.CurrentWorld()
+	currentCellNum := p.CellsPassed() % GameCells.Count(worldId)
+	cell, ok := GameCells.GetByOrder(worldId, currentCellNum)
 	return cell, ok
 }
 
 func (p *PlayerProgressBase) CurrentCellOrder() int {
-	return mod(p.CellsPassed(), GameCells.Count())
+	return mod(p.CellsPassed(), GameCells.Count(p.CurrentWorld()))
+}
+
+func (p *PlayerProgressBase) GlobalCurrentCellOrder() int {
+	currentCell, ok := p.CurrentCell()
+	if !ok {
+		return 0
+	}
+	currentCellGlobalOrder, ok := GameCells.GetGlobalOrderById(currentCell.ID())
+	if !ok {
+		return 0
+	}
+	return currentCellGlobalOrder
 }

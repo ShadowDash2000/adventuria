@@ -13,10 +13,12 @@ import (
 )
 
 type Cells struct {
-	cells         cache.Cache[string, Cell]
-	cellsOrder    []string
-	cellsIdsOrder map[string]int
-	mx            sync.Mutex
+	cells             cache.Cache[string, Cell]
+	cellsOrder        map[string][]string
+	cellsIdsOrder     map[string]map[string]int
+	cellsFlatOrder    []string
+	cellsFlatIdsOrder map[string]int
+	mx                sync.Mutex
 }
 
 func NewCells(ctx AppContext) (*Cells, error) {
@@ -111,51 +113,96 @@ func (c *Cells) sort() {
 	c.mx.Lock()
 	defer c.mx.Unlock()
 
-	c.cellsOrder = make([]string, 0, c.cells.Count())
+	c.cellsOrder = make(map[string][]string)
 	for _, cell := range c.cells.GetAll() {
-		c.cellsOrder = append(c.cellsOrder, cell.ID())
+		worldId := cell.World()
+		c.cellsOrder[worldId] = append(c.cellsOrder[worldId], cell.ID())
 	}
 
-	sort.Slice(c.cellsOrder, func(i, j int) bool {
-		cell1, _ := c.cells.Get(c.cellsOrder[i])
-		cell2, _ := c.cells.Get(c.cellsOrder[j])
-		return cell1.Sort() < cell2.Sort()
-	})
+	c.cellsIdsOrder = make(map[string]map[string]int)
 
-	c.cellsIdsOrder = make(map[string]int, len(c.cellsOrder))
-	for key, cellId := range c.cellsOrder {
-		c.cellsIdsOrder[cellId] = key
+	for worldId, order := range c.cellsOrder {
+		sort.Slice(order, func(i, j int) bool {
+			cell1, _ := c.cells.Get(order[i])
+			cell2, _ := c.cells.Get(order[j])
+			return cell1.Sort() < cell2.Sort()
+		})
+
+		c.cellsIdsOrder[worldId] = make(map[string]int, len(order))
+		for key, cellId := range order {
+			c.cellsIdsOrder[worldId][cellId] = key
+		}
+	}
+
+	c.cellsFlatOrder = []string{}
+	c.cellsFlatIdsOrder = make(map[string]int)
+
+	for _, world := range GameWorlds.GetAll() {
+		if order, ok := c.cellsOrder[world.ID()]; ok {
+			for _, cellId := range order {
+				c.cellsFlatIdsOrder[cellId] = len(c.cellsFlatOrder)
+				c.cellsFlatOrder = append(c.cellsFlatOrder, cellId)
+			}
+		}
 	}
 }
 
 // GetByOrder
 // Note: cells order starts from 0
-func (c *Cells) GetByOrder(order int) (Cell, bool) {
-	if order < 0 || order >= len(c.cellsOrder) {
+func (c *Cells) GetByOrder(worldId string, order int) (Cell, bool) {
+	orderList, ok := c.cellsOrder[worldId]
+	if !ok {
 		return nil, false
 	}
 
-	if cellId := c.cellsOrder[order]; cellId != "" {
+	if order < 0 || order >= len(orderList) {
+		return nil, false
+	}
+
+	if cellId := orderList[order]; cellId != "" {
 		return c.cells.Get(cellId)
 	}
 	return nil, false
 }
 
+func (c *Cells) GetByGlobalOrder(order int) (Cell, bool) {
+	if order < 0 || order >= len(c.cellsFlatOrder) {
+		return nil, false
+	}
+
+	return c.cells.Get(c.cellsFlatOrder[order])
+}
+
 // GetOrderById
 // Note: cells order starts from 0
-func (c *Cells) GetOrderById(cellId string) (int, bool) {
-	if order, ok := c.cellsIdsOrder[cellId]; ok {
-		return order, true
+func (c *Cells) GetOrderById(worldId, cellId string) (int, bool) {
+	if worldOrders, ok := c.cellsIdsOrder[worldId]; ok {
+		if order, ok := worldOrders[cellId]; ok {
+			return order, true
+		}
 	}
 	return 0, false
 }
 
+func (c *Cells) GetGlobalOrderById(cellId string) (int, bool) {
+	order, ok := c.cellsFlatIdsOrder[cellId]
+	return order, ok
+}
+
+func (c *Cells) Count(worldId string) int {
+	return len(c.cellsOrder[worldId])
+}
+
+func (c *Cells) CountGlobal() int {
+	return len(c.cellsFlatOrder)
+}
+
 // GetOrderByType
 // Note: cells order starts from 0
-func (c *Cells) GetOrderByType(t CellType) iter.Seq[int] {
+func (c *Cells) GetOrderByType(worldId string, t CellType) iter.Seq[int] {
 	return func(yield func(int) bool) {
-		for cell := range c.GetAllByType(t) {
-			order, _ := c.GetOrderById(cell.ID())
+		for cell := range c.GetAllByType(worldId, t) {
+			order, _ := c.GetOrderById(worldId, cell.ID())
 			if !yield(order) {
 				return
 			}
@@ -163,18 +210,25 @@ func (c *Cells) GetOrderByType(t CellType) iter.Seq[int] {
 	}
 }
 
-// GetOrderByName
-// Note: cells order starts from 0
-func (c *Cells) GetOrderByName(n string) (int, bool) {
-	if cell, ok := c.GetByName(n); ok {
-		return c.GetOrderById(cell.ID())
+func (c *Cells) GetGlobalOrderByType(t CellType) iter.Seq[int] {
+	return func(yield func(int) bool) {
+		for cell := range c.GetAllByTypeGlobal(t) {
+			order, _ := c.GetGlobalOrderById(cell.ID())
+			if !yield(order) {
+				return
+			}
+		}
 	}
-	return 0, false
 }
 
-func (c *Cells) GetAllByType(t CellType) iter.Seq[Cell] {
+func (c *Cells) GetAllByType(worldId string, t CellType) iter.Seq[Cell] {
 	return func(yield func(Cell) bool) {
-		for _, cell := range c.cells.GetAll() {
+		orderList, ok := c.cellsOrder[worldId]
+		if !ok {
+			return
+		}
+		for _, cellId := range orderList {
+			cell, _ := c.cells.Get(cellId)
 			if cell.Type() == t {
 				if !yield(cell) {
 					return
@@ -184,9 +238,14 @@ func (c *Cells) GetAllByType(t CellType) iter.Seq[Cell] {
 	}
 }
 
-func (c *Cells) GetAllByTypes(t []CellType) iter.Seq[Cell] {
+func (c *Cells) GetAllByTypes(worldId string, t []CellType) iter.Seq[Cell] {
 	return func(yield func(Cell) bool) {
-		for _, cell := range c.cells.GetAll() {
+		orderList, ok := c.cellsOrder[worldId]
+		if !ok {
+			return
+		}
+		for _, cellId := range orderList {
+			cell, _ := c.cells.Get(cellId)
 			if slices.Contains(t, cell.Type()) {
 				if !yield(cell) {
 					return
@@ -196,31 +255,31 @@ func (c *Cells) GetAllByTypes(t []CellType) iter.Seq[Cell] {
 	}
 }
 
-func (c *Cells) GetByName(n string) (Cell, bool) {
-	for _, cell := range c.cells.GetAll() {
-		if cell.Name() == n {
-			return cell, true
+func (c *Cells) GetAllByTypeGlobal(t CellType) iter.Seq2[Cell, int] {
+	return func(yield func(Cell, int) bool) {
+		for globalOrder, cellId := range c.cellsFlatOrder {
+			cell, _ := c.cells.Get(cellId)
+			if cell.Type() == t {
+				if !yield(cell, globalOrder) {
+					return
+				}
+			}
 		}
 	}
-	return nil, false
 }
 
 func (c *Cells) GetById(id string) (Cell, bool) {
 	return c.cells.Get(id)
 }
 
-func (c *Cells) Count() int {
-	return c.cells.Count()
-}
-
-func (c *Cells) GetDistanceByIds(firstId, secondId string) (int, bool) {
+func (c *Cells) GetDistanceByIds(worldId, firstId, secondId string) (int, bool) {
 	var (
 		firstCellOrder, secondCellOrder int
 		ok                              bool
 	)
-	if firstCellOrder, ok = c.GetOrderById(firstId); !ok {
+	if firstCellOrder, ok = c.GetOrderById(worldId, firstId); !ok {
 		return 0, false
-	} else if secondCellOrder, ok = c.GetOrderById(secondId); !ok {
+	} else if secondCellOrder, ok = c.GetOrderById(worldId, secondId); !ok {
 		return 0, false
 	}
 

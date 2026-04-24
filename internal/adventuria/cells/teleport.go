@@ -16,7 +16,7 @@ type CellTeleport struct {
 }
 
 type cellTeleportValue struct {
-	CellName string `json:"cell_name"`
+	CellId string `json:"cell_id"`
 }
 
 func (c *CellTeleport) OnCellReached(ctx *adventuria.CellReachedContext) error {
@@ -27,7 +27,7 @@ func (c *CellTeleport) OnCellReached(ctx *adventuria.CellReachedContext) error {
 
 	onBeforeTeleportOnCell := &adventuria.OnBeforeTeleportOnCell{
 		AppContext:   ctx.AppContext,
-		CellName:     decodedValue.CellName,
+		CellId:       decodedValue.CellId,
 		SkipTeleport: false,
 	}
 
@@ -46,7 +46,7 @@ func (c *CellTeleport) OnCellReached(ctx *adventuria.CellReachedContext) error {
 		return err
 	}
 
-	res, err := ctx.Player.MoveToCellName(ctx.AppContext, decodedValue.CellName)
+	res, err := ctx.Player.MoveToCellId(ctx.AppContext, decodedValue.CellId)
 	if err != nil {
 		return err
 	}
@@ -70,7 +70,7 @@ func (c *CellTeleport) Verify(ctx adventuria.AppContext, value string) error {
 	err := ctx.App.
 		RecordQuery(schema.CollectionCells).
 		Select("count(*)").
-		Where(dbx.HashExp{schema.CellSchema.Name: decodedValue.CellName}).
+		Where(dbx.HashExp{schema.CellSchema.Id: decodedValue.CellId}).
 		Limit(1).
 		Row(&exists)
 	if err != nil {

@@ -3,6 +3,7 @@ package adventuria
 import (
 	"adventuria/internal/adventuria/schema"
 	"adventuria/pkg/event"
+	"adventuria/pkg/result"
 	"errors"
 	"fmt"
 	"sync"
@@ -20,6 +21,7 @@ type PlayerBase struct {
 	mu                 sync.RWMutex
 	hookIds            []string
 	pEffectsUnsubGroup []event.UnsubGroup
+	worldEffects       *WorldEffects
 
 	onAfterChooseGame      *event.Hook[*OnAfterChooseGameEvent]
 	onAfterReroll          *event.Hook[*OnAfterRerollEvent]
@@ -48,6 +50,7 @@ type PlayerBase struct {
 	onBeforeItemBuy        *event.Hook[*OnBeforeItemBuy]
 	onBuyGetVariants       *event.Hook[*OnBuyGetVariants]
 	onBeforeTeleportOnCell *event.Hook[*OnBeforeTeleportOnCell]
+	onWorldChanged         *event.Hook[*OnWorldChangedEvent]
 }
 
 func NewPlayer(ctx AppContext, playerId string) (Player, error) {
@@ -107,6 +110,17 @@ func (p *PlayerBase) bindHooks(ctx AppContext) {
 		i++
 	}
 
+	p.worldEffects = NewWorldEffects(p)
+	_ = p.worldEffects.Subscribe(ctx, p.progress.CurrentWorld())
+
+	p.OnWorldChanged().BindFunc(func(e *OnWorldChangedEvent) (*result.Result, error) {
+		err := p.worldEffects.Subscribe(e.AppContext, e.NewWorldId)
+		if err != nil {
+			return nil, err
+		}
+		return e.Next()
+	})
+
 	p.hookIds[0] = ctx.App.OnTerminate().BindFunc(func(e *core.TerminateEvent) error {
 		for _, unsubGroup := range p.pEffectsUnsubGroup {
 			unsubGroup.Unsubscribe()
@@ -120,6 +134,7 @@ func (p *PlayerBase) Close(ctx AppContext) {
 	for _, unsubGroup := range p.pEffectsUnsubGroup {
 		unsubGroup.Unsubscribe()
 	}
+	p.worldEffects.Close()
 	p.progress.Close(ctx)
 	p.inventory.Close(ctx)
 }
@@ -168,16 +183,52 @@ func (p *PlayerBase) Move(ctx AppContext, steps int) ([]*MoveResult, error) {
 		}
 	}
 
+	currentWorldId := p.progress.CurrentWorld()
+	world, ok := GameWorlds.GetByID(currentWorldId)
+	if !ok {
+		return nil, fmt.Errorf("player.Move(): world with id = %s not found", currentWorldId)
+	}
+
 	cellsPassed := p.progress.CellsPassed()
-	cellsCount := GameCells.Count()
+	cellsCount := GameCells.Count(currentWorldId)
 
 	totalSteps := cellsPassed + steps
+
+	if !world.IsLoop() && totalSteps >= cellsCount {
+		var nextWorld World
+		if world.TransitionToWorld() != "" {
+			nextWorld, ok = GameWorlds.GetByID(world.TransitionToWorld())
+			if !ok {
+				return nil, fmt.Errorf("player.Move(): transition world with id = %s not found", world.TransitionToWorld())
+			}
+		} else {
+			nextWorld, ok = GameWorlds.GetDefault()
+			if !ok {
+				return nil, fmt.Errorf("player.Move(): default world not found and transition is not set for world %s", world.ID())
+			}
+		}
+
+		p.progress.SetCurrentWorld(nextWorld.ID())
+		p.progress.setCellsPassed(0)
+
+		_, err := p.OnWorldChanged().Trigger(&OnWorldChangedEvent{
+			AppContext: ctx,
+			OldWorldId: currentWorldId,
+			NewWorldId: nextWorld.ID(),
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		return p.Move(ctx, 0)
+	}
+
 	currentCellNum := mod(totalSteps, cellsCount)
 	lapsPassed := floorDiv(totalSteps, cellsCount) - floorDiv(cellsPassed, cellsCount)
 
-	currentCell, ok := GameCells.GetByOrder(currentCellNum)
+	currentCell, ok := GameCells.GetByOrder(currentWorldId, currentCellNum)
 	if !ok {
-		return nil, fmt.Errorf("player.Move(): cell with num = %d not found, steps = %d", currentCellNum, steps)
+		return nil, fmt.Errorf("player.Move(): cell with num = %d not found in world %s, steps = %d", currentCellNum, currentWorldId, steps)
 	}
 
 	p.progress.addCellsPassed(steps)
@@ -247,86 +298,90 @@ func (p *PlayerBase) Move(ctx AppContext, steps int) ([]*MoveResult, error) {
 }
 
 func (p *PlayerBase) MoveToClosestCellType(ctx AppContext, cellType CellType) ([]*MoveResult, error) {
+	currentCell, ok := p.progress.CurrentCell()
+	if !ok {
+		return nil, errors.New("current cell not found")
+	}
+
+	currentCellGlobalOrder, ok := GameCells.GetGlobalOrderById(currentCell.ID())
+	if !ok {
+		return nil, errors.New("current cell order not found")
+	}
+
 	var (
 		closest     int
 		minDistance int
 		found       bool
 	)
-	currentCellOrder := p.progress.CurrentCellOrder()
-	for order := range GameCells.GetOrderByType(cellType) {
-		distance := abs(order - currentCellOrder)
+	for globalOrder := range GameCells.GetGlobalOrderByType(cellType) {
+		distance := abs(globalOrder - currentCellGlobalOrder)
 		if !found ||
 			distance < minDistance ||
-			(distance == minDistance && order > closest) {
-			closest = order
+			(distance == minDistance && globalOrder > closest) {
+			closest = globalOrder
 			minDistance = distance
 			found = true
 		}
 	}
 
 	if !found {
-		return nil, errors.New("cell not found")
+		return nil, fmt.Errorf("cell of type %s not found", cellType)
 	}
 
-	return p.Move(ctx, closest-p.progress.CurrentCellOrder())
+	closestCell, ok := GameCells.GetByGlobalOrder(closest)
+	if !ok {
+		return nil, fmt.Errorf("cell of type %s not found", cellType)
+	}
+
+	if closestCell.World() != p.progress.CurrentWorld() {
+		oldWorldId := p.progress.CurrentWorld()
+		newWorldId := closestCell.World()
+		p.progress.SetCurrentWorld(newWorldId)
+		p.progress.setCellsPassed(0)
+
+		_, err := p.OnWorldChanged().Trigger(&OnWorldChangedEvent{
+			AppContext: ctx,
+			OldWorldId: oldWorldId,
+			NewWorldId: newWorldId,
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	closestCellLocalOrder, _ := GameCells.GetOrderById(closestCell.World(), closestCell.ID())
+
+	return p.Move(ctx, closestCellLocalOrder-p.progress.CurrentCellOrder())
 }
 
 func (p *PlayerBase) MoveToCellId(ctx AppContext, cellId string) ([]*MoveResult, error) {
-	cellPos, ok := GameCells.GetOrderById(cellId)
+	cell, ok := GameCells.GetById(cellId)
 	if !ok {
 		return nil, fmt.Errorf("cell %s not found", cellId)
 	}
-	return p.Move(ctx, cellPos-p.progress.CurrentCellOrder())
-}
 
-func (p *PlayerBase) MoveToCellName(ctx AppContext, cellName string) ([]*MoveResult, error) {
-	cellPos, ok := GameCells.GetOrderByName(cellName)
+	cellWorldId := cell.World()
+	cellPos, ok := GameCells.GetOrderById(cellWorldId, cellId)
 	if !ok {
-		return nil, fmt.Errorf("cell %s not found", cellName)
+		return nil, fmt.Errorf("cell %s order not found", cellId)
 	}
+
+	if cellWorldId != p.progress.CurrentWorld() {
+		oldWorldId := p.progress.CurrentWorld()
+		p.progress.SetCurrentWorld(cellWorldId)
+		p.progress.setCellsPassed(0)
+
+		_, err := p.OnWorldChanged().Trigger(&OnWorldChangedEvent{
+			AppContext: ctx,
+			OldWorldId: oldWorldId,
+			NewWorldId: cellWorldId,
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return p.Move(ctx, cellPos-p.progress.CurrentCellOrder())
-}
-
-func (p *PlayerBase) MoveToCellOrder(ctx AppContext, cellOrder int) ([]*MoveResult, error) {
-	return p.Move(ctx, cellOrder-p.progress.CurrentCellOrder())
-}
-
-func (p *PlayerBase) MoveToClosestCellByNames(ctx AppContext, cellNames ...string) ([]*MoveResult, error) {
-	if len(cellNames) == 0 {
-		return nil, errors.New("moveToClosestCellByNames: cellNames is empty")
-	}
-
-	cellsOrder := make([]int, len(cellNames))
-	for i, cellName := range cellNames {
-		cellOrder, ok := GameCells.GetOrderByName(cellName)
-		if !ok {
-			return nil, errors.New("moveToClosestCellByNames: cell not found")
-		}
-		cellsOrder[i] = cellOrder
-	}
-
-	var (
-		closest     int
-		minDistance int
-		found       bool
-	)
-	currentCellOrder := p.progress.CurrentCellOrder()
-	for _, order := range cellsOrder {
-		distance := abs(order - currentCellOrder)
-		if !found ||
-			distance < minDistance ||
-			(distance == minDistance && order > closest) {
-			closest = order
-			minDistance = distance
-			found = true
-		}
-	}
-
-	if !found {
-		return nil, errors.New("moveToClosestCellByNames: cell not found")
-	}
-
-	return p.Move(ctx, closest-p.progress.CurrentCellOrder())
 }
 
 func (p *PlayerBase) Inventory() Inventory {
@@ -393,6 +448,7 @@ func (p *PlayerBase) initHooks() {
 	p.onBeforeItemBuy = &event.Hook[*OnBeforeItemBuy]{}
 	p.onBuyGetVariants = &event.Hook[*OnBuyGetVariants]{}
 	p.onBeforeTeleportOnCell = &event.Hook[*OnBeforeTeleportOnCell]{}
+	p.onWorldChanged = &event.Hook[*OnWorldChangedEvent]{}
 }
 
 func (p *PlayerBase) OnAfterChooseGame() *event.Hook[*OnAfterChooseGameEvent] {
@@ -501,4 +557,8 @@ func (p *PlayerBase) OnBuyGetVariants() *event.Hook[*OnBuyGetVariants] {
 
 func (p *PlayerBase) OnBeforeTeleportOnCell() *event.Hook[*OnBeforeTeleportOnCell] {
 	return p.onBeforeTeleportOnCell
+}
+
+func (p *PlayerBase) OnWorldChanged() *event.Hook[*OnWorldChangedEvent] {
+	return p.onWorldChanged
 }

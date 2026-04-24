@@ -32,6 +32,10 @@ func (c *CellRecord) setType(t CellType) {
 	c.t = t
 }
 
+func (c *CellRecord) World() string {
+	return c.GetString(schema.CellSchema.World)
+}
+
 func (c *CellRecord) Categories() []string {
 	if def, ok := cellsList[c.Type()]; ok {
 		return def.Categories

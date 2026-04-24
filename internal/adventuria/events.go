@@ -141,6 +141,12 @@ type OnBuyGetVariants struct {
 type OnBeforeTeleportOnCell struct {
 	event.Event
 	AppContext
-	CellName     string
+	CellId       string
 	SkipTeleport bool
+}
+type OnWorldChangedEvent struct {
+	event.Event
+	AppContext
+	OldWorldId string
+	NewWorldId string
 }

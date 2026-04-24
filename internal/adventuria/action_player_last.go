@@ -4,6 +4,7 @@ import (
 	"adventuria/internal/adventuria/schema"
 	"database/sql"
 	"errors"
+	"fmt"
 
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
@@ -51,7 +52,13 @@ func getLastPlayerAction(ctx AppContext, playerId string) (*LastPlayerActionReco
 		record = core.NewRecord(GameCollections.Get(schema.CollectionActions))
 		record.Set(schema.ActionSchema.Type, ActionTypeNone)
 		record.Set(schema.ActionSchema.CanMove, true)
-		firstCell, ok := GameCells.GetByOrder(0)
+
+		defaultWorld, ok := GameWorlds.GetDefault()
+		if !ok {
+			return nil, fmt.Errorf("getLastPlayerAction: default world not found")
+		}
+
+		firstCell, ok := GameCells.GetByOrder(defaultWorld.ID(), 0)
 		if ok {
 			record.Set(schema.ActionSchema.Cell, firstCell.ID())
 		}

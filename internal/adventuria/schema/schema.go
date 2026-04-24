@@ -10,6 +10,7 @@ const (
 	CollectionInventory       = "inventory"
 	CollectionSettings        = "settings"
 	CollectionSeasons         = "seasons"
+	CollectionsWorlds         = "worlds"
 
 	CollectionActivities     = "activities"
 	CollectionCompanies      = "companies"
@@ -55,6 +56,7 @@ var PlayerProgressSchema = struct {
 	Id                string
 	Player            string
 	Season            string
+	CurrentWorld      string
 	Points            string
 	Balance           string
 	CellsPassed       string
@@ -68,6 +70,7 @@ var PlayerProgressSchema = struct {
 	Id:                "id",
 	Player:            "player",
 	Season:            "season",
+	CurrentWorld:      "current_world",
 	Points:            "points",
 	Balance:           "balance",
 	CellsPassed:       "cells_passed",
@@ -238,6 +241,7 @@ var CellSchema = struct {
 	Disabled                 string
 	Sort                     string
 	Type                     string
+	World                    string
 	Filter                   string
 	AudioPreset              string
 	Icon                     string
@@ -257,6 +261,7 @@ var CellSchema = struct {
 	Disabled:                 "disabled",
 	Sort:                     "sort",
 	Type:                     "type",
+	World:                    "world",
 	Filter:                   "filter",
 	AudioPreset:              "audio_preset",
 	Icon:                     "icon",
@@ -390,4 +395,24 @@ var GenreSchema = struct {
 	IdDb:     "id_db",
 	Name:     "name",
 	Checksum: "checksum",
+}
+
+var WorldsSchema = struct {
+	Id                string
+	Name              string
+	Slug              string
+	Sort              string
+	IsLoop            string
+	IsDefaultWorld    string
+	TransitionToWorld string
+	Effects           string
+}{
+	Id:                "id",
+	Name:              "name",
+	Slug:              "slug",
+	Sort:              "sort",
+	IsLoop:            "is_loop",
+	IsDefaultWorld:    "is_default_world",
+	TransitionToWorld: "transition_to_world",
+	Effects:           "effects",
 }

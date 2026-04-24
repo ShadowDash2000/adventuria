@@ -20,9 +20,6 @@ type Player interface {
 	Move(ctx AppContext, steps int) ([]*MoveResult, error)
 	MoveToClosestCellType(ctx AppContext, cellType CellType) ([]*MoveResult, error)
 	MoveToCellId(ctx AppContext, cellId string) ([]*MoveResult, error)
-	MoveToCellName(ctx AppContext, cellName string) ([]*MoveResult, error)
-	MoveToCellOrder(ctx AppContext, cellOrder int) ([]*MoveResult, error)
-	MoveToClosestCellByNames(ctx AppContext, cellNames ...string) ([]*MoveResult, error)
 
 	Inventory() Inventory
 	LastAction() ActionRecord
@@ -61,6 +58,7 @@ type PlayerEvent interface {
 	OnBeforeItemBuy() *event.Hook[*OnBeforeItemBuy]
 	OnBuyGetVariants() *event.Hook[*OnBuyGetVariants]
 	OnBeforeTeleportOnCell() *event.Hook[*OnBeforeTeleportOnCell]
+	OnWorldChanged() *event.Hook[*OnWorldChangedEvent]
 }
 
 type Stats struct {

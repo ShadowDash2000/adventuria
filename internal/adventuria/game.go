@@ -16,6 +16,7 @@ var (
 	PocketBase      core.App
 	GamePlayers     *Players
 	GameCells       *Cells
+	GameWorlds      *Worlds
 	GameItems       *Items
 	GameCollections *collections.Collections
 	GameSettings    *Settings
@@ -68,6 +69,10 @@ func (g *Game) init(ctx AppContext) error {
 	GameCollections = collections.NewCollections(PocketBase)
 	GamePlayers = NewPlayers(ctx)
 	GameActions = NewActions(ctx)
+	GameWorlds, err = NewWorlds(ctx)
+	if err != nil {
+		return err
+	}
 	GameCells, err = NewCells(ctx)
 	if err != nil {
 		return err

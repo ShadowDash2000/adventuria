@@ -48,7 +48,11 @@ func NewGameTest() (*GameTest, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = game.createTestCells()
+	err = game.createTestWorlds()
+	if err != nil {
+		return nil, err
+	}
+	err = game.createTestCells(adventuria.AppContext{App: adventuria.PocketBase})
 	if err != nil {
 		return nil, err
 	}
@@ -82,6 +86,10 @@ func (g *GameTest) init(ctx adventuria.AppContext) error {
 	adventuria.GameCollections = collections.NewCollections(adventuria.PocketBase)
 	adventuria.GamePlayers = adventuria.NewPlayers(ctx)
 	adventuria.GameActions = adventuria.NewActions(ctx)
+	adventuria.GameWorlds, err = adventuria.NewWorlds(ctx)
+	if err != nil {
+		return err
+	}
 	adventuria.GameCells, err = adventuria.NewCells(ctx)
 	if err != nil {
 		return err
@@ -137,18 +145,30 @@ func (g *GameTest) createTestPlayers() error {
 	return nil
 }
 
-func (g *GameTest) createTestCells() error {
+func (g *GameTest) createTestCells(ctx adventuria.AppContext) error {
+	var record struct {
+		Id string `db:"id"`
+	}
+	err := ctx.App.RecordQuery(schema.CollectionsWorlds).
+		Where(dbx.HashExp{schema.WorldsSchema.IsDefaultWorld: true}).
+		Limit(1).
+		One(&record)
+	if err != nil {
+		return err
+	}
+
 	cells := []struct {
 		cellType string
 		name     string
 		points   int
 		sort     int
 		value    string
+		world    string
 	}{
-		{"start", "Cell 1 (start)", 10, 100, "null"},
-		{"game", "Cell 2 (game)", 20, 200, "null"},
-		{"game", "Cell 3 (game)", 30, 300, "null"},
-		{"shop", "Cell 4 (shop)", 0, 400, "null"},
+		{"start", "Cell 1 (start)", 10, 100, "null", record.Id},
+		{"game", "Cell 2 (game)", 20, 200, "null", record.Id},
+		{"game", "Cell 3 (game)", 30, 300, "null", record.Id},
+		{"shop", "Cell 4 (shop)", 0, 400, "null", record.Id},
 	}
 
 	icon, err := filesystem.NewFileFromBytes(Placeholder, "icon")
@@ -164,6 +184,7 @@ func (g *GameTest) createTestCells() error {
 		record.Set(schema.CellSchema.Sort, cell.sort)
 		record.Set(schema.CellSchema.Value, cell.value)
 		record.Set(schema.CellSchema.Icon, icon)
+		record.Set(schema.CellSchema.World, cell.world)
 		err := adventuria.PocketBase.Save(record)
 		if err != nil {
 			return err
@@ -312,4 +333,37 @@ func (g *GameTest) createTestSettings() error {
 	record.Set(schema.SettingsSchema.DropsToJail, 2)
 	record.Set(schema.SettingsSchema.MaxInventorySlots, 6)
 	return adventuria.PocketBase.Save(record)
+}
+
+func (g *GameTest) createTestWorlds() error {
+	worlds := []struct {
+		name           string
+		slug           string
+		sort           int
+		isLoop         bool
+		isDefaultWorld bool
+	}{
+		{
+			name:           "World 1",
+			slug:           "world-1",
+			sort:           200,
+			isLoop:         true,
+			isDefaultWorld: true,
+		},
+	}
+
+	for _, world := range worlds {
+		record := core.NewRecord(adventuria.GameCollections.Get(schema.CollectionsWorlds))
+		record.Set(schema.WorldsSchema.Name, world.name)
+		record.Set(schema.WorldsSchema.Slug, world.slug)
+		record.Set(schema.WorldsSchema.Sort, world.sort)
+		record.Set(schema.WorldsSchema.IsLoop, world.isLoop)
+		record.Set(schema.WorldsSchema.IsDefaultWorld, world.isDefaultWorld)
+		err := adventuria.PocketBase.Save(record)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

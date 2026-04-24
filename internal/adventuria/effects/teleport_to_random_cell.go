@@ -4,6 +4,7 @@ import (
 	"adventuria/internal/adventuria"
 	"adventuria/pkg/event"
 	"adventuria/pkg/result"
+	"errors"
 	"math/rand"
 )
 
@@ -44,17 +45,23 @@ func (ef *TeleportToRandomCellEffect) Subscribe(
 	return []event.Unsubscribe{
 		ctx.Player.OnAfterItemUse().BindFunc(func(e *adventuria.OnAfterItemUseEvent) (*result.Result, error) {
 			if ctx.InvItemID == e.InvItemId {
-				totalCells := adventuria.GameCells.Count()
+				totalCells := adventuria.GameCells.CountGlobal()
 				if totalCells <= 1 {
 					return e.Next()
 				}
 
 				randomCellOrder := rand.Intn(totalCells - 1)
-				if randomCellOrder >= ctx.Player.Progress().CurrentCellOrder() {
+				if randomCellOrder >= ctx.Player.Progress().GlobalCurrentCellOrder() {
 					randomCellOrder++
 				}
 
-				_, err := ctx.Player.MoveToCellOrder(e.AppContext, randomCellOrder)
+				randomCell, ok := adventuria.GameCells.GetByGlobalOrder(randomCellOrder)
+				if !ok {
+					return result.Err("internal error: random cell not found"),
+						errors.New("teleportToRandomCell: random cell not found")
+				}
+
+				_, err := ctx.Player.MoveToCellId(e.AppContext, randomCell.ID())
 				if err != nil {
 					return result.Err("internal error: failed to move to the cell"), err
 				}
