@@ -149,8 +149,8 @@ func (g *GameTest) createTestCells(ctx adventuria.AppContext) error {
 	var record struct {
 		Id string `db:"id"`
 	}
-	err := ctx.App.RecordQuery(schema.CollectionsWorlds).
-		Where(dbx.HashExp{schema.WorldsSchema.IsDefaultWorld: true}).
+	err := ctx.App.RecordQuery(schema.CollectionWorlds).
+		Where(dbx.HashExp{schema.WorldSchema.IsDefaultWorld: true}).
 		Limit(1).
 		One(&record)
 	if err != nil {
@@ -353,12 +353,12 @@ func (g *GameTest) createTestWorlds() error {
 	}
 
 	for _, world := range worlds {
-		record := core.NewRecord(adventuria.GameCollections.Get(schema.CollectionsWorlds))
-		record.Set(schema.WorldsSchema.Name, world.name)
-		record.Set(schema.WorldsSchema.Slug, world.slug)
-		record.Set(schema.WorldsSchema.Sort, world.sort)
-		record.Set(schema.WorldsSchema.IsLoop, world.isLoop)
-		record.Set(schema.WorldsSchema.IsDefaultWorld, world.isDefaultWorld)
+		record := core.NewRecord(adventuria.GameCollections.Get(schema.CollectionWorlds))
+		record.Set(schema.WorldSchema.Name, world.name)
+		record.Set(schema.WorldSchema.Slug, world.slug)
+		record.Set(schema.WorldSchema.Sort, world.sort)
+		record.Set(schema.WorldSchema.IsLoop, world.isLoop)
+		record.Set(schema.WorldSchema.IsDefaultWorld, world.isDefaultWorld)
 		err := adventuria.PocketBase.Save(record)
 		if err != nil {
 			return err

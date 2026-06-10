@@ -120,6 +120,8 @@ type OnAfterMoveEvent struct {
 	TotalSteps     int
 	PrevTotalSteps int
 	CurrentCell    Cell
+	CellLocalOrder int
+	CurrentWorld   World
 	Laps           int
 }
 type OnBeforeCurrentCellEvent struct {

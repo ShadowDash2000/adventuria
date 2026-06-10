@@ -10,7 +10,8 @@ const (
 	CollectionInventory       = "inventory"
 	CollectionSettings        = "settings"
 	CollectionSeasons         = "seasons"
-	CollectionsWorlds         = "worlds"
+	CollectionWorlds          = "worlds"
+	CollectionReviews         = "reviews"
 
 	CollectionActivities     = "activities"
 	CollectionCompanies      = "companies"
@@ -397,7 +398,7 @@ var GenreSchema = struct {
 	Checksum: "checksum",
 }
 
-var WorldsSchema = struct {
+var WorldSchema = struct {
 	Id                string
 	Name              string
 	Slug              string
@@ -415,4 +416,54 @@ var WorldsSchema = struct {
 	IsDefaultWorld:    "is_default_world",
 	TransitionToWorld: "transition_to_world",
 	Effects:           "effects",
+}
+
+var ActivityFilterSchema = struct {
+	Id              string
+	Type            string
+	Name            string
+	Platforms       string
+	PlatformsStrict string
+	GameTypes       string
+	Developers      string
+	Publishers      string
+	Genres          string
+	Tags            string
+	Themes          string
+	MinPrice        string
+	MaxPrice        string
+	ReleaseDateFrom string
+	ReleaseDateTo   string
+	MinCampaignTime string
+	MaxCampaignTime string
+	Activities      string
+}{
+	Id:              "id",
+	Type:            "type",
+	Name:            "name",
+	Platforms:       "platforms",
+	PlatformsStrict: "platforms_strict",
+	GameTypes:       "game_types",
+	Developers:      "developers",
+	Publishers:      "publishers",
+	Genres:          "genres",
+	Tags:            "tags",
+	Themes:          "themes",
+	MinPrice:        "min_price",
+	MaxPrice:        "max_price",
+	ReleaseDateFrom: "release_date_from",
+	ReleaseDateTo:   "release_date_to",
+	MinCampaignTime: "min_campaign_time",
+	MaxCampaignTime: "max_campaign_time",
+	Activities:      "activities",
+}
+
+var ReviewSchema = struct {
+	Id      string
+	Comment string
+	Score   string
+}{
+	Id:      "id",
+	Comment: "comment",
+	Score:   "score",
 }

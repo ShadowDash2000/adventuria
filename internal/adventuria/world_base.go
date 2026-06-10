@@ -21,29 +21,29 @@ func (w *WorldBase) ID() string {
 }
 
 func (w *WorldBase) Name() string {
-	return w.GetString(schema.WorldsSchema.Name)
+	return w.GetString(schema.WorldSchema.Name)
 }
 
 func (w *WorldBase) Slug() string {
-	return w.GetString(schema.WorldsSchema.Slug)
+	return w.GetString(schema.WorldSchema.Slug)
 }
 
 func (w *WorldBase) Sort() int {
-	return w.GetInt(schema.WorldsSchema.Sort)
+	return w.GetInt(schema.WorldSchema.Sort)
 }
 
 func (w *WorldBase) IsLoop() bool {
-	return w.GetBool(schema.WorldsSchema.IsLoop)
+	return w.GetBool(schema.WorldSchema.IsLoop)
 }
 
 func (w *WorldBase) IsDefaultWorld() bool {
-	return w.GetBool(schema.WorldsSchema.IsDefaultWorld)
+	return w.GetBool(schema.WorldSchema.IsDefaultWorld)
 }
 
 func (w *WorldBase) TransitionToWorld() string {
-	return w.GetString(schema.WorldsSchema.TransitionToWorld)
+	return w.GetString(schema.WorldSchema.TransitionToWorld)
 }
 
 func (w *WorldBase) Effects() []string {
-	return w.GetStringSlice(schema.WorldsSchema.Effects)
+	return w.GetStringSlice(schema.WorldSchema.Effects)
 }

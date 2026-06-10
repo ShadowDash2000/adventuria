@@ -1,0 +1,79 @@
+package shop
+
+import (
+	"adventuria/internal/adventuria_new/cells"
+	"adventuria/internal/adventuria_new/model"
+	"context"
+	"errors"
+	"math/rand/v2"
+)
+
+type items interface {
+	GetAllBuyableByType(ctx context.Context, t model.ItemType) ([]*model.Item, error)
+}
+
+var _ model.Refreshable = (*CellShop)(nil)
+
+const Type model.CellType = "shop"
+
+const shopMaxItems = 6
+
+type CellShop struct {
+	cells.CellBase
+	items items
+}
+
+func NewCellShopDef(
+	items items,
+	categories ...string,
+) cells.CellDef {
+	return cells.NewCell(
+		Type,
+		func(cell model.CellInfo) model.Cell {
+			return &CellShop{
+				CellBase: cells.NewCellBase(cell),
+				items:    items,
+			}
+		},
+		categories...,
+	)
+}
+
+func (c *CellShop) OnCellReached(ctx context.Context, _ *model.Events, player *model.Player, _ *model.ReachedContext) error {
+	err := c.refreshItems(ctx, player)
+	if err != nil {
+		return err
+	}
+
+	player.LastAction().SetCanMove(true)
+
+	return nil
+}
+
+func (c *CellShop) OnCellLeft(_ context.Context, _ *model.Events, _ *model.Player) error {
+	return nil
+}
+
+func (c *CellShop) RefreshItems(ctx context.Context, _ *model.Events, player *model.Player) error {
+	return c.refreshItems(ctx, player)
+}
+
+func (c *CellShop) refreshItems(ctx context.Context, player *model.Player) error {
+	items, err := c.items.GetAllBuyableByType(ctx, model.ItemTypeBuff)
+	if err != nil {
+		return err
+	}
+
+	if len(items) == 0 {
+		return errors.New("no items to buy")
+	}
+
+	ids := make([]string, shopMaxItems)
+	for i := 0; i < shopMaxItems; i++ {
+		ids[i] = items[rand.N(len(items))].ID()
+	}
+
+	player.LastAction().SetItemsList(ids)
+
+	return nil
+}

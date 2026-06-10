@@ -18,6 +18,23 @@ type RollDiceResult struct {
 	Roll      int                      `json:"roll"`
 	DiceRolls []DiceRoll               `json:"dice_rolls"`
 	Path      []*adventuria.MoveResult `json:"path"`
+	From      PositionSnapshot         `json:"from"`
+	To        PositionSnapshot         `json:"to"`
+	PathSteps []PathStep               `json:"path_steps"`
+}
+
+type PositionSnapshot struct {
+	WorldId     string `json:"world_id"`
+	CellsPassed int    `json:"cells_passed"`
+}
+
+type PathStep struct {
+	WorldId        string `json:"world_id"`
+	WorldSlug      string `json:"world_slug"`
+	CellOrder      int    `json:"cell_order"`
+	TotalSteps     int    `json:"total_steps"`
+	PrevTotalSteps int    `json:"prev_total_steps"`
+	Event          string `json:"event"`
 }
 
 type DiceRoll struct {
@@ -66,10 +83,37 @@ func (a *RollDiceAction) Do(ctx adventuria.ActionContext, _ adventuria.ActionReq
 			fmt.Errorf("roll_dice.do(): %w", err)
 	}
 
+	from := PositionSnapshot{
+		WorldId:     ctx.Player.Progress().CurrentWorld(),
+		CellsPassed: ctx.Player.Progress().CellsPassed(),
+	}
+
 	moveRes, err := ctx.Player.Move(ctx.AppContext, onBeforeRollMoveEvent.N)
 	if err != nil {
 		return result.Err("internal error: failed to move to the new cell"),
 			fmt.Errorf("roll_dice.do(): %w", err)
+	}
+
+	to := PositionSnapshot{
+		WorldId:     ctx.Player.Progress().CurrentWorld(),
+		CellsPassed: ctx.Player.Progress().CellsPassed(),
+	}
+
+	steps := make([]PathStep, 0, len(moveRes))
+	for i, m := range moveRes {
+		eventType := "move"
+		if i > 0 && moveRes[i-1].CurrentWorld.ID() != m.CurrentWorld.ID() {
+			eventType = "world_transition"
+		}
+
+		steps = append(steps, PathStep{
+			WorldId:        m.CurrentWorld.ID(),
+			WorldSlug:      m.CurrentWorld.Slug(),
+			CellOrder:      m.CellLocalOrder,
+			TotalSteps:     m.TotalSteps,
+			PrevTotalSteps: m.PrevTotalSteps,
+			Event:          eventType,
+		})
 	}
 
 	ctx.Player.LastAction().SetType(ActionTypeRollDice)
@@ -90,6 +134,9 @@ func (a *RollDiceAction) Do(ctx adventuria.ActionContext, _ adventuria.ActionReq
 		Roll:      onBeforeRollMoveEvent.N,
 		DiceRolls: diceRolls,
 		Path:      moveRes,
+		From:      from,
+		To:        to,
+		PathSteps: steps,
 	}), nil
 }
 

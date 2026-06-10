@@ -250,6 +250,8 @@ func (p *PlayerBase) Move(ctx AppContext, steps int) ([]*MoveResult, error) {
 		TotalSteps:     totalSteps,
 		PrevTotalSteps: cellsPassed,
 		CurrentCell:    currentCell,
+		CellLocalOrder: currentCellNum,
+		CurrentWorld:   world,
 		Laps:           lapsPassed,
 	}
 
@@ -270,6 +272,8 @@ func (p *PlayerBase) Move(ctx AppContext, steps int) ([]*MoveResult, error) {
 				TotalSteps:     onAfterMoveEvent.TotalSteps,
 				PrevTotalSteps: onAfterMoveEvent.PrevTotalSteps,
 				CurrentCell:    onAfterMoveEvent.CurrentCell,
+				CellLocalOrder: onAfterMoveEvent.CellLocalOrder,
+				CurrentWorld:   onAfterMoveEvent.CurrentWorld,
 				Laps:           onAfterMoveEvent.Laps,
 			},
 		},

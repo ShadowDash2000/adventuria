@@ -30,15 +30,15 @@ func NewWorlds(ctx AppContext) (*Worlds, error) {
 }
 
 func (w *Worlds) bindHooks(ctx AppContext) {
-	ctx.App.OnRecordAfterCreateSuccess(schema.CollectionsWorlds).BindFunc(func(e *core.RecordEvent) error {
+	ctx.App.OnRecordAfterCreateSuccess(schema.CollectionWorlds).BindFunc(func(e *core.RecordEvent) error {
 		w.add(e.Record)
 		return e.Next()
 	})
-	ctx.App.OnRecordAfterUpdateSuccess(schema.CollectionsWorlds).BindFunc(func(e *core.RecordEvent) error {
+	ctx.App.OnRecordAfterUpdateSuccess(schema.CollectionWorlds).BindFunc(func(e *core.RecordEvent) error {
 		w.add(e.Record)
 		return e.Next()
 	})
-	ctx.App.OnRecordAfterDeleteSuccess(schema.CollectionsWorlds).BindFunc(func(e *core.RecordEvent) error {
+	ctx.App.OnRecordAfterDeleteSuccess(schema.CollectionWorlds).BindFunc(func(e *core.RecordEvent) error {
 		w.delete(e.Record)
 		return e.Next()
 	})
@@ -48,8 +48,8 @@ func (w *Worlds) fetch(ctx AppContext) error {
 	w.worlds.Clear()
 
 	var worlds []*core.Record
-	err := ctx.App.RecordQuery(schema.CollectionsWorlds).
-		OrderBy(schema.WorldsSchema.Sort).
+	err := ctx.App.RecordQuery(schema.CollectionWorlds).
+		OrderBy(schema.WorldSchema.Sort).
 		All(&worlds)
 	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return err

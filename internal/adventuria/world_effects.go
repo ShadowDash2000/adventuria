@@ -21,17 +21,17 @@ func (we *WorldEffects) Subscribe(ctx AppContext, worldId string) error {
 		return nil
 	}
 
-	worldRecord, err := ctx.App.FindRecordById(schema.CollectionsWorlds, worldId)
+	worldRecord, err := ctx.App.FindRecordById(schema.CollectionWorlds, worldId)
 	if err != nil {
 		return err
 	}
 
-	errs := ctx.App.ExpandRecord(worldRecord, []string{schema.WorldsSchema.Effects}, nil)
+	errs := ctx.App.ExpandRecord(worldRecord, []string{schema.WorldSchema.Effects}, nil)
 	if len(errs) > 0 {
-		return errs[schema.WorldsSchema.Effects]
+		return errs[schema.WorldSchema.Effects]
 	}
 
-	effectRecords := worldRecord.ExpandedAll(schema.WorldsSchema.Effects)
+	effectRecords := worldRecord.ExpandedAll(schema.WorldSchema.Effects)
 
 	for _, record := range effectRecords {
 		effect, err := NewEffectFromRecord(record)
