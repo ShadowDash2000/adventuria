@@ -374,6 +374,30 @@ var ActivitiesThemesSchema = struct {
 	Theme:    "theme",
 }
 
+var PlatformSchema = struct {
+	Id       string
+	IdDb     string
+	Name     string
+	Checksum string
+}{
+	Id:       "id",
+	IdDb:     "id_db",
+	Name:     "name",
+	Checksum: "checksum",
+}
+
+var CompanySchema = struct {
+	Id       string
+	IdDb     string
+	Name     string
+	Checksum string
+}{
+	Id:       "id",
+	IdDb:     "id_db",
+	Name:     "name",
+	Checksum: "checksum",
+}
+
 var TagSchema = struct {
 	Id       string
 	IdDb     string
@@ -387,6 +411,18 @@ var TagSchema = struct {
 }
 
 var GenreSchema = struct {
+	Id       string
+	IdDb     string
+	Name     string
+	Checksum string
+}{
+	Id:       "id",
+	IdDb:     "id_db",
+	Name:     "name",
+	Checksum: "checksum",
+}
+
+var ThemeSchema = struct {
 	Id       string
 	IdDb     string
 	Name     string

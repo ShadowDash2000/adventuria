@@ -3,6 +3,7 @@ package adventuria_new
 import (
 	"adventuria/internal/adventuria_new/actions"
 	customActions "adventuria/internal/adventuria_new/actions/custom"
+	rollWheelRepo "adventuria/internal/adventuria_new/actions/custom/roll_wheel/repository"
 	actionsRepo "adventuria/internal/adventuria_new/actions/repository"
 	"adventuria/internal/adventuria_new/activities"
 	activitiesRepo "adventuria/internal/adventuria_new/activities/repository"
@@ -98,6 +99,7 @@ func (g *Game) init(pb core.App) error {
 	itemsRepository := itemsRepo.NewRepository(pb)
 	genresRepository := genresRepo.NewRepository(pb)
 	reviewsRepository := reviewsRepo.NewRepository(pb)
+	rollWheelRepository := rollWheelRepo.NewRepository(pb)
 
 	seasonsService := seasons.NewSeasons(seasonsRepository)
 	settingsService := settings.NewSettings(settingsRepository, seasonsService)
@@ -152,6 +154,7 @@ func (g *Game) init(pb core.App) error {
 		actionsService,
 		itemsService,
 		inventoriesService,
+		rollWheelRepository,
 	)
 
 	return nil

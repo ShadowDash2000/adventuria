@@ -25,7 +25,7 @@ type Verifiable interface {
 type Rollable interface {
 	Cell
 	Refreshable
-	Roll(ctx context.Context, events *Events, player *Player, rollReq RollWheelRequest) (*WheelRollResult, error)
+	Roll(ctx context.Context, events *Events, player *Player) (*WheelRollResult, error)
 }
 
 type Refreshable interface {

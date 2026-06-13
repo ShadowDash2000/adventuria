@@ -47,7 +47,7 @@ func NewCellActivityDef(
 	)
 }
 
-func (c *CellActivity) Roll(_ context.Context, _ *model.Events, player *model.Player, _ model.RollWheelRequest) (*model.WheelRollResult, error) {
+func (c *CellActivity) Roll(_ context.Context, _ *model.Events, player *model.Player) (*model.WheelRollResult, error) {
 	items := player.LastAction().ItemsList()
 
 	if len(items) == 0 {
