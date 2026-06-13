@@ -3,8 +3,6 @@ package pbhelper
 import (
 	"fmt"
 	"strings"
-
-	"github.com/pocketbase/dbx"
 )
 
 func DotExpand(parts ...string) string {
@@ -24,14 +22,6 @@ func Eq(a, b string) string {
 
 func GreaterThan(a, b string) string {
 	return a + " > " + b
-}
-
-func SliceToEqExp[V any](field string, values []V) []dbx.Expression {
-	exp := make([]dbx.Expression, len(values))
-	for i, value := range values {
-		exp[i] = dbx.HashExp{field: value}
-	}
-	return exp
 }
 
 func SliceToAny[V any](values []V) []any {

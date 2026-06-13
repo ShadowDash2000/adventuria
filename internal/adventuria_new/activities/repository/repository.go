@@ -266,8 +266,9 @@ func (r *Repository) GetByIDs(ctx context.Context, ids []string) ([]*model.Activ
 	var records []*core.Record
 	err := pb.RecordQuery(schema.CollectionActivities).
 		WithContext(ctx).
-		Where(dbx.Or(
-			pbhelper.SliceToEqExp(schema.ActivitySchema.Id, ids)...,
+		Where(dbx.In(
+			schema.ActivitySchema.Id,
+			pbhelper.SliceToAny(ids)...,
 		)).
 		All(&records)
 	if err != nil {

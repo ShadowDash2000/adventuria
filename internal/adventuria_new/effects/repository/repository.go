@@ -28,8 +28,9 @@ func (r *Repository) GetByIDs(ctx context.Context, ids []string) ([]*model.Effec
 	var records []*core.Record
 	err := pb.RecordQuery(schema.CollectionEffects).
 		WithContext(ctx).
-		Where(dbx.Or(
-			pbhelper.SliceToEqExp(schema.EffectSchema.Id, ids)...,
+		Where(dbx.In(
+			schema.EffectSchema.Id,
+			pbhelper.SliceToAny(ids)...,
 		)).
 		All(&records)
 	if err != nil {
@@ -58,9 +59,9 @@ func (r *Repository) GetAllByItemID(ctx context.Context, itemId string) ([]*mode
 	var records []*core.Record
 	err = pb.RecordQuery(schema.CollectionEffects).
 		WithContext(ctx).
-		Where(dbx.Or(
-			pbhelper.SliceToEqExp(
-				schema.EffectSchema.Id,
+		Where(dbx.In(
+			schema.EffectSchema.Id,
+			pbhelper.SliceToAny(
 				itemRecord.GetStringSlice(schema.ItemSchema.Effects))...,
 		)).
 		All(&records)
