@@ -2,17 +2,18 @@ package roll_item_on_cell
 
 import (
 	"adventuria/internal/adventuria_new/actions"
+	"adventuria/internal/adventuria_new/cells"
 	"adventuria/internal/adventuria_new/model"
 	"context"
 	"fmt"
 )
 
-type cells interface {
+type cellsService interface {
 	GetCurrentCellByProgress(ctx context.Context, progress *model.PlayerProgress) (model.Cell, error)
 }
 
 type inventories interface {
-	AddItemByID(ctx context.Context, events *model.Events, playerId string, itemId string) (*model.InventoryItem, error)
+	AddItemByID(ctx context.Context, events *model.Events, player *model.Player, itemId string) (*model.InventoryItem, error)
 }
 
 type items interface {
@@ -25,12 +26,12 @@ const Type model.ActionType = "roll_item_on_cell"
 
 type RollItemOnCell struct {
 	actions.ActionBase
-	cells       cells
+	cells       cellsService
 	inventories inventories
 	items       items
 }
 
-func NewActionRollItemOnCellDef(cells cells, inventories inventories, items items) actions.ActionDef {
+func NewDef(cells cellsService, inventories inventories, items items) actions.ActionDef {
 	return actions.NewAction(
 		Type,
 		func() model.Action {
@@ -50,7 +51,7 @@ func (r *RollItemOnCell) CanDo(ctx context.Context, _ *model.Events, player *mod
 		return false
 	}
 
-	if currentCell.Data().Type() != "rollItem" {
+	if currentCell.Data().Type() != cells.CellTypeRollItem {
 		return false
 	}
 
@@ -73,7 +74,7 @@ func (r *RollItemOnCell) Do(ctx context.Context, events *model.Events, player *m
 		return nil, err
 	}
 
-	_, err = r.inventories.AddItemByID(ctx, events, player.ID(), res.WinnerId)
+	_, err = r.inventories.AddItemByID(ctx, events, player, res.WinnerId)
 	if err != nil {
 		return nil, err
 	}

@@ -7,6 +7,7 @@ import (
 
 type repository interface {
 	GetActivitiesByFilter(ctx context.Context, filter *model.ActivityFilter, poolSize, resultSize int) ([]string, error)
+	GetByID(ctx context.Context, id string) (*model.Activity, error)
 	GetByIDs(ctx context.Context, ids []string) ([]*model.Activity, error)
 }
 
@@ -90,6 +91,10 @@ func (a *Activities) UpdateActivitiesFromFilter(
 
 func (a *Activities) GetByFilter(ctx context.Context, filter *model.ActivityFilter) ([]string, error) {
 	return a.repository.GetActivitiesByFilter(ctx, filter, 20000, 20)
+}
+
+func (a *Activities) GetByID(ctx context.Context, id string) (*model.Activity, error) {
+	return a.repository.GetByID(ctx, id)
 }
 
 func (a *Activities) GetByIDs(ctx context.Context, ids []string) ([]*model.Activity, error) {

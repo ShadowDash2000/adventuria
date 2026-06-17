@@ -65,6 +65,10 @@ var (
 		Code:    "review_not_found",
 		Message: "review not found",
 	}
+	ErrOutboxNotFound = &AppError{
+		Code:    "outbox_not_found",
+		Message: "outbox not found",
+	}
 
 	ErrReviewCommentTooLong = &AppError{
 		Code:    "review_comment_max_size",
@@ -87,5 +91,10 @@ var (
 		Code:    "unknown_action",
 		Message: "Unknown action",
 		Status:  http.StatusBadRequest,
+	}
+
+	ErrNoPendingOutbox = &AppError{
+		Code:    "no_pending_outbox",
+		Message: "No pending outbox",
 	}
 )

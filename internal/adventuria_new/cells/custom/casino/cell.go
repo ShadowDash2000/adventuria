@@ -19,7 +19,7 @@ type CellCasino struct {
 	items items
 }
 
-func NewCellCasinoDef(
+func NewDef(
 	items items,
 	categories ...string,
 ) cells.CellDef {

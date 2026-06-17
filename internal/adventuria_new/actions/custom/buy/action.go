@@ -20,7 +20,7 @@ type items interface {
 }
 
 type inventories interface {
-	AddItem(ctx context.Context, events *model.Events, playerId string, item *model.Item) (*model.InventoryItem, error)
+	AddItem(ctx context.Context, events *model.Events, player *model.Player, item *model.Item) (*model.InventoryItem, error)
 }
 
 var _ model.Action = (*Buy)(nil)
@@ -34,7 +34,7 @@ type Buy struct {
 	inventories inventories
 }
 
-func NewActionBuyDef(cells cells, items items, inventories inventories) actions.ActionDef {
+func NewDef(cells cells, items items, inventories inventories) actions.ActionDef {
 	return actions.NewAction(
 		Type,
 		func() model.Action {
@@ -101,7 +101,7 @@ func (b *Buy) Do(ctx context.Context, events *model.Events, player *model.Player
 		return nil, err
 	}
 
-	onBeforeItemBuy, err := b.triggerOnBeforeItemBuy(events, item, basePrice)
+	onBeforeItemBuy, err := b.triggerOnBeforeItemBuy(ctx, events, item, basePrice)
 	if err != nil {
 		return nil, err
 	}
@@ -110,7 +110,7 @@ func (b *Buy) Do(ctx context.Context, events *model.Events, player *model.Player
 		return nil, errs.ErrNotEnoughMoney
 	}
 
-	_, err = b.inventories.AddItem(ctx, events, player.ID(), item)
+	_, err = b.inventories.AddItem(ctx, events, player, item)
 	if err != nil {
 		return nil, err
 	}

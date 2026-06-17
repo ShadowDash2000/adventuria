@@ -66,6 +66,7 @@ func (r *Repository) GetByID(ctx context.Context, id string) (*model.CellInfo, e
 			pbhelper.DotExpand("t", schema.CellSchema.Id): id,
 		}).
 		Bind(subQuery.Params()).
+		WithContext(ctx).
 		One(&record)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -95,6 +96,7 @@ func (r *Repository) GetByIDs(ctx context.Context, ids []string) ([]*model.CellI
 			pbhelper.SliceToAny(ids)...,
 		)).
 		Bind(subQuery.Params()).
+		WithContext(ctx).
 		All(&records)
 	if err != nil {
 		return nil, err
@@ -117,6 +119,7 @@ func (r *Repository) GetByLocalOrder(ctx context.Context, worldId string, order 
 		Limit(1).
 		Offset(int64(order)).
 		Bind(subQuery.Params()).
+		WithContext(ctx).
 		One(&record)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -141,6 +144,7 @@ func (r *Repository) GetByGlobalOrder(ctx context.Context, order int) (*model.Ce
 		Limit(1).
 		Offset(int64(order)).
 		Bind(subQuery.Params()).
+		WithContext(ctx).
 		One(&record)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -166,6 +170,7 @@ func (r *Repository) GetAllGlobalByType(ctx context.Context, t model.CellType) (
 			pbhelper.DotExpand("t", schema.CellSchema.Type): string(t),
 		}).
 		Bind(subQuery.Params()).
+		WithContext(ctx).
 		All(&records)
 	if err != nil {
 		return nil, err
@@ -185,6 +190,7 @@ func (r *Repository) CountLocal(ctx context.Context, worldId string) (int, error
 			schema.CellSchema.World:    worldId,
 			schema.CellSchema.Disabled: false,
 		}).
+		WithContext(ctx).
 		Row(&count)
 	if err != nil {
 		return 0, err
@@ -203,6 +209,7 @@ func (r *Repository) CountGlobal(ctx context.Context) (int, error) {
 		Where(dbx.HashExp{
 			schema.CellSchema.Disabled: false,
 		}).
+		WithContext(ctx).
 		Row(&count)
 	if err != nil {
 		return 0, err

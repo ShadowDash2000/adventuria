@@ -13,7 +13,7 @@ type actionsService interface {
 }
 
 type inventories interface {
-	AddItemByID(ctx context.Context, events *model.Events, playerId string, itemId string) (*model.InventoryItem, error)
+	AddItemByID(ctx context.Context, events *model.Events, player *model.Player, itemId string) (*model.InventoryItem, error)
 }
 
 type items interface {
@@ -31,7 +31,7 @@ type RollItem struct {
 	items       items
 }
 
-func NewActionRollItemDef(actionsService actionsService, inventories inventories, items items) actions.ActionDef {
+func NewDef(actionsService actionsService, inventories inventories, items items) actions.ActionDef {
 	return actions.NewAction(
 		Type,
 		func() model.Action {
@@ -70,7 +70,7 @@ func (r *RollItem) Do(ctx context.Context, events *model.Events, player *model.P
 	}
 
 	res.WinnerId = helper.RandomItemFromSlice(items).ID()
-	_, err = r.inventories.AddItemByID(ctx, events, player.ID(), res.WinnerId)
+	_, err = r.inventories.AddItemByID(ctx, events, player, res.WinnerId)
 	if err != nil {
 		return nil, err
 	}
@@ -80,13 +80,13 @@ func (r *RollItem) Do(ctx context.Context, events *model.Events, player *model.P
 		return nil, err
 	}
 
-	err = events.OnAfterItemRoll().Trigger(&model.OnAfterItemRollEvent{
+	err = events.OnAfterItemRoll().Trigger(ctx, &model.OnAfterItemRollEvent{
 		ItemId: res.WinnerId,
 	})
 	if err != nil {
 		return nil, err
 	}
-	err = events.OnAfterWheelRoll().Trigger(&model.OnAfterWheelRollEvent{
+	err = events.OnAfterWheelRoll().Trigger(ctx, &model.OnAfterWheelRollEvent{
 		ItemId: res.WinnerId,
 	})
 	if err != nil {

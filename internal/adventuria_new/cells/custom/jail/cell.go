@@ -27,7 +27,7 @@ type CellJail struct {
 	filters      filters
 }
 
-func NewCellJailDef(
+func NewDef(
 	activities activities,
 	activityFilters filters,
 	categories ...string,
@@ -58,11 +58,11 @@ func (c *CellJail) Roll(_ context.Context, _ *model.Events, player *model.Player
 	}, nil
 }
 
-func (c *CellJail) OnCellReached(_ context.Context, events *model.Events, player *model.Player, _ *model.ReachedContext) error {
+func (c *CellJail) OnCellReached(ctx context.Context, events *model.Events, player *model.Player, _ *model.ReachedContext) error {
 	if player.Progress().IsInJail() {
 		player.LastAction().SetCanMove(false)
 
-		err := events.OnAfterGoToJail().Trigger(&model.OnAfterGoToJailEvent{})
+		err := events.OnAfterGoToJail().Trigger(ctx, &model.OnAfterGoToJailEvent{})
 		if err != nil {
 			return err
 		}

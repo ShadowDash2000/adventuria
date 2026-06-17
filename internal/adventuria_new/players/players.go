@@ -9,6 +9,7 @@ import (
 
 type repository interface {
 	Exists(ctx context.Context, id string) (bool, error)
+	GetAllIDs(ctx context.Context) ([]string, error)
 }
 
 type actions interface {
@@ -72,6 +73,39 @@ func (p *Players) GetByID(ctx context.Context, playerId, seasonId string) (*mode
 	)
 
 	return player, nil
+}
+
+func (p *Players) GetAll(ctx context.Context, seasonId string) ([]*model.Player, error) {
+	playerIds, err := p.repository.GetAllIDs(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	season, err := p.seasons.GetByID(ctx, seasonId)
+	if err != nil {
+		return nil, err
+	}
+
+	players := make([]*model.Player, len(playerIds))
+	for i, playerId := range playerIds {
+		progress, err := p.progress.GetFirstOrDefault(ctx, playerId, seasonId)
+		if err != nil {
+			return nil, err
+		}
+
+		action, err := p.actions.GetLastOrDefault(ctx, playerId, season.SeasonDateStart())
+		if err != nil {
+			return nil, err
+		}
+
+		players[i] = model.RestorePlayer(
+			model.PlayerData{Id: playerId},
+			progress,
+			action,
+		)
+	}
+
+	return players, nil
 }
 
 func (p *Players) Save(ctx context.Context, player *model.Player) error {

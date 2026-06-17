@@ -25,7 +25,7 @@ type RollWheel struct {
 	activities activities
 }
 
-func NewActionRollWheelDef(cells cells, activities activities) actions.ActionDef {
+func NewDef(cells cells, activities activities) actions.ActionDef {
 	return actions.NewAction(
 		Type,
 		func() model.Action {
@@ -71,7 +71,7 @@ func (r *RollWheel) Do(ctx context.Context, events *model.Events, player *model.
 	lastAction.SetType(Type)
 	lastAction.SetActivity(res.WinnerId)
 
-	err = events.OnAfterWheelRoll().Trigger(&model.OnAfterWheelRollEvent{
+	err = events.OnAfterWheelRoll().Trigger(ctx, &model.OnAfterWheelRollEvent{
 		ItemId: res.WinnerId,
 	})
 	if err != nil {

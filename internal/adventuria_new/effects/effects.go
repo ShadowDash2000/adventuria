@@ -93,6 +93,18 @@ func (e *Effects) effectCallback(
 	}
 }
 
+func (e *Effects) SubscribePersistentEffects(ctx context.Context, events *model.Events, player *model.Player) error {
+	for _, effectDef := range GetAllPersistent() {
+		unsubs, err := effectDef.Effect().Subscribe(ctx, events, player)
+		if err != nil {
+			return err
+		}
+
+		events.AddUnsubs(player.ID()+":"+string(effectDef.Type()), unsubs...)
+	}
+	return nil
+}
+
 func (e *Effects) UnsubscribeActiveEffects(events *model.Events, items []*model.InventoryItem) {
 	for _, item := range items {
 		for _, effectId := range item.Item().Effects() {

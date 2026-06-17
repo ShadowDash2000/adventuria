@@ -23,7 +23,7 @@ type CellShop struct {
 	items items
 }
 
-func NewCellShopDef(
+func NewDef(
 	items items,
 	categories ...string,
 ) cells.CellDef {

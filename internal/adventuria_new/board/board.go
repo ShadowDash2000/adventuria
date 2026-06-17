@@ -86,7 +86,7 @@ func (b *Board) Move(ctx context.Context, events *model.Events, player *model.Pl
 			}
 		}
 
-		err = b.changeWorld(events, player, currentWorldId, nextWorld.ID())
+		err = b.changeWorld(ctx, events, player, currentWorldId, nextWorld.ID())
 		if err != nil {
 			return nil, err
 		}
@@ -141,7 +141,7 @@ func (b *Board) Move(ctx context.Context, events *model.Events, player *model.Pl
 		CurrentWorld:   world,
 		Laps:           lapsPassed,
 	}
-	err = events.OnAfterMove().Trigger(&onAfterMoveEvent)
+	err = events.OnAfterMove().Trigger(ctx, &onAfterMoveEvent)
 	if err != nil {
 		return nil, err
 	}
@@ -166,7 +166,7 @@ func (b *Board) Move(ctx context.Context, events *model.Events, player *model.Pl
 
 	// Check if we're not moving backwards and passed new lap(-s)
 	if steps > 0 && lapsPassed > 0 {
-		err = events.OnNewLap().Trigger(&model.OnNewLapEvent{
+		err = events.OnNewLap().Trigger(ctx, &model.OnNewLapEvent{
 			Laps: lapsPassed,
 		})
 		if err != nil {
@@ -186,7 +186,7 @@ func (b *Board) MoveToCellId(ctx context.Context, events *model.Events, player *
 	cellWorldId := cell.World()
 	currentWorld := player.Progress().CurrentWorld()
 	if cellWorldId != currentWorld {
-		err = b.changeWorld(events, player, currentWorld, cellWorldId)
+		err = b.changeWorld(ctx, events, player, currentWorld, cellWorldId)
 		if err != nil {
 			return nil, err
 		}
@@ -202,11 +202,11 @@ func (b *Board) MoveToCellId(ctx context.Context, events *model.Events, player *
 	return b.Move(ctx, events, player, cell.LocalOrder()-currentCellOrder)
 }
 
-func (b *Board) changeWorld(events *model.Events, player *model.Player, oldWorldId, newWorldId string) error {
+func (b *Board) changeWorld(ctx context.Context, events *model.Events, player *model.Player, oldWorldId, newWorldId string) error {
 	player.Progress().SetCurrentWorld(newWorldId)
 	player.Progress().SetCellsPassed(0)
 
-	return events.OnWorldChanged().Trigger(&model.OnWorldChangedEvent{
+	return events.OnWorldChanged().Trigger(ctx, &model.OnWorldChangedEvent{
 		OldWorldId: oldWorldId,
 		NewWorldId: newWorldId,
 	})
@@ -251,11 +251,18 @@ func (b *Board) MoveToClosestCellType(
 
 	currentWorld := player.Progress().CurrentWorld()
 	if closestCell.World() != currentWorld {
-		err = b.changeWorld(events, player, currentWorld, closestCell.World())
+		err = b.changeWorld(ctx, events, player, currentWorld, closestCell.World())
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	return b.Move(ctx, events, player, closestCell.LocalOrder())
+}
+
+func (b *Board) GetLocalDistanceBetweenCells(cell1, cell2 *model.CellInfo) (int, error) {
+	if cell1.World() != cell2.World() {
+		return 0, fmt.Errorf("cells are in different worlds")
+	}
+	return mathhelper.Abs(cell1.LocalOrder() - cell2.LocalOrder()), nil
 }

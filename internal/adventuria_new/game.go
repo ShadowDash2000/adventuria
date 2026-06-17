@@ -23,6 +23,9 @@ import (
 	"adventuria/internal/adventuria_new/items"
 	itemsRepo "adventuria/internal/adventuria_new/items/repository"
 	"adventuria/internal/adventuria_new/model"
+	"adventuria/internal/adventuria_new/outboxes"
+	customOutboxes "adventuria/internal/adventuria_new/outboxes/custom"
+	outboxesRepo "adventuria/internal/adventuria_new/outboxes/repository"
 	"adventuria/internal/adventuria_new/player_progress"
 	progressRepo "adventuria/internal/adventuria_new/player_progress/repository"
 	"adventuria/internal/adventuria_new/players"
@@ -100,6 +103,7 @@ func (g *Game) init(pb core.App) error {
 	genresRepository := genresRepo.NewRepository(pb)
 	reviewsRepository := reviewsRepo.NewRepository(pb)
 	rollWheelRepository := rollWheelRepo.NewRepository(pb)
+	outboxesRepository := outboxesRepo.NewRepository(pb)
 
 	seasonsService := seasons.NewSeasons(seasonsRepository)
 	settingsService := settings.NewSettings(settingsRepository, seasonsService)
@@ -121,6 +125,7 @@ func (g *Game) init(pb core.App) error {
 	boardService := board.NewBoard(actionsService, progressService, cellsService, worldsService)
 	genresService := genres.NewGenres(genresRepository)
 	reviewsService := reviews.NewReviews(reviewsRepository)
+	outboxesService := outboxes.NewOutboxes(outboxesRepository)
 
 	g.settings = settingsService
 	g.players = playersService
@@ -143,7 +148,15 @@ func (g *Game) init(pb core.App) error {
 		cellsService,
 		genresService,
 		activityFiltersService,
+		inventoriesService,
+		itemsService,
+		activitiesService,
+		playersService,
+		outboxesService,
+		boardService,
 	)
+
+	customEffects.RegisterPersistentEffects()
 
 	customActions.RegisterActions(
 		cellsService,
@@ -157,6 +170,12 @@ func (g *Game) init(pb core.App) error {
 		rollWheelRepository,
 	)
 
+	customOutboxes.RegisterOutboxes(
+		progressService,
+	)
+
+	outboxesService.Start(context.Background())
+
 	return nil
 }
 
@@ -169,6 +188,11 @@ func (g *Game) initScope(ctx context.Context, player *model.Player) (*scope.Scop
 	}
 
 	err = g.effects.SubscribeActiveEffects(ctx, s.Events(), s.Player(), invs)
+	if err != nil {
+		return nil, err
+	}
+
+	err = g.effects.SubscribePersistentEffects(ctx, s.Events(), s.Player())
 	if err != nil {
 		return nil, err
 	}
@@ -266,7 +290,7 @@ func (g *Game) UseItem(
 			return err
 		}
 
-		err = s.Events().OnAfterItemUse().Trigger(&model.OnAfterItemUseEvent{
+		err = s.Events().OnAfterItemUse().Trigger(ctx, &model.OnAfterItemUseEvent{
 			InvItemId: itemId,
 			Data:      data,
 		})

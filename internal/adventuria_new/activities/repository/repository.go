@@ -30,7 +30,7 @@ func (r *Repository) GetActivitiesByFilter(ctx context.Context, filter *model.Ac
 	}
 
 	var totalCount int
-	err := countQuery.Row(&totalCount)
+	err := countQuery.WithContext(ctx).Row(&totalCount)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +58,7 @@ func (r *Repository) GetActivitiesByFilter(ctx context.Context, filter *model.Ac
 	var records []struct {
 		Id string `db:"id"`
 	}
-	err = q.All(&records)
+	err = q.WithContext(ctx).All(&records)
 	if err != nil {
 		return nil, err
 	}
@@ -258,6 +258,22 @@ func applyActivityRelationFilter(
 			),
 		)
 	}
+}
+
+func (r *Repository) GetByID(ctx context.Context, id string) (*model.Activity, error) {
+	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
+
+	var record core.Record
+	err := pb.RecordQuery(schema.CollectionActivities).
+		WithContext(ctx).
+		Where(dbx.HashExp{schema.ActivitySchema.Id: id}).
+		Limit(1).
+		One(&record)
+	if err != nil {
+		return nil, err
+	}
+
+	return RecordToActivity(&record), nil
 }
 
 func (r *Repository) GetByIDs(ctx context.Context, ids []string) ([]*model.Activity, error) {

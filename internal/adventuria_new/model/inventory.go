@@ -22,10 +22,9 @@ type Inventory struct {
 }
 
 type InventoryCreate struct {
-	Player    string
-	Item      string
-	Activated time.Time
-	IsActive  bool
+	Player   string
+	Item     string
+	IsActive bool
 }
 
 func NewInventory(id uuid.UUID, data InventoryCreate) (*Inventory, error) {
@@ -38,20 +37,22 @@ func NewInventory(id uuid.UUID, data InventoryCreate) (*Inventory, error) {
 	if data.Item == "" {
 		return nil, errors.New("inventory_item: item is empty")
 	}
-	if data.IsActive && data.Activated.IsZero() {
-		return nil, errors.New("inventory_item: activated time cannot be zero when item is active")
-	}
 
-	return &Inventory{
+	i := &Inventory{
 		data: InventoryData{
-			Id:        id.String(),
-			Player:    data.Player,
-			Item:      data.Item,
-			Activated: data.Activated,
-			IsActive:  data.IsActive,
+			Id:     id.String(),
+			Player: data.Player,
+			Item:   data.Item,
 		},
 		isNew: true,
-	}, nil
+	}
+
+	if data.IsActive {
+		i.data.IsActive = true
+		i.data.Activated = time.Now()
+	}
+
+	return i, nil
 }
 
 func RestoreInventory(data InventoryData) *Inventory {
@@ -69,12 +70,17 @@ func (i *Inventory) ID() string {
 	return i.data.Id
 }
 
-func (i *Inventory) Activated() time.Time {
-	return i.data.Activated
+func (i *Inventory) Activate() error {
+	if i.data.IsActive {
+		return errors.New("item is already active")
+	}
+	i.data.IsActive = true
+	i.data.Activated = time.Now()
+	return nil
 }
 
-func (i *Inventory) SetActivated(t time.Time) {
-	i.data.Activated = t
+func (i *Inventory) Activated() time.Time {
+	return i.data.Activated
 }
 
 func (i *Inventory) Player() string {
@@ -87,10 +93,6 @@ func (i *Inventory) Item() string {
 
 func (i *Inventory) IsActive() bool {
 	return i.data.IsActive
-}
-
-func (i *Inventory) SetIsActive(b bool) {
-	i.data.IsActive = b
 }
 
 func (i *Inventory) AppliedEffects() []string {

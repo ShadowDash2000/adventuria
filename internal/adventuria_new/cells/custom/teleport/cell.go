@@ -1,6 +1,7 @@
 package teleport
 
 import (
+	"adventuria/internal/adventuria_new/actions"
 	"adventuria/internal/adventuria_new/cells"
 	"adventuria/internal/adventuria_new/model"
 	"context"
@@ -14,7 +15,7 @@ type board interface {
 	MoveToCellId(ctx context.Context, events *model.Events, player *model.Player, cellId string) ([]*model.MoveResult, error)
 }
 
-type actions interface {
+type actionsService interface {
 	Save(ctx context.Context, action *model.ActionInfo) (*model.ActionInfo, error)
 }
 
@@ -24,13 +25,13 @@ type CellTeleport struct {
 	cells.CellBase
 	cells   cellsService
 	board   board
-	actions actions
+	actions actionsService
 }
 
-func NewCellTeleportDef(
+func NewDef(
 	cellsService cellsService,
 	boardService board,
-	actions actions,
+	actions actionsService,
 	categories ...string,
 ) cells.CellDef {
 	return cells.NewCell(
@@ -58,7 +59,7 @@ func (c *CellTeleport) OnCellReached(ctx context.Context, events *model.Events, 
 		SkipTeleport: false,
 	}
 
-	err = events.OnBeforeTeleportOnCell().Trigger(onBeforeTeleportOnCell)
+	err = events.OnBeforeTeleportOnCell().Trigger(ctx, onBeforeTeleportOnCell)
 	if err != nil {
 		return err
 	}
@@ -68,7 +69,7 @@ func (c *CellTeleport) OnCellReached(ctx context.Context, events *model.Events, 
 		return nil
 	}
 
-	player.LastAction().SetType("teleport")
+	player.LastAction().SetType(actions.ActionTypeTeleport)
 	newAction, err := c.actions.Save(ctx, player.LastAction())
 	if err != nil {
 		return err

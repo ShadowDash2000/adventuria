@@ -14,14 +14,14 @@ type items interface {
 
 var _ model.Rollable = (*CellRollItem)(nil)
 
-const Type model.CellType = "rollItem"
+const Type model.CellType = "roll_item"
 
 type CellRollItem struct {
 	cells.CellBase
 	items items
 }
 
-func NewCellRollItemDef(
+func NewDef(
 	items items,
 	categories ...string,
 ) cells.CellDef {

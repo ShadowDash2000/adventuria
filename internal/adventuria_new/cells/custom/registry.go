@@ -26,52 +26,30 @@ func RegisterCells(
 	board *board.Board,
 ) {
 	cells.Register(
-		start.NewCellStartDef(),
-		activity.NewCellActivityDef(
-			model.ActivityTypeGame,
-			activities,
-			activityFilters,
+		start.NewDef(),
+		activity.NewDef(
+			model.ActivityTypeGame, activities, activityFilters,
 			"wheel", "activity", "game",
 		),
-		activity.NewCellActivityDef(
-			model.ActivityTypeMovie,
-			activities,
-			activityFilters,
+		activity.NewDef(
+			model.ActivityTypeMovie, activities, activityFilters,
 			"wheel", "activity",
 		),
-		activity.NewCellActivityDef(
-			model.ActivityTypeGym,
-			activities,
-			activityFilters,
+		activity.NewDef(
+			model.ActivityTypeGym, activities, activityFilters,
 			"wheel", "activity",
 		),
-		activity.NewCellActivityDef(
-			model.ActivityTypeKaraoke,
-			activities,
-			activityFilters,
+		activity.NewDef(
+			model.ActivityTypeKaraoke, activities, activityFilters,
 			"wheel", "activity",
 		),
-		jail.NewCellJailDef(
-			activities,
-			activityFilters,
+		jail.NewDef(
+			activities, activityFilters,
 			"wheel", "activity", "game",
 		),
-		roll_item.NewCellRollItemDef(
-			items,
-			"wheel",
-		),
-		casino.NewCellCasinoDef(
-			items,
-			"shop",
-		),
-		shop.NewCellShopDef(
-			items,
-			"shop",
-		),
-		teleport.NewCellTeleportDef(
-			cellsService,
-			board,
-			actions,
-		),
+		roll_item.NewDef(items, "wheel"),
+		casino.NewDef(items, "shop"),
+		shop.NewDef(items, "shop"),
+		teleport.NewDef(cellsService, board, actions),
 	)
 }

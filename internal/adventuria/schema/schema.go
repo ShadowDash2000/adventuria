@@ -12,6 +12,7 @@ const (
 	CollectionSeasons         = "seasons"
 	CollectionWorlds          = "worlds"
 	CollectionReviews         = "reviews"
+	CollectionsOutbox         = "outbox"
 
 	CollectionActivities     = "activities"
 	CollectionCompanies      = "companies"
@@ -502,4 +503,16 @@ var ReviewSchema = struct {
 	Id:      "id",
 	Comment: "comment",
 	Score:   "score",
+}
+
+var OutboxSchema = struct {
+	Id      string
+	Type    string
+	Payload string
+	Status  string
+}{
+	Id:      "id",
+	Type:    "type",
+	Payload: "payload",
+	Status:  "status",
 }

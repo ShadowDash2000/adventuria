@@ -38,7 +38,7 @@ func (b *Buy) GetView(ctx context.Context, events *model.Events, player *model.P
 			return nil, err
 		}
 
-		onBuyGetVariants, err := b.triggerOnBuyGetView(events, item, basePrice)
+		onBuyGetVariants, err := b.triggerOnBuyGetView(ctx, events, item, basePrice)
 		if err != nil {
 			return nil, err
 		}

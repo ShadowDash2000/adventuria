@@ -32,13 +32,13 @@ func RegisterActions(
 	rollWheelRepo *rollWheelRepo.Repository,
 ) {
 	actions.Register(
-		done.NewActionDoneDef(cells, reviews),
-		drop.NewActionDropDef(cells, reviews, players, settings, board),
-		reroll.NewActionRerollDef(cells, reviews, actionsService),
-		buy.NewActionBuyDef(cells, items, inventories),
-		roll_dice.NewActionRollDiceDef(cells, actionsService, board),
-		roll_item.NewActionRollItemDef(actionsService, inventories, items),
-		roll_item_on_cell.NewActionRollItemOnCellDef(cells, inventories, items),
-		roll_wheel.NewActionRollWheelDef(cells, rollWheelRepo),
+		done.NewDef(cells, reviews),
+		drop.NewDef(cells, reviews, players, settings, board),
+		reroll.NewDef(cells, reviews, actionsService),
+		buy.NewDef(cells, items, inventories),
+		roll_dice.NewDef(cells, actionsService, board),
+		roll_item.NewDef(actionsService, inventories, items),
+		roll_item_on_cell.NewDef(cells, inventories, items),
+		roll_wheel.NewDef(cells, rollWheelRepo),
 	)
 }

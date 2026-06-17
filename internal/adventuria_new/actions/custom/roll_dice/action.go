@@ -30,7 +30,7 @@ type RollDice struct {
 	board   board
 }
 
-func NewActionRollDiceDef(cells cells, actionsService actionsService, board board) actions.ActionDef {
+func NewDef(cells cells, actionsService actionsService, board board) actions.ActionDef {
 	return actions.NewAction(
 		Type,
 		func() model.Action {
@@ -80,7 +80,7 @@ func (r *RollDice) Do(ctx context.Context, events *model.Events, player *model.P
 	onBeforeRollEvent := &model.OnBeforeRollEvent{
 		Dices: []model.Dice{model.DiceD6(), model.DiceD6()},
 	}
-	err := events.OnBeforeRoll().Trigger(onBeforeRollEvent)
+	err := events.OnBeforeRoll().Trigger(ctx, onBeforeRollEvent)
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func (r *RollDice) Do(ctx context.Context, events *model.Events, player *model.P
 		}
 		onBeforeRollMoveEvent.N += diceRolls[i].Roll
 	}
-	err = events.OnBeforeRollMove().Trigger(onBeforeRollMoveEvent)
+	err = events.OnBeforeRollMove().Trigger(ctx, onBeforeRollMoveEvent)
 	if err != nil {
 		return nil, err
 	}
@@ -140,7 +140,7 @@ func (r *RollDice) Do(ctx context.Context, events *model.Events, player *model.P
 
 	player.LastAction().SetType(Type)
 
-	err = events.OnAfterRoll().Trigger(&model.OnAfterRollEvent{
+	err = events.OnAfterRoll().Trigger(ctx, &model.OnAfterRollEvent{
 		Dices: onBeforeRollEvent.Dices,
 		N:     onBeforeRollMoveEvent.N,
 	})

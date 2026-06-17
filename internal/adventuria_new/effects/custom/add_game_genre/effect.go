@@ -27,11 +27,11 @@ type activityFilters interface {
 	GetByID(ctx context.Context, id string) (*model.ActivityFilter, error)
 }
 
-var _ model.Effect = (*AddGameGenreEffect)(nil)
+var _ model.Effect = (*AddGameGenre)(nil)
 
 const Type model.EffectType = "add_game_genre"
 
-type AddGameGenreEffect struct {
+type AddGameGenre struct {
 	effects.EffectBase
 	actions         actionsService
 	cells           cells
@@ -39,11 +39,11 @@ type AddGameGenreEffect struct {
 	activityFilters activityFilters
 }
 
-func NewAddGameGenreEffectDef(actions actionsService, cells cells, genres genres, activityFilters activityFilters) effects.EffectDef {
+func NewDef(actions actionsService, cells cells, genres genres, activityFilters activityFilters) effects.EffectDef {
 	return effects.NewEffectDef(
 		Type,
 		func(effect model.EffectInfo) model.Effect {
-			return &AddGameGenreEffect{
+			return &AddGameGenre{
 				EffectBase:      effects.NewEffectBase(effect),
 				actions:         actions,
 				cells:           cells,
@@ -54,21 +54,21 @@ func NewAddGameGenreEffectDef(actions actionsService, cells cells, genres genres
 	)
 }
 
-func (a *AddGameGenreEffect) CanUse(ctx context.Context, events *model.Events, player *model.Player) bool {
+func (a *AddGameGenre) CanUse(ctx context.Context, events *model.Events, player *model.Player) bool {
 	if !a.actions.CanDo(ctx, events, player, actions.ActionTypeRollWheel) {
 		return false
 	}
 
-	cell, err := a.cells.GetCurrentCellByProgress(ctx, player.Progress())
+	currentCell, err := a.cells.GetCurrentCellByProgress(ctx, player.Progress())
 	if err != nil {
 		return false
 	}
 
-	if !cell.InCategory("game") {
+	if !currentCell.InCategory("game") {
 		return false
 	}
 
-	if filterId := cell.Data().Filter(); filterId != "" {
+	if filterId := currentCell.Data().Filter(); filterId != "" {
 		filter, err := a.activityFilters.GetByID(ctx, filterId)
 		if err != nil {
 			return false
@@ -88,25 +88,25 @@ func (a *AddGameGenreEffect) CanUse(ctx context.Context, events *model.Events, p
 	return true
 }
 
-func (a *AddGameGenreEffect) Subscribe(
-	ctx context.Context,
+func (a *AddGameGenre) Subscribe(
+	_ context.Context,
 	events *model.Events,
 	player *model.Player,
 	effectCtx model.EffectContext,
 	callback model.EffectCallback,
 ) ([]event_new.Unsubscribe, error) {
 	return []event_new.Unsubscribe{
-		events.OnAfterItemUse().BindFuncWithPriority(func(e *model.OnAfterItemUseEvent) error {
+		events.OnAfterItemUse().BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterItemUseEvent) error {
 			if effectCtx.InvItemID != e.InvItemId {
 				return e.Next()
 			}
 
-			cell, err := a.cells.GetCurrentCellByProgress(ctx, player.Progress())
+			currentCell, err := a.cells.GetCurrentCellByProgress(ctx, player.Progress())
 			if err != nil {
 				return err
 			}
 
-			cellWheel, ok := cell.(model.Rollable)
+			cellWheel, ok := currentCell.(model.Rollable)
 			if !ok {
 				return errors.New("current cell is not refreshable")
 			}

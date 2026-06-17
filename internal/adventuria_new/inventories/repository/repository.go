@@ -119,6 +119,31 @@ func (r *Repository) DeleteByID(ctx context.Context, id string) error {
 	return nil
 }
 
+func (r *Repository) DeleteByIDs(ctx context.Context, ids []string) error {
+	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
+
+	var records []*core.Record
+	err := pb.RecordQuery(schema.CollectionInventory).
+		WithContext(ctx).
+		Where(dbx.In(
+			schema.InventorySchema.Id,
+			pbhelper.SliceToAny(ids)...,
+		)).
+		All(&records)
+	if err != nil {
+		return err
+	}
+
+	for _, record := range records {
+		err = pb.DeleteWithContext(ctx, record)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (r *Repository) GetByID(ctx context.Context, id string) (*model.Inventory, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 

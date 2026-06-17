@@ -8,6 +8,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
@@ -91,4 +92,49 @@ func (r *Repository) GetByPlayerId(ctx context.Context, playerId, seasonId strin
 	progress := RecordToPlayerProgress(&record)
 
 	return progress, nil
+}
+
+func (r *Repository) ChangeBalance(ctx context.Context, id string, amount int) error {
+	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
+
+	_, err := pb.DB().
+		NewQuery(fmt.Sprintf(
+			"UPDATE %s SET %s = %s + {:amount} WHERE %s = {:id}",
+			schema.CollectionPlayersProgress,
+			schema.PlayerProgressSchema.Balance,
+			schema.PlayerProgressSchema.Balance,
+			schema.PlayerProgressSchema.Id,
+		)).
+		Bind(dbx.Params{
+			"amount": amount,
+			"id":     id,
+		}).
+		WithContext(ctx).
+		Execute()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *Repository) NotifyChange(ctx context.Context, id string) error {
+	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
+
+	record, err := pb.FindRecordById(schema.CollectionPlayersProgress, id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return errs.ErrProgressNotFound
+		}
+		return err
+	}
+
+	event := &core.ModelEvent{
+		App:     pb,
+		Context: ctx,
+		Type:    core.ModelEventTypeUpdate,
+	}
+	event.Model = record
+
+	return pb.OnModelAfterUpdateSuccess().Trigger(event)
 }

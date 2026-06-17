@@ -42,7 +42,7 @@ type Drop struct {
 	board    board
 }
 
-func NewActionDropDef(cells cells, reviews reviews, players players, settings settings, board board) actions.ActionDef {
+func NewDef(cells cells, reviews reviews, players players, settings settings, board board) actions.ActionDef {
 	return actions.NewAction(
 		Type,
 		func() model.Action {
@@ -75,7 +75,7 @@ func (d *Drop) CanDo(ctx context.Context, events *model.Events, player *model.Pl
 	onBeforeDropCheckEvent := &model.OnBeforeDropCheckEvent{
 		IsDropBlocked: false,
 	}
-	err = events.OnBeforeDropCheck().Trigger(onBeforeDropCheckEvent)
+	err = events.OnBeforeDropCheck().Trigger(ctx, onBeforeDropCheckEvent)
 	if err != nil {
 		return false
 	}
@@ -122,7 +122,7 @@ func (d *Drop) Do(ctx context.Context, events *model.Events, player *model.Playe
 		IsDropBlocked: false,
 		PointsForDrop: settings.PointsForDrop(),
 	}
-	err = events.OnBeforeDrop().Trigger(onBeforeDropEvent)
+	err = events.OnBeforeDrop().Trigger(ctx, onBeforeDropEvent)
 	if err != nil {
 		return nil, err
 	}
@@ -161,5 +161,5 @@ func (d *Drop) Do(ctx context.Context, events *model.Events, player *model.Playe
 		}
 	}
 
-	return nil, events.OnAfterDrop().Trigger(&model.OnAfterDropEvent{})
+	return nil, events.OnAfterDrop().Trigger(ctx, &model.OnAfterDropEvent{})
 }

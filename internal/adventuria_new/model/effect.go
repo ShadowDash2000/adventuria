@@ -14,6 +14,10 @@ type Effect interface {
 	Subscribe(ctx context.Context, events *Events, player *Player, effectCtx EffectContext, callback EffectCallback) ([]event_new.Unsubscribe, error)
 }
 
+type EffectPersistent interface {
+	Subscribe(ctx context.Context, events *Events, player *Player) ([]event_new.Unsubscribe, error)
+}
+
 type EffectContext struct {
 	InvItemID string
 	Priority  int

@@ -2728,7 +2728,7 @@ func init() {
 						"autogeneratePattern": "",
 						"help": "",
 						"hidden": false,
-						"id": "_clone_47he",
+						"id": "_clone_pPGT",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -2742,7 +2742,7 @@ func init() {
 					{
 						"help": "",
 						"hidden": false,
-						"id": "_clone_pPBF",
+						"id": "_clone_rJtA",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_id",
@@ -2755,7 +2755,7 @@ func init() {
 					{
 						"help": "",
 						"hidden": false,
-						"id": "_clone_vCGv",
+						"id": "_clone_I5wt",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_price",
@@ -2991,7 +2991,7 @@ func init() {
 						"autogeneratePattern": "",
 						"help": "",
 						"hidden": false,
-						"id": "_clone_Jlkl",
+						"id": "_clone_OZfT",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -3005,7 +3005,7 @@ func init() {
 					{
 						"help": "",
 						"hidden": false,
-						"id": "_clone_nVuY",
+						"id": "_clone_ugeq",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_id",
@@ -3018,7 +3018,7 @@ func init() {
 					{
 						"help": "",
 						"hidden": false,
-						"id": "_clone_dgyl",
+						"id": "_clone_uwJG",
 						"max": null,
 						"min": 0,
 						"name": "hltb_id",
@@ -3031,7 +3031,7 @@ func init() {
 					{
 						"help": "",
 						"hidden": false,
-						"id": "_clone_PzZU",
+						"id": "_clone_ny4m",
 						"max": null,
 						"min": 0,
 						"name": "hltb_campaign_time",
@@ -3354,7 +3354,7 @@ func init() {
 						"autogeneratePattern": "",
 						"help": "",
 						"hidden": false,
-						"id": "_clone_Sp39",
+						"id": "_clone_OOt8",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -3368,7 +3368,7 @@ func init() {
 					{
 						"help": "",
 						"hidden": false,
-						"id": "_clone_UHLJ",
+						"id": "_clone_2wNL",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_id",
@@ -3381,7 +3381,7 @@ func init() {
 					{
 						"help": "",
 						"hidden": false,
-						"id": "_clone_DMwO",
+						"id": "_clone_FQdg",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_price",
@@ -3425,7 +3425,7 @@ func init() {
 						"autogeneratePattern": "",
 						"help": "",
 						"hidden": false,
-						"id": "_clone_vkuP",
+						"id": "_clone_tglt",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -3439,7 +3439,7 @@ func init() {
 					{
 						"help": "",
 						"hidden": false,
-						"id": "_clone_QCr3",
+						"id": "_clone_6zC2",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_id",
@@ -3452,7 +3452,7 @@ func init() {
 					{
 						"help": "",
 						"hidden": false,
-						"id": "_clone_SS5k",
+						"id": "_clone_gWc2",
 						"max": null,
 						"min": 0,
 						"name": "hltb_id",
@@ -3465,7 +3465,7 @@ func init() {
 					{
 						"help": "",
 						"hidden": false,
-						"id": "_clone_wNnn",
+						"id": "_clone_VaQS",
 						"max": null,
 						"min": 0,
 						"name": "hltb_campaign_time",
@@ -5044,6 +5044,172 @@ func init() {
 				"type": "base",
 				"updateRule": null,
 				"viewRule": ""
+			},
+			{
+				"createRule": null,
+				"deleteRule": null,
+				"fields": [
+					{
+						"autogeneratePattern": "[a-z0-9]{15}",
+						"help": "",
+						"hidden": false,
+						"id": "text3208210256",
+						"max": 15,
+						"min": 15,
+						"name": "id",
+						"pattern": "^[a-z0-9]+$",
+						"presentable": false,
+						"primaryKey": true,
+						"required": true,
+						"system": true,
+						"type": "text"
+					},
+					{
+						"hidden": false,
+						"id": "autodate2990389176",
+						"name": "created",
+						"onCreate": true,
+						"onUpdate": false,
+						"presentable": false,
+						"system": false,
+						"type": "autodate"
+					},
+					{
+						"hidden": false,
+						"id": "autodate3332085495",
+						"name": "updated",
+						"onCreate": true,
+						"onUpdate": true,
+						"presentable": false,
+						"system": false,
+						"type": "autodate"
+					},
+					{
+						"convertURLs": false,
+						"help": "",
+						"hidden": false,
+						"id": "editor2490651244",
+						"maxSize": 0,
+						"name": "comment",
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "editor"
+					},
+					{
+						"help": "",
+						"hidden": false,
+						"id": "number848901969",
+						"max": 10,
+						"min": 0,
+						"name": "score",
+						"onlyInt": true,
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "number"
+					}
+				],
+				"id": "pbc_4163081445",
+				"indexes": [],
+				"listRule": null,
+				"name": "reviews",
+				"system": false,
+				"type": "base",
+				"updateRule": null,
+				"viewRule": null
+			},
+			{
+				"createRule": null,
+				"deleteRule": null,
+				"fields": [
+					{
+						"autogeneratePattern": "[a-z0-9]{15}",
+						"help": "",
+						"hidden": false,
+						"id": "text3208210256",
+						"max": 15,
+						"min": 15,
+						"name": "id",
+						"pattern": "^[a-z0-9]+$",
+						"presentable": false,
+						"primaryKey": true,
+						"required": true,
+						"system": true,
+						"type": "text"
+					},
+					{
+						"hidden": false,
+						"id": "autodate2990389176",
+						"name": "created",
+						"onCreate": true,
+						"onUpdate": false,
+						"presentable": false,
+						"system": false,
+						"type": "autodate"
+					},
+					{
+						"hidden": false,
+						"id": "autodate3332085495",
+						"name": "updated",
+						"onCreate": true,
+						"onUpdate": true,
+						"presentable": false,
+						"system": false,
+						"type": "autodate"
+					},
+					{
+						"autogeneratePattern": "",
+						"help": "",
+						"hidden": false,
+						"id": "text2363381545",
+						"max": 0,
+						"min": 0,
+						"name": "type",
+						"pattern": "",
+						"presentable": false,
+						"primaryKey": false,
+						"required": true,
+						"system": false,
+						"type": "text"
+					},
+					{
+						"help": "",
+						"hidden": false,
+						"id": "json1110206997",
+						"maxSize": 0,
+						"name": "payload",
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "json"
+					},
+					{
+						"help": "",
+						"hidden": false,
+						"id": "select2063623452",
+						"maxSelect": 0,
+						"name": "status",
+						"presentable": false,
+						"required": true,
+						"system": false,
+						"type": "select",
+						"values": [
+							"pending",
+							"processing",
+							"failed",
+							"completed"
+						]
+					}
+				],
+				"id": "pbc_1576314942",
+				"indexes": [],
+				"listRule": null,
+				"name": "outbox",
+				"system": false,
+				"type": "base",
+				"updateRule": null,
+				"viewRule": null
 			}
 		]`
 

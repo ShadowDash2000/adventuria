@@ -2,11 +2,12 @@ package event_new
 
 import (
 	"adventuria/pkg/random"
+	"context"
 	"slices"
 )
 
 type Handler[T Resolver] struct {
-	Func     func(T) error
+	Func     func(context.Context, T) error
 	id       string
 	once     bool
 	Priority int
@@ -36,20 +37,20 @@ func (h *Hook[T]) Bind(handler *Handler[T]) Unsubscribe {
 	}
 }
 
-func (h *Hook[T]) BindFunc(fn func(e T) error) Unsubscribe {
+func (h *Hook[T]) BindFunc(fn func(ctx context.Context, e T) error) Unsubscribe {
 	return h.Bind(&Handler[T]{
 		Func: fn,
 	})
 }
 
-func (h *Hook[T]) BindFuncWithPriority(fn func(e T) error, priority int) Unsubscribe {
+func (h *Hook[T]) BindFuncWithPriority(fn func(ctx context.Context, e T) error, priority int) Unsubscribe {
 	return h.Bind(&Handler[T]{
 		Func:     fn,
 		Priority: priority,
 	})
 }
 
-func (h *Hook[T]) BindFuncOnce(fn func(e T) error) Unsubscribe {
+func (h *Hook[T]) BindFuncOnce(fn func(ctx context.Context, e T) error) Unsubscribe {
 	return h.Bind(&Handler[T]{
 		Func: fn,
 		once: true,
@@ -67,7 +68,7 @@ func (h *Hook[T]) Unbind(idsToRemove ...string) {
 	}
 }
 
-func (h *Hook[T]) Trigger(event T, oneOffHandlerFuncs ...func(T) error) error {
+func (h *Hook[T]) Trigger(ctx context.Context, event T, oneOffHandlerFuncs ...func(context.Context, T) error) error {
 	handlers := make([]*Handler[T], 0, len(h.handlers))
 	handlers = append(handlers, h.handlers...)
 	for _, fn := range oneOffHandlerFuncs {
@@ -86,7 +87,7 @@ func (h *Hook[T]) Trigger(event T, oneOffHandlerFuncs ...func(T) error) error {
 				onceIds = append(onceIds, handler.id)
 			}
 			event.setNextFunc(old)
-			return handler.Func(event)
+			return handler.Func(ctx, event)
 		})
 
 	}

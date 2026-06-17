@@ -27,7 +27,7 @@ type CellActivity struct {
 	filters      filters
 }
 
-func NewCellActivityDef(
+func NewDef(
 	activityType model.ActivityType,
 	activities activities,
 	activityFilters filters,

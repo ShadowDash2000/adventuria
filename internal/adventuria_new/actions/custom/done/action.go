@@ -27,7 +27,7 @@ type Done struct {
 	reviews reviews
 }
 
-func NewActionDoneDef(cells cells, reviews reviews) actions.ActionDef {
+func NewDef(cells cells, reviews reviews) actions.ActionDef {
 	return actions.NewAction(
 		Type,
 		func() model.Action {
@@ -73,7 +73,7 @@ func (d *Done) Do(ctx context.Context, events *model.Events, player *model.Playe
 		CellPoints: currentCell.Data().Points(),
 		CellCoins:  currentCell.Data().Coins(),
 	}
-	err = events.OnBeforeDone().Trigger(onBeforeDoneEvent)
+	err = events.OnBeforeDone().Trigger(ctx, onBeforeDoneEvent)
 	if err != nil {
 		return nil, err
 	}
@@ -95,5 +95,5 @@ func (d *Done) Do(ctx context.Context, events *model.Events, player *model.Playe
 		return nil, err
 	}
 
-	return nil, events.OnAfterDone().Trigger(&model.OnAfterDoneEvent{})
+	return nil, events.OnAfterDone().Trigger(ctx, &model.OnAfterDoneEvent{})
 }

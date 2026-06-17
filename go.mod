@@ -6,13 +6,13 @@ require (
 	git.nite07.com/shadod/go-igdb v1.0.3
 	github.com/ShadowDash2000/howlongtobeat v1.1.12
 	github.com/ShadowDash2000/is-stream-live v0.3.0
-	github.com/ShadowDash2000/steam-store-go v0.0.13
+	github.com/ShadowDash2000/steam-store-go v1.0.0
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
 	github.com/google/uuid v1.6.0
 	github.com/joho/godotenv v1.5.1
 	github.com/pocketbase/dbx v1.12.0
-	github.com/pocketbase/pocketbase v0.39.3
-	golang.org/x/exp v0.0.0-20260603202125-055de637280b
+	github.com/pocketbase/pocketbase v0.39.4
+	golang.org/x/exp v0.0.0-20260611194520-c48552f49976
 	google.golang.org/protobuf v1.36.11
 )
 
@@ -47,9 +47,9 @@ require (
 	golang.org/x/sys v0.46.0 // indirect
 	golang.org/x/text v0.38.0 // indirect
 	golang.org/x/time v0.15.0 // indirect
-	modernc.org/libc v1.73.0 // indirect
+	modernc.org/libc v1.73.4 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
 	modernc.org/sqlite v1.52.0 // indirect
-	resty.dev/v3 v3.0.0-rc.1 // indirect
+	resty.dev/v3 v3.0.0-rc.2 // indirect
 )

@@ -5,7 +5,6 @@ import (
 	"adventuria/internal/adventuria_new/scope"
 	"adventuria/pkg/helper"
 	"context"
-	"time"
 
 	"github.com/google/uuid"
 )
@@ -16,6 +15,7 @@ type repository interface {
 	GetPlayerInventoryItemByID(ctx context.Context, playerId, itemId string) (*model.InventoryItem, error)
 	GetAllByPlayerID(ctx context.Context, playerId string) ([]*model.InventoryItem, error)
 	DeleteByID(ctx context.Context, id string) error
+	DeleteByIDs(ctx context.Context, ids []string) error
 	GetPlayerUsedSlots(ctx context.Context, playerId string) (int, error)
 	GetAllDroppableUsingSlotByPlayerID(ctx context.Context, playerId string) ([]*model.InventoryItem, error)
 }
@@ -63,7 +63,7 @@ func (i *Inventories) GetAllByPlayerID(ctx context.Context, playerId string) ([]
 func (i *Inventories) AddItem(
 	ctx context.Context,
 	events *model.Events,
-	playerId string,
+	player *model.Player,
 	item *model.Item,
 ) (*model.InventoryItem, error) {
 	onBeforeItemAddEvent := model.OnBeforeItemAddEvent{
@@ -71,7 +71,7 @@ func (i *Inventories) AddItem(
 		ShouldAddItem: true,
 	}
 
-	err := events.OnBeforeItemAdd().Trigger(&onBeforeItemAddEvent)
+	err := events.OnBeforeItemAdd().Trigger(ctx, &onBeforeItemAddEvent)
 	if err != nil {
 		return nil, err
 	}
@@ -81,11 +81,10 @@ func (i *Inventories) AddItem(
 	}
 
 	inventoryCreate := model.InventoryCreate{
-		Player: playerId,
+		Player: player.ID(),
 		Item:   item.ID(),
 	}
 	if item.IsActiveByDefault() {
-		inventoryCreate.Activated = time.Now()
 		inventoryCreate.IsActive = true
 	}
 	inventory, err := model.NewInventory(uuid.New(), inventoryCreate)
@@ -100,7 +99,12 @@ func (i *Inventories) AddItem(
 
 	inventoryItem := model.RestoreInventoryItem(inventory, item)
 
-	err = events.OnAfterItemAdd().Trigger(&model.OnAfterItemAddEvent{
+	err = i.effects.SubscribeActiveEffects(ctx, events, player, []*model.InventoryItem{inventoryItem})
+	if err != nil {
+		return nil, err
+	}
+
+	err = events.OnAfterItemAdd().Trigger(ctx, &model.OnAfterItemAddEvent{
 		Item: inventoryItem,
 	})
 	if err != nil {
@@ -125,14 +129,14 @@ func (i *Inventories) HasEmptySlots(ctx context.Context, player *model.Player) (
 func (i *Inventories) AddItemByID(
 	ctx context.Context,
 	events *model.Events,
-	playerId string,
+	player *model.Player,
 	itemId string,
 ) (*model.InventoryItem, error) {
 	item, err := i.items.GetByID(ctx, itemId)
 	if err != nil {
 		return nil, err
 	}
-	return i.AddItem(ctx, events, playerId, item)
+	return i.AddItem(ctx, events, player, item)
 }
 
 func (i *Inventories) CanUseItem(ctx context.Context, scope *scope.Scope, itemId string) (bool, error) {
@@ -165,8 +169,10 @@ func (i *Inventories) UseItem(ctx context.Context, events *model.Events, player 
 		return err
 	}
 
-	item.Inventory().SetIsActive(true)
-	item.Inventory().SetActivated(time.Now())
+	err = item.Inventory().Activate()
+	if err != nil {
+		return err
+	}
 
 	err = i.effects.SubscribeActiveEffects(ctx, events, player, []*model.InventoryItem{item})
 	if err != nil {
@@ -219,4 +225,20 @@ func (i *Inventories) DropRandomItem(ctx context.Context, events *model.Events, 
 	}
 
 	return i.DropItem(ctx, events, player, helper.RandomItemFromSlice(items))
+}
+
+func (i *Inventories) DropAllItemsByPlayerID(ctx context.Context, events *model.Events, playerId string) error {
+	items, err := i.repository.GetAllByPlayerID(ctx, playerId)
+	if err != nil {
+		return err
+	}
+
+	i.effects.UnsubscribeActiveEffects(events, items)
+
+	ids := make([]string, len(items))
+	for i, item := range items {
+		ids[i] = item.Inventory().ID()
+	}
+
+	return i.repository.DeleteByIDs(ctx, ids)
 }

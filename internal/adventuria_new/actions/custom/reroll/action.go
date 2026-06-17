@@ -32,7 +32,7 @@ type Reroll struct {
 	actions actionsService
 }
 
-func NewActionRerollDef(cells cells, reviews reviews, actionsService actionsService) actions.ActionDef {
+func NewDef(cells cells, reviews reviews, actionsService actionsService) actions.ActionDef {
 	return actions.NewAction(
 		Type,
 		func() model.Action {
@@ -59,7 +59,7 @@ func (r *Reroll) CanDo(ctx context.Context, events *model.Events, player *model.
 	onBeforeRerollCheckEvent := &model.OnBeforeRerollCheckEvent{
 		IsRerollBlocked: false,
 	}
-	err = events.OnBeforeRerollCheck().Trigger(onBeforeRerollCheckEvent)
+	err = events.OnBeforeRerollCheck().Trigger(ctx, onBeforeRerollCheckEvent)
 	if err != nil {
 		return false
 	}
@@ -118,6 +118,7 @@ func (r *Reroll) Do(ctx context.Context, events *model.Events, player *model.Pla
 		return nil, err
 	}
 
+	newAction.SetCustomActivityFilter(lastAction.CustomActivityFilter())
 	player.SetLastAction(newAction)
 
 	err = cellRefreshable.RefreshItems(ctx, events, player)
@@ -125,5 +126,5 @@ func (r *Reroll) Do(ctx context.Context, events *model.Events, player *model.Pla
 		return nil, err
 	}
 
-	return nil, events.OnAfterReroll().Trigger(&model.OnAfterRerollEvent{})
+	return nil, events.OnAfterReroll().Trigger(ctx, &model.OnAfterRerollEvent{})
 }

@@ -13,6 +13,8 @@ type repository interface {
 	Create(ctx context.Context, progress *model.PlayerProgress) (*model.PlayerProgress, error)
 	Save(ctx context.Context, progress *model.PlayerProgress) (*model.PlayerProgress, error)
 	GetByPlayerId(ctx context.Context, playerId, seasonId string) (*model.PlayerProgress, error)
+	ChangeBalance(ctx context.Context, id string, amount int) error
+	NotifyChange(ctx context.Context, id string) error
 }
 
 type worlds interface {
@@ -64,4 +66,12 @@ func (p *PlayerProgress) GetFirstOrDefault(ctx context.Context, playerId, season
 
 func (p *PlayerProgress) Save(ctx context.Context, progress *model.PlayerProgress) (*model.PlayerProgress, error) {
 	return p.repository.Save(ctx, progress)
+}
+
+func (p *PlayerProgress) ChangeBalance(ctx context.Context, id string, amount int) error {
+	return p.repository.ChangeBalance(ctx, id, amount)
+}
+
+func (p *PlayerProgress) NotifyChange(ctx context.Context, id string) error {
+	return p.repository.NotifyChange(ctx, id)
 }

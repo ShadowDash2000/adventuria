@@ -14,7 +14,7 @@ type CellStart struct {
 	cells.CellBase
 }
 
-func NewCellStartDef() cells.CellDef {
+func NewDef() cells.CellDef {
 	return cells.NewCell(
 		Type,
 		func(cell model.CellInfo) model.Cell {
