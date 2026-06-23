@@ -3,6 +3,7 @@ package schema
 const (
 	CollectionPlayers         = "players"
 	CollectionPlayersProgress = "players_progress"
+	CollectionPlayerStats     = "player_stats"
 	CollectionActions         = "actions"
 	CollectionCells           = "cells"
 	CollectionItems           = "items"
@@ -515,4 +516,28 @@ var OutboxSchema = struct {
 	Type:    "type",
 	Payload: "payload",
 	Status:  "status",
+}
+
+var PlayerStatsSchema = struct {
+	Id           string
+	Player       string
+	Season       string
+	Drops        string
+	Rerolls      string
+	WasInJail    string
+	ItemsUsed    string
+	DiceRolls    string
+	MaxDiceRoll  string
+	WheelsRolled string
+}{
+	Id:           "id",
+	Player:       "player",
+	Season:       "season",
+	Drops:        "drops",
+	Rerolls:      "rerolls",
+	WasInJail:    "was_in_jail",
+	ItemsUsed:    "items_used",
+	DiceRolls:    "dice_rolls",
+	MaxDiceRoll:  "max_dice_roll",
+	WheelsRolled: "wheels_rolled",
 }

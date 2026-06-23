@@ -22,6 +22,25 @@ func NewRepository(pb core.App) *Repository {
 	return &Repository{pb: pb}
 }
 
+func (r *Repository) GetByID(ctx context.Context, id string) (*model.EffectInfo, error) {
+	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
+
+	var record core.Record
+	err := pb.RecordQuery(schema.CollectionEffects).
+		WithContext(ctx).
+		Where(dbx.HashExp{schema.EffectSchema.Id: id}).
+		Limit(1).
+		One(&record)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errs.ErrEffectNotFound
+		}
+		return nil, err
+	}
+
+	return RecordToEffect(&record), nil
+}
+
 func (r *Repository) GetByIDs(ctx context.Context, ids []string) ([]*model.EffectInfo, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 

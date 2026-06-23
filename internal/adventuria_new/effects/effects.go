@@ -6,6 +6,7 @@ import (
 )
 
 type repository interface {
+	GetByID(ctx context.Context, id string) (*model.EffectInfo, error)
 	GetByIDs(ctx context.Context, ids []string) ([]*model.EffectInfo, error)
 	GetAllByItemID(ctx context.Context, itemId string) ([]*model.EffectInfo, error)
 }
@@ -111,6 +112,28 @@ func (e *Effects) UnsubscribeActiveEffects(events *model.Events, items []*model.
 			events.Unsubscribe(item.Inventory().ID() + ":" + effectId)
 		}
 	}
+}
+
+func (e *Effects) GetView(ctx context.Context, events *model.Events, player *model.Player, id string) (any, error) {
+	effect, err := e.GetByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	effectWithView, ok := effect.(model.WithView)
+	if !ok {
+		return nil, nil
+	}
+
+	return effectWithView.GetView(ctx, events, player)
+}
+
+func (e *Effects) GetByID(ctx context.Context, id string) (model.Effect, error) {
+	effectInfo, err := e.repository.GetByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return effectInfoToEffect(effectInfo)
 }
 
 func (e *Effects) GetByIDs(ctx context.Context, ids []string) ([]model.Effect, error) {

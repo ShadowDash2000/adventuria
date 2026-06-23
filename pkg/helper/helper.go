@@ -11,3 +11,18 @@ func RandomItemFromSlice[T any](slice []T) T {
 	}
 	return slice[n]
 }
+
+func SliceContainsAll[T comparable](slice []T, values []T) bool {
+	items := make(map[T]struct{})
+	for _, item := range slice {
+		items[item] = struct{}{}
+	}
+
+	for _, value := range values {
+		if _, found := items[value]; !found {
+			return false
+		}
+	}
+
+	return true
+}

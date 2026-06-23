@@ -69,6 +69,10 @@ var (
 		Code:    "outbox_not_found",
 		Message: "outbox not found",
 	}
+	ErrEffectNotFound = &AppError{
+		Code:    "effect_not_found",
+		Message: "effect not found",
+	}
 
 	ErrReviewCommentTooLong = &AppError{
 		Code:    "review_comment_max_size",
@@ -93,8 +97,23 @@ var (
 		Status:  http.StatusBadRequest,
 	}
 
+	ErrUnknownCellType = &AppError{
+		Code:    "unknown_cell_type",
+		Message: "Unknown cell type",
+	}
+	ErrUnknownEffectType = &AppError{
+		Code:    "unknown_effect_type",
+		Message: "Unknown effect type",
+	}
+
 	ErrNoPendingOutbox = &AppError{
 		Code:    "no_pending_outbox",
 		Message: "No pending outbox",
+	}
+
+	ErrPlayerIsBusy = &AppError{
+		Code:    "player_is_busy",
+		Message: "Player is busy",
+		Status:  http.StatusConflict,
 	}
 )

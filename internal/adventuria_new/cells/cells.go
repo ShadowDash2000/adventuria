@@ -1,6 +1,7 @@
 package cells
 
 import (
+	"adventuria/internal/adventuria_new/errs"
 	"adventuria/internal/adventuria_new/model"
 	"context"
 	"fmt"
@@ -29,7 +30,7 @@ func NewCells(repository repository) *Cells {
 func toCell(cell *model.CellInfo) (model.Cell, error) {
 	cellDef, ok := Get(cell.Type())
 	if !ok {
-		return nil, fmt.Errorf("unknown cell type: %s", cell.Type())
+		return nil, fmt.Errorf("%w: %s", errs.ErrUnknownCellType, cell.Type())
 	}
 	return cellDef.new(*cell), nil
 }

@@ -3,42 +3,18 @@ package adventuria_new
 import (
 	"adventuria/internal/adventuria_new/actions"
 	customActions "adventuria/internal/adventuria_new/actions/custom"
-	rollWheelRepo "adventuria/internal/adventuria_new/actions/custom/roll_wheel/repository"
-	actionsRepo "adventuria/internal/adventuria_new/actions/repository"
 	"adventuria/internal/adventuria_new/activities"
-	activitiesRepo "adventuria/internal/adventuria_new/activities/repository"
-	"adventuria/internal/adventuria_new/activity_filters"
-	activityFiltersRepo "adventuria/internal/adventuria_new/activity_filters/repository"
-	"adventuria/internal/adventuria_new/board"
 	"adventuria/internal/adventuria_new/cells"
 	customCells "adventuria/internal/adventuria_new/cells/custom"
-	cellsRepo "adventuria/internal/adventuria_new/cells/repository"
 	"adventuria/internal/adventuria_new/effects"
 	customEffects "adventuria/internal/adventuria_new/effects/custom"
-	effectsRepo "adventuria/internal/adventuria_new/effects/repository"
-	"adventuria/internal/adventuria_new/genres"
-	genresRepo "adventuria/internal/adventuria_new/genres/repository"
+	"adventuria/internal/adventuria_new/errs"
 	"adventuria/internal/adventuria_new/inventories"
-	inventoriesRepo "adventuria/internal/adventuria_new/inventories/repository"
-	"adventuria/internal/adventuria_new/items"
-	itemsRepo "adventuria/internal/adventuria_new/items/repository"
 	"adventuria/internal/adventuria_new/model"
-	"adventuria/internal/adventuria_new/outboxes"
 	customOutboxes "adventuria/internal/adventuria_new/outboxes/custom"
-	outboxesRepo "adventuria/internal/adventuria_new/outboxes/repository"
-	"adventuria/internal/adventuria_new/player_progress"
-	progressRepo "adventuria/internal/adventuria_new/player_progress/repository"
 	"adventuria/internal/adventuria_new/players"
-	playersRepo "adventuria/internal/adventuria_new/players/repository"
-	"adventuria/internal/adventuria_new/reviews"
-	reviewsRepo "adventuria/internal/adventuria_new/reviews/repository"
 	"adventuria/internal/adventuria_new/scope"
-	"adventuria/internal/adventuria_new/seasons"
-	seasonsRepo "adventuria/internal/adventuria_new/seasons/repository"
 	"adventuria/internal/adventuria_new/settings"
-	settingsRepo "adventuria/internal/adventuria_new/settings/repository"
-	"adventuria/internal/adventuria_new/worlds"
-	worldsRepo "adventuria/internal/adventuria_new/worlds/repository"
 	"adventuria/pkg/locker"
 	"adventuria/pkg/pbtransaction"
 	"context"
@@ -88,93 +64,62 @@ func Start(fn func(se *core.ServeEvent) error) (*Game, error) {
 }
 
 func (g *Game) init(pb core.App) error {
-	seasonsRepository := seasonsRepo.NewRepository(pb)
-	settingsRepository := settingsRepo.NewRepository(pb)
-	cellsRepository := cellsRepo.NewRepository(pb)
-	worldsRepository := worldsRepo.NewRepository(pb)
-	actionsRepository := actionsRepo.NewRepository(pb)
-	progressRepository := progressRepo.NewRepository(pb)
-	playersRepository := playersRepo.NewRepository(pb)
-	inventoriesRepository := inventoriesRepo.NewRepository(pb)
-	effectsRepository := effectsRepo.NewRepository(pb)
-	activitiesRepository := activitiesRepo.NewRepository(pb)
-	activityFiltersRepository := activityFiltersRepo.NewRepository(pb)
-	itemsRepository := itemsRepo.NewRepository(pb)
-	genresRepository := genresRepo.NewRepository(pb)
-	reviewsRepository := reviewsRepo.NewRepository(pb)
-	rollWheelRepository := rollWheelRepo.NewRepository(pb)
-	outboxesRepository := outboxesRepo.NewRepository(pb)
+	registry := NewRegistry(pb)
 
-	seasonsService := seasons.NewSeasons(seasonsRepository)
-	settingsService := settings.NewSettings(settingsRepository, seasonsService)
-	worldsService := worlds.NewWorlds(worldsRepository)
-	cellsService := cells.NewCells(cellsRepository)
-	actionsService := actions.NewActions(actionsRepository, worldsService, cellsService)
-	progressService := player_progress.NewPlayerProgress(progressRepository, worldsService)
-	playersService := players.NewPlayers(
-		playersRepository,
-		actionsService,
-		progressService,
-		seasonsService,
-	)
-	effectsService := effects.NewEffects(effectsRepository, inventoriesRepository)
-	inventoriesService := inventories.NewInventories(inventoriesRepository, effectsService, itemsRepository)
-	activitiesService := activities.NewActivities(activitiesRepository)
-	activityFiltersService := activity_filters.NewActivityFilters(activityFiltersRepository)
-	itemsService := items.NewItems(itemsRepository)
-	boardService := board.NewBoard(actionsService, progressService, cellsService, worldsService)
-	genresService := genres.NewGenres(genresRepository)
-	reviewsService := reviews.NewReviews(reviewsRepository)
-	outboxesService := outboxes.NewOutboxes(outboxesRepository)
-
-	g.settings = settingsService
-	g.players = playersService
-	g.cells = cellsService
-	g.actions = actionsService
-	g.inventories = inventoriesService
-	g.effects = effectsService
+	g.settings = registry.Settings()
+	g.players = registry.Players()
+	g.cells = registry.Cells()
+	g.actions = registry.Actions()
+	g.inventories = registry.Inventories()
+	g.effects = registry.Effects()
 
 	customCells.RegisterCells(
-		activitiesService,
-		activityFiltersService,
-		itemsService,
-		cellsService,
-		actionsService,
-		boardService,
+		registry.Activities(),
+		registry.ActivityFilters(),
+		registry.Items(),
+		registry.Cells(),
+		registry.Actions(),
+		registry.Board(),
 	)
 
 	customEffects.RegisterEffects(
-		actionsService,
-		cellsService,
-		genresService,
-		activityFiltersService,
-		inventoriesService,
-		itemsService,
-		activitiesService,
-		playersService,
-		outboxesService,
-		boardService,
+		registry.Actions(),
+		registry.Cells(),
+		registry.Genres(),
+		registry.ActivityFilters(),
+		registry.Inventories(),
+		registry.Items(),
+		registry.Activities(),
+		registry.Players(),
+		registry.Outboxes(),
+		registry.Board(),
 	)
 
 	customEffects.RegisterPersistentEffects()
 
 	customActions.RegisterActions(
-		cellsService,
-		reviewsService,
-		playersService,
-		settingsService,
-		boardService,
-		actionsService,
-		itemsService,
-		inventoriesService,
-		rollWheelRepository,
+		registry.Cells(),
+		registry.Reviews(),
+		registry.Players(),
+		registry.Settings(),
+		registry.Board(),
+		registry.Actions(),
+		registry.Items(),
+		registry.Inventories(),
+		registry.RollWheelRepo(),
 	)
 
 	customOutboxes.RegisterOutboxes(
-		progressService,
+		registry.PlayerProgress(),
 	)
 
-	outboxesService.Start(context.Background())
+	// background tasks
+	registry.Outboxes().Start(context.Background())
+
+	// hooks
+	cells.BindHooks(pb)
+	effects.BindHooks(pb)
+	activities.BindHooks(pb, registry.RelationRepo())
 
 	return nil
 }
@@ -218,7 +163,7 @@ func (g *Game) DoAction(
 	}
 
 	if ok := g.playersLocker.TryLock(playerId); !ok {
-		return nil, errors.New("player is busy")
+		return nil, errs.ErrPlayerIsBusy
 	}
 	defer g.playersLocker.Unlock(playerId)
 
@@ -267,7 +212,7 @@ func (g *Game) UseItem(
 	}
 
 	if ok := g.playersLocker.TryLock(playerId); !ok {
-		return errors.New("player is busy")
+		return errs.ErrPlayerIsBusy
 	}
 	defer g.playersLocker.Unlock(playerId)
 
@@ -319,7 +264,7 @@ func (g *Game) DropItem(ctx context.Context, pb core.App, playerId, itemId strin
 	}
 
 	if ok := g.playersLocker.TryLock(playerId); !ok {
-		return errors.New("player is busy")
+		return errs.ErrPlayerIsBusy
 	}
 	defer g.playersLocker.Unlock(playerId)
 
@@ -338,11 +283,47 @@ func (g *Game) DropItem(ctx context.Context, pb core.App, playerId, itemId strin
 	})
 }
 
-func (g *Game) GetActionView(
-	ctx context.Context,
-	playerId string,
-	actionType model.ActionType,
-) (any, error) {
+func (g *Game) GetAvailableActions(ctx context.Context, playerId string) ([]model.ActionType, error) {
+	settings, err := g.settings.GetFirstOrDefault(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	player, err := g.players.GetByID(ctx, playerId, settings.CurrentSeason())
+	if err != nil {
+		return nil, err
+	}
+
+	s, err := g.initScope(ctx, player)
+	if err != nil {
+		return nil, err
+	}
+
+	availableActions := g.actions.AvailableActions(ctx, s.Events(), s.Player())
+
+	return availableActions, nil
+}
+
+func (g *Game) GetEffectView(ctx context.Context, playerId, effectId string) (any, error) {
+	settings, err := g.settings.GetFirstOrDefault(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	player, err := g.players.GetByID(ctx, playerId, settings.CurrentSeason())
+	if err != nil {
+		return nil, err
+	}
+
+	s, err := g.initScope(ctx, player)
+	if err != nil {
+		return nil, err
+	}
+
+	return g.effects.GetView(ctx, s.Events(), s.Player(), effectId)
+}
+
+func (g *Game) GetActionView(ctx context.Context, playerId string, actionType model.ActionType) (any, error) {
 	settings, err := g.settings.GetFirstOrDefault(ctx)
 	if err != nil {
 		return nil, err
