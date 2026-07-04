@@ -121,7 +121,12 @@ func (r *Repository) ChangeBalance(ctx context.Context, id string, amount int) e
 func (r *Repository) NotifyChange(ctx context.Context, id string) error {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 
-	record, err := pb.FindRecordById(schema.CollectionPlayersProgress, id)
+	var record core.Record
+	err := pb.RecordQuery(schema.CollectionPlayersProgress).
+		WithContext(ctx).
+		Where(dbx.HashExp{schema.PlayerProgressSchema.Id: id}).
+		Limit(1).
+		One(&record)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return errs.ErrProgressNotFound
@@ -134,7 +139,7 @@ func (r *Repository) NotifyChange(ctx context.Context, id string) error {
 		Context: ctx,
 		Type:    core.ModelEventTypeUpdate,
 	}
-	event.Model = record
+	event.Model = &record
 
 	return pb.OnModelAfterUpdateSuccess().Trigger(event)
 }

@@ -23,17 +23,19 @@ func NewOutboxes(repository repository) *Outboxes {
 }
 
 func (o *Outboxes) Start(ctx context.Context) {
-	ticker := time.NewTicker(5 * time.Second)
-	defer ticker.Stop()
+	go func() {
+		ticker := time.NewTicker(5 * time.Second)
+		defer ticker.Stop()
 
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case <-ticker.C:
-			o.processAllPending(ctx)
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				o.processAllPending(ctx)
+			}
 		}
-	}
+	}()
 }
 
 func (o *Outboxes) processAllPending(ctx context.Context) {

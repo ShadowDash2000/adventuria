@@ -9,12 +9,15 @@ import (
 	"adventuria/internal/adventuria_new/effects"
 	customEffects "adventuria/internal/adventuria_new/effects/custom"
 	"adventuria/internal/adventuria_new/errs"
+	"adventuria/internal/adventuria_new/event_stats"
 	"adventuria/internal/adventuria_new/inventories"
 	"adventuria/internal/adventuria_new/model"
 	customOutboxes "adventuria/internal/adventuria_new/outboxes/custom"
 	"adventuria/internal/adventuria_new/players"
 	"adventuria/internal/adventuria_new/scope"
 	"adventuria/internal/adventuria_new/settings"
+	"adventuria/internal/adventuria_new/stream_tracker"
+	"adventuria/internal/adventuria_new/worlds"
 	"adventuria/pkg/locker"
 	"adventuria/pkg/pbtransaction"
 	"context"
@@ -33,10 +36,12 @@ type Game struct {
 	actions       *actions.Actions
 	inventories   *inventories.Inventories
 	effects       *effects.Effects
+	worlds        *worlds.Worlds
+	eventStats    *event_stats.EventStats
 	playersLocker *locker.Locker[string]
 }
 
-func Start(fn func(se *core.ServeEvent) error) (*Game, error) {
+func Start(fn func(game *Game, se *core.ServeEvent) error) (*Game, error) {
 	g := &Game{
 		pb:            pocketbase.New(),
 		playersLocker: locker.New[string](),
@@ -53,7 +58,9 @@ func Start(fn func(se *core.ServeEvent) error) (*Game, error) {
 		return e.Next()
 	})
 
-	g.pb.OnServe().BindFunc(fn)
+	g.pb.OnServe().BindFunc(func(e *core.ServeEvent) error {
+		return fn(g, e)
+	})
 
 	err := g.pb.Start()
 	if err != nil {
@@ -72,6 +79,8 @@ func (g *Game) init(pb core.App) error {
 	g.actions = registry.Actions()
 	g.inventories = registry.Inventories()
 	g.effects = registry.Effects()
+	g.worlds = registry.Worlds()
+	g.eventStats = registry.EventStats()
 
 	customCells.RegisterCells(
 		registry.Activities(),
@@ -115,11 +124,16 @@ func (g *Game) init(pb core.App) error {
 
 	// background tasks
 	registry.Outboxes().Start(context.Background())
+	err := registry.StreamTracker().Start(context.Background())
+	if err != nil {
+		return err
+	}
 
 	// hooks
 	cells.BindHooks(pb)
 	effects.BindHooks(pb)
 	activities.BindHooks(pb, registry.RelationRepo())
+	stream_tracker.BindHooks(pb, registry.StreamTracker())
 
 	return nil
 }
@@ -138,6 +152,13 @@ func (g *Game) initScope(ctx context.Context, player *model.Player) (*scope.Scop
 	}
 
 	err = g.effects.SubscribePersistentEffects(ctx, s.Events(), s.Player())
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO maybe we don't need to init the world effects in a global scope
+	// 'cause in theory a player can change the world multiple times in one action
+	err = g.worlds.SubscribeEffects(ctx, s.Events(), s.Player(), s.Player().Progress().CurrentWorld())
 	if err != nil {
 		return nil, err
 	}
@@ -340,4 +361,17 @@ func (g *Game) GetActionView(ctx context.Context, playerId string, actionType mo
 	}
 
 	return g.actions.GetView(ctx, s.Events(), s.Player(), actionType)
+}
+
+func (g *Game) EventStats(ctx context.Context) (*event_stats.EventStatsData, error) {
+	settings, err := g.settings.GetFirstOrDefault(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return g.eventStats.ComputeStats(ctx, settings.CurrentSeason())
+}
+
+func (g *Game) IsActionsBlocked(ctx context.Context) (bool, error) {
+	return g.settings.IsActionsBlocked(ctx)
 }

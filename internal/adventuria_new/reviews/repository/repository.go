@@ -4,11 +4,13 @@ import (
 	"adventuria/internal/adventuria/schema"
 	"adventuria/internal/adventuria_new/errs"
 	"adventuria/internal/adventuria_new/model"
+	"adventuria/pkg/pbhelper"
 	"adventuria/pkg/pbtransaction"
 	"context"
 	"database/sql"
 	"errors"
 
+	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
 )
 
@@ -65,4 +67,31 @@ func (r *Repository) Save(ctx context.Context, review *model.Review) (*model.Rev
 	}
 
 	return r.Update(ctx, review)
+}
+
+func (r *Repository) GetByActionID(ctx context.Context, actionId string) (*model.Review, error) {
+	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
+
+	var record core.Record
+	err := pb.RecordQuery(schema.CollectionReviews).
+		WithContext(ctx).
+		InnerJoin(
+			schema.CollectionActions,
+			dbx.NewExp(pbhelper.Eq(
+				pbhelper.DotExpand(schema.CollectionActions, schema.ActionSchema.Review),
+				pbhelper.DotExpand(schema.CollectionReviews, schema.ReviewSchema.Id),
+			)),
+		).
+		Where(dbx.HashExp{
+			pbhelper.DotExpand(schema.CollectionActions, schema.ActionSchema.Id): actionId,
+		}).
+		One(&record)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errs.ErrReviewNotFound
+		}
+		return nil, err
+	}
+
+	return RecordToReview(&record), nil
 }

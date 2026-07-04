@@ -57,3 +57,23 @@ func (r *Repository) GetFirst(ctx context.Context) (*model.Settings, error) {
 
 	return RecordToSettings(&record), nil
 }
+
+func (r *Repository) IsActionsBlocked(ctx context.Context) (bool, error) {
+	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
+
+	var isBlocked bool
+	err := pb.RecordQuery(schema.CollectionSettings).
+		WithContext(ctx).
+		Select(schema.SettingsSchema.BlockAllActions).
+		OrderBy("updated DESC").
+		Limit(1).
+		Row(&isBlocked)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return false, errs.ErrSettingsNotFound
+		}
+		return false, err
+	}
+
+	return isBlocked, nil
+}

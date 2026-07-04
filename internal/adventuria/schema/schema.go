@@ -105,7 +105,7 @@ var ActionSchema = struct {
 	Cell                 string
 	Type                 string
 	Activity             string
-	Comment              string
+	Review               string
 	CellsPassed          string
 	ItemsList            string
 	UsedItems            string
@@ -117,7 +117,7 @@ var ActionSchema = struct {
 	Cell:                 "cell",
 	Type:                 "type",
 	Activity:             "activity",
-	Comment:              "comment",
+	Review:               "review",
 	CellsPassed:          "cells_passed",
 	ItemsList:            "items_list",
 	UsedItems:            "used_items",
@@ -540,4 +540,28 @@ var PlayerStatsSchema = struct {
 	DiceRolls:    "dice_rolls",
 	MaxDiceRoll:  "max_dice_roll",
 	WheelsRolled: "wheels_rolled",
+}
+
+var CheapSharkSchema = struct {
+	Id    string
+	IdDb  string
+	Name  string
+	Price string
+}{
+	Id:    "id",
+	IdDb:  "id_db",
+	Name:  "name",
+	Price: "price",
+}
+
+var SteamSpySchema = struct {
+	Id    string
+	IdDb  string
+	Name  string
+	Price string
+}{
+	Id:    "id",
+	IdDb:  "id_db",
+	Name:  "name",
+	Price: "price",
 }

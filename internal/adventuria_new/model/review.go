@@ -59,6 +59,14 @@ func (r *Review) Comment() ReviewComment {
 	return r.data.Comment
 }
 
+func (r *Review) SetComment(comment ReviewComment) {
+	r.data.Comment = comment
+}
+
 func (r *Review) Score() ReviewScore {
 	return r.data.Score
+}
+
+func (r *Review) SetScore(score ReviewScore) {
+	r.data.Score = score
 }

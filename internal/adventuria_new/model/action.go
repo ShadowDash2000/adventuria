@@ -26,7 +26,6 @@ type ActionData struct {
 	Cell                 string
 	Type                 ActionType
 	Activity             string
-	Comment              string
 	Review               string
 	CellsPassed          int
 	ItemsList            []string
@@ -123,10 +122,6 @@ func (a *ActionInfo) Activity() string {
 
 func (a *ActionInfo) SetActivity(id string) {
 	a.data.Activity = id
-}
-
-func (a *ActionInfo) Comment() string {
-	return a.data.Comment
 }
 
 func (a *ActionInfo) Review() string {

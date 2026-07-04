@@ -12,6 +12,7 @@ import (
 type repository interface {
 	Create(ctx context.Context, settings *model.Settings) (*model.Settings, error)
 	GetFirst(ctx context.Context) (*model.Settings, error)
+	IsActionsBlocked(ctx context.Context) (bool, error)
 }
 
 type seasons interface {
@@ -61,4 +62,8 @@ func (s *Settings) GetFirstOrDefault(ctx context.Context) (*model.Settings, erro
 	}
 
 	return settings, nil
+}
+
+func (s *Settings) IsActionsBlocked(ctx context.Context) (bool, error) {
+	return s.repository.IsActionsBlocked(ctx)
 }

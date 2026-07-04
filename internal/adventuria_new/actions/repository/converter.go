@@ -13,7 +13,7 @@ func ActionToRecord(action *model.ActionInfo, record *core.Record) {
 	record.Set(schema.ActionSchema.Cell, action.Cell())
 	record.Set(schema.ActionSchema.Type, string(action.Type()))
 	record.Set(schema.ActionSchema.Activity, action.Activity())
-	record.Set(schema.ActionSchema.Comment, action.Comment())
+	record.Set(schema.ActionSchema.Review, action.Review())
 	record.Set(schema.ActionSchema.CellsPassed, action.CellsPassed())
 	record.Set(schema.ActionSchema.ItemsList, action.ItemsList())
 	record.Set(schema.ActionSchema.UsedItems, action.UsedItems())
@@ -44,7 +44,7 @@ func RecordToAction(record *core.Record) (*model.ActionInfo, error) {
 		Cell:                 record.GetString(schema.ActionSchema.Cell),
 		Type:                 model.ActionType(record.GetString(schema.ActionSchema.Type)),
 		Activity:             record.GetString(schema.ActionSchema.Activity),
-		Comment:              record.GetString(schema.ActionSchema.Comment),
+		Review:               record.GetString(schema.ActionSchema.Review),
 		CellsPassed:          record.GetInt(schema.ActionSchema.CellsPassed),
 		ItemsList:            itemsList,
 		UsedItems:            usedItems,

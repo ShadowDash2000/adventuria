@@ -7,6 +7,7 @@ import (
 
 type repository interface {
 	Save(ctx context.Context, review *model.Review) (*model.Review, error)
+	GetByActionID(ctx context.Context, actionId string) (*model.Review, error)
 }
 
 type Reviews struct {
@@ -19,4 +20,8 @@ func NewReviews(repository repository) *Reviews {
 
 func (r *Reviews) Save(ctx context.Context, review *model.Review) (*model.Review, error) {
 	return r.repository.Save(ctx, review)
+}
+
+func (r *Reviews) GetByActionID(ctx context.Context, actionId string) (*model.Review, error) {
+	return r.repository.GetByActionID(ctx, actionId)
 }

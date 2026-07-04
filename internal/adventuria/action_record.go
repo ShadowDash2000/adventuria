@@ -39,11 +39,11 @@ func (a *ActionRecordBase) setCell(cellId string) {
 }
 
 func (a *ActionRecordBase) Comment() string {
-	return a.GetString(schema.ActionSchema.Comment)
+	return a.GetString(schema.ActionSchema.Review)
 }
 
 func (a *ActionRecordBase) SetComment(comment string) {
-	a.Set(schema.ActionSchema.Comment, comment)
+	a.Set(schema.ActionSchema.Review, comment)
 }
 
 func (a *ActionRecordBase) Activity() string {

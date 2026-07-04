@@ -2,13 +2,17 @@ package activities
 
 import (
 	"adventuria/internal/adventuria/schema"
-	repo "adventuria/internal/adventuria_new/activities/repository"
 	"adventuria/pkg/helper"
 	"adventuria/pkg/pbtransaction"
 	"context"
 
 	"github.com/pocketbase/pocketbase/core"
 )
+
+type relationRepository interface {
+	SyncRelations(ctx context.Context, collection, activityField, relationField, activityId string, relationIds []string) error
+	DeleteAllRelations(ctx context.Context, collection, activityField, activityId string) error
+}
 
 type indexCollection struct {
 	collection    string
@@ -49,7 +53,7 @@ var indexCollections = map[string]indexCollection{
 	},
 }
 
-func BindHooks(app core.App, repo *repo.RelationRepository) {
+func BindHooks(app core.App, repo relationRepository) {
 	app.OnRecordAfterCreateSuccess(schema.CollectionActivities).BindFunc(func(e *core.RecordEvent) error {
 		return pbtransaction.RunInTransaction(e.Context, e.App, func(ctx context.Context, txApp core.App) error {
 			for field, ic := range indexCollections {

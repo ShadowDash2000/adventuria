@@ -73,6 +73,18 @@ var (
 		Code:    "effect_not_found",
 		Message: "effect not found",
 	}
+	ErrCheapSharkNotFound = &AppError{
+		Code:    "cheapshark_not_found",
+		Message: "cheapshark not found",
+	}
+	ErrHowLongToBeatNotFound = &AppError{
+		Code:    "howlongtobeat_not_found",
+		Message: "howlongtobeat not found",
+	}
+	ErrSteamSpyNotFound = &AppError{
+		Code:    "steam_spy_not_found",
+		Message: "steam spy not found",
+	}
 
 	ErrReviewCommentTooLong = &AppError{
 		Code:    "review_comment_max_size",

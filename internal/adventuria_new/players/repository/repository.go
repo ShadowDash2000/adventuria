@@ -2,6 +2,8 @@ package repository
 
 import (
 	"adventuria/internal/adventuria/schema"
+	"adventuria/internal/adventuria_new/errs"
+	"adventuria/internal/adventuria_new/model"
 	"adventuria/pkg/pbtransaction"
 	"context"
 	"database/sql"
@@ -61,4 +63,44 @@ func (r *Repository) GetAllIDs(ctx context.Context) ([]string, error) {
 	}
 
 	return ids, nil
+}
+
+func (r *Repository) GetAll(ctx context.Context) ([]*model.PlayerInfo, error) {
+	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
+
+	var records []*core.Record
+	err := pb.RecordQuery(schema.CollectionPlayers).
+		WithContext(ctx).
+		All(&records)
+	if err != nil {
+		return nil, err
+	}
+
+	return RecordsToPlayerInfos(records), nil
+}
+
+func (r *Repository) NotifyChange(ctx context.Context, id string) error {
+	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
+
+	var record core.Record
+	err := pb.RecordQuery(schema.CollectionPlayers).
+		WithContext(ctx).
+		Where(dbx.HashExp{schema.PlayerSchema.Id: id}).
+		Limit(1).
+		One(&record)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return errs.ErrPlayerNotFound
+		}
+		return err
+	}
+
+	event := &core.ModelEvent{
+		App:     pb,
+		Context: ctx,
+		Type:    core.ModelEventTypeUpdate,
+	}
+	event.Model = &record
+
+	return pb.OnModelAfterUpdateSuccess().Trigger(event)
 }

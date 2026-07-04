@@ -130,7 +130,7 @@ func (s *StreamTracker) fetchPlayers(ctx adventuria.AppContext) ([]playerRecord,
 	return players, err
 }
 
-func (s *StreamTracker) Start(appCtx adventuria.AppContext, ctx context.Context) error {
+func (s *StreamTracker) Start(ctx context.Context) error {
 	if s.started {
 		panic("stream_tracker: already started")
 	}
@@ -143,9 +143,8 @@ func (s *StreamTracker) Start(appCtx adventuria.AppContext, ctx context.Context)
 	s.twitchPlayers = make(map[string]string, len(players))
 	s.youtubePlayers = make(map[string]string, len(players))
 
-	s.bindHooks(appCtx)
 	s.client.OnStreamChange(func(e *streamlive.StreamChangeEvent) error {
-		return s.onStreamChange(appCtx, e)
+		return s.onStreamChange(e)
 	})
 	s.client.OnRequestError(func(e *streamlive.RequestErrorEvent) error {
 		appCtx.App.Logger().Error("Stream tracker request error", "error", e.Error)
@@ -176,7 +175,7 @@ func (s *StreamTracker) Start(appCtx adventuria.AppContext, ctx context.Context)
 	return nil
 }
 
-func (s *StreamTracker) onStreamChange(ctx adventuria.AppContext, e *streamlive.StreamChangeEvent) error {
+func (s *StreamTracker) onStreamChange(e *streamlive.StreamChangeEvent) error {
 	playerId, ok := s.playerIdForChannel(e.Channel)
 	if !ok {
 		return e.Next()

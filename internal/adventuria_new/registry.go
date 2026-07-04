@@ -13,6 +13,8 @@ import (
 	cellsRepo "adventuria/internal/adventuria_new/cells/repository"
 	"adventuria/internal/adventuria_new/effects"
 	effectsRepo "adventuria/internal/adventuria_new/effects/repository"
+	"adventuria/internal/adventuria_new/event_stats"
+	eventStatsRepo "adventuria/internal/adventuria_new/event_stats/repository"
 	"adventuria/internal/adventuria_new/genres"
 	genresRepo "adventuria/internal/adventuria_new/genres/repository"
 	"adventuria/internal/adventuria_new/inventories"
@@ -31,6 +33,8 @@ import (
 	seasonsRepo "adventuria/internal/adventuria_new/seasons/repository"
 	"adventuria/internal/adventuria_new/settings"
 	settingsRepo "adventuria/internal/adventuria_new/settings/repository"
+	"adventuria/internal/adventuria_new/stream_tracker"
+	streamTrackerRepo "adventuria/internal/adventuria_new/stream_tracker/repository"
 	"adventuria/internal/adventuria_new/worlds"
 	worldsRepo "adventuria/internal/adventuria_new/worlds/repository"
 
@@ -41,23 +45,26 @@ type Registry struct {
 	pb core.App
 
 	// repos
-	seasonsRepo         *seasonsRepo.Repository
-	settingsRepo        *settingsRepo.Repository
-	cellsRepo           *cellsRepo.Repository
-	worldsRepo          *worldsRepo.Repository
-	actionsRepo         *actionsRepo.Repository
-	progressRepo        *progressRepo.Repository
-	playersRepo         *playersRepo.Repository
-	inventoriesRepo     *inventoriesRepo.Repository
-	effectsRepo         *effectsRepo.Repository
-	activitiesRepo      *activitiesRepo.Repository
-	activityFiltersRepo *activityFiltersRepo.Repository
-	itemsRepo           *itemsRepo.Repository
-	genresRepo          *genresRepo.Repository
-	reviewsRepo         *reviewsRepo.Repository
-	rollWheelRepo       *rollWheelRepo.Repository
-	outboxesRepo        *outboxesRepo.Repository
-	relationRepo        *activitiesRepo.RelationRepository
+	seasonsRepo          *seasonsRepo.Repository
+	settingsRepo         *settingsRepo.Repository
+	cellsRepo            *cellsRepo.Repository
+	worldsRepo           *worldsRepo.Repository
+	actionsRepo          *actionsRepo.Repository
+	progressRepo         *progressRepo.Repository
+	playersRepo          *playersRepo.Repository
+	inventoriesRepo      *inventoriesRepo.Repository
+	effectsRepo          *effectsRepo.Repository
+	activitiesRepo       *activitiesRepo.Repository
+	activityFiltersRepo  *activityFiltersRepo.Repository
+	itemsRepo            *itemsRepo.Repository
+	genresRepo           *genresRepo.Repository
+	reviewsRepo          *reviewsRepo.Repository
+	rollWheelRepo        *rollWheelRepo.Repository
+	outboxesRepo         *outboxesRepo.Repository
+	relationRepo         *activitiesRepo.RelationRepository
+	eventStatsRepo       *eventStatsRepo.Repository
+	eventStatsCachedRepo *eventStatsRepo.CachedRepository
+	streamTrackerRepo    *streamTrackerRepo.Repository
 
 	// services
 	seasons         *seasons.Seasons
@@ -76,6 +83,8 @@ type Registry struct {
 	genres          *genres.Genres
 	reviews         *reviews.Reviews
 	outboxes        *outboxes.Outboxes
+	eventStats      *event_stats.EventStats
+	streamTracker   *stream_tracker.StreamTracker
 }
 
 func NewRegistry(pb core.App) *Registry {
@@ -201,6 +210,27 @@ func (r *Registry) RelationRepo() *activitiesRepo.RelationRepository {
 	return r.relationRepo
 }
 
+func (r *Registry) EventStatsRepo() *eventStatsRepo.Repository {
+	if r.eventStatsRepo == nil {
+		r.eventStatsRepo = eventStatsRepo.NewRepository(r.pb)
+	}
+	return r.eventStatsRepo
+}
+
+func (r *Registry) EventStatsCachedRepo() *eventStatsRepo.CachedRepository {
+	if r.eventStatsCachedRepo == nil {
+		r.eventStatsCachedRepo = eventStatsRepo.NewCachedRepository(r.EventStatsRepo())
+	}
+	return r.eventStatsCachedRepo
+}
+
+func (r *Registry) StreamTrackerRepo() *streamTrackerRepo.Repository {
+	if r.streamTrackerRepo == nil {
+		r.streamTrackerRepo = streamTrackerRepo.NewRepository(r.pb)
+	}
+	return r.streamTrackerRepo
+}
+
 func (r *Registry) Seasons() *seasons.Seasons {
 	if r.seasons == nil {
 		r.seasons = seasons.NewSeasons(r.SeasonsRepo())
@@ -217,7 +247,7 @@ func (r *Registry) Settings() *settings.Settings {
 
 func (r *Registry) Worlds() *worlds.Worlds {
 	if r.worlds == nil {
-		r.worlds = worlds.NewWorlds(r.WorldsRepo())
+		r.worlds = worlds.NewWorlds(r.WorldsRepo(), r.Effects())
 	}
 	return r.worlds
 }
@@ -316,4 +346,18 @@ func (r *Registry) Outboxes() *outboxes.Outboxes {
 		r.outboxes = outboxes.NewOutboxes(r.OutboxesRepo())
 	}
 	return r.outboxes
+}
+
+func (r *Registry) EventStats() *event_stats.EventStats {
+	if r.eventStats == nil {
+		r.eventStats = event_stats.NewEventStats(r.EventStatsCachedRepo())
+	}
+	return r.eventStats
+}
+
+func (r *Registry) StreamTracker() *stream_tracker.StreamTracker {
+	if r.streamTracker == nil {
+		r.streamTracker = stream_tracker.NewStreamTracker(r.StreamTrackerRepo(), r.PlayersRepo())
+	}
+	return r.streamTracker
 }

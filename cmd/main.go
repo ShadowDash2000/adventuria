@@ -1,12 +1,7 @@
 package main
 
 import (
-	"adventuria/internal/adventuria"
-	"adventuria/internal/adventuria/actions"
-	"adventuria/internal/adventuria/cells"
-	"adventuria/internal/adventuria/effects"
-	"adventuria/internal/adventuria/games/parser"
-	stracker "adventuria/internal/adventuria/stream-tracker"
+	"adventuria/internal/adventuria_new"
 	"adventuria/internal/http"
 	"log"
 
@@ -21,36 +16,22 @@ func main() {
 		log.Printf("Failed to load .env file: %v", err)
 	}
 
-	game := adventuria.New()
-
-	actions.WithBaseActions()
-	effects.WithBaseEffects()
-	cells.WithBaseCells()
-
-	if err := game.Start(func(se *core.ServeEvent) error {
-		gamesParser, err := parser.NewGamesParser()
+	_, err := adventuria_new.Start(func(game *adventuria_new.Game, se *core.ServeEvent) error {
+		/*gamesParser, err := parser.NewGamesParser()
 		if err == nil {
-			adventuria.PocketBase.Cron().MustAdd("games_parser", "0 0 1 * *", func() {
-				gamesParser.Parse(game.Context())
+			se.App.Cron().MustAdd("games_parser", "0 0 1 * *", func() {
+				gamesParser.Parse(context.Background())
 			})
-			adventuria.PocketBase.Cron().MustAdd("refresh_hltb_time", "0 0 1 * *", func() {
-				gamesParser.RefreshHltbTime(game.Context())
+			se.App.Cron().MustAdd("refresh_hltb_time", "0 0 1 * *", func() {
+				gamesParser.RefreshHltbTime(context.Background())
 			})
-		}
-
-		st, err := stracker.NewStreamTracker()
-		if err != nil {
-			adventuria.PocketBase.Logger().Error("Failed to initialize stream tracker", "error", err)
-		} else {
-			if err = st.Start(adventuria.AppContext{App: adventuria.PocketBase}, game.Context()); err != nil {
-				adventuria.PocketBase.Logger().Error("Failed to start stream tracker", "error", err)
-			}
-		}
+		}*/
 
 		http.Route(game, se.Router)
 
 		return se.Next()
-	}); err != nil {
+	})
+	if err != nil {
 		log.Fatal(err)
 	}
 }

@@ -8,11 +8,11 @@ import (
 )
 
 type CachedRepository struct {
-	repository Repository
+	repository *Repository
 	cache      cache.Cache[string, any]
 }
 
-func NewCachedRepository(repository Repository) *CachedRepository {
+func NewCachedRepository(repository *Repository) *CachedRepository {
 	return &CachedRepository{
 		repository: repository,
 		cache:      cache.NewMemoryCache[string, any](time.Hour*24, false),
