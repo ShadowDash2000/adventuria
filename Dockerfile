@@ -1,15 +1,19 @@
 FROM golang:1.26.2-alpine AS builder
 
-RUN mkdir -p "/adventuria/"
-COPY . /adventuria/
+WORKDIR /adventuria
 
-WORKDIR /adventuria/
+COPY go.mod go.sum ./
 RUN go mod download
 
-RUN apk update \
-    && apk upgrade
+COPY . .
 
-RUN go build -a -installsuffix cgo -o ./adventuria cmd/main.go
+RUN CGO_ENABLED=0 go build -o adventuria cmd/main.go
+
+FROM alpine:latest
+
+WORKDIR /adventuria
+
+COPY --from=builder /adventuria/adventuria .
 
 EXPOSE 8080
 
