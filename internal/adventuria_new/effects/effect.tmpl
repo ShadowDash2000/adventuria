@@ -1,0 +1,43 @@
+package {{.RawName}}
+
+import (
+	"adventuria/internal/adventuria_new/effects"
+	"adventuria/internal/adventuria_new/model"
+	"adventuria/pkg/event_new"
+	"context"
+)
+
+var _ model.Effect = (*{{.Name}})(nil)
+
+const Type model.EffectType = "{{.RawName}}"
+
+type {{.Name}} struct {
+	effects.EffectBase
+}
+
+func NewDef() effects.EffectDef {
+	return effects.NewEffectDef(
+		Type,
+		func(effect model.EffectInfo) model.Effect {
+			return &{{.Name}}{
+				EffectBase: effects.NewEffectBase(effect),
+			}
+		},
+	)
+}
+
+func ({{.FirstLetter}} *{{.Name}}) CanUse(ctx context.Context, events *model.Events, player *model.Player) bool {
+	//TODO implement me
+	panic("implement me")
+}
+
+func ({{.FirstLetter}} *{{.Name}}) Subscribe(
+	ctx context.Context,
+	events *model.Events,
+	player *model.Player,
+	effectCtx model.EffectContext,
+	callback model.EffectCallback,
+) ([]event_new.Unsubscribe, error) {
+	//TODO implement me
+	panic("implement me")
+}

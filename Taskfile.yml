@@ -1,0 +1,9 @@
+version: '3'
+
+tasks:
+  default:
+    cmd: task --list-all
+
+  create:effect:
+    desc: "Generates a boilerplate code for an effect. Usage: task create:effect <effect_name>"
+    cmd: go run ./cmd/generator create effect {{.CLI_ARGS}}

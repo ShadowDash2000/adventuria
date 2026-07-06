@@ -27,7 +27,7 @@ go run cmd/main.go superuser create EMAIL PASS
 go run cmd/main.go migrate up
 ```
 
-## Docker 
+## Docker
 
 #### Запуск через docker-compose:
 
@@ -44,32 +44,51 @@ docker-compose up --build -d
 Можно создать .env файл в корне проекта и он автоматически подгрузится.
 
 Ключ Twitch используются для парсинга игр с IGDB, а также для получения статуса стримов игроков.
-Ключ можно получить здесь: https://dev.twitch.tv/console/apps/create 
+Ключ можно получить здесь: https://dev.twitch.tv/console/apps/create
+
 ```
 TWITCH_CLIENT_ID=***
 TWITCH_CLIENT_SECRET=***
 ```
+
 Ключ YouTube API используется для получения статуса стримов с YouTube.
+
 ```
 YOUTUBE_API_KEY=***
 ```
+
 Строка из этого параметра применяется в качестве "where = ..." для фильтрации игр при парсинге.
 Переменные для фильтрации https://api-docs.igdb.com/#game
+
 ```
 IGDB_PARSE_FILTER="game_type = 0 & platforms = (6)"
 ```
 
 ## Предметы и эффекты 📦✨
 
-Предметы в игре представляют собой набор эффектов, которые подписываются на события игроков (`player`).
-Существует множество готовых эффектов, имплементация которых лежит здесь: `internal/adventuria/effects`
+Предметы в игре представляют собой набор эффектов, которые подписываются на игровые события.
+Существует множество готовых эффектов, имплементация которых лежит здесь: `internal/adventuria/effects/custom`
 
-Для реализации своего эффекта структура должна имплементировать интерфейс `Effect internal/adventuria/effect.go`.
+Для реализации своего эффекта структура должна имплементировать интерфейс
+`model.Effect internal/adventuria/model/effect.go`.
 Далее нужно зарегистрировать новый эффект при старте приложения:
+
 ```go
-adventuria.RegisterEffects(map[string]adventuria.EffectCreator{
-    "myNewEffect": adventuria.NewEffect(func() adventuria.Effect { return &MyNewEffect{} }),
-})
+import (
+    "adventuria/internal/adventuria/effects"
+    "adventuria/internal/adventuria/model"
+)
+
+effects.Register(
+    effects.NewEffectDef(
+        "effect_name",
+        func (effect model.EffectInfo) model.Effect {
+            return &SomeNewEffect{
+                EffectBase: effects.NewEffectBase(effect),
+            }
+        },
+    ),
+)
 ```
 
 В большинстве случаев эффектам не нужно самостоятельно вызывать сохранение данных `player`, так как в конце каждого
@@ -79,28 +98,45 @@ adventuria.RegisterEffects(map[string]adventuria.EffectCreator{
 
 ## Клетки ♿
 
-Примеры готовых игровых клеток: `internal/adventuria/cells`.\
+Примеры готовых игровых клеток: `internal/adventuria/cells/custom`.\
 Клетки должны имплементировать следующие методы:
+
 ```go
 // Вызывается в момент, когда игрок наступает на клетку
-OnCellReached(*CellReachedContext) error
+OnCellReached(ctx context.Context, events *Events, player *Player, reachedCtx *ReachedContext) error
+
 // Вызывается в момент, когда игрок покидает клетку
-OnCellLeft(*CellLeftContext) error
+OnCellLeft(ctx context.Context, events *Events, player *Player) error
+
 // Опционально: Вызывается при сохранении клетки в PocketBase для проверки значения в поле "value"
-Verify(string) error
+Verify(ctx context.Context, value string) error
 ```
-В клетках можно вызывать сохранение `player.progress` и `player.lastAction`, если на то есть причина. Например, если клетке нужно
+
+В клетках можно вызывать сохранение `player.progress` и `player.lastAction`, если на то есть причина. Например, если
+клетке нужно
 создать новый ход, то это можно сделать таким образом:
 
 ```go
-action := player.LastAction()
-action.SetType("SOME_ACTION_TYPE")
-err := adventuria.PocketBase.Save(action.ProxyRecord())
+// Полный пример: internal/adventuria/actions/custom/reroll/action.go
+
+lastAction := player.LastAction()
+lastAction.SetType(Type)
+lastAction.SetReview(review.ID())
+_, err = r.actions.Save(ctx, lastAction)
 if err != nil {
-    return err
+    return nil, err
 }
-// Помечаем record экшена, как новый, чтобы создать новую запись
-action.MarkAsNew()
+
+newAction, err := model.NewAction(uuid.New(), model.ActionCreate{
+    Player: player.ID(),
+    Cell:   currentCell.Data().ID(),
+    Type:   Type,
+})
+if err != nil {
+    return nil, err
+}
+
+player.SetLastAction(newAction)
 ```
 
 После выполнения `OnCellReached` и `OnCellLeft`, так же сохраняются поля `player.progress` и его `player.lastAction`.
@@ -111,31 +147,48 @@ action.MarkAsNew()
 
 ## Действия 🎲
 
-Примеры реализации действий: `internal/adventuria/actions`.\
+Примеры реализации действий: `internal/adventuria/actions/custom`.\
 В своей основе действия нужны для манипуляции над данными игрока, например, чтобы завершить прохождение игры на клетке,
 дропнуть, купить предмет в магазине и т.д. Действия обязаны имплементировать два метода:
+
 ```go
-CanDo(ActionContext) bool
-Do(ActionContext, ActionRequest) (*ActionResult, error)
-// Этот метод используется для получения JSON'а фронтом.
-// В некоторых случаях перед выдачей ответа нужно модифицировать данные.
-// Например, в магазине предметов требуется применить активные эффекты для
-// скидки на товары (internal/adventuria/actions/buy.go).
-GetVariants(ActionContext) any
+// Проверяет, может ли игрок выполнить данное действие в текущий момент
+CanDo(ctx context.Context, events *Events, player *Player) bool
+
+Do(ctx context.Context, events *Events, player *Player, actionReq ActionRequest) (any, error)
 ```
 
 После выполнения `Do()` так же, вызывается сохранение `player.progress` и его `player.lastAction`.
 
-## Тестирование 🔧
+## Общее
 
-Для написания тестов существует отдельная структура `GameTest`, которая запускает приложение
-так же, как и при обычном запуске, но без `http` сервера.
+Если действию или эффекту нужно передать какую-то view информация для фронта, то для этого они должны имплементировать
+интерфейс `WithView`.
 
 ```go
-game, err := tests.NewGameTest()
-if err != nil {
-    t.Fatal(err)
-}
+GetView(ctx context.Context, events *Events, player *Player) (any, error)
 ```
+
+Пример реализации на эффекте: `internal/adventuria/effects/custom/paid_movement_in_radius/view.go`\
+Пример реализации на действии: `internal/adventuria/actions/custom/buy/view.go`
+
+## Тестирование 🔧
+
+В процессе...
+
+## Taskfile
+
+Для генерации бойлерплейт кода используются команды из Taskfile.yml.
+Если установлен Go, то можно скачать и собрать из source-кода через команду:
+
+```bash
+go install github.com/go-task/task/v3/cmd/task@latest
+```
+
+В остальных случаях смотреть сюда: https://taskfile.dev/docs/installation.
+
+После установки просто выполняем команду `task`, которая покажет все доступные команды.
+
+## Остальное
 
 Frontend: https://github.com/ShadowDash2000/adventuria-react
