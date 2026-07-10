@@ -2,12 +2,12 @@ package event
 
 import (
 	"adventuria/pkg/random"
-	"adventuria/pkg/result"
+	"context"
 	"slices"
 )
 
 type Handler[T Resolver] struct {
-	Func     func(T) (*result.Result, error)
+	Func     func(context.Context, T) error
 	id       string
 	once     bool
 	Priority int
@@ -37,20 +37,20 @@ func (h *Hook[T]) Bind(handler *Handler[T]) Unsubscribe {
 	}
 }
 
-func (h *Hook[T]) BindFunc(fn func(e T) (*result.Result, error)) Unsubscribe {
+func (h *Hook[T]) BindFunc(fn func(ctx context.Context, e T) error) Unsubscribe {
 	return h.Bind(&Handler[T]{
 		Func: fn,
 	})
 }
 
-func (h *Hook[T]) BindFuncWithPriority(fn func(e T) (*result.Result, error), priority int) Unsubscribe {
+func (h *Hook[T]) BindFuncWithPriority(fn func(ctx context.Context, e T) error, priority int) Unsubscribe {
 	return h.Bind(&Handler[T]{
 		Func:     fn,
 		Priority: priority,
 	})
 }
 
-func (h *Hook[T]) BindFuncOnce(fn func(e T) (*result.Result, error)) Unsubscribe {
+func (h *Hook[T]) BindFuncOnce(fn func(ctx context.Context, e T) error) Unsubscribe {
 	return h.Bind(&Handler[T]{
 		Func: fn,
 		once: true,
@@ -68,7 +68,7 @@ func (h *Hook[T]) Unbind(idsToRemove ...string) {
 	}
 }
 
-func (h *Hook[T]) Trigger(event T, oneOffHandlerFuncs ...func(T) (*result.Result, error)) (*result.Result, error) {
+func (h *Hook[T]) Trigger(ctx context.Context, event T, oneOffHandlerFuncs ...func(context.Context, T) error) error {
 	handlers := make([]*Handler[T], 0, len(h.handlers))
 	handlers = append(handlers, h.handlers...)
 	for _, fn := range oneOffHandlerFuncs {
@@ -82,23 +82,23 @@ func (h *Hook[T]) Trigger(event T, oneOffHandlerFuncs ...func(T) (*result.Result
 	for i := len(handlers) - 1; i >= 0; i-- {
 		handler := handlers[i]
 		old := event.nextFunc()
-		event.setNextFunc(func() (*result.Result, error) {
+		event.setNextFunc(func() error {
 			if handler.once && handler.id != "" {
 				onceIds = append(onceIds, handler.id)
 			}
 			event.setNextFunc(old)
-			return handler.Func(event)
+			return handler.Func(ctx, event)
 		})
 
 	}
 
-	res, err := event.Next()
+	err := event.Next()
 
 	if len(onceIds) > 0 {
 		h.Unbind(onceIds...)
 	}
 
-	return res, err
+	return err
 }
 
 func generateHookId() string {

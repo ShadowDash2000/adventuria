@@ -1,321 +1,308 @@
 package adventuria
 
 import (
-	"adventuria/pkg/collections"
-	"adventuria/pkg/result"
+	"adventuria/internal/adventuria/actions"
+	"adventuria/internal/adventuria/cells"
+	"adventuria/internal/adventuria/effects"
+	"adventuria/internal/adventuria/errs"
+	"adventuria/internal/adventuria/event_stats"
+	"adventuria/internal/adventuria/inventories"
+	"adventuria/internal/adventuria/model"
+	"adventuria/internal/adventuria/players"
+	"adventuria/internal/adventuria/scope"
+	"adventuria/internal/adventuria/settings"
+	"adventuria/internal/adventuria/worlds"
+	"adventuria/pkg/event"
+	"adventuria/pkg/locker"
+	"adventuria/pkg/pbtransaction"
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/pocketbase/pocketbase"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/plugins/migratecmd"
 )
 
-var (
-	PocketBase      core.App
-	GamePlayers     *Players
-	GameCells       *Cells
-	GameWorlds      *Worlds
-	GameItems       *Items
-	GameCollections *collections.Collections
-	GameSettings    *Settings
-	GameActions     *Actions
-)
-
-type AppContext struct {
-	App core.App
-}
-
 type Game struct {
-	pb     *pocketbase.PocketBase
-	ctx    context.Context
-	cancel context.CancelFunc
+	pb            *pocketbase.PocketBase
+	settings      *settings.Settings
+	players       *players.Players
+	cells         *cells.Cells
+	actions       *actions.Actions
+	inventories   *inventories.Inventories
+	effects       *effects.Effects
+	worlds        *worlds.Worlds
+	eventStats    *event_stats.EventStats
+	playersLocker *locker.Locker[string]
+
+	onKillParserEvent *event.Hook[*onKillParserEvent]
 }
 
-func New() *Game {
-	return &Game{}
-}
+func Start(fn func(game *Game, se *core.ServeEvent) error) (*Game, error) {
+	g := &Game{
+		pb:            pocketbase.New(),
+		playersLocker: locker.New[string](),
 
-func (g *Game) Start(fn func(se *core.ServeEvent) error) error {
-	g.pb = pocketbase.New()
-	g.ctx, g.cancel = context.WithCancel(context.Background())
-	PocketBase = g.pb
+		onKillParserEvent: &event.Hook[*onKillParserEvent]{},
+	}
 
 	migratecmd.MustRegister(g.pb, g.pb.RootCmd, migratecmd.Config{
 		Automigrate: false,
 	})
 
 	g.pb.OnServe().BindFunc(func(e *core.ServeEvent) error {
-		if err := g.init(AppContext{App: e.App}); err != nil {
+		if err := g.init(e.App); err != nil {
 			return err
 		}
 		return e.Next()
 	})
 
-	g.pb.OnTerminate().BindFunc(func(e *core.TerminateEvent) error {
-		g.cancel()
-		return e.Next()
+	g.pb.OnServe().BindFunc(func(e *core.ServeEvent) error {
+		return fn(g, e)
 	})
 
-	g.pb.OnServe().BindFunc(fn)
+	err := g.pb.Start()
+	if err != nil {
+		return nil, err
+	}
 
-	return g.pb.Start()
+	return g, nil
 }
 
-func (g *Game) init(ctx AppContext) error {
-	var err error
+func (g *Game) initScope(ctx context.Context, player *model.Player) (*scope.Scope, error) {
+	s := scope.New(player)
 
-	GameCollections = collections.NewCollections(PocketBase)
-	GamePlayers = NewPlayers(ctx)
-	GameActions = NewActions(ctx)
-	GameWorlds, err = NewWorlds(ctx)
+	invs, err := g.inventories.GetAllByPlayerID(ctx, player.ID())
 	if err != nil {
-		return err
-	}
-	GameCells, err = NewCells(ctx)
-	if err != nil {
-		return err
-	}
-	GameItems, err = NewItems(ctx)
-	if err != nil {
-		return err
-	}
-	GameSettings, err = NewSettings(ctx)
-	if err != nil {
-		return err
+		return nil, err
 	}
 
-	_ = NewInventories(ctx)
-	_ = NewEffectVerifier(ctx)
-	_ = NewCellVerifier(ctx)
+	err = g.effects.SubscribeActiveEffects(ctx, s.Events(), s.Player(), invs)
+	if err != nil {
+		return nil, err
+	}
 
-	BindActivitiesHooks(ctx)
+	err = g.effects.SubscribePersistentEffects(ctx, s.Events(), s.Player())
+	if err != nil {
+		return nil, err
+	}
 
-	return nil
+	// TODO maybe we don't need to init the world effects in a global scope
+	// 'cause in theory a player can change the world multiple times in one action
+	err = g.worlds.SubscribeEffects(ctx, s.Events(), s.Player(), s.Player().Progress().CurrentWorld())
+	if err != nil {
+		return nil, err
+	}
+
+	return s, nil
 }
 
-func (g *Game) DoAction(app core.App, playerId string, actionType ActionType, req ActionRequest) (*result.Result, error) {
-	ctx := AppContext{App: app}
-	player, err := GamePlayers.GetByID(ctx, playerId)
+func (g *Game) DoAction(
+	ctx context.Context,
+	pb core.App,
+	playerId string,
+	actionType model.ActionType,
+	req model.ActionRequest,
+) (any, error) {
+	settings, err := g.settings.GetFirstOrDefault(ctx)
 	if err != nil {
-		return result.Err("player not found"), nil
+		return nil, err
 	}
 
-	if player.Locked() {
-		return result.Err("player is already in action"), nil
+	player, err := g.players.GetByID(ctx, playerId, settings.CurrentSeason())
+	if err != nil {
+		return nil, err
 	}
 
-	player.Lock()
-	defer player.Unlock()
+	if ok := g.playersLocker.TryLock(playerId); !ok {
+		return nil, errs.ErrPlayerIsBusy
+	}
+	defer g.playersLocker.Unlock(playerId)
 
-	if ok := GameActions.CanDo(ctx, player, actionType); !ok {
-		return result.Err("action is not available"), nil
+	s, err := g.initScope(ctx, player)
+	if err != nil {
+		return nil, err
 	}
 
-	var res *result.Result
-	err = ctx.App.RunInTransaction(func(txApp core.App) error {
-		ctx := AppContext{App: txApp}
+	if ok := g.actions.CanDo(ctx, s.Events(), s.Player(), actionType); !ok {
+		return nil, errors.New("action is not available")
+	}
 
-		res, err = GameActions.Do(ctx, player, req, actionType)
-		if err != nil {
-			txApp.Logger().Error(
-				"Failed to complete player action",
-				"error", err,
-			)
-			return err
-		} else if res.Error != "" {
-			return errors.New(res.Error)
-		}
-
-		_, err = player.OnAfterAction().Trigger(&OnAfterActionEvent{
-			AppContext: ctx,
-			ActionType: actionType,
-		})
+	var res any
+	err = pbtransaction.RunInTransaction(ctx, pb, func(ctx context.Context, txApp core.App) error {
+		res, err = g.actions.Do(ctx, s.Events(), s.Player(), req, actionType)
 		if err != nil {
 			return err
 		}
 
-		err = txApp.Save(player.LastAction().ProxyRecord())
+		err = g.players.Save(ctx, player)
 		if err != nil {
-			txApp.Logger().Error("Failed to save latest player action", "error", err)
-			res = result.Err(err.Error())
-			return err
-		}
-
-		err = txApp.Save(player.Progress().ProxyRecord())
-		if err != nil {
-			txApp.Logger().Error("Failed to save player", "error", err)
 			return err
 		}
 
 		return nil
 	})
-	if err != nil {
-		_ = player.Refetch(ctx)
-	}
 
 	return res, err
 }
 
-type UseItemRequest struct {
-	InvItemId string         `json:"itemId"`
-	Data      map[string]any `json:"data"`
-}
-
-func (g *Game) UseItem(app core.App, playerId string, req UseItemRequest) (*result.Result, error) {
-	ctx := AppContext{App: app}
-	player, err := GamePlayers.GetByID(ctx, playerId)
+func (g *Game) UseItem(
+	ctx context.Context,
+	pb core.App,
+	playerId string,
+	itemId string,
+	data map[string]any,
+) error {
+	settings, err := g.settings.GetFirstOrDefault(ctx)
 	if err != nil {
-		return result.Err("player not found"), err
+		return err
 	}
 
-	player.Lock()
-	defer player.Unlock()
-
-	if ok := player.Inventory().CanUseItem(ctx, req.InvItemId); !ok {
-		return result.Err(fmt.Sprintf("item %s cannot be used", req.InvItemId)), nil
+	player, err := g.players.GetByID(ctx, playerId, settings.CurrentSeason())
+	if err != nil {
+		return err
 	}
 
-	var res *result.Result
-	err = ctx.App.RunInTransaction(func(txApp core.App) error {
-		ctx := AppContext{App: txApp}
+	if ok := g.playersLocker.TryLock(playerId); !ok {
+		return errs.ErrPlayerIsBusy
+	}
+	defer g.playersLocker.Unlock(playerId)
 
-		onUseSuccess, onUseFail, err := player.Inventory().UseItem(ctx, req.InvItemId)
+	s, err := g.initScope(ctx, player)
+	if err != nil {
+		return err
+	}
+
+	canUse, err := g.inventories.CanUseItem(ctx, s, itemId)
+	if err != nil {
+		return err
+	}
+	if !canUse {
+		return errors.New("can't use item")
+	}
+
+	return pbtransaction.RunInTransaction(ctx, pb, func(ctx context.Context, txApp core.App) error {
+		err = g.inventories.UseItem(ctx, s.Events(), s.Player(), itemId)
 		if err != nil {
 			return err
 		}
 
-		res, err = player.OnAfterItemUse().Trigger(&OnAfterItemUseEvent{
-			AppContext: ctx,
-			InvItemId:  req.InvItemId,
-			Data:       req.Data,
-		})
-		if err != nil {
-			onUseFail()
-			return err
-		}
-		if res.Failed() {
-			onUseFail()
-			return errors.New(res.Error)
-		}
-
-		err = onUseSuccess()
-		if err != nil {
-			return err
-		}
-
-		res, err = player.OnAfterAction().Trigger(&OnAfterActionEvent{
-			AppContext: ctx,
-			ActionType: "useItem",
+		err = s.Events().OnAfterItemUse().Trigger(ctx, &model.OnAfterItemUseEvent{
+			InvItemId: itemId,
+			Data:      data,
 		})
 		if err != nil {
 			return err
 		}
-		if res.Failed() {
-			return errors.New(res.Error)
-		}
 
-		err = txApp.Save(player.LastAction().ProxyRecord())
-		if err != nil {
-			return err
-		}
-
-		err = txApp.Save(player.Progress().ProxyRecord())
+		err = g.players.Save(ctx, player)
 		if err != nil {
 			return err
 		}
 
 		return nil
 	})
-	if err != nil {
-		_ = player.Refetch(ctx)
-		return res, err
-	}
-
-	return res, nil
 }
 
-func (g *Game) DropItem(app core.App, playerId, itemId string) error {
-	ctx := AppContext{App: app}
-	player, err := GamePlayers.GetByID(ctx, playerId)
+func (g *Game) DropItem(ctx context.Context, pb core.App, playerId, itemId string) error {
+	settings, err := g.settings.GetFirstOrDefault(ctx)
 	if err != nil {
 		return err
 	}
 
-	player.Lock()
-	defer player.Unlock()
-
-	item, ok := player.Inventory().GetItemById(itemId)
-	if !ok {
-		return errors.New("item not found in inventory")
-	}
-
-	err = player.Inventory().DropItem(ctx, itemId)
+	player, err := g.players.GetByID(ctx, playerId, settings.CurrentSeason())
 	if err != nil {
 		return err
 	}
 
-	if itemPrice := item.Price(); itemPrice > 0 {
-		player.Progress().AddBalance(itemPrice / 2)
-		err = app.Save(player.Progress().ProxyRecord())
-		if err != nil {
-			return err
-		}
+	if ok := g.playersLocker.TryLock(playerId); !ok {
+		return errs.ErrPlayerIsBusy
+	}
+	defer g.playersLocker.Unlock(playerId)
+
+	s, err := g.initScope(ctx, player)
+	if err != nil {
+		return err
 	}
 
-	return nil
+	item, err := g.inventories.GetPlayerInventoryItemByID(ctx, playerId, itemId)
+	if err != nil {
+		return err
+	}
+
+	return pbtransaction.RunInTransaction(ctx, pb, func(ctx context.Context, txApp core.App) error {
+		return g.inventories.DropItem(ctx, s.Events(), s.Player(), item)
+	})
 }
 
-func (g *Game) GetAvailableActions(app core.App, playerId string) ([]ActionType, error) {
-	ctx := AppContext{App: app}
-	player, err := GamePlayers.GetByID(ctx, playerId)
+func (g *Game) GetAvailableActions(ctx context.Context, playerId string) ([]model.ActionType, error) {
+	settings, err := g.settings.GetFirstOrDefault(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	var actions []ActionType
-	for t := range GameActions.AvailableActions(ctx, player) {
-		actions = append(actions, t)
-	}
-
-	return actions, nil
-}
-
-func (g *Game) Context() context.Context {
-	return g.ctx
-}
-
-func (g *Game) GetItemEffectVariants(app core.App, playerId, invItemId, effectId string) (any, error) {
-	ctx := AppContext{App: app}
-	player, err := GamePlayers.GetByID(ctx, playerId)
+	player, err := g.players.GetByID(ctx, playerId, settings.CurrentSeason())
 	if err != nil {
 		return nil, err
 	}
 
-	invItem, ok := player.Inventory().GetItemById(invItemId)
-	if !ok {
-		return nil, errors.New("inventory item not found")
+	s, err := g.initScope(ctx, player)
+	if err != nil {
+		return nil, err
 	}
 
-	return invItem.GetEffectVariants(ctx, effectId)
+	availableActions := g.actions.AvailableActions(ctx, s.Events(), s.Player())
+
+	return availableActions, nil
 }
 
-func (g *Game) GetActionVariants(app core.App, playerId, actionType string) (*result.Result, error) {
-	ctx := AppContext{App: app}
-	player, err := GamePlayers.GetByID(ctx, playerId)
+func (g *Game) GetEffectView(ctx context.Context, playerId, effectId string) (any, error) {
+	settings, err := g.settings.GetFirstOrDefault(ctx)
 	if err != nil {
-		return result.Err("player not found"), err
+		return nil, err
 	}
 
-	if ok := GameActions.CanDo(ctx, player, ActionType(actionType)); !ok {
-		return result.Err("action is not available"), nil
+	player, err := g.players.GetByID(ctx, playerId, settings.CurrentSeason())
+	if err != nil {
+		return nil, err
 	}
 
-	variants := GameActions.GetVariants(ctx, player, ActionType(actionType))
-	if variants == nil {
-		return result.Err("action variants not found"), nil
+	s, err := g.initScope(ctx, player)
+	if err != nil {
+		return nil, err
 	}
 
-	return result.Ok().WithData(variants), nil
+	return g.effects.GetView(ctx, s.Events(), s.Player(), effectId)
+}
+
+func (g *Game) GetActionView(ctx context.Context, playerId string, actionType model.ActionType) (any, error) {
+	settings, err := g.settings.GetFirstOrDefault(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	player, err := g.players.GetByID(ctx, playerId, settings.CurrentSeason())
+	if err != nil {
+		return nil, err
+	}
+
+	s, err := g.initScope(ctx, player)
+	if err != nil {
+		return nil, err
+	}
+
+	return g.actions.GetView(ctx, s.Events(), s.Player(), actionType)
+}
+
+func (g *Game) EventStats(ctx context.Context) (*event_stats.EventStatsData, error) {
+	settings, err := g.settings.GetFirstOrDefault(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return g.eventStats.ComputeStats(ctx, settings.CurrentSeason())
+}
+
+func (g *Game) IsActionsBlocked(ctx context.Context) (bool, error) {
+	return g.settings.IsActionsBlocked(ctx)
 }

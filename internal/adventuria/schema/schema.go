@@ -282,6 +282,7 @@ var CellSchema = struct {
 }
 
 var SettingsSchema = struct {
+	Id                string
 	EventEnded        string
 	CurrentSeason     string
 	CurrentWeek       string
@@ -299,6 +300,7 @@ var SettingsSchema = struct {
 	KillParser              string
 	IgdbForceUpdateGames    string
 }{
+	Id:                      "id",
 	EventEnded:              "event_ended",
 	CurrentSeason:           "current_season",
 	CurrentWeek:             "current_week",
@@ -425,6 +427,18 @@ var GenreSchema = struct {
 }
 
 var ThemeSchema = struct {
+	Id       string
+	IdDb     string
+	Name     string
+	Checksum string
+}{
+	Id:       "id",
+	IdDb:     "id_db",
+	Name:     "name",
+	Checksum: "checksum",
+}
+
+var GameTypeSchema = struct {
 	Id       string
 	IdDb     string
 	Name     string

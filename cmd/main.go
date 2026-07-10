@@ -1,7 +1,7 @@
 package main
 
 import (
-	"adventuria/internal/adventuria_new"
+	"adventuria/internal/adventuria"
 	"adventuria/internal/http"
 	"log"
 
@@ -16,17 +16,7 @@ func main() {
 		log.Printf("Failed to load .env file: %v", err)
 	}
 
-	_, err := adventuria_new.Start(func(game *adventuria_new.Game, se *core.ServeEvent) error {
-		/*gamesParser, err := parser.NewGamesParser()
-		if err == nil {
-			se.App.Cron().MustAdd("games_parser", "0 0 1 * *", func() {
-				gamesParser.Parse(context.Background())
-			})
-			se.App.Cron().MustAdd("refresh_hltb_time", "0 0 1 * *", func() {
-				gamesParser.RefreshHltbTime(context.Background())
-			})
-		}*/
-
+	_, err := adventuria.Start(func(game *adventuria.Game, se *core.ServeEvent) error {
 		http.Route(game, se.Router)
 
 		return se.Next()

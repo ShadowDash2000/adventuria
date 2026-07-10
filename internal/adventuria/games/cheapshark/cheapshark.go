@@ -1,43 +1,73 @@
 package cheapshark
 
-import "github.com/pocketbase/pocketbase/core"
+import (
+	"adventuria/internal/adventuria/model"
+	"context"
 
-type CheapSharkResponse struct {
-	SteamAppID  uint    `json:"steamAppID"`
-	Title       string  `json:"title"`
-	NormalPrice float64 `json:"normalPrice"`
+	"github.com/google/uuid"
+)
+
+type repository interface {
+	Save(ctx context.Context, cheapShark *model.CheapShark) (*model.CheapShark, error)
+	ExistsByIdDb(ctx context.Context, idDb int) (bool, error)
+	GetByAppID(ctx context.Context, id int) (*model.CheapShark, error)
 }
 
-type CheapSharkRecord struct {
-	core.BaseRecordProxy
+type remoteRepository interface {
+	FetchLatestRelease(ctx context.Context) ([]*CheapSharkResponse, error)
 }
 
-func NewCheapsharkRecordFromRecord(record *core.Record) *CheapSharkRecord {
-	r := &CheapSharkRecord{}
-	r.SetProxyRecord(record)
-	return r
+type CheapShark struct {
+	repository       repository
+	remoteRepository remoteRepository
 }
 
-func (r *CheapSharkRecord) IdDb() uint {
-	return uint(r.GetInt("id_db"))
+func NewCheapShark(repository repository, remoteRepository remoteRepository) *CheapShark {
+	return &CheapShark{
+		repository:       repository,
+		remoteRepository: remoteRepository,
+	}
 }
 
-func (r *CheapSharkRecord) SetIdDb(id uint) {
-	r.Set("id_db", id)
+func (c *CheapShark) Parse(ctx context.Context) error {
+	deals, err := c.remoteRepository.FetchLatestRelease(ctx)
+	if err != nil {
+		return err
+	}
+
+	for _, deal := range deals {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+		}
+
+		ok, err := c.repository.ExistsByIdDb(ctx, int(deal.SteamAppID))
+		if err != nil {
+			return err
+		}
+		if ok {
+			continue
+		}
+
+		cs, err := model.NewCheapShark(uuid.New(), model.CheapSharkCreate{
+			IdDb:  int(deal.SteamAppID),
+			Name:  deal.Title,
+			Price: deal.NormalPrice,
+		})
+		if err != nil {
+			return err
+		}
+
+		_, err = c.repository.Save(ctx, cs)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
-func (r *CheapSharkRecord) Name() string {
-	return r.GetString("name")
-}
-
-func (r *CheapSharkRecord) SetName(name string) {
-	r.Set("name", name)
-}
-
-func (r *CheapSharkRecord) Price() float64 {
-	return r.GetFloat("price")
-}
-
-func (r *CheapSharkRecord) SetPrice(price float64) {
-	r.Set("price", price)
+func (c *CheapShark) GetByAppID(ctx context.Context, id int) (*model.CheapShark, error) {
+	return c.repository.GetByAppID(ctx, id)
 }
