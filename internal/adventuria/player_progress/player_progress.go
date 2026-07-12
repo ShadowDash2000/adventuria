@@ -56,6 +56,8 @@ func (p *PlayerProgress) GetFirstOrDefault(ctx context.Context, playerId, season
 		return nil, err
 	}
 
+	progress.SetCanMove(true)
+
 	progress, err = p.repository.Create(ctx, progress)
 	if err != nil {
 		return nil, err

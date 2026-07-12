@@ -26,7 +26,7 @@ func NewDef() cells.CellDef {
 }
 
 func (c *CellStart) OnCellReached(_ context.Context, _ *model.Events, player *model.Player, _ *model.ReachedContext) error {
-	player.LastAction().SetCanMove(true)
+	player.Progress().SetCanMove(true)
 	return nil
 }
 

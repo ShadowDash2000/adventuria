@@ -12,6 +12,7 @@ func PlayerProgressToRecord(playerProgress *model.PlayerProgress, record *core.R
 	record.Set(schema.PlayerProgressSchema.Player, playerProgress.Player())
 	record.Set(schema.PlayerProgressSchema.Season, playerProgress.Season())
 	record.Set(schema.PlayerProgressSchema.CurrentWorld, playerProgress.CurrentWorld())
+	record.Set(schema.PlayerProgressSchema.CanMove, playerProgress.CanMove())
 	record.Set(schema.PlayerProgressSchema.Points, playerProgress.Points())
 	record.Set(schema.PlayerProgressSchema.Balance, playerProgress.Balance())
 	record.Set(schema.PlayerProgressSchema.CellsPassed, playerProgress.CellsPassed())
@@ -27,6 +28,7 @@ func RecordToPlayerProgress(record *core.Record) *model.PlayerProgress {
 		Player:            record.GetString(schema.PlayerProgressSchema.Player),
 		Season:            record.GetString(schema.PlayerProgressSchema.Season),
 		CurrentWorld:      record.GetString(schema.PlayerProgressSchema.CurrentWorld),
+		CanMove:           record.GetBool(schema.PlayerProgressSchema.CanMove),
 		Points:            record.GetInt(schema.PlayerProgressSchema.Points),
 		Balance:           record.GetInt(schema.PlayerProgressSchema.Balance),
 		CellsPassed:       record.GetInt(schema.PlayerProgressSchema.CellsPassed),

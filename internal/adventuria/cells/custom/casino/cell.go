@@ -40,7 +40,9 @@ func (c *CellCasino) OnCellReached(_ context.Context, _ *model.Events, player *m
 	if err != nil {
 		return err
 	}
-	player.LastAction().SetCanMove(true)
+
+	player.Progress().SetCanMove(true)
+
 	return c.refreshItems(player)
 }
 

@@ -45,7 +45,7 @@ func (c *CellShop) OnCellReached(ctx context.Context, _ *model.Events, player *m
 		return err
 	}
 
-	player.LastAction().SetCanMove(true)
+	player.Progress().SetCanMove(true)
 
 	return nil
 }

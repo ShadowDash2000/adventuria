@@ -134,14 +134,15 @@ func (d *Drop) Do(ctx context.Context, events *model.Events, player *model.Playe
 	lastAction := player.LastAction()
 	lastAction.SetType(Type)
 	lastAction.SetReview(review.ID())
-	lastAction.SetCanMove(true)
 	err = d.players.Save(ctx, player)
 	if err != nil {
 		return nil, err
 	}
 
+	progress := player.Progress()
+	progress.SetCanMove(true)
+
 	if !onBeforeDropEvent.IsSafeDrop && !currentCell.Data().IsSafeDrop() {
-		progress := player.Progress()
 		err = progress.PointsChange(onBeforeDropEvent.PointsForDrop)
 		if err != nil {
 			return nil, err

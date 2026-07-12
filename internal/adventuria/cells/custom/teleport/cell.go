@@ -65,7 +65,7 @@ func (c *CellTeleport) OnCellReached(ctx context.Context, events *model.Events, 
 	}
 
 	if onBeforeTeleportOnCell.SkipTeleport {
-		player.LastAction().SetCanMove(true)
+		player.Progress().SetCanMove(true)
 		return nil
 	}
 

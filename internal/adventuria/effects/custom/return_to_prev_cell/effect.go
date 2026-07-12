@@ -65,7 +65,7 @@ func (r *ReturnToPrevCell) Subscribe(
 				return err
 			}
 
-			player.LastAction().SetCanMove(true)
+			player.Progress().SetCanMove(true)
 			callback(ctx)
 
 			return e.Next()

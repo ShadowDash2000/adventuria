@@ -45,7 +45,7 @@ func NewDef(cells cells, actionsService actionsService, board board) actions.Act
 }
 
 func (r *RollDice) CanDo(_ context.Context, _ *model.Events, player *model.Player) bool {
-	return player.LastAction().CanMove()
+	return player.Progress().CanMove()
 }
 
 type RollDiceResult struct {

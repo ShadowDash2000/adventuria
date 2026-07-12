@@ -118,13 +118,15 @@ func (b *Board) Move(ctx context.Context, events *model.Events, player *model.Pl
 	}
 
 	newAction.SetCellsPassed(steps)
-	newAction.SetCanMove(false)
+
+	progress := player.Progress()
+	progress.SetCanMove(false)
 
 	newAction, err = b.actions.Save(ctx, newAction)
 	if err != nil {
 		return nil, err
 	}
-	newProgress, err := b.progress.Save(ctx, player.Progress())
+	newProgress, err := b.progress.Save(ctx, progress)
 	if err != nil {
 		return nil, err
 	}

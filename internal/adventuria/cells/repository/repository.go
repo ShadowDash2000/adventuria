@@ -29,9 +29,9 @@ func (r *Repository) baseCellQuery(db dbx.Builder) *dbx.SelectQuery {
 			fmt.Sprintf("%s.*", schema.CollectionCells),
 			fmt.Sprintf(
 				"ROW_NUMBER() OVER (PARTITION BY %s ORDER BY %s ASC, %s ASC) - 1 as local_order",
-				schema.CellSchema.World,
-				schema.CellSchema.Sort,
-				schema.CellSchema.Id,
+				pbhelper.DotExpand(schema.CollectionCells, schema.CellSchema.World),
+				pbhelper.DotExpand(schema.CollectionCells, schema.CellSchema.Sort),
+				pbhelper.DotExpand(schema.CollectionCells, schema.CellSchema.Id),
 			),
 			fmt.Sprintf(
 				"ROW_NUMBER() OVER (ORDER BY %s ASC, %s ASC, %s ASC) - 1 as global_order",
@@ -58,7 +58,7 @@ func (r *Repository) GetByID(ctx context.Context, id string) (*model.CellInfo, e
 
 	subQuery := r.baseCellQuery(pb.DB()).Build()
 
-	var record core.Record
+	var dto cellDTO
 	err := pb.DB().
 		Select("*").
 		From(fmt.Sprintf("(%s) t", subQuery.SQL())).
@@ -67,7 +67,7 @@ func (r *Repository) GetByID(ctx context.Context, id string) (*model.CellInfo, e
 		}).
 		Bind(subQuery.Params()).
 		WithContext(ctx).
-		One(&record)
+		One(&dto)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, errs.ErrCellNotFound
@@ -75,7 +75,7 @@ func (r *Repository) GetByID(ctx context.Context, id string) (*model.CellInfo, e
 		return nil, err
 	}
 
-	return RecordToCell(&record), nil
+	return cellDTOToCell(&dto), nil
 }
 
 func (r *Repository) GetByIDs(ctx context.Context, ids []string) ([]*model.CellInfo, error) {
@@ -87,7 +87,7 @@ func (r *Repository) GetByIDs(ctx context.Context, ids []string) ([]*model.CellI
 
 	subQuery := r.baseCellQuery(pb.DB()).Build()
 
-	var records []*core.Record
+	var dtos []cellDTO
 	err := pb.DB().
 		Select("*").
 		From(fmt.Sprintf("(%s) t", subQuery.SQL())).
@@ -97,12 +97,12 @@ func (r *Repository) GetByIDs(ctx context.Context, ids []string) ([]*model.CellI
 		)).
 		Bind(subQuery.Params()).
 		WithContext(ctx).
-		All(&records)
+		All(&dtos)
 	if err != nil {
 		return nil, err
 	}
 
-	return RecordsToCells(records), nil
+	return cellDTOsToCells(dtos), nil
 }
 
 func (r *Repository) GetByLocalOrder(ctx context.Context, worldId string, order int) (*model.CellInfo, error) {
@@ -110,7 +110,7 @@ func (r *Repository) GetByLocalOrder(ctx context.Context, worldId string, order 
 
 	subQuery := r.baseCellQuery(pb.DB()).Build()
 
-	var record core.Record
+	var dto cellDTO
 	err := pb.DB().
 		Select("*").
 		From(fmt.Sprintf("(%s) t", subQuery.SQL())).
@@ -120,7 +120,7 @@ func (r *Repository) GetByLocalOrder(ctx context.Context, worldId string, order 
 		Offset(int64(order)).
 		Bind(subQuery.Params()).
 		WithContext(ctx).
-		One(&record)
+		One(&dto)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, errs.ErrCellNotFound
@@ -128,7 +128,7 @@ func (r *Repository) GetByLocalOrder(ctx context.Context, worldId string, order 
 		return nil, err
 	}
 
-	return RecordToCell(&record), nil
+	return cellDTOToCell(&dto), nil
 }
 
 func (r *Repository) GetByGlobalOrder(ctx context.Context, order int) (*model.CellInfo, error) {
@@ -136,7 +136,7 @@ func (r *Repository) GetByGlobalOrder(ctx context.Context, order int) (*model.Ce
 
 	subQuery := r.baseCellQuery(pb.DB()).Build()
 
-	var record core.Record
+	var dto cellDTO
 	err := pb.DB().
 		Select("*").
 		From(fmt.Sprintf("(%s) t", subQuery.SQL())).
@@ -145,7 +145,7 @@ func (r *Repository) GetByGlobalOrder(ctx context.Context, order int) (*model.Ce
 		Offset(int64(order)).
 		Bind(subQuery.Params()).
 		WithContext(ctx).
-		One(&record)
+		One(&dto)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, errs.ErrCellNotFound
@@ -153,7 +153,7 @@ func (r *Repository) GetByGlobalOrder(ctx context.Context, order int) (*model.Ce
 		return nil, err
 	}
 
-	return RecordToCell(&record), nil
+	return cellDTOToCell(&dto), nil
 }
 
 func (r *Repository) GetAllGlobalByType(ctx context.Context, t model.CellType) ([]*model.CellInfo, error) {
@@ -161,7 +161,7 @@ func (r *Repository) GetAllGlobalByType(ctx context.Context, t model.CellType) (
 
 	subQuery := r.baseCellQuery(pb.DB()).Build()
 
-	var records []*core.Record
+	var dtos []cellDTO
 	err := pb.DB().
 		Select("*").
 		From(fmt.Sprintf("(%s) t", subQuery.SQL())).
@@ -171,12 +171,12 @@ func (r *Repository) GetAllGlobalByType(ctx context.Context, t model.CellType) (
 		}).
 		Bind(subQuery.Params()).
 		WithContext(ctx).
-		All(&records)
+		All(&dtos)
 	if err != nil {
 		return nil, err
 	}
 
-	return RecordsToCells(records), nil
+	return cellDTOsToCells(dtos), nil
 }
 
 func (r *Repository) CountLocal(ctx context.Context, worldId string) (int, error) {

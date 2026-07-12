@@ -60,6 +60,7 @@ var PlayerProgressSchema = struct {
 	Player            string
 	Season            string
 	CurrentWorld      string
+	CanMove           string
 	Points            string
 	Balance           string
 	CellsPassed       string
@@ -74,6 +75,7 @@ var PlayerProgressSchema = struct {
 	Player:            "player",
 	Season:            "season",
 	CurrentWorld:      "current_world",
+	CanMove:           "can_move",
 	Points:            "points",
 	Balance:           "balance",
 	CellsPassed:       "cells_passed",
@@ -109,7 +111,6 @@ var ActionSchema = struct {
 	CellsPassed          string
 	ItemsList            string
 	UsedItems            string
-	CanMove              string
 	CustomActivityFilter string
 }{
 	Id:                   "id",
@@ -121,7 +122,6 @@ var ActionSchema = struct {
 	CellsPassed:          "cells_passed",
 	ItemsList:            "items_list",
 	UsedItems:            "used_items",
-	CanMove:              "can_move",
 	CustomActivityFilter: "custom_activity_filter",
 }
 

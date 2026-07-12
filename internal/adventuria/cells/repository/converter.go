@@ -40,3 +40,42 @@ func RecordsToCells(records []*core.Record) []*model.CellInfo {
 	}
 	return cells
 }
+
+func cellDTOToCell(dto *cellDTO) *model.CellInfo {
+	value := ""
+	if dto.Value != nil {
+		value = *dto.Value
+	}
+
+	return model.RestoreCellInfo(model.CellData{
+		Id:                       dto.Id,
+		Disabled:                 dto.Disabled,
+		Sort:                     dto.Sort,
+		Type:                     model.CellType(dto.Type),
+		World:                    dto.World,
+		Filter:                   dto.Filter,
+		AudioPreset:              dto.AudioPreset,
+		Icon:                     dto.Icon,
+		Name:                     dto.Name,
+		Points:                   dto.Points,
+		Coins:                    dto.Coins,
+		Description:              dto.Description,
+		Color:                    dto.Color,
+		CantDrop:                 dto.CantDrop,
+		CantReroll:               dto.CantReroll,
+		IsSafeDrop:               dto.IsSafeDrop,
+		IsCustomFilterNotAllowed: dto.IsCustomFilterNotAllowed,
+		IsChangeGameNotAllowed:   dto.IsChangeGameNotAllowed,
+		Value:                    value,
+		LocalOrder:               dto.LocalOrder,
+		GlobalOrder:              dto.GlobalOrder,
+	})
+}
+
+func cellDTOsToCells(dtos []cellDTO) []*model.CellInfo {
+	cells := make([]*model.CellInfo, len(dtos))
+	for i := range dtos {
+		cells[i] = cellDTOToCell(&dtos[i])
+	}
+	return cells
+}

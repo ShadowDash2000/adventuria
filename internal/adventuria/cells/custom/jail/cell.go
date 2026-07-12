@@ -60,14 +60,14 @@ func (c *CellJail) Roll(_ context.Context, _ *model.Events, player *model.Player
 
 func (c *CellJail) OnCellReached(ctx context.Context, events *model.Events, player *model.Player, _ *model.ReachedContext) error {
 	if player.Progress().IsInJail() {
-		player.LastAction().SetCanMove(false)
+		player.Progress().SetCanMove(false)
 
 		err := events.OnAfterGoToJail().Trigger(ctx, &model.OnAfterGoToJailEvent{})
 		if err != nil {
 			return err
 		}
 	} else {
-		player.LastAction().SetCanMove(true)
+		player.Progress().SetCanMove(true)
 	}
 	return nil
 }

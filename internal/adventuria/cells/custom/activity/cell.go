@@ -34,7 +34,7 @@ func NewDef(
 	categories ...string,
 ) cells.CellDef {
 	return cells.NewCell(
-		Type,
+		model.CellType(activityType),
 		func(cell model.CellInfo) model.Cell {
 			return &CellActivity{
 				CellBase:     cells.NewCellBase(cell),

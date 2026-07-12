@@ -81,9 +81,9 @@ func (d *Done) Do(ctx context.Context, events *model.Events, player *model.Playe
 	lastAction := player.LastAction()
 	lastAction.SetType(Type)
 	lastAction.SetReview(review.ID())
-	lastAction.SetCanMove(true)
 
 	progress := player.Progress()
+	progress.SetCanMove(true)
 	progress.SetDropsInARow(0)
 	progress.SetIsInJail(false)
 	err = progress.PointsChange(onBeforeDoneEvent.CellPoints)

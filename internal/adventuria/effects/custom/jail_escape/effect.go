@@ -44,9 +44,9 @@ func (j *JailEscape) Subscribe(
 			}
 
 			progress := player.Progress()
+			progress.SetCanMove(true)
 			progress.SetIsInJail(false)
 			progress.SetDropsInARow(0)
-			player.LastAction().SetCanMove(true)
 
 			callback(ctx)
 

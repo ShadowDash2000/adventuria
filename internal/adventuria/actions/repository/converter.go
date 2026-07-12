@@ -17,7 +17,6 @@ func ActionToRecord(action *model.ActionInfo, record *core.Record) {
 	record.Set(schema.ActionSchema.CellsPassed, action.CellsPassed())
 	record.Set(schema.ActionSchema.ItemsList, action.ItemsList())
 	record.Set(schema.ActionSchema.UsedItems, action.UsedItems())
-	record.Set(schema.ActionSchema.CanMove, action.CanMove())
 	record.Set(schema.ActionSchema.CustomActivityFilter, action.CustomActivityFilter())
 }
 
@@ -48,7 +47,6 @@ func RecordToAction(record *core.Record) (*model.ActionInfo, error) {
 		CellsPassed:          record.GetInt(schema.ActionSchema.CellsPassed),
 		ItemsList:            itemsList,
 		UsedItems:            usedItems,
-		CanMove:              record.GetBool(schema.ActionSchema.CanMove),
 		CustomActivityFilter: customActivityFilter,
 	}), nil
 }

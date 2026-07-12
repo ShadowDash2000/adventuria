@@ -30,7 +30,6 @@ type ActionData struct {
 	CellsPassed          int
 	ItemsList            []string
 	UsedItems            []string
-	CanMove              bool
 	CustomActivityFilter CustomActivityFilter
 }
 
@@ -154,14 +153,6 @@ func (a *ActionInfo) UsedItems() []string {
 
 func (a *ActionInfo) AddUsedItems(items ...string) {
 	a.data.UsedItems = append(a.data.UsedItems, items...)
-}
-
-func (a *ActionInfo) CanMove() bool {
-	return a.data.CanMove
-}
-
-func (a *ActionInfo) SetCanMove(b bool) {
-	a.data.CanMove = b
 }
 
 func (a *ActionInfo) CustomActivityFilter() CustomActivityFilter {

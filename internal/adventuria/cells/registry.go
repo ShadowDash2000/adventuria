@@ -10,20 +10,20 @@ type CellDef struct {
 
 type CellCreator func(cell model.CellInfo) model.Cell
 
-var registry = &Registry{actions: map[model.CellType]CellDef{}}
+var registry = &Registry{cellDefs: map[model.CellType]CellDef{}}
 
 type Registry struct {
-	actions map[model.CellType]CellDef
+	cellDefs map[model.CellType]CellDef
 }
 
-func (r *Registry) Register(actions ...CellDef) {
-	for _, action := range actions {
-		r.actions[action.t] = action
+func (r *Registry) Register(cellDefs ...CellDef) {
+	for _, cellDef := range cellDefs {
+		r.cellDefs[cellDef.t] = cellDef
 	}
 }
 
 func (r *Registry) Get(t model.CellType) (CellDef, bool) {
-	a, ok := r.actions[t]
+	a, ok := r.cellDefs[t]
 	return a, ok
 }
 
@@ -35,8 +35,8 @@ func NewCell(t model.CellType, new CellCreator, categories ...string) CellDef {
 	}
 }
 
-func Register(actions ...CellDef) {
-	registry.Register(actions...)
+func Register(cellDefs ...CellDef) {
+	registry.Register(cellDefs...)
 }
 
 func Get(t model.CellType) (CellDef, bool) {
