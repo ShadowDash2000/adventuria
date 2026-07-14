@@ -4,8 +4,6 @@ import (
 	"adventuria/internal/adventuria/model"
 	"context"
 	"math"
-
-	"github.com/google/uuid"
 )
 
 type repository interface {
@@ -51,7 +49,7 @@ func (h *HowLongToBeat) Parse(ctx context.Context) error {
 			continue
 		}
 
-		hltb, err := model.NewHowLongToBeat(uuid.New(), model.HowLongToBeatCreate{
+		hltb, err := model.NewHowLongToBeat(model.HowLongToBeatCreate{
 			IdDb:     game.ID,
 			Name:     game.Name,
 			Year:     game.ReleaseWorld,

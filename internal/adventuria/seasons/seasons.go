@@ -6,8 +6,6 @@ import (
 	"context"
 	"errors"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type repository interface {
@@ -39,7 +37,7 @@ func (s *Seasons) GetFirstOrDefault(ctx context.Context) (*model.Season, error) 
 		return nil, err
 	}
 
-	season, err = model.NewSeason(uuid.New(), defaultSeason)
+	season, err = model.NewSeason(defaultSeason)
 	if err != nil {
 		return nil, err
 	}

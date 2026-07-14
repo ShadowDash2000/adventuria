@@ -58,11 +58,7 @@ func (p *PaidMovementInRadius) GetView(ctx context.Context, _ *model.Events, pla
 		j++
 	}
 
-	return struct {
-		Items []*cellView `json:"items"`
-	}{
-		Items: cellInfosToCellViews(cells),
-	}, nil
+	return cellInfosToCellViews(cells), nil
 }
 
 func cellInfoToCellView(cell *model.CellInfo) *cellView {

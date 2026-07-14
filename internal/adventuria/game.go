@@ -173,7 +173,7 @@ func (g *Game) UseItem(
 		return err
 	}
 
-	canUse, err := g.inventories.CanUseItem(ctx, s, itemId)
+	canUse, err := g.inventories.CanUseItem(ctx, s.Events(), s.Player(), itemId)
 	if err != nil {
 		return err
 	}
@@ -225,13 +225,31 @@ func (g *Game) DropItem(ctx context.Context, pb core.App, playerId, itemId strin
 		return err
 	}
 
+	canDrop, err := g.inventories.CanDropItem(ctx, playerId, itemId)
+	if err != nil {
+		return err
+	}
+	if !canDrop {
+		return errors.New("can't drop item")
+	}
+
 	item, err := g.inventories.GetPlayerInventoryItemByID(ctx, playerId, itemId)
 	if err != nil {
 		return err
 	}
 
 	return pbtransaction.RunInTransaction(ctx, pb, func(ctx context.Context, txApp core.App) error {
-		return g.inventories.DropItem(ctx, s.Events(), s.Player(), item)
+		err = g.inventories.DropItem(ctx, s.Events(), s.Player(), item)
+		if err != nil {
+			return err
+		}
+
+		err = g.players.Save(ctx, player)
+		if err != nil {
+			return err
+		}
+
+		return nil
 	})
 }
 

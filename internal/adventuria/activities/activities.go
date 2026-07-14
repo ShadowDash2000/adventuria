@@ -3,12 +3,10 @@ package activities
 import (
 	"adventuria/internal/adventuria/model"
 	"context"
-
-	"github.com/google/uuid"
 )
 
 type repository interface {
-	GetOrCreate(ctx context.Context, id uuid.UUID, data model.ActivityCreate) (*model.Activity, error)
+	GetOrCreate(ctx context.Context, data model.ActivityCreate) (*model.Activity, error)
 	GetActivitiesByFilter(ctx context.Context, filter *model.ActivityFilter, poolSize, resultSize int) ([]string, error)
 	GetByID(ctx context.Context, id string) (*model.Activity, error)
 	GetByIDs(ctx context.Context, ids []string) ([]*model.Activity, error)
@@ -24,8 +22,8 @@ func NewActivities(repository repository) *Activities {
 	return &Activities{repository: repository}
 }
 
-func (a *Activities) GetOrCreate(ctx context.Context, id uuid.UUID, data model.ActivityCreate) (*model.Activity, error) {
-	return a.repository.GetOrCreate(ctx, id, data)
+func (a *Activities) GetOrCreate(ctx context.Context, data model.ActivityCreate) (*model.Activity, error) {
+	return a.repository.GetOrCreate(ctx, data)
 }
 
 func (a *Activities) UpdateActivitiesFromFilter(

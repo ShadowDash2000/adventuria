@@ -27,87 +27,87 @@ var (
 	}
 	ErrSeasonNotFound = &AppError{
 		Code:    "season_not_found",
-		Message: "season not found",
+		Message: "Season not found",
 	}
 	ErrPlayerNotFound = &AppError{
 		Code:    "player_not_found",
-		Message: "player not found",
+		Message: "Player not found",
 	}
 	ErrProgressNotFound = &AppError{
 		Code:    "progress_not_found",
-		Message: "player progress not found",
+		Message: "Player progress not found",
 	}
 	ErrActionNotFound = &AppError{
 		Code:    "action_not_found",
-		Message: "action not found",
+		Message: "Action not found",
 	}
 	ErrItemNotFound = &AppError{
 		Code:    "item_not_found",
-		Message: "item not found",
+		Message: "Item not found",
 	}
 	ErrInventoryNotFound = &AppError{
 		Code:    "inventory_not_found",
-		Message: "inventory not found",
+		Message: "Inventory not found",
 	}
 	ErrGenreNotFound = &AppError{
 		Code:    "genre_not_found",
-		Message: "genre not found",
+		Message: "Genre not found",
 	}
 	ErrPlatformNotFound = &AppError{
 		Code:    "platform_not_found",
-		Message: "platform not found",
+		Message: "Platform not found",
 	}
 	ErrActivityFilterNotFound = &AppError{
 		Code:    "activity_filter_not_found",
-		Message: "activity filter not found",
+		Message: "Activity filter not found",
 	}
 	ErrCellNotFound = &AppError{
 		Code:    "cell_not_found",
-		Message: "cell not found",
+		Message: "Cell not found",
 	}
 	ErrReviewNotFound = &AppError{
 		Code:    "review_not_found",
-		Message: "review not found",
+		Message: "Review not found",
 	}
 	ErrOutboxNotFound = &AppError{
 		Code:    "outbox_not_found",
-		Message: "outbox not found",
+		Message: "Outbox not found",
 	}
 	ErrEffectNotFound = &AppError{
 		Code:    "effect_not_found",
-		Message: "effect not found",
+		Message: "Effect not found",
 	}
 	ErrCheapSharkNotFound = &AppError{
 		Code:    "cheapshark_not_found",
-		Message: "cheapshark not found",
+		Message: "Cheapshark not found",
 	}
 	ErrHowLongToBeatNotFound = &AppError{
 		Code:    "howlongtobeat_not_found",
-		Message: "howlongtobeat not found",
+		Message: "HowLongToBeat not found",
 	}
 	ErrSteamSpyNotFound = &AppError{
 		Code:    "steam_spy_not_found",
-		Message: "steam spy not found",
+		Message: "Steam Spy not found",
 	}
 	ErrCompanyNotFound = &AppError{
 		Code:    "company_not_found",
-		Message: "company not found",
+		Message: "Company not found",
 	}
 	ErrTagNotFound = &AppError{
 		Code:    "tag_not_found",
-		Message: "tag not found",
+		Message: "Tag not found",
 	}
 	ErrThemeNotFound = &AppError{
 		Code:    "theme_not_found",
-		Message: "theme not found",
+		Message: "Theme not found",
 	}
 	ErrGameTypeNotFound = &AppError{
 		Code:    "game_type_not_found",
-		Message: "game type not found",
+		Message: "Game type not found",
 	}
 	ErrActivityNotFound = &AppError{
 		Code:    "activity_not_found",
-		Message: "activity not found",
+		Message: "Activity not found",
 	}
 
 	ErrReviewCommentTooLong = &AppError{

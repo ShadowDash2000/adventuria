@@ -7,8 +7,6 @@ import (
 	"adventuria/pkg/event"
 	"context"
 	"encoding/json"
-
-	"github.com/google/uuid"
 )
 
 type players interface {
@@ -83,7 +81,7 @@ func (c *CoinsForAll) Subscribe(
 					ProgressId: p.Progress().ID(),
 					Amount:     effectValue.CoinsForOther,
 				})
-				outbox, err := model.NewOutbox(uuid.New(), model.OutBoxCreate{
+				outbox, err := model.NewOutbox(model.OutBoxCreate{
 					Type:    change_balance.Type,
 					Payload: string(payload),
 				})

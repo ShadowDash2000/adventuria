@@ -3,8 +3,6 @@ package model
 import (
 	"context"
 	"errors"
-
-	"github.com/google/uuid"
 )
 
 type OutboxType string
@@ -31,17 +29,13 @@ type OutBoxCreate struct {
 	Payload string
 }
 
-func NewOutbox(id uuid.UUID, data OutBoxCreate) (*OutboxInfo, error) {
-	if id == uuid.Nil {
-		return nil, errors.New("outbox: id cannot be nil")
-	}
+func NewOutbox(data OutBoxCreate) (*OutboxInfo, error) {
 	if data.Type == "" {
 		return nil, errors.New("outbox: type is empty")
 	}
 
 	return &OutboxInfo{
 		data: OutboxData{
-			Id:      id.String(),
 			Type:    data.Type,
 			Payload: data.Payload,
 			Status:  OutboxStatusPending,

@@ -157,6 +157,15 @@ func (h *Handlers) DoneHandler(e *core.RequestEvent) error {
 	return RespondWithSuccess(e, res)
 }
 
+func (h *Handlers) GenerateWheelHandler(e *core.RequestEvent) error {
+	res, err := h.Game.DoAction(e.Request.Context(), e.App, e.Auth.Id, actions.ActionTypeGenerateWheel, nil)
+	if err != nil {
+		return RespondWithError(e, err)
+	}
+
+	return RespondWithSuccess(e, res)
+}
+
 func (h *Handlers) RollWheelHandler(e *core.RequestEvent) error {
 	res, err := h.Game.DoAction(e.Request.Context(), e.App, e.Auth.Id, actions.ActionTypeRollWheel, nil)
 	if err != nil {
@@ -192,8 +201,9 @@ func (h *Handlers) BuyItemHandler(e *core.RequestEvent) error {
 		return RespondWithError(e, err)
 	}
 
-	res, err := h.Game.DoAction(e.Request.Context(), e.App, e.Auth.Id, actions.ActionTypeBuy, nil)
+	res, err := h.Game.DoAction(e.Request.Context(), e.App, e.Auth.Id, actions.ActionTypeBuy, req)
 	if err != nil {
+		e.App.Logger().Error("Failed to buy item", "err", err)
 		return RespondWithError(e, err)
 	}
 

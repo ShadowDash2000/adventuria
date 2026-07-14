@@ -6,8 +6,6 @@ import (
 	"adventuria/pkg/mathhelper"
 	"context"
 	"fmt"
-
-	"github.com/google/uuid"
 )
 
 type actionsService interface {
@@ -48,7 +46,13 @@ func NewBoard(actions actionsService, progress playerProgress, cells cellsServic
 	}
 }
 
-func (b *Board) Move(ctx context.Context, events *model.Events, player *model.Player, steps int) ([]*model.MoveResult, error) {
+func (b *Board) Move(
+	ctx context.Context,
+	events *model.Events,
+	player *model.Player,
+	steps int,
+	moveType model.MoveType,
+) ([]*model.MoveResult, error) {
 	prevCell, err := b.cells.GetCurrentCellByProgress(ctx, player.Progress())
 	if err != nil {
 		return nil, err
@@ -92,7 +96,7 @@ func (b *Board) Move(ctx context.Context, events *model.Events, player *model.Pl
 			return nil, err
 		}
 
-		return b.Move(ctx, events, player, 0)
+		return b.Move(ctx, events, player, 0, model.MoveTypeWorldTransition)
 	}
 
 	currentCellNum := mathhelper.Mod(totalSteps, cellsCount)
@@ -108,7 +112,7 @@ func (b *Board) Move(ctx context.Context, events *model.Events, player *model.Pl
 		return nil, err
 	}
 
-	newAction, err := model.NewAction(uuid.New(), model.ActionCreate{
+	newAction, err := model.NewAction(model.ActionCreate{
 		Player: player.ID(),
 		Cell:   currentCell.Data().ID(),
 		Type:   actions.ActionTypeMove,
@@ -139,7 +143,6 @@ func (b *Board) Move(ctx context.Context, events *model.Events, player *model.Pl
 		TotalSteps:     totalSteps,
 		PrevTotalSteps: cellsPassed,
 		CurrentCell:    currentCell.Data(),
-		CellLocalOrder: currentCellNum,
 		CurrentWorld:   world,
 		Laps:           lapsPassed,
 	}
@@ -151,11 +154,11 @@ func (b *Board) Move(ctx context.Context, events *model.Events, player *model.Pl
 	cellReachedCtx := model.ReachedContext{
 		Moves: []*model.MoveResult{
 			{
+				Type:           moveType,
 				Steps:          onAfterMoveEvent.Steps,
 				TotalSteps:     onAfterMoveEvent.TotalSteps,
 				PrevTotalSteps: onAfterMoveEvent.PrevTotalSteps,
 				CurrentCell:    onAfterMoveEvent.CurrentCell,
-				CellLocalOrder: onAfterMoveEvent.CellLocalOrder,
 				CurrentWorld:   onAfterMoveEvent.CurrentWorld,
 				Laps:           onAfterMoveEvent.Laps,
 			},
@@ -201,7 +204,7 @@ func (b *Board) MoveToCellId(ctx context.Context, events *model.Events, player *
 
 	currentCellOrder := mathhelper.Mod(player.Progress().CellsPassed(), cellsCount)
 
-	return b.Move(ctx, events, player, cell.LocalOrder()-currentCellOrder)
+	return b.Move(ctx, events, player, cell.LocalOrder()-currentCellOrder, model.MoveTypeTeleport)
 }
 
 func (b *Board) changeWorld(ctx context.Context, events *model.Events, player *model.Player, oldWorldId, newWorldId string) error {
@@ -259,7 +262,7 @@ func (b *Board) MoveToClosestCellType(
 		}
 	}
 
-	return b.Move(ctx, events, player, closestCell.LocalOrder())
+	return b.Move(ctx, events, player, closestCell.LocalOrder(), model.MoveTypeTeleport)
 }
 
 func (b *Board) GetLocalDistanceBetweenCells(cell1, cell2 *model.CellInfo) (int, error) {

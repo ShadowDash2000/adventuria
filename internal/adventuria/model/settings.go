@@ -2,8 +2,6 @@ package model
 
 import (
 	"errors"
-
-	"github.com/google/uuid"
 )
 
 type SettingsData struct {
@@ -36,10 +34,7 @@ type SettingsCreate struct {
 	DropsToJail   int
 }
 
-func NewSettings(id uuid.UUID, data SettingsCreate) (*Settings, error) {
-	if id == uuid.Nil {
-		return nil, errors.New("settings: id cannot be nil")
-	}
+func NewSettings(data SettingsCreate) (*Settings, error) {
 	if data.CurrentSeason == "" {
 		return nil, errors.New("settings: current season is empty")
 	}
@@ -49,7 +44,6 @@ func NewSettings(id uuid.UUID, data SettingsCreate) (*Settings, error) {
 
 	return &Settings{
 		data: SettingsData{
-			Id:            id.String(),
 			EventEnded:    false,
 			CurrentSeason: data.CurrentSeason,
 			DropsToJail:   data.DropsToJail,

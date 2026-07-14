@@ -80,8 +80,8 @@ func RecordsToPlatforms(records []*core.Record) []*model.Platform {
 	return platforms
 }
 
-func RecordToDeveloper(record *core.Record) *model.Developer {
-	return model.RestoreDeveloper(model.DeveloperData{
+func RecordToCompany(record *core.Record) *model.Company {
+	return model.RestoreCompany(model.CompanyData{
 		Id:       record.Id,
 		IdDb:     record.GetString(schema.CompanySchema.IdDb),
 		Name:     record.GetString(schema.CompanySchema.Name),
@@ -89,29 +89,12 @@ func RecordToDeveloper(record *core.Record) *model.Developer {
 	})
 }
 
-func RecordsToDevelopers(records []*core.Record) []*model.Developer {
-	developers := make([]*model.Developer, len(records))
+func RecordsToCompanies(records []*core.Record) []*model.Company {
+	companies := make([]*model.Company, len(records))
 	for i, record := range records {
-		developers[i] = RecordToDeveloper(record)
+		companies[i] = RecordToCompany(record)
 	}
-	return developers
-}
-
-func RecordToPublisher(record *core.Record) *model.Publisher {
-	return model.RestorePublisher(model.PublisherData{
-		Id:       record.Id,
-		IdDb:     record.GetString(schema.CompanySchema.IdDb),
-		Name:     record.GetString(schema.CompanySchema.Name),
-		Checksum: record.GetString(schema.CompanySchema.Checksum),
-	})
-}
-
-func RecordsToPublishers(records []*core.Record) []*model.Publisher {
-	publishers := make([]*model.Publisher, len(records))
-	for i, record := range records {
-		publishers[i] = RecordToPublisher(record)
-	}
-	return publishers
+	return companies
 }
 
 func RecordToGenre(record *core.Record) *model.Genre {
@@ -169,8 +152,8 @@ func RecordToActivityViewDetailed(record *core.Record) *model.ActivityViewDetail
 	return model.RestoreActivityViewDetailed(
 		RecordToActivity(record),
 		RecordsToPlatforms(record.ExpandedAll(schema.ActivitySchema.Platforms)),
-		RecordsToDevelopers(record.ExpandedAll(schema.ActivitySchema.Developers)),
-		RecordsToPublishers(record.ExpandedAll(schema.ActivitySchema.Publishers)),
+		RecordsToCompanies(record.ExpandedAll(schema.ActivitySchema.Developers)),
+		RecordsToCompanies(record.ExpandedAll(schema.ActivitySchema.Publishers)),
 		RecordsToGenres(record.ExpandedAll(schema.ActivitySchema.Genres)),
 		RecordsToTags(record.ExpandedAll(schema.ActivitySchema.Tags)),
 		RecordsToThemes(record.ExpandedAll(schema.ActivitySchema.Themes)),

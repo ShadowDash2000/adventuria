@@ -2,8 +2,6 @@ package model
 
 import (
 	"errors"
-
-	"github.com/google/uuid"
 )
 
 type PlayerProgressData struct {
@@ -33,10 +31,7 @@ type PlayerProgressCreate struct {
 	MaxInventorySlots int
 }
 
-func NewPlayerProgress(id uuid.UUID, data PlayerProgressCreate) (*PlayerProgress, error) {
-	if id == uuid.Nil {
-		return nil, errors.New("player_progress: id cannot be nil")
-	}
+func NewPlayerProgress(data PlayerProgressCreate) (*PlayerProgress, error) {
 	if data.Player == "" {
 		return nil, errors.New("player_progress: player is empty")
 	}
@@ -52,7 +47,6 @@ func NewPlayerProgress(id uuid.UUID, data PlayerProgressCreate) (*PlayerProgress
 
 	return &PlayerProgress{
 		data: PlayerProgressData{
-			Id:                id.String(),
 			Player:            data.Player,
 			Season:            data.Season,
 			CurrentWorld:      data.CurrentWorld,

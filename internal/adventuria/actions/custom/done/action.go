@@ -5,8 +5,6 @@ import (
 	"adventuria/internal/adventuria/model"
 	"context"
 	"errors"
-
-	"github.com/google/uuid"
 )
 
 type cells interface {
@@ -55,7 +53,7 @@ func (d *Done) Do(ctx context.Context, events *model.Events, player *model.Playe
 		return nil, errors.New("invalid request")
 	}
 
-	review, err := model.NewReview(uuid.New(), req.Comment, req.Score)
+	review, err := model.NewReview(req.Comment, req.Score)
 	if err != nil {
 		return nil, err
 	}

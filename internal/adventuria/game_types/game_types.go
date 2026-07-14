@@ -3,12 +3,10 @@ package game_types
 import (
 	"adventuria/internal/adventuria/model"
 	"context"
-
-	"github.com/google/uuid"
 )
 
 type repository interface {
-	GetOrCreate(ctx context.Context, id uuid.UUID, data model.GameTypeCreate) (*model.GameType, error)
+	GetOrCreate(ctx context.Context, data model.GameTypeCreate) (*model.GameType, error)
 	GetChecksumsByIDs(ctx context.Context, ids []string) (map[string]string, error)
 	Save(ctx context.Context, gameType *model.GameType) (*model.GameType, error)
 }
@@ -23,8 +21,8 @@ func NewGameTypes(repo repository) *GameTypes {
 	}
 }
 
-func (t *GameTypes) GetOrCreate(ctx context.Context, id uuid.UUID, data model.GameTypeCreate) (*model.GameType, error) {
-	return t.repository.GetOrCreate(ctx, id, data)
+func (t *GameTypes) GetOrCreate(ctx context.Context, data model.GameTypeCreate) (*model.GameType, error) {
+	return t.repository.GetOrCreate(ctx, data)
 }
 
 func (t *GameTypes) GetChecksumsByIDs(ctx context.Context, ids []string) (map[string]string, error) {

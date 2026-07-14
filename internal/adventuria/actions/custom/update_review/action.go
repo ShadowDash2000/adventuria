@@ -33,14 +33,14 @@ func NewDef(reviews reviews) actions.ActionDef {
 	)
 }
 
-func (u *UpdateReview) CanDo(ctx context.Context, events *model.Events, player *model.Player) bool {
+func (u *UpdateReview) CanDo(_ context.Context, _ *model.Events, _ *model.Player) bool {
 	return true
 }
 
 type Request struct {
-	ActionID string  `json:"action_id"`
-	Comment  *string `json:"comment"`
-	Score    *int    `json:"score"`
+	ActionID string  `json:"action_id" form:"action_id"`
+	Comment  *string `json:"comment" form:"comment"`
+	Score    *int    `json:"score" form:"score"`
 }
 
 func (u *UpdateReview) Do(ctx context.Context, _ *model.Events, _ *model.Player, actionReq model.ActionRequest) (any, error) {

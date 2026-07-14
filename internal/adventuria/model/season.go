@@ -3,8 +3,6 @@ package model
 import (
 	"errors"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type SeasonData struct {
@@ -27,10 +25,7 @@ type SeasonCreate struct {
 	SeasonDateEnd   time.Time
 }
 
-func NewSeason(id uuid.UUID, data SeasonCreate) (*Season, error) {
-	if id == uuid.Nil {
-		return nil, errors.New("season: id cannot be nil")
-	}
+func NewSeason(data SeasonCreate) (*Season, error) {
 	if data.Name == "" {
 		return nil, errors.New("season: name is empty")
 	}
@@ -46,7 +41,6 @@ func NewSeason(id uuid.UUID, data SeasonCreate) (*Season, error) {
 
 	return &Season{
 		data: SeasonData{
-			Id:              id.String(),
 			Name:            data.Name,
 			Slug:            data.Slug,
 			SeasonDateStart: data.SeasonDateStart,

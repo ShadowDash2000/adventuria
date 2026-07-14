@@ -1,11 +1,5 @@
 package model
 
-import (
-	"errors"
-
-	"github.com/google/uuid"
-)
-
 type ReviewData struct {
 	Id      string
 	Comment ReviewComment
@@ -17,10 +11,7 @@ type Review struct {
 	isNew bool
 }
 
-func NewReview(id uuid.UUID, comment string, score int) (*Review, error) {
-	if id == uuid.Nil {
-		return nil, errors.New("review: id cannot be nil")
-	}
+func NewReview(comment string, score int) (*Review, error) {
 	reviewComment, err := NewReviewComment(comment)
 	if err != nil {
 		return nil, err
@@ -32,7 +23,6 @@ func NewReview(id uuid.UUID, comment string, score int) (*Review, error) {
 
 	return &Review{
 		data: ReviewData{
-			Id:      id.String(),
 			Comment: reviewComment,
 			Score:   reviewScore,
 		},

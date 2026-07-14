@@ -2,8 +2,6 @@ package model
 
 import (
 	"errors"
-
-	"github.com/google/uuid"
 )
 
 type TagData struct {
@@ -24,10 +22,7 @@ type TagCreate struct {
 	Checksum string
 }
 
-func NewTag(id uuid.UUID, data TagCreate) (*Tag, error) {
-	if id == uuid.Nil {
-		return nil, errors.New("tag: id cannot be nil")
-	}
+func NewTag(data TagCreate) (*Tag, error) {
 	if data.IdDb == "" {
 		return nil, errors.New("tag: idDb is empty")
 	}
@@ -40,7 +35,6 @@ func NewTag(id uuid.UUID, data TagCreate) (*Tag, error) {
 
 	return &Tag{
 		data: TagData{
-			Id:       id.String(),
 			IdDb:     data.IdDb,
 			Name:     data.Name,
 			Checksum: data.Checksum,

@@ -2,8 +2,6 @@ package model
 
 import (
 	"errors"
-
-	"github.com/google/uuid"
 )
 
 type CompanyData struct {
@@ -24,10 +22,7 @@ type CompanyCreate struct {
 	Checksum string
 }
 
-func NewCompany(id uuid.UUID, data CompanyCreate) (*Company, error) {
-	if id == uuid.Nil {
-		return nil, errors.New("company: id cannot be nil")
-	}
+func NewCompany(data CompanyCreate) (*Company, error) {
 	if data.IdDb == "" {
 		return nil, errors.New("company: idDb is empty")
 	}
@@ -40,7 +35,6 @@ func NewCompany(id uuid.UUID, data CompanyCreate) (*Company, error) {
 
 	return &Company{
 		data: CompanyData{
-			Id:       id.String(),
 			IdDb:     data.IdDb,
 			Name:     data.Name,
 			Checksum: data.Checksum,

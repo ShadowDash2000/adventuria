@@ -5,8 +5,6 @@ import (
 	"adventuria/internal/adventuria/model"
 	"context"
 	"errors"
-
-	"github.com/google/uuid"
 )
 
 type repository interface {
@@ -46,7 +44,7 @@ func (p *PlayerProgress) GetFirstOrDefault(ctx context.Context, playerId, season
 		return nil, err
 	}
 
-	progress, err = model.NewPlayerProgress(uuid.New(), model.PlayerProgressCreate{
+	progress, err = model.NewPlayerProgress(model.PlayerProgressCreate{
 		Player:            playerId,
 		Season:            seasonId,
 		CurrentWorld:      world.ID(),

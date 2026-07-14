@@ -2,8 +2,6 @@ package model
 
 import (
 	"errors"
-
-	"github.com/google/uuid"
 )
 
 type SteamSpyData struct {
@@ -24,10 +22,7 @@ type SteamSpyCreate struct {
 	Price uint
 }
 
-func NewSteamSpy(id uuid.UUID, data SteamSpyCreate) (*SteamSpy, error) {
-	if id == uuid.Nil {
-		return nil, errors.New("steam_spy: id cannot be nil")
-	}
+func NewSteamSpy(data SteamSpyCreate) (*SteamSpy, error) {
 	if data.IdDb == 0 {
 		return nil, errors.New("steam_spy: id_db must be non-zero")
 	}
@@ -37,7 +32,6 @@ func NewSteamSpy(id uuid.UUID, data SteamSpyCreate) (*SteamSpy, error) {
 
 	return &SteamSpy{
 		data: SteamSpyData{
-			Id:    id.String(),
 			IdDb:  data.IdDb,
 			Name:  data.Name,
 			Price: data.Price,

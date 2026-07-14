@@ -5,6 +5,7 @@ import (
 	"adventuria/internal/adventuria/model"
 	"context"
 	"errors"
+	"slices"
 )
 
 type cells interface {
@@ -39,16 +40,20 @@ func NewDef(cells cells, actionsService actionsService) actions.ActionDef {
 }
 
 func (g *GenerateWheel) CanDo(ctx context.Context, _ *model.Events, player *model.Player) bool {
-	if player.LastAction().Type() != actions.ActionTypeRollDice {
-		return false
-	}
-
 	currentCell, err := g.cells.GetCurrentCellByProgress(ctx, player.Progress())
 	if err != nil {
 		return false
 	}
 
-	return currentCell.InCategory("activity")
+	if !currentCell.InCategory("activity") {
+		return false
+	}
+
+	return !player.Progress().CanMove() &&
+		!slices.Contains([]model.ActionType{
+			actions.ActionTypeNeedToRollWheel,
+			actions.ActionTypeRollWheel,
+		}, player.LastAction().Type())
 }
 
 func (g *GenerateWheel) Do(ctx context.Context, events *model.Events, player *model.Player, _ model.ActionRequest) (any, error) {

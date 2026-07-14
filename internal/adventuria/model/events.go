@@ -281,7 +281,6 @@ type OnAfterMoveEvent struct {
 	TotalSteps     int
 	PrevTotalSteps int
 	CurrentCell    *CellInfo
-	CellLocalOrder int
 	CurrentWorld   *World
 	Laps           int
 }

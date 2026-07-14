@@ -12,7 +12,6 @@ import (
 	"fmt"
 	"math/rand/v2"
 
-	"github.com/google/uuid"
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
 )
@@ -25,7 +24,7 @@ func NewRepository(pb core.App) *Repository {
 	return &Repository{pb: pb}
 }
 
-func (r *Repository) GetOrCreate(ctx context.Context, id uuid.UUID, data model.ActivityCreate) (*model.Activity, error) {
+func (r *Repository) GetOrCreate(ctx context.Context, data model.ActivityCreate) (*model.Activity, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 
 	var record core.Record
@@ -37,7 +36,7 @@ func (r *Repository) GetOrCreate(ctx context.Context, id uuid.UUID, data model.A
 		One(&record)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return model.NewActivity(id, data)
+			return model.NewActivity(data)
 		}
 
 		return nil, err

@@ -6,6 +6,7 @@ import (
 	"adventuria/internal/adventuria/actions/custom/done"
 	"adventuria/internal/adventuria/actions/custom/drop"
 	"adventuria/internal/adventuria/actions/custom/generate_wheel"
+	"adventuria/internal/adventuria/actions/custom/refresh_shop"
 	"adventuria/internal/adventuria/actions/custom/reroll"
 	"adventuria/internal/adventuria/actions/custom/roll_dice"
 	"adventuria/internal/adventuria/actions/custom/roll_item"
@@ -38,6 +39,7 @@ func RegisterActions(
 		drop.NewDef(cells, reviews, players, settings, board),
 		reroll.NewDef(cells, reviews, actionsService),
 		buy.NewDef(cells, items, inventories),
+		refresh_shop.NewActionRefreshShopDef(cells),
 		roll_dice.NewDef(cells, actionsService, board),
 		roll_item.NewDef(actionsService, inventories, items),
 		roll_item_on_cell.NewDef(cells, inventories, items),

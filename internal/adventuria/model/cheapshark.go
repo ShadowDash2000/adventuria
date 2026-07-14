@@ -2,8 +2,6 @@ package model
 
 import (
 	"errors"
-
-	"github.com/google/uuid"
 )
 
 type CheapSharkData struct {
@@ -24,10 +22,7 @@ type CheapSharkCreate struct {
 	Price float64
 }
 
-func NewCheapShark(id uuid.UUID, data CheapSharkCreate) (*CheapShark, error) {
-	if id == uuid.Nil {
-		return nil, errors.New("cheapshark: id cannot be nil")
-	}
+func NewCheapShark(data CheapSharkCreate) (*CheapShark, error) {
 	if data.IdDb == 0 {
 		return nil, errors.New("cheapshark: id_db must be non-zero")
 	}
@@ -40,7 +35,6 @@ func NewCheapShark(id uuid.UUID, data CheapSharkCreate) (*CheapShark, error) {
 
 	return &CheapShark{
 		data: CheapSharkData{
-			Id:    id.String(),
 			IdDb:  data.IdDb,
 			Name:  data.Name,
 			Price: data.Price,

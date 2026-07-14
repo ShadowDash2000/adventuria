@@ -6,8 +6,6 @@ import (
 	"context"
 	"errors"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type repository interface {
@@ -60,7 +58,7 @@ func (a *Actions) GetLastOrDefault(ctx context.Context, playerId string, timeFro
 		return nil, err
 	}
 
-	action, err = model.NewAction(uuid.New(), model.ActionCreate{
+	action, err = model.NewAction(model.ActionCreate{
 		Player: playerId,
 		Cell:   cell.ID(),
 		Type:   "none",

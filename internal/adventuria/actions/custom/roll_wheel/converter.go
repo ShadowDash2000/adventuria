@@ -2,25 +2,26 @@ package roll_wheel
 
 import (
 	"adventuria/internal/adventuria/model"
+	"adventuria/internal/adventuria/schema"
 	"time"
 )
 
 type activityViewDetailed struct {
-	Activity   activityView    `json:"activity"`
-	Platforms  []platformView  `json:"platforms"`
-	Developers []developerView `json:"developers"`
-	Publishers []publisherView `json:"publishers"`
-	Genres     []genreView     `json:"genres"`
-	Tags       []tagView       `json:"tags"`
-	Themes     []themeView     `json:"themes"`
+	Activity   activityView   `json:"activity"`
+	Platforms  []platformView `json:"platforms"`
+	Developers []companyView  `json:"developers"`
+	Publishers []companyView  `json:"publishers"`
+	Genres     []genreView    `json:"genres"`
+	Tags       []tagView      `json:"tags"`
+	Themes     []themeView    `json:"themes"`
 }
 
 func toActivityViewDetailed(activityDetailed *model.ActivityViewDetailed) activityViewDetailed {
 	return activityViewDetailed{
 		Activity:   toActivityView(activityDetailed.Activity()),
 		Platforms:  toPlatformViews(activityDetailed.Platforms()),
-		Developers: toDeveloperViews(activityDetailed.Developers()),
-		Publishers: toPublisherViews(activityDetailed.Publishers()),
+		Developers: toCompanyViews(activityDetailed.Developers()),
+		Publishers: toCompanyViews(activityDetailed.Publishers()),
 		Genres:     toGenreViews(activityDetailed.Genres()),
 		Tags:       toTagViews(activityDetailed.Tags()),
 		Themes:     toThemeViews(activityDetailed.Themes()),
@@ -37,6 +38,7 @@ func toActivityViewDetailedList(activitiesDetailed []*model.ActivityViewDetailed
 
 type activityView struct {
 	Id               string             `json:"id"`
+	CollectionName   string             `json:"collectionName"`
 	Type             model.ActivityType `json:"type"`
 	Name             string             `json:"name"`
 	Slug             string             `json:"slug"`
@@ -59,6 +61,7 @@ type activityView struct {
 func toActivityView(activity *model.Activity) activityView {
 	return activityView{
 		Id:               activity.ID(),
+		CollectionName:   schema.CollectionActivities,
 		Type:             activity.Type(),
 		Name:             activity.Name(),
 		Slug:             activity.Slug(),
@@ -99,42 +102,22 @@ func toPlatformViews(platforms []*model.Platform) []platformView {
 	return res
 }
 
-type developerView struct {
+type companyView struct {
 	Id   string `json:"id"`
 	Name string `json:"name"`
 }
 
-func toDeveloperView(developer *model.Developer) developerView {
-	return developerView{
-		Id:   developer.ID(),
-		Name: developer.Name(),
+func toCompanyView(company *model.Company) companyView {
+	return companyView{
+		Id:   company.ID(),
+		Name: company.Name(),
 	}
 }
 
-func toDeveloperViews(developers []*model.Developer) []developerView {
-	res := make([]developerView, len(developers))
-	for i, developer := range developers {
-		res[i] = toDeveloperView(developer)
-	}
-	return res
-}
-
-type publisherView struct {
-	Id   string `json:"id"`
-	Name string `json:"name"`
-}
-
-func toPublisherView(publisher *model.Publisher) publisherView {
-	return publisherView{
-		Id:   publisher.ID(),
-		Name: publisher.Name(),
-	}
-}
-
-func toPublisherViews(publishers []*model.Publisher) []publisherView {
-	res := make([]publisherView, len(publishers))
-	for i, publisher := range publishers {
-		res[i] = toPublisherView(publisher)
+func toCompanyViews(companies []*model.Company) []companyView {
+	res := make([]companyView, len(companies))
+	for i, company := range companies {
+		res[i] = toCompanyView(company)
 	}
 	return res
 }

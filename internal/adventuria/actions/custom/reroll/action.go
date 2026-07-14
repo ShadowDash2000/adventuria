@@ -5,8 +5,6 @@ import (
 	"adventuria/internal/adventuria/model"
 	"context"
 	"errors"
-
-	"github.com/google/uuid"
 )
 
 type cells interface {
@@ -82,7 +80,7 @@ func (r *Reroll) Do(ctx context.Context, events *model.Events, player *model.Pla
 		return nil, errors.New("invalid request")
 	}
 
-	review, err := model.NewReview(uuid.New(), req.Comment, req.Score)
+	review, err := model.NewReview(req.Comment, req.Score)
 	if err != nil {
 		return nil, err
 	}
@@ -109,7 +107,7 @@ func (r *Reroll) Do(ctx context.Context, events *model.Events, player *model.Pla
 		return nil, err
 	}
 
-	newAction, err := model.NewAction(uuid.New(), model.ActionCreate{
+	newAction, err := model.NewAction(model.ActionCreate{
 		Player: player.ID(),
 		Cell:   currentCell.Data().ID(),
 		Type:   actions.ActionTypeNeedToRollWheel,

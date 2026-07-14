@@ -2,8 +2,6 @@ package model
 
 import (
 	"errors"
-
-	"github.com/google/uuid"
 )
 
 type PlatformData struct {
@@ -24,10 +22,7 @@ type PlatformCreate struct {
 	Checksum string
 }
 
-func NewPlatform(id uuid.UUID, data PlatformCreate) (*Platform, error) {
-	if id == uuid.Nil {
-		return nil, errors.New("platform: id cannot be nil")
-	}
+func NewPlatform(data PlatformCreate) (*Platform, error) {
 	if data.IdDb == "" {
 		return nil, errors.New("platform: idDb is empty")
 	}
@@ -40,7 +35,6 @@ func NewPlatform(id uuid.UUID, data PlatformCreate) (*Platform, error) {
 
 	return &Platform{
 		data: PlatformData{
-			Id:       id.String(),
 			IdDb:     data.IdDb,
 			Name:     data.Name,
 			Checksum: data.Checksum,

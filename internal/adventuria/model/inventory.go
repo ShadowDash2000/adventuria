@@ -3,8 +3,6 @@ package model
 import (
 	"errors"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type InventoryData struct {
@@ -27,10 +25,7 @@ type InventoryCreate struct {
 	IsActive bool
 }
 
-func NewInventory(id uuid.UUID, data InventoryCreate) (*Inventory, error) {
-	if id == uuid.Nil {
-		return nil, errors.New("inventory_item: id cannot be nil")
-	}
+func NewInventory(data InventoryCreate) (*Inventory, error) {
 	if data.Player == "" {
 		return nil, errors.New("inventory_item: player is empty")
 	}
@@ -40,7 +35,6 @@ func NewInventory(id uuid.UUID, data InventoryCreate) (*Inventory, error) {
 
 	i := &Inventory{
 		data: InventoryData{
-			Id:     id.String(),
 			Player: data.Player,
 			Item:   data.Item,
 		},

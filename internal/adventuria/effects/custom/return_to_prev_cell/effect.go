@@ -13,7 +13,7 @@ type actionsService interface {
 }
 
 type board interface {
-	Move(ctx context.Context, events *model.Events, player *model.Player, steps int) ([]*model.MoveResult, error)
+	Move(ctx context.Context, events *model.Events, player *model.Player, steps int, moveType model.MoveType) ([]*model.MoveResult, error)
 }
 
 var _ model.Effect = (*ReturnToPrevCell)(nil)
@@ -60,7 +60,7 @@ func (r *ReturnToPrevCell) Subscribe(
 				return e.Next()
 			}
 
-			_, err := r.board.Move(ctx, events, player, -player.LastAction().CellsPassed())
+			_, err := r.board.Move(ctx, events, player, -player.LastAction().CellsPassed(), model.MoveTypePath)
 			if err != nil {
 				return err
 			}

@@ -2,17 +2,19 @@ package roll_item
 
 import (
 	"adventuria/internal/adventuria/model"
+	"adventuria/internal/adventuria/schema"
 	"context"
 )
 
 var _ model.WithView = (*RollItem)(nil)
 
 type itemView struct {
-	Id          string         `json:"id"`
-	Name        string         `json:"name"`
-	Icon        string         `json:"icon"`
-	Description string         `json:"description"`
-	Type        model.ItemType `json:"type"`
+	Id             string         `json:"id"`
+	CollectionName string         `json:"collectionName"`
+	Name           string         `json:"name"`
+	Icon           string         `json:"icon"`
+	Description    string         `json:"description"`
+	Type           model.ItemType `json:"type"`
 }
 
 func (r *RollItem) GetView(ctx context.Context, _ *model.Events, _ *model.Player) (any, error) {
@@ -20,20 +22,17 @@ func (r *RollItem) GetView(ctx context.Context, _ *model.Events, _ *model.Player
 	if err != nil {
 		return nil, err
 	}
-	return struct {
-		Items []*itemView `json:"items"`
-	}{
-		Items: itemsToItemViews(items),
-	}, nil
+	return itemsToItemViews(items), nil
 }
 
 func itemToItemView(item *model.Item) *itemView {
 	return &itemView{
-		Id:          item.ID(),
-		Name:        item.Name(),
-		Icon:        item.Icon(),
-		Description: item.Description(),
-		Type:        item.Type(),
+		Id:             item.ID(),
+		CollectionName: schema.CollectionItems,
+		Name:           item.Name(),
+		Icon:           item.Icon(),
+		Description:    item.Description(),
+		Type:           item.Type(),
 	}
 }
 

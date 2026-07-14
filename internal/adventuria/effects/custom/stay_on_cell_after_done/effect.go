@@ -7,8 +7,6 @@ import (
 	"adventuria/pkg/event"
 	"context"
 	"errors"
-
-	"github.com/google/uuid"
 )
 
 type cellsService interface {
@@ -75,7 +73,7 @@ func (s *StayOnCellAfterDone) Subscribe(
 				return err
 			}
 
-			lastAction, err = model.NewAction(uuid.New(), model.ActionCreate{
+			lastAction, err = model.NewAction(model.ActionCreate{
 				Player: player.ID(),
 				Cell:   lastAction.Cell(),
 				Type:   actions.ActionTypeRollDice,

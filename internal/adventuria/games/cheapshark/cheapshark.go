@@ -3,8 +3,6 @@ package cheapshark
 import (
 	"adventuria/internal/adventuria/model"
 	"context"
-
-	"github.com/google/uuid"
 )
 
 type repository interface {
@@ -50,7 +48,7 @@ func (c *CheapShark) Parse(ctx context.Context) error {
 			continue
 		}
 
-		cs, err := model.NewCheapShark(uuid.New(), model.CheapSharkCreate{
+		cs, err := model.NewCheapShark(model.CheapSharkCreate{
 			IdDb:  int(deal.SteamAppID),
 			Name:  deal.Title,
 			Price: deal.NormalPrice,

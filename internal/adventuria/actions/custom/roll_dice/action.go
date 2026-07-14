@@ -16,7 +16,7 @@ type actionsService interface {
 }
 
 type board interface {
-	Move(ctx context.Context, events *model.Events, player *model.Player, steps int) ([]*model.MoveResult, error)
+	Move(ctx context.Context, events *model.Events, player *model.Player, steps int, moveType model.MoveType) ([]*model.MoveResult, error)
 }
 
 var _ model.Action = (*RollDice)(nil)
@@ -48,30 +48,23 @@ func (r *RollDice) CanDo(_ context.Context, _ *model.Events, player *model.Playe
 	return player.Progress().CanMove()
 }
 
-type RollDiceResult struct {
-	Roll      int                 `json:"roll"`
-	DiceRolls []DiceRoll          `json:"dice_rolls"`
-	Path      []*model.MoveResult `json:"path"`
-	From      PositionSnapshot    `json:"from"`
-	To        PositionSnapshot    `json:"to"`
-	PathSteps []PathStep          `json:"path_steps"`
+type rollDiceResult struct {
+	Roll      int        `json:"roll"`
+	DiceRolls []diceRoll `json:"dice_rolls"`
+	Moves     []move     `json:"moves"`
 }
 
-type PositionSnapshot struct {
-	WorldId     string `json:"world_id"`
-	CellsPassed int    `json:"cells_passed"`
+type move struct {
+	Type            model.MoveType `json:"type"`
+	WorldId         string         `json:"world_id"`
+	WorldSlug       string         `json:"world_slug"`
+	CellLocalOrder  int            `json:"cell_local_order"`
+	CellGlobalOrder int            `json:"cell_global_order"`
+	TotalSteps      int            `json:"total_steps"`
+	PrevTotalSteps  int            `json:"prev_total_steps"`
 }
 
-type PathStep struct {
-	WorldId        string `json:"world_id"`
-	WorldSlug      string `json:"world_slug"`
-	CellOrder      int    `json:"cell_order"`
-	TotalSteps     int    `json:"total_steps"`
-	PrevTotalSteps int    `json:"prev_total_steps"`
-	Event          string `json:"event"`
-}
-
-type DiceRoll struct {
+type diceRoll struct {
 	Type string `json:"type"`
 	Roll int    `json:"roll"`
 }
@@ -88,9 +81,9 @@ func (r *RollDice) Do(ctx context.Context, events *model.Events, player *model.P
 	onBeforeRollMoveEvent := &model.OnBeforeRollMoveEvent{
 		N: 0,
 	}
-	diceRolls := make([]DiceRoll, len(onBeforeRollEvent.Dices))
+	diceRolls := make([]diceRoll, len(onBeforeRollEvent.Dices))
 	for i, dice := range onBeforeRollEvent.Dices {
-		diceRolls[i] = DiceRoll{
+		diceRolls[i] = diceRoll{
 			Type: "d" + strconv.Itoa(int(dice)),
 			Roll: dice.Roll(),
 		}
@@ -108,34 +101,22 @@ func (r *RollDice) Do(ctx context.Context, events *model.Events, player *model.P
 	}
 	player.SetLastAction(newAction)
 
-	from := PositionSnapshot{
-		WorldId:     player.Progress().CurrentWorld(),
-		CellsPassed: player.Progress().CellsPassed(),
-	}
-	moves, err := r.board.Move(ctx, events, player, onBeforeRollMoveEvent.N)
+	moves, err := r.board.Move(ctx, events, player, onBeforeRollMoveEvent.N, model.MoveTypePath)
 	if err != nil {
 		return nil, err
 	}
-	to := PositionSnapshot{
-		WorldId:     player.Progress().CurrentWorld(),
-		CellsPassed: player.Progress().CellsPassed(),
-	}
 
-	steps := make([]PathStep, 0, len(moves))
-	for i, move := range moves {
-		eventType := "move"
-		if i > 0 && moves[i-1].CurrentWorld.ID() != move.CurrentWorld.ID() {
-			eventType = "world_transition"
+	movesRes := make([]move, len(moves))
+	for i, m := range moves {
+		movesRes[i] = move{
+			Type:            m.Type,
+			WorldId:         m.CurrentWorld.ID(),
+			WorldSlug:       m.CurrentWorld.Slug(),
+			CellLocalOrder:  m.CurrentCell.LocalOrder(),
+			CellGlobalOrder: m.CurrentCell.GlobalOrder(),
+			TotalSteps:      m.TotalSteps,
+			PrevTotalSteps:  m.PrevTotalSteps,
 		}
-
-		steps = append(steps, PathStep{
-			WorldId:        move.CurrentWorld.ID(),
-			WorldSlug:      move.CurrentWorld.Slug(),
-			CellOrder:      move.CellLocalOrder,
-			TotalSteps:     move.TotalSteps,
-			PrevTotalSteps: move.PrevTotalSteps,
-			Event:          eventType,
-		})
 	}
 
 	player.LastAction().SetType(Type)
@@ -148,12 +129,9 @@ func (r *RollDice) Do(ctx context.Context, events *model.Events, player *model.P
 		return nil, err
 	}
 
-	return RollDiceResult{
+	return rollDiceResult{
 		Roll:      onBeforeRollMoveEvent.N,
 		DiceRolls: diceRolls,
-		Path:      moves,
-		From:      from,
-		To:        to,
-		PathSteps: steps,
+		Moves:     movesRes,
 	}, nil
 }

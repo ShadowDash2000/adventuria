@@ -3,12 +3,10 @@ package tags
 import (
 	"adventuria/internal/adventuria/model"
 	"context"
-
-	"github.com/google/uuid"
 )
 
 type repository interface {
-	GetOrCreate(ctx context.Context, id uuid.UUID, data model.TagCreate) (*model.Tag, error)
+	GetOrCreate(ctx context.Context, data model.TagCreate) (*model.Tag, error)
 	GetChecksumsByIDs(ctx context.Context, ids []string) (map[string]string, error)
 	Save(ctx context.Context, tag *model.Tag) (*model.Tag, error)
 }
@@ -23,8 +21,8 @@ func NewTags(repo repository) *Tags {
 	}
 }
 
-func (t *Tags) GetOrCreate(ctx context.Context, id uuid.UUID, data model.TagCreate) (*model.Tag, error) {
-	return t.repository.GetOrCreate(ctx, id, data)
+func (t *Tags) GetOrCreate(ctx context.Context, data model.TagCreate) (*model.Tag, error) {
+	return t.repository.GetOrCreate(ctx, data)
 }
 
 func (t *Tags) GetChecksumsByIDs(ctx context.Context, ids []string) (map[string]string, error) {

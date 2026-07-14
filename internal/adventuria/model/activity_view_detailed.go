@@ -3,8 +3,8 @@ package model
 type ActivityViewDetailed struct {
 	activity   *Activity
 	platforms  []*Platform
-	developers []*Developer
-	publishers []*Publisher
+	developers []*Company
+	publishers []*Company
 	genres     []*Genre
 	tags       []*Tag
 	themes     []*Theme
@@ -13,8 +13,8 @@ type ActivityViewDetailed struct {
 func RestoreActivityViewDetailed(
 	activity *Activity,
 	platforms []*Platform,
-	developers []*Developer,
-	publishers []*Publisher,
+	developers []*Company,
+	publishers []*Company,
 	genres []*Genre,
 	tags []*Tag,
 	themes []*Theme,
@@ -38,11 +38,11 @@ func (a *ActivityViewDetailed) Platforms() []*Platform {
 	return a.platforms
 }
 
-func (a *ActivityViewDetailed) Developers() []*Developer {
+func (a *ActivityViewDetailed) Developers() []*Company {
 	return a.developers
 }
 
-func (a *ActivityViewDetailed) Publishers() []*Publisher {
+func (a *ActivityViewDetailed) Publishers() []*Company {
 	return a.publishers
 }
 

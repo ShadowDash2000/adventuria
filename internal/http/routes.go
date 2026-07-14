@@ -47,6 +47,7 @@ func Route(game game, router *router.Router[*core.RequestEvent]) {
 	gab.POST("/drop", handlers.DropHandler)
 	gab.POST("/done", handlers.DoneHandler)
 
+	gab.POST("/generate-wheel", handlers.GenerateWheelHandler)
 	gab.POST("/roll-wheel", handlers.RollWheelHandler)
 	gab.POST("/roll-item", handlers.RollItemHandler)
 	gab.POST("/roll-item-on-cell", handlers.RollItemOnCellHandler)

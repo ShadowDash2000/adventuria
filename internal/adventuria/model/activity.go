@@ -3,8 +3,6 @@ package model
 import (
 	"errors"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type ActivityData struct {
@@ -42,10 +40,7 @@ type ActivityCreate struct {
 	Checksum string
 }
 
-func NewActivity(id uuid.UUID, data ActivityCreate) (*Activity, error) {
-	if id == uuid.Nil {
-		return nil, errors.New("activity: id cannot be nil")
-	}
+func NewActivity(data ActivityCreate) (*Activity, error) {
 	if data.IdDb == "" {
 		return nil, errors.New("activity: id_db is empty")
 	}

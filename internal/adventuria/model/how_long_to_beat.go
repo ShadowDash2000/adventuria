@@ -2,8 +2,6 @@ package model
 
 import (
 	"errors"
-
-	"github.com/google/uuid"
 )
 
 type HowLongToBeatData struct {
@@ -26,10 +24,7 @@ type HowLongToBeatCreate struct {
 	Campaign float64
 }
 
-func NewHowLongToBeat(id uuid.UUID, data HowLongToBeatCreate) (*HowLongToBeat, error) {
-	if id == uuid.Nil {
-		return nil, errors.New("howlongtobeat: id cannot be nil")
-	}
+func NewHowLongToBeat(data HowLongToBeatCreate) (*HowLongToBeat, error) {
 	if data.IdDb == 0 {
 		return nil, errors.New("howlongtobeat: id_db must be non-zero")
 	}
@@ -39,7 +34,6 @@ func NewHowLongToBeat(id uuid.UUID, data HowLongToBeatCreate) (*HowLongToBeat, e
 
 	return &HowLongToBeat{
 		data: HowLongToBeatData{
-			Id:       id.String(),
 			IdDb:     data.IdDb,
 			Name:     data.Name,
 			Year:     data.Year,

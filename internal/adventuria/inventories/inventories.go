@@ -2,11 +2,8 @@ package inventories
 
 import (
 	"adventuria/internal/adventuria/model"
-	"adventuria/internal/adventuria/scope"
 	"adventuria/pkg/helper"
 	"context"
-
-	"github.com/google/uuid"
 )
 
 type repository interface {
@@ -87,7 +84,7 @@ func (i *Inventories) AddItem(
 	if item.IsActiveByDefault() {
 		inventoryCreate.IsActive = true
 	}
-	inventory, err := model.NewInventory(uuid.New(), inventoryCreate)
+	inventory, err := model.NewInventory(inventoryCreate)
 	if err != nil {
 		return nil, err
 	}
@@ -139,7 +136,7 @@ func (i *Inventories) AddItemByID(
 	return i.AddItem(ctx, events, player, item)
 }
 
-func (i *Inventories) CanUseItem(ctx context.Context, scope *scope.Scope, itemId string) (bool, error) {
+func (i *Inventories) CanUseItem(ctx context.Context, events *model.Events, player *model.Player, itemId string) (bool, error) {
 	inventory, err := i.GetByID(ctx, itemId)
 	if err != nil {
 		return false, err
@@ -155,7 +152,7 @@ func (i *Inventories) CanUseItem(ctx context.Context, scope *scope.Scope, itemId
 	}
 
 	for _, effect := range effs {
-		if !effect.CanUse(ctx, scope.Events(), scope.Player()) {
+		if !effect.CanUse(ctx, events, player) {
 			return false, nil
 		}
 	}
@@ -185,6 +182,15 @@ func (i *Inventories) UseItem(ctx context.Context, events *model.Events, player 
 	}
 
 	return nil
+}
+
+func (i *Inventories) CanDropItem(ctx context.Context, playerId string, itemId string) (bool, error) {
+	item, err := i.GetPlayerInventoryItemByID(ctx, playerId, itemId)
+	if err != nil {
+		return false, err
+	}
+
+	return !item.Inventory().IsActive() && item.Item().CanDrop(), nil
 }
 
 func (i *Inventories) DropItem(ctx context.Context, events *model.Events, player *model.Player, item *model.InventoryItem) error {

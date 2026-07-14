@@ -2,8 +2,6 @@ package model
 
 import (
 	"errors"
-
-	"github.com/google/uuid"
 )
 
 type GenreData struct {
@@ -24,10 +22,7 @@ type GenreCreate struct {
 	Checksum string
 }
 
-func NewGenre(id uuid.UUID, data GenreCreate) (*Genre, error) {
-	if id == uuid.Nil {
-		return nil, errors.New("genre: id cannot be nil")
-	}
+func NewGenre(data GenreCreate) (*Genre, error) {
 	if data.IdDb == "" {
 		return nil, errors.New("genre: idDb is empty")
 	}
@@ -40,7 +35,6 @@ func NewGenre(id uuid.UUID, data GenreCreate) (*Genre, error) {
 
 	return &Genre{
 		data: GenreData{
-			Id:       id.String(),
 			IdDb:     data.IdDb,
 			Name:     data.Name,
 			Checksum: data.Checksum,

@@ -10,7 +10,6 @@ import (
 	"database/sql"
 	"errors"
 
-	"github.com/google/uuid"
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
 )
@@ -23,7 +22,7 @@ func NewRepository(pb core.App) *Repository {
 	return &Repository{pb: pb}
 }
 
-func (r *Repository) GetOrCreate(ctx context.Context, id uuid.UUID, data model.GameTypeCreate) (*model.GameType, error) {
+func (r *Repository) GetOrCreate(ctx context.Context, data model.GameTypeCreate) (*model.GameType, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 
 	var record core.Record
@@ -35,7 +34,7 @@ func (r *Repository) GetOrCreate(ctx context.Context, id uuid.UUID, data model.G
 		One(&record)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return model.NewGameType(id, data)
+			return model.NewGameType(data)
 		}
 
 		return nil, err

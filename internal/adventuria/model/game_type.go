@@ -2,8 +2,6 @@ package model
 
 import (
 	"errors"
-
-	"github.com/google/uuid"
 )
 
 type GameTypeData struct {
@@ -24,10 +22,7 @@ type GameTypeCreate struct {
 	Checksum string
 }
 
-func NewGameType(id uuid.UUID, data GameTypeCreate) (*GameType, error) {
-	if id == uuid.Nil {
-		return nil, errors.New("game_type: id cannot be nil")
-	}
+func NewGameType(data GameTypeCreate) (*GameType, error) {
 	if data.IdDb == "" {
 		return nil, errors.New("game_type: idDb is empty")
 	}
@@ -40,7 +35,6 @@ func NewGameType(id uuid.UUID, data GameTypeCreate) (*GameType, error) {
 
 	return &GameType{
 		data: GameTypeData{
-			Id:       id.String(),
 			IdDb:     data.IdDb,
 			Name:     data.Name,
 			Checksum: data.Checksum,

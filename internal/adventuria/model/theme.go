@@ -2,8 +2,6 @@ package model
 
 import (
 	"errors"
-
-	"github.com/google/uuid"
 )
 
 type ThemeData struct {
@@ -24,10 +22,7 @@ type ThemeCreate struct {
 	Checksum string
 }
 
-func NewTheme(id uuid.UUID, data ThemeCreate) (*Theme, error) {
-	if id == uuid.Nil {
-		return nil, errors.New("theme: id cannot be nil")
-	}
+func NewTheme(data ThemeCreate) (*Theme, error) {
 	if data.IdDb == "" {
 		return nil, errors.New("theme: idDb is empty")
 	}
@@ -40,7 +35,6 @@ func NewTheme(id uuid.UUID, data ThemeCreate) (*Theme, error) {
 
 	return &Theme{
 		data: ThemeData{
-			Id:       id.String(),
 			IdDb:     data.IdDb,
 			Name:     data.Name,
 			Checksum: data.Checksum,

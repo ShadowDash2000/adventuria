@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type ActionType string
@@ -59,10 +57,7 @@ type ActionCreate struct {
 	Type   ActionType
 }
 
-func NewAction(id uuid.UUID, data ActionCreate) (*ActionInfo, error) {
-	if id == uuid.Nil {
-		return nil, errors.New("action: id cannot be nil")
-	}
+func NewAction(data ActionCreate) (*ActionInfo, error) {
 	if data.Player == "" {
 		return nil, errors.New("action: player is empty")
 	}
@@ -75,7 +70,6 @@ func NewAction(id uuid.UUID, data ActionCreate) (*ActionInfo, error) {
 
 	return &ActionInfo{
 		data: ActionData{
-			Id:     id.String(),
 			Player: data.Player,
 			Cell:   data.Cell,
 			Type:   data.Type,

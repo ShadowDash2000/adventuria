@@ -3,8 +3,6 @@ package steam_spy
 import (
 	"adventuria/internal/adventuria/model"
 	"context"
-
-	"github.com/google/uuid"
 )
 
 type repository interface {
@@ -50,7 +48,7 @@ func (s *SteamSpy) Parse(ctx context.Context) error {
 			continue
 		}
 
-		steamSpy, err := model.NewSteamSpy(uuid.New(), model.SteamSpyCreate{
+		steamSpy, err := model.NewSteamSpy(model.SteamSpyCreate{
 			IdDb:  app.AppId,
 			Name:  app.Name,
 			Price: app.Price,

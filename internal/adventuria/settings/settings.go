@@ -5,8 +5,6 @@ import (
 	"adventuria/internal/adventuria/model"
 	"context"
 	"errors"
-
-	"github.com/google/uuid"
 )
 
 type repository interface {
@@ -52,7 +50,7 @@ func (s *Settings) GetFirstOrDefault(ctx context.Context) (*model.Settings, erro
 		return nil, err
 	}
 
-	settings, err = model.NewSettings(uuid.New(), defaultSettings(season.ID()))
+	settings, err = model.NewSettings(defaultSettings(season.ID()))
 	if err != nil {
 		return nil, err
 	}

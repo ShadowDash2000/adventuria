@@ -2,8 +2,6 @@ package model
 
 import (
 	"errors"
-
-	"github.com/google/uuid"
 )
 
 type PlayerStatsData struct {
@@ -29,10 +27,7 @@ type PlayerStatsCreate struct {
 	Season string
 }
 
-func NewPlayerStats(id uuid.UUID, data PlayerStatsCreate) (*PlayerStats, error) {
-	if id == uuid.Nil {
-		return nil, errors.New("id is nil")
-	}
+func NewPlayerStats(data PlayerStatsCreate) (*PlayerStats, error) {
 	if data.Player == "" {
 		return nil, errors.New("player is empty")
 	}
@@ -42,7 +37,6 @@ func NewPlayerStats(id uuid.UUID, data PlayerStatsCreate) (*PlayerStats, error) 
 
 	return &PlayerStats{
 		data: PlayerStatsData{
-			Id:     id.String(),
 			Player: data.Player,
 			Season: data.Season,
 		},

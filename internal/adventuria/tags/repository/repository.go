@@ -10,7 +10,6 @@ import (
 	"database/sql"
 	"errors"
 
-	"github.com/google/uuid"
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
 )
@@ -23,7 +22,7 @@ func NewRepository(pb core.App) *Repository {
 	return &Repository{pb: pb}
 }
 
-func (r *Repository) GetOrCreate(ctx context.Context, id uuid.UUID, data model.TagCreate) (*model.Tag, error) {
+func (r *Repository) GetOrCreate(ctx context.Context, data model.TagCreate) (*model.Tag, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 
 	var record core.Record
@@ -35,7 +34,7 @@ func (r *Repository) GetOrCreate(ctx context.Context, id uuid.UUID, data model.T
 		One(&record)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return model.NewTag(id, data)
+			return model.NewTag(data)
 		}
 
 		return nil, err

@@ -7,8 +7,6 @@ import (
 	"context"
 	"errors"
 	"slices"
-
-	"github.com/google/uuid"
 )
 
 type repository interface {
@@ -28,43 +26,43 @@ type remoteRepository interface {
 }
 
 type activities interface {
-	GetOrCreate(ctx context.Context, id uuid.UUID, data model.ActivityCreate) (*model.Activity, error)
+	GetOrCreate(ctx context.Context, data model.ActivityCreate) (*model.Activity, error)
 	GetChecksumsByIDs(ctx context.Context, ids []string) (map[string]string, error)
 	Save(ctx context.Context, activity *model.Activity) (*model.Activity, error)
 }
 
 type platforms interface {
-	GetOrCreate(ctx context.Context, id uuid.UUID, data model.PlatformCreate) (*model.Platform, error)
+	GetOrCreate(ctx context.Context, data model.PlatformCreate) (*model.Platform, error)
 	GetChecksumsByIDs(ctx context.Context, ids []string) (map[string]string, error)
 	Save(ctx context.Context, platform *model.Platform) (*model.Platform, error)
 }
 
 type companies interface {
-	GetOrCreate(ctx context.Context, id uuid.UUID, data model.CompanyCreate) (*model.Company, error)
+	GetOrCreate(ctx context.Context, data model.CompanyCreate) (*model.Company, error)
 	GetChecksumsByIDs(ctx context.Context, ids []string) (map[string]string, error)
 	Save(ctx context.Context, company *model.Company) (*model.Company, error)
 }
 
 type tags interface {
-	GetOrCreate(ctx context.Context, id uuid.UUID, data model.TagCreate) (*model.Tag, error)
+	GetOrCreate(ctx context.Context, data model.TagCreate) (*model.Tag, error)
 	GetChecksumsByIDs(ctx context.Context, ids []string) (map[string]string, error)
 	Save(ctx context.Context, tag *model.Tag) (*model.Tag, error)
 }
 
 type themes interface {
-	GetOrCreate(ctx context.Context, id uuid.UUID, data model.ThemeCreate) (*model.Theme, error)
+	GetOrCreate(ctx context.Context, data model.ThemeCreate) (*model.Theme, error)
 	GetChecksumsByIDs(ctx context.Context, ids []string) (map[string]string, error)
 	Save(ctx context.Context, theme *model.Theme) (*model.Theme, error)
 }
 
 type genres interface {
-	GetOrCreate(ctx context.Context, id uuid.UUID, data model.GenreCreate) (*model.Genre, error)
+	GetOrCreate(ctx context.Context, data model.GenreCreate) (*model.Genre, error)
 	GetChecksumsByIDs(ctx context.Context, ids []string) (map[string]string, error)
 	Save(ctx context.Context, genre *model.Genre) (*model.Genre, error)
 }
 
 type gameTypes interface {
-	GetOrCreate(ctx context.Context, id uuid.UUID, data model.GameTypeCreate) (*model.GameType, error)
+	GetOrCreate(ctx context.Context, data model.GameTypeCreate) (*model.GameType, error)
 	GetChecksumsByIDs(ctx context.Context, ids []string) (map[string]string, error)
 	Save(ctx context.Context, gameType *model.GameType) (*model.GameType, error)
 }
@@ -177,7 +175,7 @@ func (i *IGDB) ParseGames(ctx context.Context, limit uint64) error {
 		res := make([]*model.Activity, len(msg.Games))
 		idsToCheck := make([]string, 0, len(msg.Games))
 		for j, game := range msg.Games {
-			activity, err := i.activities.GetOrCreate(ctx, uuid.New(), model.ActivityCreate{
+			activity, err := i.activities.GetOrCreate(ctx, model.ActivityCreate{
 				IdDb:     game.Id,
 				Type:     model.ActivityTypeGame,
 				Name:     game.Name,
@@ -363,7 +361,7 @@ func (i *IGDB) saveCompaniesFromGames(ctx context.Context, games []*Game) error 
 	res := make([]*model.Company, len(companies))
 	idsToCheck := make([]string, 0, len(companies))
 	for j, company := range companies {
-		c, err := i.companies.GetOrCreate(ctx, uuid.New(), model.CompanyCreate{
+		c, err := i.companies.GetOrCreate(ctx, model.CompanyCreate{
 			IdDb:     company.Id,
 			Name:     company.Name,
 			Checksum: company.Checksum,
@@ -425,7 +423,7 @@ func (i *IGDB) saveTagsFromGames(ctx context.Context, games []*Game) error {
 	res := make([]*model.Tag, len(tags))
 	idsToCheck := make([]string, 0, len(tags))
 	for j, tag := range tags {
-		t, err := i.tags.GetOrCreate(ctx, uuid.New(), model.TagCreate{
+		t, err := i.tags.GetOrCreate(ctx, model.TagCreate{
 			IdDb:     tag.Id,
 			Name:     tag.Name,
 			Checksum: tag.Checksum,
@@ -487,7 +485,7 @@ func (i *IGDB) saveThemesFromGames(ctx context.Context, games []*Game) error {
 	res := make([]*model.Theme, len(themes))
 	idsToCheck := make([]string, 0, len(themes))
 	for j, theme := range themes {
-		t, err := i.themes.GetOrCreate(ctx, uuid.New(), model.ThemeCreate{
+		t, err := i.themes.GetOrCreate(ctx, model.ThemeCreate{
 			IdDb:     theme.Id,
 			Name:     theme.Name,
 			Checksum: theme.Checksum,
@@ -540,7 +538,7 @@ func (i *IGDB) ParsePlatforms(ctx context.Context, limit uint64) error {
 		res := make([]*model.Platform, len(msg.Platforms))
 		idsToCheck := make([]string, 0, len(msg.Platforms))
 		for j, platform := range msg.Platforms {
-			p, err := i.platforms.GetOrCreate(ctx, uuid.New(), model.PlatformCreate{
+			p, err := i.platforms.GetOrCreate(ctx, model.PlatformCreate{
 				IdDb:     platform.Id,
 				Name:     platform.Name,
 				Checksum: platform.Checksum,
@@ -594,7 +592,7 @@ func (i *IGDB) ParseGenres(ctx context.Context, limit uint64) error {
 		res := make([]*model.Genre, len(msg.Genres))
 		idsToCheck := make([]string, 0, len(msg.Genres))
 		for j, genre := range msg.Genres {
-			g, err := i.genres.GetOrCreate(ctx, uuid.New(), model.GenreCreate{
+			g, err := i.genres.GetOrCreate(ctx, model.GenreCreate{
 				IdDb:     genre.Id,
 				Name:     genre.Name,
 				Checksum: genre.Checksum,
@@ -648,7 +646,7 @@ func (i *IGDB) ParseGameTypes(ctx context.Context, limit uint64) error {
 		res := make([]*model.GameType, len(msg.GameTypes))
 		idsToCheck := make([]string, 0, len(msg.GameTypes))
 		for j, gameType := range msg.GameTypes {
-			t, err := i.gameTypes.GetOrCreate(ctx, uuid.New(), model.GameTypeCreate{
+			t, err := i.gameTypes.GetOrCreate(ctx, model.GameTypeCreate{
 				IdDb:     gameType.Id,
 				Name:     gameType.Name,
 				Checksum: gameType.Checksum,
