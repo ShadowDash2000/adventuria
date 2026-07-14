@@ -63,6 +63,7 @@ var PlayerProgressSchema = struct {
 	CanMove           string
 	Points            string
 	Balance           string
+	Energy            string
 	CellsPassed       string
 	IsInJail          string
 	DropsInARow       string
@@ -78,6 +79,7 @@ var PlayerProgressSchema = struct {
 	CanMove:           "can_move",
 	Points:            "points",
 	Balance:           "balance",
+	Energy:            "energy",
 	CellsPassed:       "cells_passed",
 	IsInJail:          "is_in_jail",
 	DropsInARow:       "drops_in_a_row",
@@ -250,6 +252,7 @@ var CellSchema = struct {
 	Icon                     string
 	Name                     string
 	Points                   string
+	EnergyConsume            string
 	Coins                    string
 	Description              string
 	Color                    string
@@ -270,6 +273,7 @@ var CellSchema = struct {
 	Icon:                     "icon",
 	Name:                     "name",
 	Points:                   "points",
+	EnergyConsume:            "energy_consume",
 	Coins:                    "coins",
 	Description:              "description",
 	Color:                    "color",
@@ -287,6 +291,7 @@ var SettingsSchema = struct {
 	CurrentSeason     string
 	CurrentWeek       string
 	BlockAllActions   string
+	EnergyDefault     string
 	MaxInventorySlots string
 	PointsForDrop     string
 	DropsToJail       string
@@ -305,6 +310,7 @@ var SettingsSchema = struct {
 	CurrentSeason:           "current_season",
 	CurrentWeek:             "current_week",
 	BlockAllActions:         "block_all_actions",
+	EnergyDefault:           "energy_default",
 	MaxInventorySlots:       "max_inventory_slots",
 	PointsForDrop:           "points_for_drop",
 	DropsToJail:             "drops_to_jail",

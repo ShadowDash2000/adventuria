@@ -21,3 +21,16 @@ func RecordToPlayerStats(record *core.Record) *model.PlayerStats {
 		WheelsRolled: record.GetInt(schema.PlayerStatsSchema.WheelsRolled),
 	})
 }
+
+func PlayerStatsToRecord(stats *model.PlayerStats, record *core.Record) {
+	record.Id = stats.ID()
+	record.Set(schema.PlayerStatsSchema.Player, stats.Player())
+	record.Set(schema.PlayerStatsSchema.Season, stats.Season())
+	record.Set(schema.PlayerStatsSchema.Drops, stats.Drops())
+	record.Set(schema.PlayerStatsSchema.Rerolls, stats.Rerolls())
+	record.Set(schema.PlayerStatsSchema.WasInJail, stats.WasInJail())
+	record.Set(schema.PlayerStatsSchema.ItemsUsed, stats.ItemsUsed())
+	record.Set(schema.PlayerStatsSchema.DiceRolls, stats.DiceRolls())
+	record.Set(schema.PlayerStatsSchema.MaxDiceRoll, stats.MaxDiceRoll())
+	record.Set(schema.PlayerStatsSchema.WheelsRolled, stats.WheelsRolled())
+}

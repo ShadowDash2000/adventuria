@@ -44,19 +44,19 @@ func (r *Repository) Exists(ctx context.Context, id string) (bool, error) {
 	return true, nil
 }
 
-func (r *Repository) GetOrCreate(ctx context.Context, data model.GenreCreate) (*model.Genre, error) {
+func (r *Repository) GetByIdDb(ctx context.Context, idDb string) (*model.Genre, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 
 	var record core.Record
 	err := pb.RecordQuery(schema.CollectionGenres).
 		WithContext(ctx).
 		Where(dbx.HashExp{
-			schema.GenreSchema.IdDb: data.IdDb,
+			schema.GenreSchema.IdDb: idDb,
 		}).
 		One(&record)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return model.NewGenre(data)
+			return nil, errs.ErrGenreNotFound
 		}
 
 		return nil, err

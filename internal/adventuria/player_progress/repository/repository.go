@@ -118,6 +118,30 @@ func (r *Repository) ChangeBalance(ctx context.Context, id string, amount int) e
 	return nil
 }
 
+func (r *Repository) ChangeEnergy(ctx context.Context, id string, amount int) error {
+	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
+
+	_, err := pb.DB().
+		NewQuery(fmt.Sprintf(
+			"UPDATE %s SET %s = %s + {:amount} WHERE %s = {:id}",
+			schema.CollectionPlayersProgress,
+			schema.PlayerProgressSchema.Energy,
+			schema.PlayerProgressSchema.Energy,
+			schema.PlayerProgressSchema.Id,
+		)).
+		Bind(dbx.Params{
+			"amount": amount,
+			"id":     id,
+		}).
+		WithContext(ctx).
+		Execute()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r *Repository) NotifyChange(ctx context.Context, id string) error {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 

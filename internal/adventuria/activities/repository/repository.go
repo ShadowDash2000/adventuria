@@ -24,19 +24,19 @@ func NewRepository(pb core.App) *Repository {
 	return &Repository{pb: pb}
 }
 
-func (r *Repository) GetOrCreate(ctx context.Context, data model.ActivityCreate) (*model.Activity, error) {
+func (r *Repository) GetByIdDb(ctx context.Context, idDb string) (*model.Activity, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 
 	var record core.Record
 	err := pb.RecordQuery(schema.CollectionActivities).
 		WithContext(ctx).
 		Where(dbx.HashExp{
-			schema.ActivitySchema.IdDb: data.IdDb,
+			schema.ActivitySchema.IdDb: idDb,
 		}).
 		One(&record)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return model.NewActivity(data)
+			return nil, errs.ErrActivityNotFound
 		}
 
 		return nil, err

@@ -3,6 +3,7 @@ package custom
 import (
 	"adventuria/internal/adventuria/actions"
 	"adventuria/internal/adventuria/actions/custom/buy"
+	"adventuria/internal/adventuria/actions/custom/complete_activity"
 	"adventuria/internal/adventuria/actions/custom/done"
 	"adventuria/internal/adventuria/actions/custom/drop"
 	"adventuria/internal/adventuria/actions/custom/generate_wheel"
@@ -35,8 +36,9 @@ func RegisterActions(
 	rollWheelRepo *rollWheelRepo.Repository,
 ) {
 	actions.Register(
-		done.NewDef(cells, reviews),
-		drop.NewDef(cells, reviews, players, settings, board),
+		complete_activity.NewDef(cells),
+		done.NewDef(actionsService, cells, reviews),
+		drop.NewDef(actionsService, cells, reviews, players, settings, board),
 		reroll.NewDef(cells, reviews, actionsService),
 		buy.NewDef(cells, items, inventories),
 		refresh_shop.NewActionRefreshShopDef(cells),

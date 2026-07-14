@@ -1,12 +1,14 @@
 package game_types
 
 import (
+	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
 	"context"
+	"errors"
 )
 
 type repository interface {
-	GetOrCreate(ctx context.Context, data model.GameTypeCreate) (*model.GameType, error)
+	GetByIdDb(ctx context.Context, idDb string) (*model.GameType, error)
 	GetChecksumsByIDs(ctx context.Context, ids []string) (map[string]string, error)
 	Save(ctx context.Context, gameType *model.GameType) (*model.GameType, error)
 }
@@ -22,7 +24,15 @@ func NewGameTypes(repo repository) *GameTypes {
 }
 
 func (t *GameTypes) GetOrCreate(ctx context.Context, data model.GameTypeCreate) (*model.GameType, error) {
-	return t.repository.GetOrCreate(ctx, data)
+	gameType, err := t.repository.GetByIdDb(ctx, data.IdDb)
+	if err != nil {
+		if errors.Is(err, errs.ErrGameTypeNotFound) {
+			return model.NewGameType(data)
+		}
+		return nil, err
+	}
+
+	return gameType, nil
 }
 
 func (t *GameTypes) GetChecksumsByIDs(ctx context.Context, ids []string) (map[string]string, error) {

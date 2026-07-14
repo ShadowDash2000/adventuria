@@ -109,7 +109,10 @@ var (
 		Code:    "activity_not_found",
 		Message: "Activity not found",
 	}
-
+	ErrPlayerStatsNotFound = &AppError{
+		Code:    "player_stats_not_found",
+		Message: "Player stats not found",
+	}
 	ErrReviewCommentTooLong = &AppError{
 		Code:    "review_comment_max_size",
 		Message: "Review comment is too long",
@@ -124,6 +127,11 @@ var (
 	ErrNotEnoughMoney = &AppError{
 		Code:    "not_enough_money",
 		Message: "Not enough money",
+		Status:  http.StatusBadRequest,
+	}
+	ErrNotEnoughEnergy = &AppError{
+		Code:    "not_enough_energy",
+		Message: "Not enough energy",
 		Status:  http.StatusBadRequest,
 	}
 
@@ -151,5 +159,11 @@ var (
 		Code:    "player_is_busy",
 		Message: "Player is busy",
 		Status:  http.StatusConflict,
+	}
+
+	ErrDontDoThat = &AppError{
+		Code:    "dont_do_that",
+		Message: "Don't do that",
+		Status:  http.StatusNotImplemented,
 	}
 )

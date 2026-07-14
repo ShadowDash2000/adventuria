@@ -12,6 +12,7 @@ type PlayerProgressData struct {
 	CanMove           bool
 	Points            int
 	Balance           int
+	Energy            int
 	CellsPassed       int
 	IsInJail          bool
 	DropsInARow       int
@@ -119,6 +120,20 @@ func (p *PlayerProgress) BalanceChange(amount int) error {
 	}
 
 	p.data.Balance += amount
+
+	return nil
+}
+
+func (p *PlayerProgress) Energy() int {
+	return p.data.Energy
+}
+
+func (p *PlayerProgress) EnergyChange(amount int) error {
+	if amount == 0 {
+		return nil
+	}
+
+	p.data.Energy += amount
 
 	return nil
 }

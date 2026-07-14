@@ -7,6 +7,10 @@ import (
 	"errors"
 )
 
+type actionsService interface {
+	CanDo(ctx context.Context, events *model.Events, player *model.Player, t model.ActionType) bool
+}
+
 type cells interface {
 	GetCurrentCellByProgress(ctx context.Context, progress *model.PlayerProgress) (model.Cell, error)
 }
@@ -33,6 +37,7 @@ const Type model.ActionType = "drop"
 
 type Drop struct {
 	actions.ActionBase
+	actions  actionsService
 	cells    cells
 	reviews  reviews
 	players  players
@@ -40,12 +45,20 @@ type Drop struct {
 	board    board
 }
 
-func NewDef(cells cells, reviews reviews, players players, settings settings, board board) actions.ActionDef {
+func NewDef(
+	actionsService actionsService,
+	cells cells,
+	reviews reviews,
+	players players,
+	settings settings,
+	board board,
+) actions.ActionDef {
 	return actions.NewAction(
 		Type,
 		func() model.Action {
 			return &Drop{
 				ActionBase: actions.NewActionBase(Type),
+				actions:    actionsService,
 				cells:      cells,
 				reviews:    reviews,
 				players:    players,
@@ -57,6 +70,10 @@ func NewDef(cells cells, reviews reviews, players players, settings settings, bo
 }
 
 func (d *Drop) CanDo(ctx context.Context, events *model.Events, player *model.Player) bool {
+	if !d.actions.CanDo(ctx, events, player, actions.ActionTypeCompleteActivity) {
+		return false
+	}
+
 	currentCell, err := d.cells.GetCurrentCellByProgress(ctx, player.Progress())
 	if err != nil {
 		return false
@@ -82,7 +99,7 @@ func (d *Drop) CanDo(ctx context.Context, events *model.Events, player *model.Pl
 		return false
 	}
 
-	return player.LastAction().Type() == actions.ActionTypeRollWheel
+	return true
 }
 
 type Request struct {

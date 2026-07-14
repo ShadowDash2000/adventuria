@@ -10,6 +10,7 @@ type SettingsData struct {
 	CurrentSeason     string
 	CurrentWeek       int
 	BlockAllActions   bool
+	EnergyDefault     int
 	MaxInventorySlots int
 	PointsForDrop     int
 	DropsToJail       int
@@ -81,6 +82,10 @@ func (s *Settings) CurrentWeek() int {
 
 func (s *Settings) BlockAllActions() bool {
 	return s.data.BlockAllActions
+}
+
+func (s *Settings) EnergyDefault() int {
+	return s.data.EnergyDefault
 }
 
 func (s *Settings) MaxInventorySlots() int {

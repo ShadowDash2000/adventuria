@@ -11,6 +11,7 @@ type cellDTO struct {
 	Icon                     string  `db:"icon"`
 	Name                     string  `db:"name"`
 	Points                   int     `db:"points"`
+	EnergyConsume            int     `db:"energy_consume"`
 	Coins                    int     `db:"coins"`
 	Description              string  `db:"description"`
 	Color                    string  `db:"color"`

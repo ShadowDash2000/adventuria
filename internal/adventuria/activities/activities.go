@@ -1,12 +1,14 @@
 package activities
 
 import (
+	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
 	"context"
+	"errors"
 )
 
 type repository interface {
-	GetOrCreate(ctx context.Context, data model.ActivityCreate) (*model.Activity, error)
+	GetByIdDb(ctx context.Context, idDb string) (*model.Activity, error)
 	GetActivitiesByFilter(ctx context.Context, filter *model.ActivityFilter, poolSize, resultSize int) ([]string, error)
 	GetByID(ctx context.Context, id string) (*model.Activity, error)
 	GetByIDs(ctx context.Context, ids []string) ([]*model.Activity, error)
@@ -23,7 +25,15 @@ func NewActivities(repository repository) *Activities {
 }
 
 func (a *Activities) GetOrCreate(ctx context.Context, data model.ActivityCreate) (*model.Activity, error) {
-	return a.repository.GetOrCreate(ctx, data)
+	activity, err := a.repository.GetByIdDb(ctx, data.IdDb)
+	if err != nil {
+		if errors.Is(err, errs.ErrActivityNotFound) {
+			return model.NewActivity(data)
+		}
+		return nil, err
+	}
+
+	return activity, nil
 }
 
 func (a *Activities) UpdateActivitiesFromFilter(

@@ -20,6 +20,7 @@ import (
 	"adventuria/internal/adventuria/effects/custom/discount_price_divide"
 	"adventuria/internal/adventuria/effects/custom/drop_block"
 	"adventuria/internal/adventuria/effects/custom/drop_inventory"
+	"adventuria/internal/adventuria/effects/custom/drop_points_divide"
 	"adventuria/internal/adventuria/effects/custom/give_wheel_on_done"
 	"adventuria/internal/adventuria/effects/custom/give_wheel_on_new_lap"
 	"adventuria/internal/adventuria/effects/custom/go_to_jail"
@@ -87,6 +88,7 @@ func RegisterEffects(
 		stay_on_cell_after_done.NewDef(cells, actions),
 		teleport_to_random_cell.NewDef(actions, cells, board),
 		teleport_to_closest_cell_by_type.NewDef(actions, board),
+		drop_points_divide.NewDef(),
 	)
 }
 

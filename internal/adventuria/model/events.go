@@ -221,8 +221,9 @@ type OnAfterGoToJailEvent struct {
 }
 type OnBeforeDoneEvent struct {
 	event.Event
-	CellPoints int
-	CellCoins  int
+	CellPoints        int
+	CellEnergyConsume int
+	CellCoins         int
 }
 type OnAfterDoneEvent struct {
 	event.Event

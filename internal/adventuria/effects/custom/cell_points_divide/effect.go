@@ -44,7 +44,7 @@ func (c *CellPointsDivide) Subscribe(
 				return err
 			}
 
-			e.CellPoints = e.CellPoints / divider
+			e.CellPoints /= divider
 			callback(ctx)
 
 			return e.Next()

@@ -22,19 +22,19 @@ func NewRepository(pb core.App) *Repository {
 	return &Repository{pb: pb}
 }
 
-func (r *Repository) GetOrCreate(ctx context.Context, data model.PlatformCreate) (*model.Platform, error) {
+func (r *Repository) GetByIdDb(ctx context.Context, idDb string) (*model.Platform, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 
 	var record core.Record
 	err := pb.RecordQuery(schema.CollectionPlatforms).
 		WithContext(ctx).
 		Where(dbx.HashExp{
-			schema.PlatformSchema.IdDb: data.IdDb,
+			schema.PlatformSchema.IdDb: idDb,
 		}).
 		One(&record)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return model.NewPlatform(data)
+			return nil, errs.ErrPlatformNotFound
 		}
 
 		return nil, err

@@ -22,19 +22,19 @@ func NewRepository(pb core.App) *Repository {
 	return &Repository{pb: pb}
 }
 
-func (r *Repository) GetOrCreate(ctx context.Context, data model.GameTypeCreate) (*model.GameType, error) {
+func (r *Repository) GetByIdDb(ctx context.Context, idDb string) (*model.GameType, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 
 	var record core.Record
 	err := pb.RecordQuery(schema.CollectionGameTypes).
 		WithContext(ctx).
 		Where(dbx.HashExp{
-			schema.GameTypeSchema.IdDb: data.IdDb,
+			schema.GameTypeSchema.IdDb: idDb,
 		}).
 		One(&record)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return model.NewGameType(data)
+			return nil, errs.ErrGameTypeNotFound
 		}
 
 		return nil, err
@@ -92,7 +92,14 @@ func (r *Repository) Create(ctx context.Context, gameType *model.GameType) (*mod
 func (r *Repository) Update(ctx context.Context, gameType *model.GameType) (*model.GameType, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 
-	record, err := pb.FindRecordById(schema.CollectionGameTypes, gameType.ID())
+	var record core.Record
+	err := pb.RecordQuery(schema.CollectionGameTypes).
+		WithContext(ctx).
+		Where(dbx.HashExp{
+			schema.GameTypeSchema.Id: gameType.ID(),
+		}).
+		Limit(1).
+		One(&record)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, errs.ErrGameTypeNotFound
@@ -100,13 +107,13 @@ func (r *Repository) Update(ctx context.Context, gameType *model.GameType) (*mod
 		return nil, err
 	}
 
-	GameTypeToRecord(gameType, record)
-	err = pb.SaveWithContext(ctx, record)
+	GameTypeToRecord(gameType, &record)
+	err = pb.SaveWithContext(ctx, &record)
 	if err != nil {
 		return nil, err
 	}
 
-	return RecordToGameType(record), nil
+	return RecordToGameType(&record), nil
 }
 
 func (r *Repository) Save(ctx context.Context, gameType *model.GameType) (*model.GameType, error) {

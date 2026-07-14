@@ -22,19 +22,19 @@ func NewRepository(pb core.App) *Repository {
 	return &Repository{pb: pb}
 }
 
-func (r *Repository) GetOrCreate(ctx context.Context, data model.ThemeCreate) (*model.Theme, error) {
+func (r *Repository) GetByIdDb(ctx context.Context, idDb string) (*model.Theme, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 
 	var record core.Record
 	err := pb.RecordQuery(schema.CollectionThemes).
 		WithContext(ctx).
 		Where(dbx.HashExp{
-			schema.ThemeSchema.IdDb: data.IdDb,
+			schema.ThemeSchema.IdDb: idDb,
 		}).
 		One(&record)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return model.NewTheme(data)
+			return nil, errs.ErrThemeNotFound
 		}
 
 		return nil, err

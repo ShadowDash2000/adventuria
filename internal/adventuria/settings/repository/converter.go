@@ -13,6 +13,7 @@ func SettingsToRecord(settings *model.Settings, record *core.Record) {
 	record.Set(schema.SettingsSchema.CurrentSeason, settings.CurrentSeason)
 	record.Set(schema.SettingsSchema.CurrentWeek, settings.CurrentWeek)
 	record.Set(schema.SettingsSchema.BlockAllActions, settings.BlockAllActions)
+	record.Set(schema.SettingsSchema.EnergyDefault, settings.EnergyDefault())
 	record.Set(schema.SettingsSchema.MaxInventorySlots, settings.MaxInventorySlots)
 	record.Set(schema.SettingsSchema.PointsForDrop, settings.PointsForDrop)
 	record.Set(schema.SettingsSchema.DropsToJail, settings.DropsToJail)
@@ -33,6 +34,7 @@ func RecordToSettings(record *core.Record) *model.Settings {
 		CurrentSeason:           record.GetString(schema.SettingsSchema.CurrentSeason),
 		CurrentWeek:             record.GetInt(schema.SettingsSchema.CurrentWeek),
 		BlockAllActions:         record.GetBool(schema.SettingsSchema.BlockAllActions),
+		EnergyDefault:           record.GetInt(schema.SettingsSchema.EnergyDefault),
 		MaxInventorySlots:       record.GetInt(schema.SettingsSchema.MaxInventorySlots),
 		PointsForDrop:           record.GetInt(schema.SettingsSchema.PointsForDrop),
 		DropsToJail:             record.GetInt(schema.SettingsSchema.DropsToJail),

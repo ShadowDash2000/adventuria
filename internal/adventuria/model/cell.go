@@ -43,6 +43,7 @@ type CellData struct {
 	Icon                     string
 	Name                     string
 	Points                   int
+	EnergyConsume            int
 	Coins                    int
 	Description              string
 	Color                    string
@@ -103,6 +104,10 @@ func (c *CellInfo) Name() string {
 
 func (c *CellInfo) Points() int {
 	return c.data.Points
+}
+
+func (c *CellInfo) EnergyConsume() int {
+	return c.data.EnergyConsume
 }
 
 func (c *CellInfo) Coins() int {

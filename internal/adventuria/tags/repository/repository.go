@@ -22,19 +22,19 @@ func NewRepository(pb core.App) *Repository {
 	return &Repository{pb: pb}
 }
 
-func (r *Repository) GetOrCreate(ctx context.Context, data model.TagCreate) (*model.Tag, error) {
+func (r *Repository) GetByIdDb(ctx context.Context, idDb string) (*model.Tag, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 
 	var record core.Record
 	err := pb.RecordQuery(schema.CollectionTags).
 		WithContext(ctx).
 		Where(dbx.HashExp{
-			schema.TagSchema.IdDb: data.IdDb,
+			schema.TagSchema.IdDb: idDb,
 		}).
 		One(&record)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return model.NewTag(data)
+			return nil, errs.ErrTagNotFound
 		}
 
 		return nil, err

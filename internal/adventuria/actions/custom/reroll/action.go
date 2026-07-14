@@ -16,6 +16,7 @@ type reviews interface {
 }
 
 type actionsService interface {
+	CanDo(ctx context.Context, events *model.Events, player *model.Player, t model.ActionType) bool
 	Save(ctx context.Context, action *model.ActionInfo) (*model.ActionInfo, error)
 }
 
@@ -45,6 +46,10 @@ func NewDef(cells cells, reviews reviews, actionsService actionsService) actions
 }
 
 func (r *Reroll) CanDo(ctx context.Context, events *model.Events, player *model.Player) bool {
+	if !r.actions.CanDo(ctx, events, player, actions.ActionTypeCompleteActivity) {
+		return false
+	}
+
 	currentCell, err := r.cells.GetCurrentCellByProgress(ctx, player.Progress())
 	if err != nil {
 		return false
@@ -66,7 +71,7 @@ func (r *Reroll) CanDo(ctx context.Context, events *model.Events, player *model.
 		return false
 	}
 
-	return player.LastAction().Type() == actions.ActionTypeRollWheel
+	return true
 }
 
 type Request struct {

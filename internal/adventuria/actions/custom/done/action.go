@@ -7,6 +7,10 @@ import (
 	"errors"
 )
 
+type actionsService interface {
+	CanDo(ctx context.Context, events *model.Events, player *model.Player, t model.ActionType) bool
+}
+
 type cells interface {
 	GetCurrentCellByProgress(ctx context.Context, progress *model.PlayerProgress) (model.Cell, error)
 }
@@ -21,16 +25,18 @@ const Type model.ActionType = "done"
 
 type Done struct {
 	actions.ActionBase
+	actions actionsService
 	cells   cells
 	reviews reviews
 }
 
-func NewDef(cells cells, reviews reviews) actions.ActionDef {
+func NewDef(actionsService actionsService, cells cells, reviews reviews) actions.ActionDef {
 	return actions.NewAction(
 		Type,
 		func() model.Action {
 			return &Done{
 				ActionBase: actions.NewActionBase(Type),
+				actions:    actionsService,
 				cells:      cells,
 				reviews:    reviews,
 			}
@@ -38,8 +44,17 @@ func NewDef(cells cells, reviews reviews) actions.ActionDef {
 	)
 }
 
-func (d *Done) CanDo(_ context.Context, _ *model.Events, player *model.Player) bool {
-	return player.LastAction().Type() == actions.ActionTypeRollWheel
+func (d *Done) CanDo(ctx context.Context, events *model.Events, player *model.Player) bool {
+	if !d.actions.CanDo(ctx, events, player, actions.ActionTypeCompleteActivity) {
+		return false
+	}
+
+	currentCell, err := d.cells.GetCurrentCellByProgress(ctx, player.Progress())
+	if err != nil {
+		return false
+	}
+
+	return currentCell.Data().EnergyConsume() <= player.Progress().Energy()
 }
 
 type Request struct {
@@ -68,8 +83,9 @@ func (d *Done) Do(ctx context.Context, events *model.Events, player *model.Playe
 	}
 
 	onBeforeDoneEvent := &model.OnBeforeDoneEvent{
-		CellPoints: currentCell.Data().Points(),
-		CellCoins:  currentCell.Data().Coins(),
+		CellPoints:        currentCell.Data().Points(),
+		CellEnergyConsume: currentCell.Data().EnergyConsume(),
+		CellCoins:         currentCell.Data().Coins(),
 	}
 	err = events.OnBeforeDone().Trigger(ctx, onBeforeDoneEvent)
 	if err != nil {
@@ -85,6 +101,10 @@ func (d *Done) Do(ctx context.Context, events *model.Events, player *model.Playe
 	progress.SetDropsInARow(0)
 	progress.SetIsInJail(false)
 	err = progress.PointsChange(onBeforeDoneEvent.CellPoints)
+	if err != nil {
+		return nil, err
+	}
+	err = progress.EnergyChange(-onBeforeDoneEvent.CellEnergyConsume)
 	if err != nil {
 		return nil, err
 	}

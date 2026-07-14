@@ -19,7 +19,7 @@ type actionsService interface {
 
 var _ model.Effect = (*StayOnCellAfterDone)(nil)
 
-const Type model.EffectType = "save_from_hole"
+const Type model.EffectType = "stay_on_cell_after_done"
 
 type StayOnCellAfterDone struct {
 	effects.EffectBase

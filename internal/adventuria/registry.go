@@ -41,6 +41,8 @@ import (
 	platformsRepo "adventuria/internal/adventuria/platforms/repository"
 	"adventuria/internal/adventuria/player_progress"
 	progressRepo "adventuria/internal/adventuria/player_progress/repository"
+	"adventuria/internal/adventuria/player_stats"
+	playerStatsRepo "adventuria/internal/adventuria/player_stats/repository"
 	"adventuria/internal/adventuria/players"
 	playersRepo "adventuria/internal/adventuria/players/repository"
 	"adventuria/internal/adventuria/reviews"
@@ -73,6 +75,7 @@ type Registry struct {
 	actionsRepo          *actionsRepo.Repository
 	progressRepo         *progressRepo.Repository
 	playersRepo          *playersRepo.Repository
+	playerStatsRepo      *playerStatsRepo.Repository
 	inventoriesRepo      *inventoriesRepo.Repository
 	effectsRepo          *effectsRepo.Repository
 	activitiesRepo       *activitiesRepo.Repository
@@ -109,6 +112,7 @@ type Registry struct {
 	actions         *actions.Actions
 	progress        *player_progress.PlayerProgress
 	players         *players.Players
+	playerStats     *player_stats.PlayerStats
 	effects         *effects.Effects
 	inventories     *inventories.Inventories
 	activities      *activities.Activities
@@ -183,6 +187,13 @@ func (r *Registry) PlayersRepo() *playersRepo.Repository {
 		r.playersRepo = playersRepo.NewRepository(r.pb)
 	}
 	return r.playersRepo
+}
+
+func (r *Registry) PlayerStatsRepo() *playerStatsRepo.Repository {
+	if r.playerStatsRepo == nil {
+		r.playerStatsRepo = playerStatsRepo.NewRepository(r.pb)
+	}
+	return r.playerStatsRepo
 }
 
 func (r *Registry) InventoriesRepo() *inventoriesRepo.Repository {
@@ -419,7 +430,7 @@ func (r *Registry) Actions() *actions.Actions {
 
 func (r *Registry) PlayerProgress() *player_progress.PlayerProgress {
 	if r.progress == nil {
-		r.progress = player_progress.NewPlayerProgress(r.PlayerProgressRepo(), r.Worlds())
+		r.progress = player_progress.NewPlayerProgress(r.PlayerProgressRepo(), r.PlayerProgressRepo(), r.Worlds())
 	}
 	return r.progress
 }
@@ -430,10 +441,18 @@ func (r *Registry) Players() *players.Players {
 			r.PlayersRepo(),
 			r.Actions(),
 			r.PlayerProgress(),
+			r.PlayerStats(),
 			r.Seasons(),
 		)
 	}
 	return r.players
+}
+
+func (r *Registry) PlayerStats() *player_stats.PlayerStats {
+	if r.playerStats == nil {
+		r.playerStats = player_stats.NewPlayerStats(r.PlayerStatsRepo())
+	}
+	return r.playerStats
 }
 
 func (r *Registry) Effects() *effects.Effects {

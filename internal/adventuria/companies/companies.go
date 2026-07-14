@@ -1,12 +1,14 @@
 package companies
 
 import (
+	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
 	"context"
+	"errors"
 )
 
 type repository interface {
-	GetOrCreate(ctx context.Context, data model.CompanyCreate) (*model.Company, error)
+	GetByIdDb(ctx context.Context, idDb string) (*model.Company, error)
 	GetChecksumsByIDs(ctx context.Context, ids []string) (map[string]string, error)
 	Save(ctx context.Context, company *model.Company) (*model.Company, error)
 }
@@ -22,7 +24,15 @@ func NewCompanies(repo repository) *Companies {
 }
 
 func (c *Companies) GetOrCreate(ctx context.Context, data model.CompanyCreate) (*model.Company, error) {
-	return c.repository.GetOrCreate(ctx, data)
+	company, err := c.repository.GetByIdDb(ctx, data.IdDb)
+	if err != nil {
+		if errors.Is(err, errs.ErrCompanyNotFound) {
+			return model.NewCompany(data)
+		}
+		return nil, err
+	}
+
+	return company, nil
 }
 
 func (c *Companies) GetChecksumsByIDs(ctx context.Context, ids []string) (map[string]string, error) {

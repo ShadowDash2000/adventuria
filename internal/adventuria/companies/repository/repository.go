@@ -22,19 +22,19 @@ func NewRepository(pb core.App) *Repository {
 	return &Repository{pb: pb}
 }
 
-func (r *Repository) GetOrCreate(ctx context.Context, data model.CompanyCreate) (*model.Company, error) {
+func (r *Repository) GetByIdDb(ctx context.Context, idDb string) (*model.Company, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 
 	var record core.Record
 	err := pb.RecordQuery(schema.CollectionCompanies).
 		WithContext(ctx).
 		Where(dbx.HashExp{
-			schema.CompanySchema.IdDb: data.IdDb,
+			schema.CompanySchema.IdDb: idDb,
 		}).
 		One(&record)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return model.NewCompany(data)
+			return nil, errs.ErrCompanyNotFound
 		}
 
 		return nil, err

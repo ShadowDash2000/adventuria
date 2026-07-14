@@ -22,6 +22,11 @@ type playerProgress interface {
 	GetFirstOrDefault(ctx context.Context, playerId, seasonId string) (*model.PlayerProgress, error)
 }
 
+type playerStats interface {
+	Save(ctx context.Context, stats *model.PlayerStats) (*model.PlayerStats, error)
+	GetOrCreate(ctx context.Context, playerId, seasonId string) (*model.PlayerStats, error)
+}
+
 type seasons interface {
 	GetByID(ctx context.Context, id string) (*model.Season, error)
 }
@@ -30,14 +35,22 @@ type Players struct {
 	repository repository
 	actions    actions
 	progress   playerProgress
+	stats      playerStats
 	seasons    seasons
 }
 
-func NewPlayers(repository repository, actions actions, progress playerProgress, seasons seasons) *Players {
+func NewPlayers(
+	repository repository,
+	actions actions,
+	progress playerProgress,
+	stats playerStats,
+	seasons seasons,
+) *Players {
 	return &Players{
 		repository: repository,
 		actions:    actions,
 		progress:   progress,
+		stats:      stats,
 		seasons:    seasons,
 	}
 }
@@ -66,10 +79,16 @@ func (p *Players) GetByID(ctx context.Context, playerId, seasonId string) (*mode
 		return nil, err
 	}
 
+	stats, err := p.stats.GetOrCreate(ctx, playerId, seasonId)
+	if err != nil {
+		return nil, err
+	}
+
 	player := model.RestorePlayer(
 		model.PlayerData{Id: playerId},
 		progress,
 		action,
+		stats,
 	)
 
 	return player, nil
@@ -98,10 +117,16 @@ func (p *Players) GetAll(ctx context.Context, seasonId string) ([]*model.Player,
 			return nil, err
 		}
 
+		stats, err := p.stats.GetOrCreate(ctx, playerId, seasonId)
+		if err != nil {
+			return nil, err
+		}
+
 		players[i] = model.RestorePlayer(
 			model.PlayerData{Id: playerId},
 			progress,
 			action,
+			stats,
 		)
 	}
 
@@ -119,8 +144,14 @@ func (p *Players) Save(ctx context.Context, player *model.Player) error {
 		return err
 	}
 
+	stats, err := p.stats.Save(ctx, player.Stats())
+	if err != nil {
+		return err
+	}
+
 	player.SetLastAction(action)
 	player.SetProgress(progress)
+	player.SetStats(stats)
 
 	return nil
 }

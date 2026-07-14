@@ -12,6 +12,10 @@ type repository interface {
 	Save(ctx context.Context, progress *model.PlayerProgress) (*model.PlayerProgress, error)
 	GetByPlayerId(ctx context.Context, playerId, seasonId string) (*model.PlayerProgress, error)
 	ChangeBalance(ctx context.Context, id string, amount int) error
+	ChangeEnergy(ctx context.Context, id string, amount int) error
+}
+
+type notifyRepository interface {
 	NotifyChange(ctx context.Context, id string) error
 }
 
@@ -21,12 +25,14 @@ type worlds interface {
 
 type PlayerProgress struct {
 	repository       repository
+	notifyRepository notifyRepository
 	worldsRepository worlds
 }
 
-func NewPlayerProgress(repository repository, worlds worlds) *PlayerProgress {
+func NewPlayerProgress(repository repository, notifyRepository notifyRepository, worlds worlds) *PlayerProgress {
 	return &PlayerProgress{
 		repository:       repository,
+		notifyRepository: notifyRepository,
 		worldsRepository: worlds,
 	}
 }
@@ -72,6 +78,10 @@ func (p *PlayerProgress) ChangeBalance(ctx context.Context, id string, amount in
 	return p.repository.ChangeBalance(ctx, id, amount)
 }
 
+func (p *PlayerProgress) ChangeEnergy(ctx context.Context, id string, amount int) error {
+	return p.repository.ChangeEnergy(ctx, id, amount)
+}
+
 func (p *PlayerProgress) NotifyChange(ctx context.Context, id string) error {
-	return p.repository.NotifyChange(ctx, id)
+	return p.notifyRepository.NotifyChange(ctx, id)
 }
