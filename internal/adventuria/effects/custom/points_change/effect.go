@@ -38,6 +38,16 @@ func (p *PointsChange) Subscribe(
 	callback model.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
+		events.OnCompleteActivityView().BindFuncWithPriority(func(ctx context.Context, e *model.OnCompleteActivityView) error {
+			amount, err := p.decodeValue(p.Value())
+			if err != nil {
+				return err
+			}
+
+			e.CellPoints += amount
+
+			return e.Next()
+		}, effectCtx.Priority),
 		events.OnBeforeDone().BindFuncWithPriority(func(ctx context.Context, e *model.OnBeforeDoneEvent) error {
 			amount, err := p.decodeValue(p.Value())
 			if err != nil {

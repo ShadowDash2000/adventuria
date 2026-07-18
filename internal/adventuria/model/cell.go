@@ -52,6 +52,7 @@ type CellData struct {
 	IsSafeDrop               bool
 	IsCustomFilterNotAllowed bool
 	IsChangeGameNotAllowed   bool
+	DontGiveItemWheel        bool
 	Value                    string
 
 	LocalOrder  int
@@ -140,6 +141,10 @@ func (c *CellInfo) IsCustomFilterNotAllowed() bool {
 
 func (c *CellInfo) IsChangeGameNotAllowed() bool {
 	return c.data.IsChangeGameNotAllowed
+}
+
+func (c *CellInfo) DontGiveItemWheel() bool {
+	return c.data.DontGiveItemWheel
 }
 
 func (c *CellInfo) Value() string {

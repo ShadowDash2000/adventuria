@@ -8,7 +8,8 @@ import (
 )
 
 type cells interface {
-	GetCurrentCellByProgress(ctx context.Context, progress *model.PlayerProgress) (model.Cell, error)
+	GetByPlayer(ctx context.Context, player *model.Player) (*model.CellInfo, error)
+	GetByPlayerWrapped(ctx context.Context, player *model.Player) (model.Cell, error)
 }
 
 type activities interface {
@@ -43,7 +44,7 @@ func (r *RollWheel) CanDo(_ context.Context, _ *model.Events, player *model.Play
 }
 
 func (r *RollWheel) Do(ctx context.Context, events *model.Events, player *model.Player, _ model.ActionRequest) (any, error) {
-	currentCell, err := r.cells.GetCurrentCellByProgress(ctx, player.Progress())
+	currentCell, err := r.cells.GetByPlayerWrapped(ctx, player)
 	if err != nil {
 		return nil, err
 	}

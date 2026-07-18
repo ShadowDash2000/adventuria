@@ -8,7 +8,7 @@ import (
 )
 
 type cells interface {
-	GetCurrentCellByProgress(ctx context.Context, progress *model.PlayerProgress) (model.Cell, error)
+	GetByPlayer(ctx context.Context, player *model.Player) (*model.CellInfo, error)
 }
 
 var _ model.Action = (*CompleteActivity)(nil)

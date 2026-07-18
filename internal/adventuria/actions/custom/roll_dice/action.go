@@ -7,10 +7,6 @@ import (
 	"strconv"
 )
 
-type cells interface {
-	GetCurrentCellByProgress(ctx context.Context, progress *model.PlayerProgress) (model.Cell, error)
-}
-
 type actionsService interface {
 	Save(ctx context.Context, action *model.ActionInfo) (*model.ActionInfo, error)
 }
@@ -25,18 +21,16 @@ const Type model.ActionType = "roll_dice"
 
 type RollDice struct {
 	actions.ActionBase
-	cells   cells
 	actions actionsService
 	board   board
 }
 
-func NewDef(cells cells, actionsService actionsService, board board) actions.ActionDef {
+func NewDef(actionsService actionsService, board board) actions.ActionDef {
 	return actions.NewAction(
 		Type,
 		func() model.Action {
 			return &RollDice{
 				ActionBase: actions.NewActionBase(Type),
-				cells:      cells,
 				actions:    actionsService,
 				board:      board,
 			}

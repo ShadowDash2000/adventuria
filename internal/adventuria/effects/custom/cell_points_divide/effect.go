@@ -38,6 +38,16 @@ func (c *CellPointsDivide) Subscribe(
 	callback model.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
+		events.OnCompleteActivityView().BindFuncWithPriority(func(ctx context.Context, e *model.OnCompleteActivityView) error {
+			divider, err := c.decodeValue(c.Value())
+			if err != nil {
+				return err
+			}
+
+			e.CellPoints /= divider
+
+			return e.Next()
+		}, effectCtx.Priority),
 		events.OnBeforeDone().BindFuncWithPriority(func(ctx context.Context, e *model.OnBeforeDoneEvent) error {
 			divider, err := c.decodeValue(c.Value())
 			if err != nil {

@@ -1,6 +1,8 @@
 package adventuria
 
 import (
+	"adventuria/internal/adventuria/action_events"
+	actionEventsRepo "adventuria/internal/adventuria/action_events/repository"
 	"adventuria/internal/adventuria/actions"
 	rollWheelRepo "adventuria/internal/adventuria/actions/custom/roll_wheel/repository"
 	actionsRepo "adventuria/internal/adventuria/actions/repository"
@@ -103,6 +105,7 @@ type Registry struct {
 	githubRepo           *githubRepo.Repository
 	igdbRepo             *igdbRepo.Repository
 	igdbRemoteRepo       *igdbRepo.RemoteRepository
+	actionEventsRepo     *actionEventsRepo.Repository
 
 	// services
 	seasons         *seasons.Seasons
@@ -134,6 +137,7 @@ type Registry struct {
 	cheapShark      *cheapshark.CheapShark
 	github          *github.Github
 	igdb            *igdb.IGDB
+	actionEvents    *action_events.ActionEvents
 }
 
 func NewRegistry(pb core.App) *Registry {
@@ -393,6 +397,13 @@ func (r *Registry) IGDBRemoteRepo() *igdbRepo.RemoteRepository {
 	return r.igdbRemoteRepo
 }
 
+func (r *Registry) ActionEventsRepo() *actionEventsRepo.Repository {
+	if r.actionEventsRepo == nil {
+		r.actionEventsRepo = actionEventsRepo.NewRepository(r.pb)
+	}
+	return r.actionEventsRepo
+}
+
 func (r *Registry) Seasons() *seasons.Seasons {
 	if r.seasons == nil {
 		r.seasons = seasons.NewSeasons(r.SeasonsRepo())
@@ -423,7 +434,7 @@ func (r *Registry) Cells() *cells.Cells {
 
 func (r *Registry) Actions() *actions.Actions {
 	if r.actions == nil {
-		r.actions = actions.NewActions(r.ActionsRepo(), r.Worlds(), r.Cells())
+		r.actions = actions.NewActions(r.ActionsRepo(), r.Worlds(), r.Cells(), r.ActionEvents())
 	}
 	return r.actions
 }
@@ -607,4 +618,11 @@ func (r *Registry) IGDB() *igdb.IGDB {
 		)
 	}
 	return r.igdb
+}
+
+func (r *Registry) ActionEvents() *action_events.ActionEvents {
+	if r.actionEvents == nil {
+		r.actionEvents = action_events.NewActionEvents(r.ActionEventsRepo())
+	}
+	return r.actionEvents
 }

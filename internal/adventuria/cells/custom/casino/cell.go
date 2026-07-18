@@ -43,6 +43,15 @@ func (c *CellCasino) OnCellReached(_ context.Context, _ *model.Events, player *m
 
 	player.Progress().SetCanMove(true)
 
+	decodedValue, err := c.decodeValue(c.Value())
+	if err != nil {
+		return err
+	}
+
+	itemsData := player.LastAction().DataList().Items
+	itemsData.PriceMultiplier = decodedValue.PriceMultiplier
+	player.LastAction().SetItemsData(itemsData)
+
 	return c.refreshItems(player)
 }
 
@@ -59,6 +68,10 @@ func (c *CellCasino) refreshItems(player *model.Player) error {
 	if err != nil {
 		return err
 	}
-	player.LastAction().SetItemsList(decodedValue.ItemIds)
+
+	itemsData := player.LastAction().DataList().Items
+	itemsData.Ids = decodedValue.ItemIds
+	player.LastAction().SetItemsData(itemsData)
+
 	return nil
 }

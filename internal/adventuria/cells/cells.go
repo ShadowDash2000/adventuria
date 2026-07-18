@@ -35,24 +35,24 @@ func toCell(cell *model.CellInfo) (model.Cell, error) {
 	return cellDef.new(*cell), nil
 }
 
-func (c *Cells) GetCurrentCellByProgress(ctx context.Context, progress *model.PlayerProgress) (model.Cell, error) {
-	currentWorldId := progress.CurrentWorld()
-	cellsCount, err := c.CountLocal(ctx, currentWorldId)
-	if err != nil {
-		return nil, err
-	}
+func (c *Cells) GetByPlayer(ctx context.Context, player *model.Player) (*model.CellInfo, error) {
+	return c.GetByID(ctx, player.LastAction().Cell())
+}
 
-	currentCellOrder := progress.CellsPassed() % cellsCount
-	cell, err := c.GetByLocalOrder(ctx, currentWorldId, currentCellOrder)
-	if err != nil {
-		return nil, err
-	}
-
-	return toCell(cell)
+func (c *Cells) GetByPlayerWrapped(ctx context.Context, player *model.Player) (model.Cell, error) {
+	return c.GetByIDWrapped(ctx, player.LastAction().Cell())
 }
 
 func (c *Cells) GetByID(ctx context.Context, id string) (*model.CellInfo, error) {
 	return c.repository.GetByID(ctx, id)
+}
+
+func (c *Cells) GetByIDWrapped(ctx context.Context, id string) (model.Cell, error) {
+	cell, err := c.repository.GetByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return toCell(cell)
 }
 
 func (c *Cells) GetByIDs(ctx context.Context, ids []string) ([]*model.CellInfo, error) {

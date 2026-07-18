@@ -10,7 +10,7 @@ import (
 )
 
 type cellsService interface {
-	GetCurrentCellByProgress(ctx context.Context, progress *model.PlayerProgress) (model.Cell, error)
+	GetByPlayerWrapped(ctx context.Context, player *model.Player) (model.Cell, error)
 }
 
 type actionsService interface {
@@ -58,7 +58,7 @@ func (s *StayOnCellAfterDone) Subscribe(
 				return e.Next()
 			}
 
-			currentCell, err := s.cells.GetCurrentCellByProgress(ctx, player.Progress())
+			currentCell, err := s.cells.GetByPlayerWrapped(ctx, player)
 			if err != nil {
 				return err
 			}

@@ -22,17 +22,23 @@ type cells interface {
 	GetByLocalOrder(ctx context.Context, worldId string, order int) (*model.CellInfo, error)
 }
 
-type Actions struct {
-	repository repository
-	worlds     worlds
-	cells      cells
+type actionEvents interface {
+	GetByActiveCellID(ctx context.Context, activeCellId string) (*model.ActionEventInfo, error)
 }
 
-func NewActions(repository repository, worlds worlds, cells cells) *Actions {
+type Actions struct {
+	repository   repository
+	worlds       worlds
+	cells        cells
+	actionEvents actionEvents
+}
+
+func NewActions(repository repository, worlds worlds, cells cells, actionEvents actionEvents) *Actions {
 	return &Actions{
-		repository: repository,
-		worlds:     worlds,
-		cells:      cells,
+		repository:   repository,
+		worlds:       worlds,
+		cells:        cells,
+		actionEvents: actionEvents,
 	}
 }
 
@@ -67,11 +73,66 @@ func (a *Actions) GetLastOrDefault(ctx context.Context, playerId string, timeFro
 	return action, nil
 }
 
-func (a *Actions) CanDo(ctx context.Context, events *model.Events, player *model.Player, t model.ActionType) bool {
-	if actionDef, ok := Get(t); ok {
-		return actionDef.New().CanDo(ctx, events, player)
+type canDoContext struct {
+	actionEventInfo *model.ActionEventInfo
+}
+
+func (a *Actions) getCanDoContext(ctx context.Context, player *model.Player) (*canDoContext, error) {
+	actionEventInfo, err := a.actionEvents.GetByActiveCellID(ctx, player.LastAction().Cell())
+	if err != nil {
+		if errors.Is(err, errs.ErrActionEventNotFound) {
+			return &canDoContext{}, nil
+		}
+
+		return nil, err
 	}
-	return false
+
+	return &canDoContext{
+		actionEventInfo: actionEventInfo,
+	}, nil
+}
+
+func (a *Actions) canDoAction(
+	ctx context.Context,
+	events *model.Events,
+	player *model.Player,
+	actionDef ActionDef,
+	canDoCtx *canDoContext,
+) bool {
+	action := actionDef.New()
+
+	if action.CanDo(ctx, events, player) {
+		return true
+	}
+
+	if canDoCtx.actionEventInfo == nil {
+		return false
+	}
+
+	if canDoCtx.actionEventInfo.ActionType() != actionDef.Type() {
+		return false
+	}
+
+	actionEvent, ok := action.(model.ActionEventCompatible)
+	if !ok {
+		return false
+	}
+
+	return actionEvent.CanDoOnEvent(ctx, events, player)
+}
+
+func (a *Actions) CanDo(ctx context.Context, events *model.Events, player *model.Player, t model.ActionType) bool {
+	actionDef, ok := Get(t)
+	if !ok {
+		return false
+	}
+
+	canDoCtx, err := a.getCanDoContext(ctx, player)
+	if err != nil {
+		return false
+	}
+
+	return a.canDoAction(ctx, events, player, actionDef, canDoCtx)
 }
 
 func (a *Actions) Do(ctx context.Context, events *model.Events, player *model.Player, req model.ActionRequest, t model.ActionType) (any, error) {
@@ -82,38 +143,60 @@ func (a *Actions) Do(ctx context.Context, events *model.Events, player *model.Pl
 }
 
 func (a *Actions) AvailableActions(ctx context.Context, events *model.Events, player *model.Player) []model.ActionType {
+	canDoCtx, err := a.getCanDoContext(ctx, player)
+	if err != nil {
+		return nil
+	}
+
 	var res []model.ActionType
 	for _, actionDef := range GetAll() {
-		if actionDef.New().CanDo(ctx, events, player) {
+		if a.canDoAction(ctx, events, player, actionDef, canDoCtx) {
 			res = append(res, actionDef.Type())
 		}
 	}
+
 	return res
 }
 
 func (a *Actions) HasActionsInCategory(ctx context.Context, events *model.Events, player *model.Player, category string) bool {
+	canDoCtx, err := a.getCanDoContext(ctx, player)
+	if err != nil {
+		return false
+	}
+
 	for _, actionDef := range GetAll() {
 		action := actionDef.New()
-		if !action.CanDo(ctx, events, player) {
+
+		if !action.InCategory(category) {
 			continue
 		}
-		if action.InCategory(category) {
+
+		if a.canDoAction(ctx, events, player, actionDef, canDoCtx) {
 			return true
 		}
 	}
+
 	return false
 }
 
 func (a *Actions) HasActionsInCategories(ctx context.Context, events *model.Events, player *model.Player, categories []string) bool {
+	canDoCtx, err := a.getCanDoContext(ctx, player)
+	if err != nil {
+		return false
+	}
+
 	for _, actionDef := range GetAll() {
 		action := actionDef.New()
-		if !action.CanDo(ctx, events, player) {
+
+		if !action.InCategories(categories) {
 			continue
 		}
-		if action.InCategories(categories) {
+
+		if a.canDoAction(ctx, events, player, actionDef, canDoCtx) {
 			return true
 		}
 	}
+
 	return false
 }
 

@@ -38,6 +38,10 @@ func (n *NoCoinsForDone) Subscribe(
 	callback model.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
+		events.OnCompleteActivityView().BindFuncWithPriority(func(ctx context.Context, e *model.OnCompleteActivityView) error {
+			e.CellCoins = 0
+			return e.Next()
+		}, effectCtx.Priority),
 		events.OnBeforeDone().BindFuncWithPriority(func(ctx context.Context, e *model.OnBeforeDoneEvent) error {
 			e.CellCoins = 0
 			callback(ctx)

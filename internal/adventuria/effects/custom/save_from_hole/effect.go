@@ -8,7 +8,6 @@ import (
 )
 
 type cellsService interface {
-	GetCurrentCellByProgress(ctx context.Context, progress *model.PlayerProgress) (model.Cell, error)
 	GetByID(ctx context.Context, id string) (*model.CellInfo, error)
 }
 
@@ -50,7 +49,7 @@ func (s *SaveFromHole) Subscribe(
 				return e.Next()
 			}
 
-			currentCell, err := s.cells.GetCurrentCellByProgress(ctx, player.Progress())
+			currentCell, err := s.cells.GetByID(ctx, player.LastAction().Cell())
 			if err != nil {
 				return err
 			}
@@ -60,7 +59,7 @@ func (s *SaveFromHole) Subscribe(
 				return err
 			}
 
-			if destinationCell.GlobalOrder() < currentCell.Data().GlobalOrder() {
+			if destinationCell.GlobalOrder() < currentCell.GlobalOrder() {
 				e.SkipTeleport = true
 				callback(ctx)
 			}

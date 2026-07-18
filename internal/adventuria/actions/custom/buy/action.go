@@ -11,7 +11,7 @@ import (
 )
 
 type cells interface {
-	GetCurrentCellByProgress(ctx context.Context, progress *model.PlayerProgress) (model.Cell, error)
+	GetByPlayerWrapped(ctx context.Context, player *model.Player) (model.Cell, error)
 }
 
 type items interface {
@@ -49,7 +49,7 @@ func NewDef(cells cells, items items, inventories inventories) actions.ActionDef
 }
 
 func (b *Buy) CanDo(ctx context.Context, _ *model.Events, player *model.Player) bool {
-	currentCell, err := b.cells.GetCurrentCellByProgress(ctx, player.Progress())
+	currentCell, err := b.cells.GetByPlayerWrapped(ctx, player)
 	if err != nil {
 		return false
 	}
@@ -74,29 +74,19 @@ func (b *Buy) Do(ctx context.Context, events *model.Events, player *model.Player
 		return nil, errors.New("item id is required")
 	}
 
-	ids := player.LastAction().ItemsList()
-	index := slices.Index(ids, req.ItemId)
+	itemsData := player.LastAction().DataList().Items
+	index := slices.Index(itemsData.Ids, req.ItemId)
 	if index == -1 {
 		return nil, fmt.Errorf("item with id = %s not found", req.ItemId)
 	}
-	ids = slices.Delete(ids, index, index+1)
+	itemsData.Ids = slices.Delete(itemsData.Ids, index, index+1)
 
 	item, err := b.items.GetByID(ctx, req.ItemId)
 	if err != nil {
 		return nil, err
 	}
 
-	currentCell, err := b.cells.GetCurrentCellByProgress(ctx, player.Progress())
-	if err != nil {
-		return nil, err
-	}
-
-	cellShopValue, err := b.decodeValue(currentCell.Data().Value())
-	if err != nil {
-		return nil, err
-	}
-
-	basePrice, err := b.calculatePrice(item.Price(), cellShopValue)
+	basePrice, err := b.calculatePrice(item.Price(), itemsData)
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +105,7 @@ func (b *Buy) Do(ctx context.Context, events *model.Events, player *model.Player
 		return nil, err
 	}
 
-	player.LastAction().SetItemsList(ids)
+	player.LastAction().SetItemsData(itemsData)
 	err = player.Progress().BalanceChange(-onBeforeItemBuy.Price)
 	if err != nil {
 		return nil, err

@@ -1,19 +1,21 @@
 package schema
 
 const (
-	CollectionPlayers         = "players"
-	CollectionPlayersProgress = "players_progress"
-	CollectionPlayerStats     = "player_stats"
-	CollectionActions         = "actions"
-	CollectionCells           = "cells"
-	CollectionItems           = "items"
-	CollectionEffects         = "effects"
-	CollectionInventory       = "inventory"
-	CollectionSettings        = "settings"
-	CollectionSeasons         = "seasons"
-	CollectionWorlds          = "worlds"
-	CollectionReviews         = "reviews"
-	CollectionsOutbox         = "outbox"
+	CollectionPlayers            = "players"
+	CollectionPlayersProgress    = "players_progress"
+	CollectionPlayerStats        = "player_stats"
+	CollectionActions            = "actions"
+	CollectionCells              = "cells"
+	CollectionItems              = "items"
+	CollectionEffects            = "effects"
+	CollectionInventory          = "inventory"
+	CollectionSettings           = "settings"
+	CollectionSeasons            = "seasons"
+	CollectionWorlds             = "worlds"
+	CollectionReviews            = "reviews"
+	CollectionsOutbox            = "outbox"
+	CollectionActionEvents       = "action_events"
+	CollectionCellEventsSchedule = "cell_events_schedule"
 
 	CollectionActivities     = "activities"
 	CollectionCompanies      = "companies"
@@ -111,7 +113,7 @@ var ActionSchema = struct {
 	Activity             string
 	Review               string
 	CellsPassed          string
-	ItemsList            string
+	DataList             string
 	UsedItems            string
 	CustomActivityFilter string
 }{
@@ -122,7 +124,7 @@ var ActionSchema = struct {
 	Activity:             "activity",
 	Review:               "review",
 	CellsPassed:          "cells_passed",
-	ItemsList:            "items_list",
+	DataList:             "data_list",
 	UsedItems:            "used_items",
 	CustomActivityFilter: "custom_activity_filter",
 }
@@ -261,6 +263,7 @@ var CellSchema = struct {
 	IsSafeDrop               string
 	IsCustomFilterNotAllowed string
 	IsChangeGameNotAllowed   string
+	DontGiveItemWheel        string
 	Value                    string
 }{
 	Id:                       "id",
@@ -282,6 +285,7 @@ var CellSchema = struct {
 	IsSafeDrop:               "is_safe_drop",
 	IsCustomFilterNotAllowed: "is_custom_filter_not_allowed",
 	IsChangeGameNotAllowed:   "is_change_game_not_allowed",
+	DontGiveItemWheel:        "dont_give_item_wheel",
 	Value:                    "value",
 }
 
@@ -584,4 +588,34 @@ var SteamSpySchema = struct {
 	IdDb:  "id_db",
 	Name:  "name",
 	Price: "price",
+}
+
+var ActionEventsSchema = struct {
+	Id         string
+	Name       string
+	Type       string
+	ActionType string
+	Value      string
+}{
+	Id:         "id",
+	Name:       "name",
+	Type:       "type",
+	ActionType: "action_type",
+	Value:      "value",
+}
+
+var CellEventsScheduleSchema = struct {
+	Id              string
+	ActionEvent     string
+	Effects         string
+	ActiveCell      string
+	ShiftInterval   string
+	LastShiftChange string
+}{
+	Id:              "id",
+	ActionEvent:     "action_event",
+	Effects:         "effects",
+	ActiveCell:      "active_cell",
+	ShiftInterval:   "shift_interval",
+	LastShiftChange: "last_shift_change",
 }

@@ -8,7 +8,8 @@ import (
 )
 
 type cells interface {
-	GetCurrentCellByProgress(ctx context.Context, progress *model.PlayerProgress) (model.Cell, error)
+	GetByPlayer(ctx context.Context, player *model.Player) (*model.CellInfo, error)
+	GetByPlayerWrapped(ctx context.Context, player *model.Player) (model.Cell, error)
 }
 
 type reviews interface {
@@ -50,12 +51,12 @@ func (r *Reroll) CanDo(ctx context.Context, events *model.Events, player *model.
 		return false
 	}
 
-	currentCell, err := r.cells.GetCurrentCellByProgress(ctx, player.Progress())
+	currentCell, err := r.cells.GetByPlayer(ctx, player)
 	if err != nil {
 		return false
 	}
 
-	if currentCell.Data().CantReroll() {
+	if currentCell.CantReroll() {
 		return false
 	}
 
@@ -94,7 +95,7 @@ func (r *Reroll) Do(ctx context.Context, events *model.Events, player *model.Pla
 		return nil, err
 	}
 
-	currentCell, err := r.cells.GetCurrentCellByProgress(ctx, player.Progress())
+	currentCell, err := r.cells.GetByPlayerWrapped(ctx, player)
 	if err != nil {
 		return nil, err
 	}

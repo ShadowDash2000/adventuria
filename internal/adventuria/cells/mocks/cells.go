@@ -6,13 +6,22 @@ import (
 )
 
 type Cells struct {
-	GetCurrentCellByProgressFunc func(ctx context.Context, progress *model.PlayerProgress) (model.Cell, error)
+	GetByPlayerFunc        func(ctx context.Context, player *model.Player) (*model.CellInfo, error)
+	GetByPlayerWrappedFunc func(ctx context.Context, player *model.Player) (model.Cell, error)
 }
 
-func (m *Cells) GetCurrentCellByProgress(ctx context.Context, progress *model.PlayerProgress) (model.Cell, error) {
-	if m.GetCurrentCellByProgressFunc == nil {
+func (m *Cells) GetByPlayer(ctx context.Context, player *model.Player) (*model.CellInfo, error) {
+	if m.GetByPlayerFunc == nil {
 		return nil, nil
 	}
 
-	return m.GetCurrentCellByProgressFunc(ctx, progress)
+	return m.GetByPlayerFunc(ctx, player)
+}
+
+func (m *Cells) GetByPlayerWrapped(ctx context.Context, player *model.Player) (model.Cell, error) {
+	if m.GetByPlayerWrappedFunc == nil {
+		return nil, nil
+	}
+
+	return m.GetByPlayerWrappedFunc(ctx, player)
 }

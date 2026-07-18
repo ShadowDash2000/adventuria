@@ -20,6 +20,7 @@ type cellDTO struct {
 	IsSafeDrop               bool    `db:"is_safe_drop"`
 	IsCustomFilterNotAllowed bool    `db:"is_custom_filter_not_allowed"`
 	IsChangeGameNotAllowed   bool    `db:"is_change_game_not_allowed"`
+	DontGiveItemWheel        bool    `db:"dont_give_item_wheel"`
 	Value                    *string `db:"value"`
 
 	LocalOrder  int `db:"local_order"`

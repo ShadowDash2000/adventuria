@@ -7,7 +7,7 @@ import (
 
 type cellCasinoValue struct {
 	ItemIds         []string `json:"item_ids"`
-	PriceMultiplier float32  `json:"price_multiplier"`
+	PriceMultiplier float64  `json:"price_multiplier"`
 }
 
 func (c *CellCasino) decodeValue(value string) (*cellCasinoValue, error) {

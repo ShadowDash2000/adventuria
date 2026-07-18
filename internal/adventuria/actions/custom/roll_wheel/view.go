@@ -8,12 +8,12 @@ import (
 var _ model.WithView = (*RollWheel)(nil)
 
 func (r *RollWheel) GetView(ctx context.Context, _ *model.Events, player *model.Player) (any, error) {
-	currentCell, err := r.cells.GetCurrentCellByProgress(ctx, player.Progress())
+	currentCell, err := r.cells.GetByPlayer(ctx, player)
 	if err != nil {
 		return nil, err
 	}
 
-	activities, err := r.activities.GetDetailedByIDs(ctx, player.LastAction().ItemsList())
+	activities, err := r.activities.GetDetailedByIDs(ctx, player.LastAction().DataList().Activities.Ids)
 	if err != nil {
 		return nil, err
 	}
@@ -23,6 +23,6 @@ func (r *RollWheel) GetView(ctx context.Context, _ *model.Events, player *model.
 		AudioPresetId string                 `json:"audio_preset_id,omitempty"`
 	}{
 		Items:         toActivityViewDetailedList(activities),
-		AudioPresetId: currentCell.Data().AudioPreset(),
+		AudioPresetId: currentCell.AudioPreset(),
 	}, nil
 }

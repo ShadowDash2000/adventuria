@@ -1,6 +1,8 @@
 package adventuria
 
 import (
+	"adventuria/internal/adventuria/action_events"
+	customActionEvents "adventuria/internal/adventuria/action_events/custom"
 	customActions "adventuria/internal/adventuria/actions/custom"
 	"adventuria/internal/adventuria/activities"
 	"adventuria/internal/adventuria/cells"
@@ -20,6 +22,7 @@ func (g *Game) init(pb core.App) error {
 	g.settings = registry.Settings()
 	g.players = registry.Players()
 	g.cells = registry.Cells()
+	g.actionEvents = registry.ActionEvents()
 	g.actions = registry.Actions()
 	g.inventories = registry.Inventories()
 	g.effects = registry.Effects()
@@ -33,6 +36,10 @@ func (g *Game) init(pb core.App) error {
 		registry.Cells(),
 		registry.Actions(),
 		registry.Board(),
+	)
+
+	customActionEvents.RegisterActionEvents(
+		registry.Items(),
 	)
 
 	customEffects.RegisterEffects(
@@ -77,6 +84,7 @@ func (g *Game) init(pb core.App) error {
 	g.bindHooks(pb)
 	cells.BindHooks(pb)
 	effects.BindHooks(pb)
+	action_events.BindHooks(pb)
 	activities.BindHooks(pb, registry.RelationRepo())
 	stream_tracker.BindHooks(pb, registry.StreamTracker())
 

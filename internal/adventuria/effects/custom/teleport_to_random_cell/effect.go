@@ -17,7 +17,7 @@ type actionsService interface {
 }
 
 type cellsService interface {
-	GetCurrentCellByProgress(ctx context.Context, progress *model.PlayerProgress) (model.Cell, error)
+	GetByID(ctx context.Context, id string) (*model.CellInfo, error)
 	GetByGlobalOrder(ctx context.Context, order int) (*model.CellInfo, error)
 	CountGlobal(ctx context.Context) (int, error)
 }
@@ -60,7 +60,7 @@ func (t *TeleportToRandomCell) CanUse(ctx context.Context, events *model.Events,
 		return false
 	}
 
-	currentCell, err := t.cells.GetCurrentCellByProgress(ctx, player.Progress())
+	currentCell, err := t.cells.GetByID(ctx, player.LastAction().Cell())
 	if err != nil {
 		return false
 	}
@@ -69,7 +69,7 @@ func (t *TeleportToRandomCell) CanUse(ctx context.Context, events *model.Events,
 	canDrop := t.actions.CanDo(ctx, events, player, actions.ActionTypeDrop)
 
 	if canDone && !canDrop {
-		if currentCell.Data().Type() != cells.CellTypeJail {
+		if currentCell.Type() != cells.CellTypeJail {
 			return false
 		}
 	}
@@ -90,7 +90,7 @@ func (t *TeleportToRandomCell) Subscribe(
 				return e.Next()
 			}
 
-			currentCell, err := t.cells.GetCurrentCellByProgress(ctx, player.Progress())
+			currentCell, err := t.cells.GetByID(ctx, player.LastAction().Cell())
 			if err != nil {
 				return err
 			}
@@ -105,7 +105,7 @@ func (t *TeleportToRandomCell) Subscribe(
 			}
 
 			randomCellOrder := rand.Intn(cellsCountGlobal - 1)
-			if randomCellOrder >= currentCell.Data().GlobalOrder() {
+			if randomCellOrder >= currentCell.GlobalOrder() {
 				randomCellOrder++
 			}
 

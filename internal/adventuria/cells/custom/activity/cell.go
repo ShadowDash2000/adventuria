@@ -48,14 +48,14 @@ func NewDef(
 }
 
 func (c *CellActivity) Roll(_ context.Context, _ *model.Events, player *model.Player) (*model.WheelRollResult, error) {
-	items := player.LastAction().ItemsList()
+	activitiesData := player.LastAction().DataList().Activities
 
-	if len(items) == 0 {
+	if len(activitiesData.Ids) == 0 {
 		return nil, errors.New("no items to roll")
 	}
 
 	return &model.WheelRollResult{
-		WinnerId: helper.RandomItemFromSlice(items),
+		WinnerId: helper.RandomItemFromSlice(activitiesData.Ids),
 	}, nil
 }
 

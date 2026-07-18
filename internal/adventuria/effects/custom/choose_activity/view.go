@@ -13,7 +13,7 @@ type activityView struct {
 }
 
 func (c *ChooseActivity) GetView(ctx context.Context, _ *model.Events, player *model.Player) (any, error) {
-	activities, err := c.activities.GetByIDs(ctx, player.LastAction().ItemsList())
+	activities, err := c.activities.GetByIDs(ctx, player.LastAction().DataList().Activities.Ids)
 	if err != nil {
 		return nil, err
 	}

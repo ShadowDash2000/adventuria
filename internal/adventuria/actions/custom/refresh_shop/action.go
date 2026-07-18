@@ -9,7 +9,8 @@ import (
 )
 
 type cells interface {
-	GetCurrentCellByProgress(ctx context.Context, progress *model.PlayerProgress) (model.Cell, error)
+	GetByPlayer(ctx context.Context, player *model.Player) (*model.CellInfo, error)
+	GetByPlayerWrapped(ctx context.Context, player *model.Player) (model.Cell, error)
 }
 
 var _ model.Action = (*RefreshShop)(nil)
@@ -34,7 +35,7 @@ func NewActionRefreshShopDef(cells cells) actions.ActionDef {
 }
 
 func (r *RefreshShop) CanDo(ctx context.Context, _ *model.Events, player *model.Player) bool {
-	currentCell, err := r.cells.GetCurrentCellByProgress(ctx, player.Progress())
+	currentCell, err := r.cells.GetByPlayerWrapped(ctx, player)
 	if err != nil {
 		return false
 	}
@@ -51,7 +52,7 @@ func (r *RefreshShop) CanDo(ctx context.Context, _ *model.Events, player *model.
 }
 
 func (r *RefreshShop) Do(ctx context.Context, events *model.Events, player *model.Player, _ model.ActionRequest) (any, error) {
-	currentCell, err := r.cells.GetCurrentCellByProgress(ctx, player.Progress())
+	currentCell, err := r.cells.GetByPlayerWrapped(ctx, player)
 	if err != nil {
 		return nil, err
 	}

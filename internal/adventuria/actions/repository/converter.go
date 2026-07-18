@@ -15,14 +15,14 @@ func ActionToRecord(action *model.ActionInfo, record *core.Record) {
 	record.Set(schema.ActionSchema.Activity, action.Activity())
 	record.Set(schema.ActionSchema.Review, action.Review())
 	record.Set(schema.ActionSchema.CellsPassed, action.CellsPassed())
-	record.Set(schema.ActionSchema.ItemsList, action.ItemsList())
+	record.Set(schema.ActionSchema.DataList, action.DataList())
 	record.Set(schema.ActionSchema.UsedItems, action.UsedItems())
 	record.Set(schema.ActionSchema.CustomActivityFilter, action.CustomActivityFilter())
 }
 
 func RecordToAction(record *core.Record) (*model.ActionInfo, error) {
-	var itemsList []string
-	err := record.UnmarshalJSONField(schema.ActionSchema.ItemsList, &itemsList)
+	var actionDataList model.ActionDataList
+	err := record.UnmarshalJSONField(schema.ActionSchema.DataList, &actionDataList)
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +45,7 @@ func RecordToAction(record *core.Record) (*model.ActionInfo, error) {
 		Activity:             record.GetString(schema.ActionSchema.Activity),
 		Review:               record.GetString(schema.ActionSchema.Review),
 		CellsPassed:          record.GetInt(schema.ActionSchema.CellsPassed),
-		ItemsList:            itemsList,
+		DataList:             actionDataList,
 		UsedItems:            usedItems,
 		CustomActivityFilter: customActivityFilter,
 	}), nil

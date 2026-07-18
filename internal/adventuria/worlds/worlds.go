@@ -38,7 +38,8 @@ func (w *Worlds) SubscribeEffects(ctx context.Context, events *model.Events, pla
 		return err
 	}
 
-	for _, effect := range effects {
+	unsubKeys := make([]string, len(effects))
+	for i, effect := range effects {
 		unsubs, err := effect.Subscribe(
 			ctx,
 			events,
@@ -53,8 +54,23 @@ func (w *Worlds) SubscribeEffects(ctx context.Context, events *model.Events, pla
 			return err
 		}
 
-		events.AddUnsubs(player.ID()+":"+worldId+":"+string(effect.Data().Type()), unsubs...)
+		unsubKey := player.ID() + ":" + worldId + ":" + string(effect.Data().Type())
+		events.AddUnsubs(unsubKey, unsubs...)
+		unsubKeys[i] = unsubKey
 	}
+
+	events.OnWorldChanged().BindFuncOnce(func(ctx context.Context, e *model.OnWorldChangedEvent) error {
+		for _, key := range unsubKeys {
+			events.Unsubscribe(key)
+		}
+
+		err := w.SubscribeEffects(ctx, events, player, e.NewWorldId)
+		if err != nil {
+			return err
+		}
+
+		return e.Next()
+	})
 
 	return nil
 }

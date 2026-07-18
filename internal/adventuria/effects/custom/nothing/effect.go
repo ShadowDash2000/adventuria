@@ -8,7 +8,7 @@ import (
 )
 
 type cellsService interface {
-	GetCurrentCellByProgress(ctx context.Context, progress *model.PlayerProgress) (model.Cell, error)
+	GetByPlayerWrapped(ctx context.Context, player *model.Player) (model.Cell, error)
 }
 
 var _ model.Effect = (*Nothing)(nil)
@@ -65,7 +65,7 @@ func (n *Nothing) Subscribe(
 	case useBeforeGameDone:
 		return []event.Unsubscribe{
 			events.OnBeforeDone().BindFuncWithPriority(func(ctx context.Context, e *model.OnBeforeDoneEvent) error {
-				currentCell, err := n.cells.GetCurrentCellByProgress(ctx, player.Progress())
+				currentCell, err := n.cells.GetByPlayerWrapped(ctx, player)
 				if err != nil {
 					return err
 				}

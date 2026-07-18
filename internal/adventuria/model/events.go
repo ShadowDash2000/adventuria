@@ -12,6 +12,7 @@ type Events struct {
 	onAfterDrop            *event.Hook[*OnAfterDropEvent]
 	onAfterGoToJail        *event.Hook[*OnAfterGoToJailEvent]
 	onBeforeDone           *event.Hook[*OnBeforeDoneEvent]
+	onCompleteActivityView *event.Hook[*OnCompleteActivityView]
 	onAfterDone            *event.Hook[*OnAfterDoneEvent]
 	onBeforeRerollCheck    *event.Hook[*OnBeforeRerollCheckEvent]
 	onBeforeRoll           *event.Hook[*OnBeforeRollEvent]
@@ -42,6 +43,7 @@ func NewEvents() *Events {
 		onAfterDrop:            &event.Hook[*OnAfterDropEvent]{},
 		onAfterGoToJail:        &event.Hook[*OnAfterGoToJailEvent]{},
 		onBeforeDone:           &event.Hook[*OnBeforeDoneEvent]{},
+		onCompleteActivityView: &event.Hook[*OnCompleteActivityView]{},
 		onAfterDone:            &event.Hook[*OnAfterDoneEvent]{},
 		onBeforeRerollCheck:    &event.Hook[*OnBeforeRerollCheckEvent]{},
 		onBeforeRoll:           &event.Hook[*OnBeforeRollEvent]{},
@@ -115,6 +117,10 @@ func (e *Events) OnAfterGoToJail() *event.Hook[*OnAfterGoToJailEvent] {
 
 func (e *Events) OnBeforeDone() *event.Hook[*OnBeforeDoneEvent] {
 	return e.onBeforeDone
+}
+
+func (e *Events) OnCompleteActivityView() *event.Hook[*OnCompleteActivityView] {
+	return e.onCompleteActivityView
 }
 
 func (e *Events) OnAfterDone() *event.Hook[*OnAfterDoneEvent] {
@@ -225,8 +231,15 @@ type OnBeforeDoneEvent struct {
 	CellEnergyConsume int
 	CellCoins         int
 }
+type OnCompleteActivityView struct {
+	event.Event
+	CellPoints        int
+	CellEnergyConsume int
+	CellCoins         int
+}
 type OnAfterDoneEvent struct {
 	event.Event
+	CurrentCell *CellInfo
 }
 type OnBeforeRollEvent struct {
 	event.Event

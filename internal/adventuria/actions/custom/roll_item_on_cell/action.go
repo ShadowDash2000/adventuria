@@ -9,7 +9,8 @@ import (
 )
 
 type cellsService interface {
-	GetCurrentCellByProgress(ctx context.Context, progress *model.PlayerProgress) (model.Cell, error)
+	GetByPlayer(ctx context.Context, player *model.Player) (*model.CellInfo, error)
+	GetByPlayerWrapped(ctx context.Context, player *model.Player) (model.Cell, error)
 }
 
 type inventories interface {
@@ -46,12 +47,12 @@ func NewDef(cells cellsService, inventories inventories, items items) actions.Ac
 }
 
 func (r *RollItemOnCell) CanDo(ctx context.Context, _ *model.Events, player *model.Player) bool {
-	currentCell, err := r.cells.GetCurrentCellByProgress(ctx, player.Progress())
+	currentCell, err := r.cells.GetByPlayer(ctx, player)
 	if err != nil {
 		return false
 	}
 
-	if currentCell.Data().Type() != cells.CellTypeRollItem {
+	if currentCell.Type() != cells.CellTypeRollItem {
 		return false
 	}
 
@@ -59,7 +60,7 @@ func (r *RollItemOnCell) CanDo(ctx context.Context, _ *model.Events, player *mod
 }
 
 func (r *RollItemOnCell) Do(ctx context.Context, events *model.Events, player *model.Player, _ model.ActionRequest) (any, error) {
-	currentCell, err := r.cells.GetCurrentCellByProgress(ctx, player.Progress())
+	currentCell, err := r.cells.GetByPlayerWrapped(ctx, player)
 	if err != nil {
 		return nil, err
 	}

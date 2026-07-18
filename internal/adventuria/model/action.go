@@ -18,6 +18,10 @@ type Action interface {
 	Do(ctx context.Context, events *Events, player *Player, actionReq ActionRequest) (any, error)
 }
 
+type ActionEventCompatible interface {
+	CanDoOnEvent(ctx context.Context, events *Events, player *Player) bool
+}
+
 type ActionData struct {
 	Id                   string
 	Player               string
@@ -26,7 +30,7 @@ type ActionData struct {
 	Activity             string
 	Review               string
 	CellsPassed          int
-	ItemsList            []string
+	DataList             ActionDataList
 	UsedItems            []string
 	CustomActivityFilter CustomActivityFilter
 }
@@ -133,12 +137,16 @@ func (a *ActionInfo) SetCellsPassed(count int) {
 	a.data.CellsPassed = count
 }
 
-func (a *ActionInfo) ItemsList() []string {
-	return a.data.ItemsList
+func (a *ActionInfo) DataList() ActionDataList {
+	return a.data.DataList
 }
 
-func (a *ActionInfo) SetItemsList(items []string) {
-	a.data.ItemsList = items
+func (a *ActionInfo) SetActivitiesData(data ActivitiesData) {
+	a.data.DataList.Activities = data
+}
+
+func (a *ActionInfo) SetItemsData(data ItemsData) {
+	a.data.DataList.Items = data
 }
 
 func (a *ActionInfo) UsedItems() []string {

@@ -113,6 +113,11 @@ var (
 		Code:    "player_stats_not_found",
 		Message: "Player stats not found",
 	}
+	ErrActionEventNotFound = &AppError{
+		Code:    "cell_event_not_found",
+		Message: "Cell event not found",
+	}
+
 	ErrReviewCommentTooLong = &AppError{
 		Code:    "review_comment_max_size",
 		Message: "Review comment is too long",
@@ -149,6 +154,10 @@ var (
 		Code:    "unknown_effect_type",
 		Message: "Unknown effect type",
 	}
+	ErrUnknownActionEventType = &AppError{
+		Code:    "unknown_action_event_type",
+		Message: "Unknown action event type",
+	}
 
 	ErrNoPendingOutbox = &AppError{
 		Code:    "no_pending_outbox",
@@ -165,5 +174,10 @@ var (
 		Code:    "dont_do_that",
 		Message: "Don't do that",
 		Status:  http.StatusNotImplemented,
+	}
+
+	ErrActionIsNotEventCompatible = &AppError{
+		Code:    "action_is_not_event_compatible",
+		Message: "Action is not event compatible",
 	}
 )

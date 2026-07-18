@@ -16,7 +16,7 @@ type itemView struct {
 }
 
 func (r *RollItemOnCell) GetView(ctx context.Context, _ *model.Events, player *model.Player) (any, error) {
-	items, err := r.items.GetByIDs(ctx, player.LastAction().ItemsList())
+	items, err := r.items.GetByIDs(ctx, player.LastAction().DataList().Items.Ids)
 	if err != nil {
 		return nil, err
 	}

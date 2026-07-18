@@ -18,7 +18,7 @@ type playerProgress interface {
 
 type cellsService interface {
 	GetByID(ctx context.Context, id string) (*model.CellInfo, error)
-	GetCurrentCellByProgress(ctx context.Context, progress *model.PlayerProgress) (model.Cell, error)
+	GetByIDWrapped(ctx context.Context, id string) (model.Cell, error)
 	GetByLocalOrderWrapped(ctx context.Context, worldId string, order int) (model.Cell, error)
 	GetByGlobalOrder(ctx context.Context, order int) (*model.CellInfo, error)
 	GetAllGlobalByType(ctx context.Context, t model.CellType) ([]*model.CellInfo, error)
@@ -53,7 +53,7 @@ func (b *Board) Move(
 	steps int,
 	moveType model.MoveType,
 ) ([]*model.MoveResult, error) {
-	prevCell, err := b.cells.GetCurrentCellByProgress(ctx, player.Progress())
+	prevCell, err := b.cells.GetByIDWrapped(ctx, player.LastAction().Cell())
 	if err != nil {
 		return nil, err
 	}
@@ -223,7 +223,7 @@ func (b *Board) MoveToClosestCellType(
 	player *model.Player,
 	cellType model.CellType,
 ) ([]*model.MoveResult, error) {
-	currentCell, err := b.cells.GetCurrentCellByProgress(ctx, player.Progress())
+	currentCell, err := b.cells.GetByIDWrapped(ctx, player.LastAction().Cell())
 	if err != nil {
 		return nil, err
 	}

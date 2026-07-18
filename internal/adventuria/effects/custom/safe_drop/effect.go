@@ -8,7 +8,7 @@ import (
 )
 
 type cellsService interface {
-	GetCurrentCellByProgress(ctx context.Context, progress *model.PlayerProgress) (model.Cell, error)
+	GetByID(ctx context.Context, id string) (*model.CellInfo, error)
 }
 
 var _ model.Effect = (*SafeDrop)(nil)
@@ -45,12 +45,12 @@ func (s *SafeDrop) Subscribe(
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
 		events.OnBeforeDrop().BindFuncWithPriority(func(ctx context.Context, e *model.OnBeforeDropEvent) error {
-			currentCell, err := s.cells.GetCurrentCellByProgress(ctx, player.Progress())
+			currentCell, err := s.cells.GetByID(ctx, player.LastAction().Cell())
 			if err != nil {
 				return err
 			}
 
-			if !currentCell.Data().IsSafeDrop() {
+			if !currentCell.IsSafeDrop() {
 				e.IsSafeDrop = true
 				callback(ctx)
 			}

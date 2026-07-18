@@ -12,7 +12,7 @@ type actionsService interface {
 }
 
 type cells interface {
-	GetCurrentCellByProgress(ctx context.Context, progress *model.PlayerProgress) (model.Cell, error)
+	GetByPlayer(ctx context.Context, player *model.Player) (*model.CellInfo, error)
 }
 
 type reviews interface {
@@ -74,12 +74,12 @@ func (d *Drop) CanDo(ctx context.Context, events *model.Events, player *model.Pl
 		return false
 	}
 
-	currentCell, err := d.cells.GetCurrentCellByProgress(ctx, player.Progress())
+	currentCell, err := d.cells.GetByPlayer(ctx, player)
 	if err != nil {
 		return false
 	}
 
-	if currentCell.Data().CantDrop() {
+	if currentCell.CantDrop() {
 		return false
 	}
 
@@ -127,7 +127,7 @@ func (d *Drop) Do(ctx context.Context, events *model.Events, player *model.Playe
 		return nil, err
 	}
 
-	currentCell, err := d.cells.GetCurrentCellByProgress(ctx, player.Progress())
+	currentCell, err := d.cells.GetByPlayer(ctx, player)
 	if err != nil {
 		return nil, err
 	}
@@ -157,7 +157,7 @@ func (d *Drop) Do(ctx context.Context, events *model.Events, player *model.Playe
 	progress := player.Progress()
 	progress.SetCanMove(true)
 
-	if !onBeforeDropEvent.IsSafeDrop && !currentCell.Data().IsSafeDrop() {
+	if !onBeforeDropEvent.IsSafeDrop && !currentCell.IsSafeDrop() {
 		err = progress.PointsChange(onBeforeDropEvent.PointsForDrop)
 		if err != nil {
 			return nil, err

@@ -15,7 +15,8 @@ type actionsService interface {
 }
 
 type cellsService interface {
-	GetCurrentCellByProgress(ctx context.Context, progress *model.PlayerProgress) (model.Cell, error)
+	GetByPlayer(ctx context.Context, player *model.Player) (*model.CellInfo, error)
+	GetByPlayerWrapped(ctx context.Context, player *model.Player) (model.Cell, error)
 }
 
 type activityFilters interface {
@@ -52,20 +53,20 @@ func (c *ChangeGamePriceFilter) CanUse(ctx context.Context, events *model.Events
 		return false
 	}
 
-	currentCell, err := c.cells.GetCurrentCellByProgress(ctx, player.Progress())
+	currentCell, err := c.cells.GetByPlayer(ctx, player)
 	if err != nil {
 		return false
 	}
 
-	if currentCell.Data().Type() != cells.CellTypeGame {
+	if currentCell.Type() != cells.CellTypeGame {
 		return false
 	}
 
-	if currentCell.Data().IsCustomFilterNotAllowed() {
+	if currentCell.IsCustomFilterNotAllowed() {
 		return false
 	}
 
-	if filterId := currentCell.Data().Filter(); filterId != "" {
+	if filterId := currentCell.Filter(); filterId != "" {
 		filter, err := c.activityFilters.GetByID(ctx, filterId)
 		if err != nil {
 			return false
@@ -154,7 +155,7 @@ func (c *ChangeGamePriceFilter) tryToApplyEffect(
 	player *model.Player,
 	effectValue *effectValue,
 ) error {
-	currentCell, err := c.cells.GetCurrentCellByProgress(context.Background(), player.Progress())
+	currentCell, err := c.cells.GetByPlayerWrapped(ctx, player)
 	if err != nil {
 		return err
 	}

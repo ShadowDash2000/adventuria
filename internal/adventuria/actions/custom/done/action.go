@@ -12,7 +12,8 @@ type actionsService interface {
 }
 
 type cells interface {
-	GetCurrentCellByProgress(ctx context.Context, progress *model.PlayerProgress) (model.Cell, error)
+	GetByPlayer(ctx context.Context, player *model.Player) (*model.CellInfo, error)
+	GetByPlayerWrapped(ctx context.Context, player *model.Player) (model.Cell, error)
 }
 
 type reviews interface {
@@ -49,12 +50,12 @@ func (d *Done) CanDo(ctx context.Context, events *model.Events, player *model.Pl
 		return false
 	}
 
-	currentCell, err := d.cells.GetCurrentCellByProgress(ctx, player.Progress())
+	currentCell, err := d.cells.GetByPlayer(ctx, player)
 	if err != nil {
 		return false
 	}
 
-	return currentCell.Data().EnergyConsume() <= player.Progress().Energy()
+	return currentCell.EnergyConsume() <= player.Progress().Energy()
 }
 
 type Request struct {
@@ -77,7 +78,7 @@ func (d *Done) Do(ctx context.Context, events *model.Events, player *model.Playe
 		return nil, err
 	}
 
-	currentCell, err := d.cells.GetCurrentCellByProgress(ctx, player.Progress())
+	currentCell, err := d.cells.GetByPlayerWrapped(ctx, player)
 	if err != nil {
 		return nil, err
 	}
@@ -113,5 +114,7 @@ func (d *Done) Do(ctx context.Context, events *model.Events, player *model.Playe
 		return nil, err
 	}
 
-	return nil, events.OnAfterDone().Trigger(ctx, &model.OnAfterDoneEvent{})
+	return nil, events.OnAfterDone().Trigger(ctx, &model.OnAfterDoneEvent{
+		CurrentCell: currentCell.Data(),
+	})
 }

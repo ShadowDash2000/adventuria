@@ -5,9 +5,9 @@ import (
 	"context"
 )
 
-func (b *Buy) calculatePrice(basePrice int, cellShopValue *cellShopValue) (int, error) {
-	if cellShopValue.PriceMultiplier != 0 {
-		basePrice = int(float32(basePrice) * cellShopValue.PriceMultiplier)
+func (b *Buy) calculatePrice(basePrice int, itemsData model.ItemsData) (int, error) {
+	if itemsData.PriceMultiplier != 0 {
+		basePrice = int(float64(basePrice) * itemsData.PriceMultiplier)
 	}
 
 	return basePrice, nil

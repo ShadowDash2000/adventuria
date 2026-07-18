@@ -8,12 +8,12 @@ import (
 var _ model.WithView = (*RefreshShop)(nil)
 
 func (r *RefreshShop) GetView(ctx context.Context, _ *model.Events, player *model.Player) (any, error) {
-	currentCell, err := r.cells.GetCurrentCellByProgress(ctx, player.Progress())
+	currentCell, err := r.cells.GetByPlayer(ctx, player)
 	if err != nil {
 		return nil, err
 	}
 
-	cellShopRefreshValue, err := r.decodeValue(currentCell.Data().Value())
+	cellShopRefreshValue, err := r.decodeValue(currentCell.Value())
 	if err != nil {
 		return nil, err
 	}

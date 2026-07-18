@@ -9,7 +9,7 @@ import (
 )
 
 type cells interface {
-	GetCurrentCellByProgress(ctx context.Context, progress *model.PlayerProgress) (model.Cell, error)
+	GetByPlayerWrapped(ctx context.Context, player *model.Player) (model.Cell, error)
 }
 
 type actionsService interface {
@@ -40,7 +40,7 @@ func NewDef(cells cells, actionsService actionsService) actions.ActionDef {
 }
 
 func (g *GenerateWheel) CanDo(ctx context.Context, _ *model.Events, player *model.Player) bool {
-	currentCell, err := g.cells.GetCurrentCellByProgress(ctx, player.Progress())
+	currentCell, err := g.cells.GetByPlayerWrapped(ctx, player)
 	if err != nil {
 		return false
 	}
@@ -57,7 +57,7 @@ func (g *GenerateWheel) CanDo(ctx context.Context, _ *model.Events, player *mode
 }
 
 func (g *GenerateWheel) Do(ctx context.Context, events *model.Events, player *model.Player, _ model.ActionRequest) (any, error) {
-	currentCell, err := g.cells.GetCurrentCellByProgress(ctx, player.Progress())
+	currentCell, err := g.cells.GetByPlayerWrapped(ctx, player)
 	if err != nil {
 		return nil, err
 	}

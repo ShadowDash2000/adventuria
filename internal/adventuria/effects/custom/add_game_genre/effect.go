@@ -16,7 +16,7 @@ type actionsService interface {
 }
 
 type cells interface {
-	GetCurrentCellByProgress(ctx context.Context, progress *model.PlayerProgress) (model.Cell, error)
+	GetByPlayerWrapped(ctx context.Context, player *model.Player) (model.Cell, error)
 }
 
 type genres interface {
@@ -59,7 +59,7 @@ func (a *AddGameGenre) CanUse(ctx context.Context, events *model.Events, player 
 		return false
 	}
 
-	currentCell, err := a.cells.GetCurrentCellByProgress(ctx, player.Progress())
+	currentCell, err := a.cells.GetByPlayerWrapped(ctx, player)
 	if err != nil {
 		return false
 	}
@@ -101,7 +101,7 @@ func (a *AddGameGenre) Subscribe(
 				return e.Next()
 			}
 
-			currentCell, err := a.cells.GetCurrentCellByProgress(ctx, player.Progress())
+			currentCell, err := a.cells.GetByPlayerWrapped(ctx, player)
 			if err != nil {
 				return err
 			}

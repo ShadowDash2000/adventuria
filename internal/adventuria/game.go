@@ -1,6 +1,7 @@
 package adventuria
 
 import (
+	"adventuria/internal/adventuria/action_events"
 	"adventuria/internal/adventuria/actions"
 	"adventuria/internal/adventuria/cells"
 	"adventuria/internal/adventuria/effects"
@@ -28,6 +29,7 @@ type Game struct {
 	settings      *settings.Settings
 	players       *players.Players
 	cells         *cells.Cells
+	actionEvents  *action_events.ActionEvents
 	actions       *actions.Actions
 	inventories   *inventories.Inventories
 	effects       *effects.Effects
@@ -87,8 +89,11 @@ func (g *Game) initScope(ctx context.Context, player *model.Player) (*scope.Scop
 		return nil, err
 	}
 
-	// TODO maybe we don't need to init the world effects in a global scope
-	// 'cause in theory a player can change the world multiple times in one action
+	err = g.actionEvents.ListenToActionEvents(s.Events(), s.Player())
+	if err != nil {
+		return nil, err
+	}
+
 	err = g.worlds.SubscribeEffects(ctx, s.Events(), s.Player(), s.Player().Progress().CurrentWorld())
 	if err != nil {
 		return nil, err

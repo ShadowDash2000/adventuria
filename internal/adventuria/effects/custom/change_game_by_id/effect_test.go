@@ -32,14 +32,12 @@ func TestChangeGameById_CanUse(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		eff, mActions, mCells := setup()
-		player := model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, nil)
+		player := model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, nil, nil)
 
-		mCells.GetCurrentCellByProgressFunc = func(ctx context.Context, progress *model.PlayerProgress) (model.Cell, error) {
-			return &cellsMocks.Cell{
-				CellInfo: model.RestoreCellInfo(model.CellData{
-					IsChangeGameNotAllowed: false,
-				}),
-			}, nil
+		mCells.GetByPlayerFunc = func(ctx context.Context, player *model.Player) (*model.CellInfo, error) {
+			return model.RestoreCellInfo(model.CellData{
+				IsChangeGameNotAllowed: false,
+			}), nil
 		}
 
 		mActions.CanDoFunc = func(ctx context.Context, events *model.Events, player *model.Player, t model.ActionType) bool {
@@ -53,14 +51,12 @@ func TestChangeGameById_CanUse(t *testing.T) {
 
 	t.Run("change game not allowed on cell", func(t *testing.T) {
 		eff, _, mCells := setup()
-		player := model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, nil)
+		player := model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, nil, nil)
 
-		mCells.GetCurrentCellByProgressFunc = func(ctx context.Context, progress *model.PlayerProgress) (model.Cell, error) {
-			return &cellsMocks.Cell{
-				CellInfo: model.RestoreCellInfo(model.CellData{
-					IsChangeGameNotAllowed: true,
-				}),
-			}, nil
+		mCells.GetByPlayerFunc = func(ctx context.Context, player *model.Player) (*model.CellInfo, error) {
+			return model.RestoreCellInfo(model.CellData{
+				IsChangeGameNotAllowed: false,
+			}), nil
 		}
 
 		if eff.CanUse(ctx, nil, player) {
@@ -70,12 +66,10 @@ func TestChangeGameById_CanUse(t *testing.T) {
 
 	t.Run("cannot drop", func(t *testing.T) {
 		eff, mActions, mCells := setup()
-		player := model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, nil)
+		player := model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, nil, nil)
 
-		mCells.GetCurrentCellByProgressFunc = func(ctx context.Context, progress *model.PlayerProgress) (model.Cell, error) {
-			return &cellsMocks.Cell{
-				CellInfo: model.RestoreCellInfo(model.CellData{}),
-			}, nil
+		mCells.GetByPlayerFunc = func(ctx context.Context, player *model.Player) (*model.CellInfo, error) {
+			return model.RestoreCellInfo(model.CellData{}), nil
 		}
 
 		mActions.CanDoFunc = func(ctx context.Context, events *model.Events, player *model.Player, actionType model.ActionType) bool {
@@ -92,12 +86,10 @@ func TestChangeGameById_CanUse(t *testing.T) {
 
 	t.Run("cannot done", func(t *testing.T) {
 		eff, mActions, mCells := setup()
-		player := model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, nil)
+		player := model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, nil, nil)
 
-		mCells.GetCurrentCellByProgressFunc = func(ctx context.Context, progress *model.PlayerProgress) (model.Cell, error) {
-			return &cellsMocks.Cell{
-				CellInfo: model.RestoreCellInfo(model.CellData{}),
-			}, nil
+		mCells.GetByPlayerFunc = func(ctx context.Context, player *model.Player) (*model.CellInfo, error) {
+			return model.RestoreCellInfo(model.CellData{}), nil
 		}
 
 		mActions.CanDoFunc = func(ctx context.Context, events *model.Events, player *model.Player, actionType model.ActionType) bool {
@@ -122,6 +114,7 @@ func TestChangeGameById_Subscribe(t *testing.T) {
 			model.PlayerData{Id: "p1"},
 			&model.PlayerProgress{},
 			model.RestoreAction(model.ActionData{}),
+			nil,
 		)
 		var callbackCalled bool
 		callback := func(ctx context.Context) {

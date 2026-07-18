@@ -18,25 +18,15 @@ type itemView struct {
 }
 
 func (b *Buy) GetView(ctx context.Context, events *model.Events, player *model.Player) (any, error) {
-	ids := player.LastAction().ItemsList()
-	items, err := b.items.GetByIDs(ctx, ids)
-	if err != nil {
-		return nil, err
-	}
-
-	currentCell, err := b.cells.GetCurrentCellByProgress(ctx, player.Progress())
-	if err != nil {
-		return nil, err
-	}
-
-	cellShopValue, err := b.decodeValue(currentCell.Data().Value())
+	itemsData := player.LastAction().DataList().Items
+	items, err := b.items.GetByIDs(ctx, itemsData.Ids)
 	if err != nil {
 		return nil, err
 	}
 
 	itemsViewMap := make(map[string]*itemView, len(items))
 	for _, item := range items {
-		basePrice, err := b.calculatePrice(item.Price(), cellShopValue)
+		basePrice, err := b.calculatePrice(item.Price(), itemsData)
 		if err != nil {
 			return nil, err
 		}
@@ -51,8 +41,8 @@ func (b *Buy) GetView(ctx context.Context, events *model.Events, player *model.P
 		itemsViewMap[item.ID()] = itemView
 	}
 
-	result := make([]*itemView, len(ids))
-	for i, id := range ids {
+	result := make([]*itemView, len(itemsData.Ids))
+	for i, id := range itemsData.Ids {
 		if itemView, ok := itemsViewMap[id]; ok {
 			result[i] = itemView
 		}

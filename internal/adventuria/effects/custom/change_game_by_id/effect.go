@@ -9,7 +9,7 @@ import (
 )
 
 type cells interface {
-	GetCurrentCellByProgress(ctx context.Context, progress *model.PlayerProgress) (model.Cell, error)
+	GetByPlayer(ctx context.Context, player *model.Player) (*model.CellInfo, error)
 }
 
 type actionsService interface {
@@ -46,12 +46,12 @@ func NewDef(cells cells, actions actionsService, activities activities) effects.
 }
 
 func (c *ChangeGameById) CanUse(ctx context.Context, events *model.Events, player *model.Player) bool {
-	currentCell, err := c.cells.GetCurrentCellByProgress(ctx, player.Progress())
+	currentCell, err := c.cells.GetByPlayer(ctx, player)
 	if err != nil {
 		return false
 	}
 
-	if ok := currentCell.Data().IsChangeGameNotAllowed(); ok {
+	if ok := currentCell.IsChangeGameNotAllowed(); ok {
 		return false
 	}
 

@@ -19,7 +19,7 @@ func TestBalanceChange_CanUse(t *testing.T) {
 	}
 
 	t.Run("success", func(t *testing.T) {
-		player := model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, nil)
+		player := model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, nil, nil)
 
 		if !eff.CanUse(ctx, nil, player) {
 			t.Error("CanUse should return true")
@@ -38,6 +38,7 @@ func TestBalanceChange_Subscribe(t *testing.T) {
 		player := model.RestorePlayer(
 			model.PlayerData{Id: "p1"},
 			progress,
+			nil,
 			nil,
 		)
 		var callbackCalled bool

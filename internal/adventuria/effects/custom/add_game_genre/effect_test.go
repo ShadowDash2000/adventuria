@@ -40,13 +40,13 @@ func TestAddGameGenre_CanUse(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		eff, mActions, mCells, _ := setup()
-		player := model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, nil)
+		player := model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, nil, nil)
 
 		mActions.CanDoFunc = func(ctx context.Context, events *model.Events, p *model.Player, t model.ActionType) bool {
 			return t == actions.ActionTypeRollWheel
 		}
 
-		mCells.GetCurrentCellByProgressFunc = func(ctx context.Context, progress *model.PlayerProgress) (model.Cell, error) {
+		mCells.GetByPlayerWrappedFunc = func(ctx context.Context, player *model.Player) (model.Cell, error) {
 			return &cellsMocks.Cell{
 				CellInfo:        model.RestoreCellInfo(model.CellData{}),
 				CategoriesValue: []string{"game"},
@@ -60,7 +60,7 @@ func TestAddGameGenre_CanUse(t *testing.T) {
 
 	t.Run("cannot roll wheel", func(t *testing.T) {
 		eff, mActions, _, _ := setup()
-		player := model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, nil)
+		player := model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, nil, nil)
 
 		mActions.CanDoFunc = func(ctx context.Context, events *model.Events, p *model.Player, t model.ActionType) bool {
 			return false
@@ -73,13 +73,13 @@ func TestAddGameGenre_CanUse(t *testing.T) {
 
 	t.Run("wrong cell category", func(t *testing.T) {
 		eff, mActions, mCells, _ := setup()
-		player := model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, nil)
+		player := model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, nil, nil)
 
 		mActions.CanDoFunc = func(ctx context.Context, events *model.Events, p *model.Player, t model.ActionType) bool {
 			return true
 		}
 
-		mCells.GetCurrentCellByProgressFunc = func(ctx context.Context, progress *model.PlayerProgress) (model.Cell, error) {
+		mCells.GetByPlayerWrappedFunc = func(ctx context.Context, player *model.Player) (model.Cell, error) {
 			return &cellsMocks.Cell{
 				CategoriesValue: []string{"other"},
 			}, nil
@@ -92,13 +92,13 @@ func TestAddGameGenre_CanUse(t *testing.T) {
 
 	t.Run("has developers filter", func(t *testing.T) {
 		eff, mActions, mCells, mFilters := setup()
-		player := model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, nil)
+		player := model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, nil, nil)
 
 		mActions.CanDoFunc = func(ctx context.Context, events *model.Events, p *model.Player, t model.ActionType) bool {
 			return true
 		}
 
-		mCells.GetCurrentCellByProgressFunc = func(ctx context.Context, progress *model.PlayerProgress) (model.Cell, error) {
+		mCells.GetByPlayerWrappedFunc = func(ctx context.Context, player *model.Player) (model.Cell, error) {
 			return &cellsMocks.Cell{
 				CellInfo: model.RestoreCellInfo(model.CellData{
 					Filter: "filter1",
@@ -155,6 +155,7 @@ func TestAddGameGenre_Subscribe(t *testing.T) {
 			model.PlayerData{Id: "p1"},
 			&model.PlayerProgress{},
 			action,
+			nil,
 		)
 
 		var callbackCalled bool
@@ -183,7 +184,7 @@ func TestAddGameGenre_Subscribe(t *testing.T) {
 			Cell: &cellsMocks.Cell{CategoriesValue: []string{"game"}},
 		}
 
-		mCells.GetCurrentCellByProgressFunc = func(ctx context.Context, progress *model.PlayerProgress) (model.Cell, error) {
+		mCells.GetByPlayerWrappedFunc = func(ctx context.Context, player *model.Player) (model.Cell, error) {
 			return mCell, nil
 		}
 

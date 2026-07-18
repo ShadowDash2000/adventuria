@@ -18,13 +18,13 @@ func (p *PaidMovementInRadius) GetView(ctx context.Context, _ *model.Events, pla
 		return nil, err
 	}
 
-	currentCell, err := p.cells.GetCurrentCellByProgress(ctx, player.Progress())
+	currentCell, err := p.cells.GetByID(ctx, player.LastAction().Cell())
 	if err != nil {
 		return nil, err
 	}
 
-	currentCellOrder := currentCell.Data().LocalOrder()
-	currentWorldId := currentCell.Data().World()
+	currentCellOrder := currentCell.LocalOrder()
+	currentWorldId := currentCell.World()
 
 	startOrder := currentCellOrder - effectValue.Radius
 	if startOrder < 0 {

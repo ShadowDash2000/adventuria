@@ -33,7 +33,7 @@ func TestChooseActivity_CanUse(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		eff, mActions := setup()
-		player := model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, nil)
+		player := model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, nil, nil)
 
 		mActions.CanDoFunc = func(ctx context.Context, events *model.Events, p *model.Player, t model.ActionType) bool {
 			return t == actions.ActionTypeDone
@@ -46,7 +46,7 @@ func TestChooseActivity_CanUse(t *testing.T) {
 
 	t.Run("failure", func(t *testing.T) {
 		eff, mActions := setup()
-		player := model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, nil)
+		player := model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, nil, nil)
 
 		mActions.CanDoFunc = func(ctx context.Context, events *model.Events, p *model.Player, t model.ActionType) bool {
 			return false
@@ -78,9 +78,13 @@ func TestChooseActivity_Subscribe(t *testing.T) {
 
 		events := model.NewEvents()
 		action := model.RestoreAction(model.ActionData{
-			ItemsList: []string{"game1", "game2"},
+			DataList: model.ActionDataList{
+				Activities: model.ActivitiesData{
+					Ids: []string{"game1", "game2"},
+				},
+			},
 		})
-		player := model.RestorePlayer(model.PlayerData{Id: "p1"}, &model.PlayerProgress{}, action)
+		player := model.RestorePlayer(model.PlayerData{Id: "p1"}, &model.PlayerProgress{}, action, nil)
 
 		var callbackCalled bool
 		callback := func(ctx context.Context) {

@@ -15,7 +15,8 @@ type actionsService interface {
 }
 
 type cellsService interface {
-	GetCurrentCellByProgress(ctx context.Context, progress *model.PlayerProgress) (model.Cell, error)
+	GetByPlayer(ctx context.Context, player *model.Player) (*model.CellInfo, error)
+	GetByPlayerWrapped(ctx context.Context, player *model.Player) (model.Cell, error)
 }
 
 var _ model.Effect = (*NoTimeLimit)(nil)
@@ -46,12 +47,12 @@ func (n *NoTimeLimit) CanUse(ctx context.Context, events *model.Events, player *
 		return false
 	}
 
-	currentCell, err := n.cells.GetCurrentCellByProgress(ctx, player.Progress())
+	currentCell, err := n.cells.GetByPlayer(ctx, player)
 	if err != nil {
 		return false
 	}
 
-	if currentCell.Data().Type() != cells.CellTypeGame {
+	if currentCell.Type() != cells.CellTypeGame {
 		return false
 	}
 
@@ -102,7 +103,7 @@ func (n *NoTimeLimit) Subscribe(
 }
 
 func (n *NoTimeLimit) tryToApplyEffect(ctx context.Context, events *model.Events, player *model.Player) error {
-	currentCell, err := n.cells.GetCurrentCellByProgress(ctx, player.Progress())
+	currentCell, err := n.cells.GetByPlayerWrapped(ctx, player)
 	if err != nil {
 		return err
 	}

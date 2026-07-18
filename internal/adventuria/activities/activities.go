@@ -100,7 +100,9 @@ func (a *Activities) UpdateActivitiesFromFilter(
 			return err
 		}
 
-		player.LastAction().SetItemsList(activitiesIds)
+		activitiesData := player.LastAction().DataList().Activities
+		activitiesData.Ids = activitiesIds
+		player.LastAction().SetActivitiesData(activitiesData)
 	}
 
 	return nil

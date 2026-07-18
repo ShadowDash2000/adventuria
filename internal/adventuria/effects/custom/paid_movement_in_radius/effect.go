@@ -16,7 +16,6 @@ type actionsService interface {
 }
 
 type cellsService interface {
-	GetCurrentCellByProgress(ctx context.Context, progress *model.PlayerProgress) (model.Cell, error)
 	GetByID(ctx context.Context, id string) (*model.CellInfo, error)
 	GetByLocalOrder(ctx context.Context, worldId string, order int) (*model.CellInfo, error)
 	CountLocal(ctx context.Context, worldId string) (int, error)
@@ -70,7 +69,7 @@ func (p *PaidMovementInRadius) CanUse(ctx context.Context, events *model.Events,
 		return false
 	}
 
-	currentCell, err := p.cells.GetCurrentCellByProgress(ctx, player.Progress())
+	currentCell, err := p.cells.GetByID(ctx, player.LastAction().Cell())
 	if err != nil {
 		return false
 	}
@@ -79,7 +78,7 @@ func (p *PaidMovementInRadius) CanUse(ctx context.Context, events *model.Events,
 	canDrop := p.actions.CanDo(ctx, events, player, actions.ActionTypeDrop)
 
 	if canDone && !canDrop {
-		if currentCell.Data().Type() != cells.CellTypeJail {
+		if currentCell.Type() != cells.CellTypeJail {
 			return false
 		}
 	}
@@ -110,7 +109,7 @@ func (p *PaidMovementInRadius) Subscribe(
 				return err
 			}
 
-			currentCell, err := p.cells.GetCurrentCellByProgress(ctx, player.Progress())
+			currentCell, err := p.cells.GetByID(ctx, player.LastAction().Cell())
 			if err != nil {
 				return err
 			}
@@ -120,7 +119,7 @@ func (p *PaidMovementInRadius) Subscribe(
 				return err
 			}
 
-			distance, err := p.board.GetLocalDistanceBetweenCells(currentCell.Data(), destinationCell)
+			distance, err := p.board.GetLocalDistanceBetweenCells(currentCell, destinationCell)
 			if err != nil {
 				return err
 			}
