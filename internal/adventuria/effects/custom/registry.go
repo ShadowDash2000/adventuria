@@ -43,7 +43,7 @@ import (
 	"adventuria/internal/adventuria/inventories"
 	"adventuria/internal/adventuria/items"
 	"adventuria/internal/adventuria/outboxes"
-	"adventuria/internal/adventuria/players"
+	"adventuria/internal/adventuria/player_progress"
 )
 
 func RegisterEffects(
@@ -54,7 +54,7 @@ func RegisterEffects(
 	inventories *inventories.Inventories,
 	items *items.Items,
 	activities *activities.Activities,
-	players *players.Players,
+	progress *player_progress.PlayerProgress,
 	outboxes *outboxes.Outboxes,
 	board *board.Board,
 ) {
@@ -66,7 +66,7 @@ func RegisterEffects(
 		change_game_by_id.NewDef(cells, actions, activities),
 		change_game_price_filter.NewDef(actions, cells, activityFilters),
 		choose_activity.NewDef(actions, activities),
-		coins_for_all.NewDef(players, outboxes),
+		coins_for_all.NewDef(progress, outboxes),
 		balance_change.NewDef(),
 		debuff_block.NewDef(),
 		discount_price_divide.NewDef(),

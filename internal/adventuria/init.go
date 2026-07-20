@@ -50,7 +50,7 @@ func (g *Game) init(pb core.App) error {
 		registry.Inventories(),
 		registry.Items(),
 		registry.Activities(),
-		registry.Players(),
+		registry.PlayerProgress(),
 		registry.Outboxes(),
 		registry.Board(),
 	)
@@ -138,9 +138,11 @@ func (g *Game) init(pb core.App) error {
 			if err != nil {
 				return
 			}
-			err = registry.IGDB().ParseGames(ctx, 500)
-			if err != nil {
-				return
+			if !settings.DisableIgdbGamesParser() {
+				err = registry.IGDB().ParseGames(ctx, settings.IgdbFilter().Build(), 500)
+				if err != nil {
+					return
+				}
 			}
 		}
 	})

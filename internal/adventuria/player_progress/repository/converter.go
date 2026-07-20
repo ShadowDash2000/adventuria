@@ -40,3 +40,11 @@ func RecordToPlayerProgress(record *core.Record) *model.PlayerProgress {
 		MaxInventorySlots: record.GetInt(schema.PlayerProgressSchema.MaxInventorySlots),
 	})
 }
+
+func RecordsToPlayerProgresses(records []*core.Record) []*model.PlayerProgress {
+	progresses := make([]*model.PlayerProgress, len(records))
+	for i, record := range records {
+		progresses[i] = RecordToPlayerProgress(record)
+	}
+	return progresses
+}

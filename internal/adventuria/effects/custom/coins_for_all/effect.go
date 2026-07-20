@@ -9,8 +9,8 @@ import (
 	"encoding/json"
 )
 
-type players interface {
-	GetAll(ctx context.Context, seasonId string) ([]*model.Player, error)
+type progress interface {
+	GetAllBySeasonID(ctx context.Context, seasonId string) ([]*model.PlayerProgress, error)
 }
 
 type outboxes interface {
@@ -23,17 +23,17 @@ const Type model.EffectType = "coins_for_all"
 
 type CoinsForAll struct {
 	effects.EffectBase
-	players  players
+	progress progress
 	outboxes outboxes
 }
 
-func NewDef(players players, outboxes outboxes) effects.EffectDef {
+func NewDef(progress progress, outboxes outboxes) effects.EffectDef {
 	return effects.NewEffectDef(
 		Type,
 		func(effect model.EffectInfo) model.Effect {
 			return &CoinsForAll{
 				EffectBase: effects.NewEffectBase(effect),
-				players:    players,
+				progress:   progress,
 				outboxes:   outboxes,
 			}
 		},
@@ -67,18 +67,18 @@ func (c *CoinsForAll) Subscribe(
 				return err
 			}
 
-			players, err := c.players.GetAll(ctx, player.Progress().Season())
+			progresses, err := c.progress.GetAllBySeasonID(ctx, player.Progress().Season())
 			if err != nil {
 				return err
 			}
 
-			for _, p := range players {
-				if p.ID() == player.ID() {
+			for _, p := range progresses {
+				if p.Player() == player.ID() {
 					continue
 				}
 
 				payload, err := json.Marshal(change_balance.OutboxValue{
-					ProgressId: p.Progress().ID(),
+					ProgressId: p.ID(),
 					Amount:     effectValue.CoinsForOther,
 				})
 				outbox, err := model.NewOutbox(model.OutBoxCreate{

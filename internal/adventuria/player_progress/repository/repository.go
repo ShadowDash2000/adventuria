@@ -89,9 +89,24 @@ func (r *Repository) GetByPlayerId(ctx context.Context, playerId, seasonId strin
 		return nil, err
 	}
 
-	progress := RecordToPlayerProgress(&record)
+	return RecordToPlayerProgress(&record), nil
+}
 
-	return progress, nil
+func (r *Repository) GetAllBySeasonID(ctx context.Context, seasonId string) ([]*model.PlayerProgress, error) {
+	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
+
+	var records []*core.Record
+	err := pb.RecordQuery(schema.CollectionPlayersProgress).
+		WithContext(ctx).
+		Where(dbx.And(
+			dbx.HashExp{schema.PlayerProgressSchema.Season: seasonId},
+		)).
+		All(&records)
+	if err != nil {
+		return nil, err
+	}
+
+	return RecordsToPlayerProgresses(records), nil
 }
 
 func (r *Repository) ChangeBalance(ctx context.Context, id string, amount int) error {

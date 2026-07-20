@@ -109,12 +109,12 @@ func (g *Game) DoAction(
 	actionType model.ActionType,
 	req model.ActionRequest,
 ) (any, error) {
-	settings, err := g.settings.GetFirstOrDefault(ctx)
+	currentSeason, err := g.settings.CurrentSeason(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	player, err := g.players.GetByID(ctx, playerId, settings.CurrentSeason())
+	player, err := g.players.GetByID(ctx, playerId, currentSeason)
 	if err != nil {
 		return nil, err
 	}
@@ -158,12 +158,12 @@ func (g *Game) UseItem(
 	itemId string,
 	data map[string]any,
 ) error {
-	settings, err := g.settings.GetFirstOrDefault(ctx)
+	currentSeason, err := g.settings.CurrentSeason(ctx)
 	if err != nil {
 		return err
 	}
 
-	player, err := g.players.GetByID(ctx, playerId, settings.CurrentSeason())
+	player, err := g.players.GetByID(ctx, playerId, currentSeason)
 	if err != nil {
 		return err
 	}
@@ -210,12 +210,12 @@ func (g *Game) UseItem(
 }
 
 func (g *Game) DropItem(ctx context.Context, pb core.App, playerId, itemId string) error {
-	settings, err := g.settings.GetFirstOrDefault(ctx)
+	currentSeason, err := g.settings.CurrentSeason(ctx)
 	if err != nil {
 		return err
 	}
 
-	player, err := g.players.GetByID(ctx, playerId, settings.CurrentSeason())
+	player, err := g.players.GetByID(ctx, playerId, currentSeason)
 	if err != nil {
 		return err
 	}
@@ -259,12 +259,12 @@ func (g *Game) DropItem(ctx context.Context, pb core.App, playerId, itemId strin
 }
 
 func (g *Game) GetAvailableActions(ctx context.Context, playerId string) ([]model.ActionType, error) {
-	settings, err := g.settings.GetFirstOrDefault(ctx)
+	currentSeason, err := g.settings.CurrentSeason(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	player, err := g.players.GetByID(ctx, playerId, settings.CurrentSeason())
+	player, err := g.players.GetByID(ctx, playerId, currentSeason)
 	if err != nil {
 		return nil, err
 	}
@@ -280,12 +280,12 @@ func (g *Game) GetAvailableActions(ctx context.Context, playerId string) ([]mode
 }
 
 func (g *Game) GetEffectView(ctx context.Context, playerId, effectId string) (any, error) {
-	settings, err := g.settings.GetFirstOrDefault(ctx)
+	currentSeason, err := g.settings.CurrentSeason(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	player, err := g.players.GetByID(ctx, playerId, settings.CurrentSeason())
+	player, err := g.players.GetByID(ctx, playerId, currentSeason)
 	if err != nil {
 		return nil, err
 	}
@@ -299,12 +299,12 @@ func (g *Game) GetEffectView(ctx context.Context, playerId, effectId string) (an
 }
 
 func (g *Game) GetActionView(ctx context.Context, playerId string, actionType model.ActionType) (any, error) {
-	settings, err := g.settings.GetFirstOrDefault(ctx)
+	currentSeason, err := g.settings.CurrentSeason(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	player, err := g.players.GetByID(ctx, playerId, settings.CurrentSeason())
+	player, err := g.players.GetByID(ctx, playerId, currentSeason)
 	if err != nil {
 		return nil, err
 	}
@@ -318,12 +318,12 @@ func (g *Game) GetActionView(ctx context.Context, playerId string, actionType mo
 }
 
 func (g *Game) EventStats(ctx context.Context) (*event_stats.EventStatsData, error) {
-	settings, err := g.settings.GetFirstOrDefault(ctx)
+	currentSeason, err := g.settings.CurrentSeason(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	return g.eventStats.ComputeStats(ctx, settings.CurrentSeason())
+	return g.eventStats.ComputeStats(ctx, currentSeason)
 }
 
 func (g *Game) IsActionsBlocked(ctx context.Context) (bool, error) {

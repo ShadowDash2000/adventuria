@@ -300,8 +300,14 @@ var SettingsSchema = struct {
 	PointsForDrop     string
 	DropsToJail       string
 
+	IgdbFilterGameTypes           string
+	IgdbFilterPlatforms           string
+	IgdbFilterFirstReleaseDateMin string
+	IgdbFilterFirstReleaseDateMax string
+
 	IgdbGamesParsed         string
 	DisableIgdbParser       string
+	DisableIgdbGamesParser  string
 	DisableSteamParser      string
 	DisableCheapsharkParser string
 	DisableHltbParser       string
@@ -309,23 +315,28 @@ var SettingsSchema = struct {
 	KillParser              string
 	IgdbForceUpdateGames    string
 }{
-	Id:                      "id",
-	EventEnded:              "event_ended",
-	CurrentSeason:           "current_season",
-	CurrentWeek:             "current_week",
-	BlockAllActions:         "block_all_actions",
-	EnergyDefault:           "energy_default",
-	MaxInventorySlots:       "max_inventory_slots",
-	PointsForDrop:           "points_for_drop",
-	DropsToJail:             "drops_to_jail",
-	IgdbGamesParsed:         "igdb_games_parsed",
-	DisableIgdbParser:       "disable_igdb_parser",
-	DisableSteamParser:      "disable_steam_parser",
-	DisableCheapsharkParser: "disable_cheapshark_parser",
-	DisableHltbParser:       "disable_hltb_parser",
-	DisableRefreshHltbTime:  "disable_refresh_hltb_time",
-	KillParser:              "kill_parser",
-	IgdbForceUpdateGames:    "igdb_force_update_games",
+	Id:                            "id",
+	EventEnded:                    "event_ended",
+	CurrentSeason:                 "current_season",
+	CurrentWeek:                   "current_week",
+	BlockAllActions:               "block_all_actions",
+	EnergyDefault:                 "energy_default",
+	MaxInventorySlots:             "max_inventory_slots",
+	PointsForDrop:                 "points_for_drop",
+	DropsToJail:                   "drops_to_jail",
+	IgdbFilterGameTypes:           "igdb_filter_game_types",
+	IgdbFilterPlatforms:           "igdb_filter_platforms",
+	IgdbFilterFirstReleaseDateMin: "igdb_filter_first_release_date_min",
+	IgdbFilterFirstReleaseDateMax: "igdb_filter_first_release_date_max",
+	IgdbGamesParsed:               "igdb_games_parsed",
+	DisableIgdbParser:             "disable_igdb_parser",
+	DisableIgdbGamesParser:        "disable_igdb_games_parser",
+	DisableSteamParser:            "disable_steam_parser",
+	DisableCheapsharkParser:       "disable_cheapshark_parser",
+	DisableHltbParser:             "disable_hltb_parser",
+	DisableRefreshHltbTime:        "disable_refresh_hltb_time",
+	KillParser:                    "kill_parser",
+	IgdbForceUpdateGames:          "igdb_force_update_games",
 }
 
 var ActivitiesPlatformsSchema = struct {

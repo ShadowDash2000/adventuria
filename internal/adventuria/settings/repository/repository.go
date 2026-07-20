@@ -8,6 +8,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
@@ -37,6 +38,14 @@ func (r *Repository) Create(ctx context.Context, settings *model.Settings) (*mod
 		return nil, err
 	}
 
+	errs := pb.ExpandRecord(record, []string{
+		schema.SettingsSchema.IgdbFilterGameTypes,
+		schema.SettingsSchema.IgdbFilterPlatforms,
+	}, nil)
+	if len(errs) > 0 {
+		return nil, fmt.Errorf("failed to expand records: %v", errs)
+	}
+
 	return RecordToSettings(record), nil
 }
 
@@ -54,6 +63,14 @@ func (r *Repository) GetFirst(ctx context.Context) (*model.Settings, error) {
 			return nil, errs.ErrSettingsNotFound
 		}
 		return nil, err
+	}
+
+	errs := pb.ExpandRecord(&record, []string{
+		schema.SettingsSchema.IgdbFilterGameTypes,
+		schema.SettingsSchema.IgdbFilterPlatforms,
+	}, nil)
+	if len(errs) > 0 {
+		return nil, fmt.Errorf("failed to expand records: %v", errs)
 	}
 
 	return RecordToSettings(&record), nil
@@ -77,6 +94,26 @@ func (r *Repository) IsActionsBlocked(ctx context.Context) (bool, error) {
 	}
 
 	return isBlocked, nil
+}
+
+func (r *Repository) CurrentSeason(ctx context.Context) (string, error) {
+	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
+
+	var currentSeason string
+	err := pb.RecordQuery(schema.CollectionSettings).
+		WithContext(ctx).
+		Select(schema.SettingsSchema.CurrentSeason).
+		OrderBy("updated DESC").
+		Limit(1).
+		Row(&currentSeason)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", errs.ErrSettingsNotFound
+		}
+		return "", err
+	}
+
+	return currentSeason, nil
 }
 
 func (r *Repository) UpdateIGDBGamesParsedByID(ctx context.Context, id string, amount int) error {

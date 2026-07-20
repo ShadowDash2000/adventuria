@@ -11,6 +11,7 @@ type repository interface {
 	Create(ctx context.Context, settings *model.Settings) (*model.Settings, error)
 	GetFirst(ctx context.Context) (*model.Settings, error)
 	IsActionsBlocked(ctx context.Context) (bool, error)
+	CurrentSeason(ctx context.Context) (string, error)
 	UpdateIGDBGamesParsedByID(ctx context.Context, id string, amount int) error
 }
 
@@ -23,11 +24,18 @@ type Settings struct {
 	seasons    seasons
 }
 
-func defaultSettings(season string) model.SettingsCreate {
-	return model.SettingsCreate{
+func defaultSettings(season string) (*model.Settings, error) {
+	settings, err := model.NewSettings(model.SettingsCreate{
 		CurrentSeason: season,
 		DropsToJail:   2,
+	})
+	if err != nil {
+		return nil, err
 	}
+
+	settings.SetDisableIgdbGamesParser(true)
+
+	return settings, nil
 }
 
 func NewSettings(repo repository, seasons seasons) *Settings {
@@ -50,7 +58,7 @@ func (s *Settings) GetFirstOrDefault(ctx context.Context) (*model.Settings, erro
 		return nil, err
 	}
 
-	settings, err = model.NewSettings(defaultSettings(season.ID()))
+	settings, err = defaultSettings(season.ID())
 	if err != nil {
 		return nil, err
 	}
@@ -61,6 +69,10 @@ func (s *Settings) GetFirstOrDefault(ctx context.Context) (*model.Settings, erro
 	}
 
 	return settings, nil
+}
+
+func (s *Settings) CurrentSeason(ctx context.Context) (string, error) {
+	return s.repository.CurrentSeason(ctx)
 }
 
 func (s *Settings) IsActionsBlocked(ctx context.Context) (bool, error) {

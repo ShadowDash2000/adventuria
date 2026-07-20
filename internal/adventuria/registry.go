@@ -385,14 +385,9 @@ func (r *Registry) IGDBRepo() *igdbRepo.Repository {
 func (r *Registry) IGDBRemoteRepo() *igdbRepo.RemoteRepository {
 	twitchClientId, _ := os.LookupEnv("TWITCH_CLIENT_ID")
 	twitchClientSecret, _ := os.LookupEnv("TWITCH_CLIENT_SECRET")
-	igdbParseFilter, _ := os.LookupEnv("IGDB_PARSE_FILTER")
 
 	if r.igdbRemoteRepo == nil {
-		r.igdbRemoteRepo = igdbRepo.NewRemoteRepository(
-			twitchClientId,
-			twitchClientSecret,
-			igdbParseFilter,
-		)
+		r.igdbRemoteRepo = igdbRepo.NewRemoteRepository(twitchClientId, twitchClientSecret)
 	}
 	return r.igdbRemoteRepo
 }

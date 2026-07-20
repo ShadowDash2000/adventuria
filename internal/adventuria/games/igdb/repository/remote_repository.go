@@ -15,25 +15,23 @@ import (
 
 type RemoteRepository struct {
 	client *igdb.Client
-	filter string
 
 	extGameSources map[uint64]*pb.ExternalGameSource
 }
 
-func NewRemoteRepository(clientID, clientSecret, filter string) *RemoteRepository {
+func NewRemoteRepository(clientID, clientSecret string) *RemoteRepository {
 	return &RemoteRepository{
 		client: igdb.New(clientID, clientSecret),
-		filter: filter,
 	}
 }
 
-func (r *RemoteRepository) ParseGamesAll(ctx context.Context, offset, limit uint64) (<-chan igdbparser.ParseGamesMessage, uint64, error) {
-	count, err := r.GamesCount(ctx)
+func (r *RemoteRepository) ParseGamesAll(ctx context.Context, filter string, offset, limit uint64) (<-chan igdbparser.ParseGamesMessage, uint64, error) {
+	count, err := r.GamesCount(ctx, filter)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	ch, err := r.ParseGames(ctx, count, offset, limit)
+	ch, err := r.ParseGames(ctx, filter, count, offset, limit)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -41,7 +39,7 @@ func (r *RemoteRepository) ParseGamesAll(ctx context.Context, offset, limit uint
 	return ch, count, nil
 }
 
-func (r *RemoteRepository) ParseGames(ctx context.Context, count, offset, limit uint64) (<-chan igdbparser.ParseGamesMessage, error) {
+func (r *RemoteRepository) ParseGames(ctx context.Context, filter string, count, offset, limit uint64) (<-chan igdbparser.ParseGamesMessage, error) {
 	if limit > count {
 		limit = count
 	}
@@ -56,7 +54,7 @@ func (r *RemoteRepository) ParseGames(ctx context.Context, count, offset, limit 
 			case <-ctx.Done():
 				return
 			default:
-				gamesIgdb, err := r.gamesPaginated(ctx, offset, limit)
+				gamesIgdb, err := r.gamesPaginated(ctx, filter, offset, limit)
 				if err != nil {
 					ch <- igdbparser.ParseGamesMessage{Err: err}
 					return
@@ -143,12 +141,12 @@ func (r *RemoteRepository) ParseGames(ctx context.Context, count, offset, limit 
 	return ch, nil
 }
 
-func (r *RemoteRepository) GamesCount(ctx context.Context) (uint64, error) {
+func (r *RemoteRepository) GamesCount(ctx context.Context, filter string) (uint64, error) {
 	resp, err := r.client.Request(
 		ctx,
 		"POST",
 		fmt.Sprintf("https://api.igdb.com/v4/%s/count.pb", endpoint.EPGames),
-		fmt.Sprintf("where %s;", r.filter),
+		fmt.Sprintf("where %s;", filter),
 	)
 	if err != nil {
 		return 0, err
@@ -162,9 +160,9 @@ func (r *RemoteRepository) GamesCount(ctx context.Context) (uint64, error) {
 	return uint64(res.Count), nil
 }
 
-func (r *RemoteRepository) gamesPaginated(ctx context.Context, offset, limit uint64) ([]*pb.Game, error) {
+func (r *RemoteRepository) gamesPaginated(ctx context.Context, filter string, offset, limit uint64) ([]*pb.Game, error) {
 	return r.client.Games.Query(ctx,
-		fmt.Sprintf("where %s; offset %d; limit %d; fields *; sort id asc;", r.filter, offset, limit),
+		fmt.Sprintf("where %s; offset %d; limit %d; fields *; sort id asc;", filter, offset, limit),
 	)
 }
 

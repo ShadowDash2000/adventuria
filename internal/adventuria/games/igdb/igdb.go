@@ -15,8 +15,8 @@ type repository interface {
 }
 
 type remoteRepository interface {
-	ParseGames(ctx context.Context, count, offset, limit uint64) (<-chan ParseGamesMessage, error)
-	GamesCount(ctx context.Context) (uint64, error)
+	ParseGames(ctx context.Context, filter string, count, offset, limit uint64) (<-chan ParseGamesMessage, error)
+	GamesCount(ctx context.Context, filter string) (uint64, error)
 	GetCompaniesByIDs(ctx context.Context, ids []uint64) ([]*Company, error)
 	GetTagsByIDs(ctx context.Context, ids []uint64) ([]*Tag, error)
 	GetThemesByIDs(ctx context.Context, ids []uint64) ([]*Theme, error)
@@ -132,8 +132,8 @@ func NewIGDB(
 	}
 }
 
-func (i *IGDB) ParseGames(ctx context.Context, limit uint64) error {
-	gamesCount, err := i.remoteRepository.GamesCount(ctx)
+func (i *IGDB) ParseGames(ctx context.Context, filter string, limit uint64) error {
+	gamesCount, err := i.remoteRepository.GamesCount(ctx, filter)
 	if err != nil {
 		return err
 	}
@@ -147,7 +147,7 @@ func (i *IGDB) ParseGames(ctx context.Context, limit uint64) error {
 		return nil
 	}
 
-	ch, err := i.remoteRepository.ParseGames(ctx, gamesCount, 0, limit)
+	ch, err := i.remoteRepository.ParseGames(ctx, filter, gamesCount, 0, limit)
 	if err != nil {
 		return err
 	}

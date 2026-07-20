@@ -43,28 +43,6 @@ func (r *Repository) Exists(ctx context.Context, id string) (bool, error) {
 	return true, nil
 }
 
-func (r *Repository) GetAllIDs(ctx context.Context) ([]string, error) {
-	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
-
-	var records []struct {
-		Id string `db:"id"`
-	}
-	err := pb.RecordQuery(schema.CollectionPlayers).
-		WithContext(ctx).
-		Select(schema.PlayerSchema.Id).
-		All(&records)
-	if err != nil {
-		return nil, err
-	}
-
-	ids := make([]string, len(records))
-	for i, record := range records {
-		ids[i] = record.Id
-	}
-
-	return ids, nil
-}
-
 func (r *Repository) GetAll(ctx context.Context) ([]*model.PlayerInfo, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 

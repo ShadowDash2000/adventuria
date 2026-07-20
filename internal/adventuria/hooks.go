@@ -22,12 +22,12 @@ func (g *Game) bindHooks(pb core.App) {
 	pb.OnRecordEnrich(schema.CollectionInventory).BindFunc(func(e *core.RecordEnrichEvent) error {
 		ctx := context.Background()
 
-		settings, err := g.settings.GetFirstOrDefault(ctx)
+		currentSeason, err := g.settings.CurrentSeason(ctx)
 		if err != nil {
 			return err
 		}
 
-		player, err := g.players.GetByID(ctx, e.Record.GetString(schema.InventorySchema.Player), settings.CurrentSeason())
+		player, err := g.players.GetByID(ctx, e.Record.GetString(schema.InventorySchema.Player), currentSeason)
 		if err != nil {
 			return err
 		}

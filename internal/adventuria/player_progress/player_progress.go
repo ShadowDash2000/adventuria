@@ -11,6 +11,7 @@ type repository interface {
 	Create(ctx context.Context, progress *model.PlayerProgress) (*model.PlayerProgress, error)
 	Save(ctx context.Context, progress *model.PlayerProgress) (*model.PlayerProgress, error)
 	GetByPlayerId(ctx context.Context, playerId, seasonId string) (*model.PlayerProgress, error)
+	GetAllBySeasonID(ctx context.Context, seasonId string) ([]*model.PlayerProgress, error)
 	ChangeBalance(ctx context.Context, id string, amount int) error
 	ChangeEnergy(ctx context.Context, id string, amount int) error
 }
@@ -68,6 +69,10 @@ func (p *PlayerProgress) GetFirstOrDefault(ctx context.Context, playerId, season
 	}
 
 	return progress, nil
+}
+
+func (p *PlayerProgress) GetAllBySeasonID(ctx context.Context, seasonId string) ([]*model.PlayerProgress, error) {
+	return p.repository.GetAllBySeasonID(ctx, seasonId)
 }
 
 func (p *PlayerProgress) Save(ctx context.Context, progress *model.PlayerProgress) (*model.PlayerProgress, error) {

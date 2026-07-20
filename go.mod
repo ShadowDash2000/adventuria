@@ -9,7 +9,7 @@ require (
 	github.com/ShadowDash2000/steam-store-go v1.0.0
 	github.com/joho/godotenv v1.5.1
 	github.com/pocketbase/dbx v1.12.0
-	github.com/pocketbase/pocketbase v0.39.7
+	github.com/pocketbase/pocketbase v0.39.8
 	golang.org/x/exp v0.0.0-20260718201538-764159d718ef
 	google.golang.org/protobuf v1.36.11
 )
@@ -47,7 +47,7 @@ require (
 	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/text v0.40.0 // indirect
 	golang.org/x/time v0.15.0 // indirect
-	modernc.org/libc v1.74.2 // indirect
+	modernc.org/libc v1.74.3 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
 	modernc.org/sqlite v1.54.0 // indirect
