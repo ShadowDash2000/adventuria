@@ -37,7 +37,7 @@ func (r *Repository) Create(ctx context.Context, stats *model.PlayerStats) (*mod
 		return nil, err
 	}
 
-	return RecordToPlayerStats(record), nil
+	return RecordToPlayerStats(record)
 }
 
 func (r *Repository) Update(ctx context.Context, stats *model.PlayerStats) (*model.PlayerStats, error) {
@@ -57,7 +57,7 @@ func (r *Repository) Update(ctx context.Context, stats *model.PlayerStats) (*mod
 		return nil, err
 	}
 
-	return RecordToPlayerStats(record), nil
+	return RecordToPlayerStats(record)
 }
 
 func (r *Repository) Save(ctx context.Context, stats *model.PlayerStats) (*model.PlayerStats, error) {
@@ -87,5 +87,5 @@ func (r *Repository) GetByPlayerId(ctx context.Context, playerId, seasonId strin
 		return nil, err
 	}
 
-	return RecordToPlayerStats(&record), nil
+	return RecordToPlayerStats(&record)
 }

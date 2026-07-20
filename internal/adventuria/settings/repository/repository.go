@@ -116,6 +116,26 @@ func (r *Repository) CurrentSeason(ctx context.Context) (string, error) {
 	return currentSeason, nil
 }
 
+func (r *Repository) IsEventEnded(ctx context.Context) (bool, error) {
+	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
+
+	var eventEnded bool
+	err := pb.RecordQuery(schema.CollectionSettings).
+		WithContext(ctx).
+		Select(schema.SettingsSchema.EventEnded).
+		OrderBy("updated DESC").
+		Limit(1).
+		Row(&eventEnded)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return false, errs.ErrSettingsNotFound
+		}
+		return false, err
+	}
+
+	return eventEnded, nil
+}
+
 func (r *Repository) UpdateIGDBGamesParsedByID(ctx context.Context, id string, amount int) error {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 

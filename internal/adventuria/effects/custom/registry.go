@@ -36,6 +36,7 @@ import (
 	"adventuria/internal/adventuria/effects/custom/roll_reverse"
 	"adventuria/internal/adventuria/effects/custom/safe_drop"
 	"adventuria/internal/adventuria/effects/custom/save_from_hole"
+	"adventuria/internal/adventuria/effects/custom/stats"
 	"adventuria/internal/adventuria/effects/custom/stay_on_cell_after_done"
 	"adventuria/internal/adventuria/effects/custom/teleport_to_closest_cell_by_type"
 	"adventuria/internal/adventuria/effects/custom/teleport_to_random_cell"
@@ -92,9 +93,12 @@ func RegisterEffects(
 	)
 }
 
-func RegisterPersistentEffects() {
+func RegisterPersistentEffects(
+	activityFilters *activity_filters.ActivityFilters,
+) {
 	effects.RegisterPersistent(
 		give_wheel_on_done.NewDef(),
 		give_wheel_on_new_lap.NewDef(),
+		stats.NewDef(activityFilters),
 	)
 }

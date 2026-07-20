@@ -557,6 +557,8 @@ var PlayerStatsSchema = struct {
 	Id           string
 	Player       string
 	Season       string
+	Activities   string
+	CellsPassed  string
 	Drops        string
 	Rerolls      string
 	WasInJail    string
@@ -568,6 +570,8 @@ var PlayerStatsSchema = struct {
 	Id:           "id",
 	Player:       "player",
 	Season:       "season",
+	Activities:   "activities",
+	CellsPassed:  "cells_passed",
 	Drops:        "drops",
 	Rerolls:      "rerolls",
 	WasInJail:    "was_in_jail",

@@ -8,6 +8,7 @@ import (
 )
 
 type repository interface {
+	Create(ctx context.Context, stats *model.PlayerStats) (*model.PlayerStats, error)
 	Save(ctx context.Context, stats *model.PlayerStats) (*model.PlayerStats, error)
 	GetByPlayerId(ctx context.Context, playerId, seasonId string) (*model.PlayerStats, error)
 }
@@ -28,13 +29,22 @@ func (p *PlayerStats) Save(ctx context.Context, stats *model.PlayerStats) (*mode
 
 func (p *PlayerStats) GetOrCreate(ctx context.Context, playerId, seasonId string) (*model.PlayerStats, error) {
 	stats, err := p.repository.GetByPlayerId(ctx, playerId, seasonId)
+	if err == nil {
+		return stats, nil
+	} else if !errors.Is(err, errs.ErrPlayerStatsNotFound) {
+		return nil, err
+	}
+
+	stats, err = model.NewPlayerStats(model.PlayerStatsCreate{
+		Player: playerId,
+		Season: seasonId,
+	})
 	if err != nil {
-		if errors.Is(err, errs.ErrPlayerStatsNotFound) {
-			return model.NewPlayerStats(model.PlayerStatsCreate{
-				Player: playerId,
-				Season: seasonId,
-			})
-		}
+		return nil, err
+	}
+
+	stats, err = p.repository.Create(ctx, stats)
+	if err != nil {
 		return nil, err
 	}
 

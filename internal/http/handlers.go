@@ -26,6 +26,8 @@ type game interface {
 	GetActionView(ctx context.Context, playerId string, actionType model.ActionType) (any, error)
 	EventStats(ctx context.Context) (*event_stats.EventStatsData, error)
 	IsActionsBlocked(ctx context.Context) (bool, error)
+	CurrentSeason(ctx context.Context) (string, error)
+	IsEventEnded(ctx context.Context) (bool, error)
 }
 
 type result struct {
@@ -295,6 +297,24 @@ func (h *Handlers) RefreshShopHandler(e *core.RequestEvent) error {
 
 func (h *Handlers) EventStats(e *core.RequestEvent) error {
 	res, err := h.Game.EventStats(e.Request.Context())
+	if err != nil {
+		return RespondWithError(e, err)
+	}
+
+	return RespondWithSuccess(e, res)
+}
+
+func (h *Handlers) CurrentSeason(e *core.RequestEvent) error {
+	res, err := h.Game.CurrentSeason(e.Request.Context())
+	if err != nil {
+		return RespondWithError(e, err)
+	}
+
+	return RespondWithSuccess(e, res)
+}
+
+func (h *Handlers) IsEventEnded(e *core.RequestEvent) error {
+	res, err := h.Game.IsEventEnded(e.Request.Context())
 	if err != nil {
 		return RespondWithError(e, err)
 	}

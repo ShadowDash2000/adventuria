@@ -55,7 +55,9 @@ func (g *Game) init(pb core.App) error {
 		registry.Board(),
 	)
 
-	customEffects.RegisterPersistentEffects()
+	customEffects.RegisterPersistentEffects(
+		registry.ActivityFilters(),
+	)
 
 	customActions.RegisterActions(
 		registry.Cells(),

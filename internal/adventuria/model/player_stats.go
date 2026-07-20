@@ -5,16 +5,25 @@ import (
 )
 
 type PlayerStatsData struct {
-	Id           string
-	Player       string
-	Season       string
-	Drops        int
-	Rerolls      int
-	WasInJail    int
-	ItemsUsed    int
-	DiceRolls    int
-	MaxDiceRoll  int
-	WheelsRolled int
+	Id              string
+	Player          string
+	Season          string
+	ActivitiesStats ActivitiesStats
+	CellsPassed     int
+	Drops           int
+	Rerolls         int
+	WasInJail       int
+	ItemsUsed       int
+	DiceRolls       int
+	MaxDiceRoll     int
+	WheelsRolled    int
+}
+
+type ActivitiesStats struct {
+	GamesCompleted   int
+	MoviesCompleted  int
+	GymsCompleted    int
+	KaraokeCompleted int
 }
 
 type PlayerStats struct {
@@ -65,6 +74,34 @@ func (p *PlayerStats) Player() string {
 
 func (p *PlayerStats) Season() string {
 	return p.data.Season
+}
+
+func (p *PlayerStats) ActivitiesStats() ActivitiesStats {
+	return p.data.ActivitiesStats
+}
+
+func (p *PlayerStats) GamesCompletedChange(amount int) {
+	p.data.ActivitiesStats.GamesCompleted += amount
+}
+
+func (p *PlayerStats) MoviesCompletedChange(amount int) {
+	p.data.ActivitiesStats.MoviesCompleted += amount
+}
+
+func (p *PlayerStats) GymsCompletedChange(amount int) {
+	p.data.ActivitiesStats.GymsCompleted += amount
+}
+
+func (p *PlayerStats) KaraokeCompletedChange(amount int) {
+	p.data.ActivitiesStats.KaraokeCompleted += amount
+}
+
+func (p *PlayerStats) CellsPassed() int {
+	return p.data.CellsPassed
+}
+
+func (p *PlayerStats) CellsPassedChange(amount int) {
+	p.data.CellsPassed += amount
 }
 
 func (p *PlayerStats) Drops() int {

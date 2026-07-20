@@ -14,6 +14,8 @@ func Route(game game, router *router.Router[*core.RequestEvent]) {
 	g := router.Group("/api")
 
 	g.GET("/event-stats", handlers.EventStats)
+	g.GET("/current-season", handlers.CurrentSeason)
+	g.GET("/event-ended", handlers.IsEventEnded)
 
 	ga := g.Group("")
 	ga.Bind(apis.RequireAuth())

@@ -12,6 +12,7 @@ type repository interface {
 	GetFirst(ctx context.Context) (*model.Settings, error)
 	IsActionsBlocked(ctx context.Context) (bool, error)
 	CurrentSeason(ctx context.Context) (string, error)
+	IsEventEnded(ctx context.Context) (bool, error)
 	UpdateIGDBGamesParsedByID(ctx context.Context, id string, amount int) error
 }
 
@@ -77,6 +78,10 @@ func (s *Settings) CurrentSeason(ctx context.Context) (string, error) {
 
 func (s *Settings) IsActionsBlocked(ctx context.Context) (bool, error) {
 	return s.repository.IsActionsBlocked(ctx)
+}
+
+func (s *Settings) IsEventEnded(ctx context.Context) (bool, error) {
+	return s.repository.IsEventEnded(ctx)
 }
 
 func (s *Settings) UpdateIGDBGamesParsedByID(ctx context.Context, id string, amount int) error {

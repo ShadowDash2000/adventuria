@@ -183,7 +183,10 @@ func (r *Repository) ComputeStats(ctx context.Context, seasonId string) (*event_
 
 	playerStatsMap := make(map[string]*model.PlayerStats, len(playerStatsRecords))
 	for _, p := range playerStatsRecords {
-		playerStatsMap[p.Id] = repository.RecordToPlayerStats(p)
+		playerStatsMap[p.Id], err = repository.RecordToPlayerStats(p)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	playerMap := make(map[string]*core.Record, len(playersRecords))

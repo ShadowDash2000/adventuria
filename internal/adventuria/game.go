@@ -329,3 +329,11 @@ func (g *Game) EventStats(ctx context.Context) (*event_stats.EventStatsData, err
 func (g *Game) IsActionsBlocked(ctx context.Context) (bool, error) {
 	return g.settings.IsActionsBlocked(ctx)
 }
+
+func (g *Game) CurrentSeason(ctx context.Context) (string, error) {
+	return g.settings.CurrentSeason(ctx)
+}
+
+func (g *Game) IsEventEnded(ctx context.Context) (bool, error) {
+	return g.settings.IsEventEnded(ctx)
+}
