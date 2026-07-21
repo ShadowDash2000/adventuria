@@ -1496,7 +1496,7 @@ func init() {
 						"type": "text"
 					},
 					{
-						"hidden": true,
+						"hidden": false,
 						"id": "autodate2990389176",
 						"name": "created",
 						"onCreate": true,
@@ -1506,7 +1506,7 @@ func init() {
 						"type": "autodate"
 					},
 					{
-						"hidden": true,
+						"hidden": false,
 						"id": "autodate3332085495",
 						"name": "updated",
 						"onCreate": true,
@@ -2031,7 +2031,7 @@ func init() {
 				],
 				"id": "pbc_2769025244",
 				"indexes": [],
-				"listRule": "",
+				"listRule": null,
 				"name": "settings",
 				"system": false,
 				"type": "base",
@@ -2757,7 +2757,7 @@ func init() {
 						"autogeneratePattern": "",
 						"help": "",
 						"hidden": false,
-						"id": "_clone_Gpx3",
+						"id": "_clone_81pa",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -2771,7 +2771,7 @@ func init() {
 					{
 						"help": "",
 						"hidden": false,
-						"id": "_clone_2qTn",
+						"id": "_clone_SqCy",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_id",
@@ -2784,7 +2784,7 @@ func init() {
 					{
 						"help": "",
 						"hidden": false,
-						"id": "_clone_qABc",
+						"id": "_clone_BcU8",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_price",
@@ -3020,7 +3020,7 @@ func init() {
 						"autogeneratePattern": "",
 						"help": "",
 						"hidden": false,
-						"id": "_clone_8ErL",
+						"id": "_clone_1gpB",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -3034,7 +3034,7 @@ func init() {
 					{
 						"help": "",
 						"hidden": false,
-						"id": "_clone_Yj7t",
+						"id": "_clone_hihs",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_id",
@@ -3047,7 +3047,7 @@ func init() {
 					{
 						"help": "",
 						"hidden": false,
-						"id": "_clone_DHBf",
+						"id": "_clone_tXwF",
 						"max": null,
 						"min": 0,
 						"name": "hltb_id",
@@ -3060,7 +3060,7 @@ func init() {
 					{
 						"help": "",
 						"hidden": false,
-						"id": "_clone_rVit",
+						"id": "_clone_0agi",
 						"max": null,
 						"min": 0,
 						"name": "hltb_campaign_time",
@@ -3383,7 +3383,7 @@ func init() {
 						"autogeneratePattern": "",
 						"help": "",
 						"hidden": false,
-						"id": "_clone_77y0",
+						"id": "_clone_IaRQ",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -3397,7 +3397,7 @@ func init() {
 					{
 						"help": "",
 						"hidden": false,
-						"id": "_clone_lKtL",
+						"id": "_clone_QSOa",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_id",
@@ -3410,7 +3410,7 @@ func init() {
 					{
 						"help": "",
 						"hidden": false,
-						"id": "_clone_geZD",
+						"id": "_clone_RXxH",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_price",
@@ -3454,7 +3454,7 @@ func init() {
 						"autogeneratePattern": "",
 						"help": "",
 						"hidden": false,
-						"id": "_clone_UmDY",
+						"id": "_clone_hQsF",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -3468,7 +3468,7 @@ func init() {
 					{
 						"help": "",
 						"hidden": false,
-						"id": "_clone_0et9",
+						"id": "_clone_DIzP",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_id",
@@ -3481,7 +3481,7 @@ func init() {
 					{
 						"help": "",
 						"hidden": false,
-						"id": "_clone_laaQ",
+						"id": "_clone_UUzi",
 						"max": null,
 						"min": 0,
 						"name": "hltb_id",
@@ -3494,7 +3494,7 @@ func init() {
 					{
 						"help": "",
 						"hidden": false,
-						"id": "_clone_BJ9g",
+						"id": "_clone_oaUK",
 						"max": null,
 						"min": 0,
 						"name": "hltb_campaign_time",
@@ -3613,12 +3613,12 @@ func init() {
 				"indexes": [
 					"CREATE UNIQUE INDEX ` + "`" + `idx_rTq4G7Xcl2` + "`" + ` ON ` + "`" + `howlongtobeat` + "`" + ` (` + "`" + `id_db` + "`" + `)"
 				],
-				"listRule": "",
+				"listRule": null,
 				"name": "howlongtobeat",
 				"system": false,
 				"type": "base",
 				"updateRule": null,
-				"viewRule": ""
+				"viewRule": null
 			},
 			{
 				"createRule": null,
@@ -3705,12 +3705,12 @@ func init() {
 				"indexes": [
 					"CREATE UNIQUE INDEX ` + "`" + `idx_MYrw0NVvJQ` + "`" + ` ON ` + "`" + `steam_spy` + "`" + ` (` + "`" + `id_db` + "`" + `)"
 				],
-				"listRule": "",
+				"listRule": null,
 				"name": "steam_spy",
 				"system": false,
 				"type": "base",
 				"updateRule": null,
-				"viewRule": ""
+				"viewRule": null
 			},
 			{
 				"createRule": null,
