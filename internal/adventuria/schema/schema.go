@@ -624,6 +624,8 @@ var CellEventsScheduleSchema = struct {
 	ActionEvent     string
 	Effects         string
 	ActiveCell      string
+	CellTypes       string
+	Worlds          string
 	ShiftInterval   string
 	LastShiftChange string
 }{
@@ -631,6 +633,8 @@ var CellEventsScheduleSchema = struct {
 	ActionEvent:     "action_event",
 	Effects:         "effects",
 	ActiveCell:      "active_cell",
+	CellTypes:       "cell_types",
+	Worlds:          "worlds",
 	ShiftInterval:   "shift_interval",
 	LastShiftChange: "last_shift_change",
 }

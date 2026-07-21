@@ -16,13 +16,13 @@ import (
 	"github.com/pocketbase/pocketbase/core"
 )
 
-func (g *Game) init(pb core.App) error {
+func (g *Game) init(ctx context.Context, pb core.App) error {
 	registry := NewRegistry(pb)
 
 	g.settings = registry.Settings()
 	g.players = registry.Players()
 	g.cells = registry.Cells()
-	g.actionEvents = registry.ActionEvents()
+	g.cellEvents = registry.CellEventsSchedules()
 	g.actions = registry.Actions()
 	g.inventories = registry.Inventories()
 	g.effects = registry.Effects()
@@ -76,14 +76,14 @@ func (g *Game) init(pb core.App) error {
 	)
 
 	// background tasks
-	registry.Outboxes().Start(context.Background())
-	err := registry.StreamTracker().Start(context.Background())
+	registry.Outboxes().Start(ctx)
+	err := registry.StreamTracker().Start(ctx)
 	if err != nil {
 		return err
 	}
 
 	// hooks
-	g.bindHooks(pb)
+	g.bindHooks(ctx, pb)
 	cells.BindHooks(pb)
 	effects.BindHooks(pb)
 	action_events.BindHooks(pb)
@@ -92,7 +92,7 @@ func (g *Game) init(pb core.App) error {
 
 	// crons
 	pb.Cron().MustAdd("games_parser", "0 0 1 * *", func() {
-		ctx, cancel := context.WithCancel(context.Background())
+		ctx, cancel := context.WithCancel(ctx)
 		defer cancel()
 
 		settings, err := g.settings.GetFirstOrDefault(ctx)
@@ -146,6 +146,12 @@ func (g *Game) init(pb core.App) error {
 					return
 				}
 			}
+		}
+	})
+	pb.Cron().MustAdd("cell_events_scheduler", "*/1 * * * *", func() {
+		err := g.cellEvents.CheckEventsSchedules(ctx)
+		if err != nil {
+			return
 		}
 	})
 

@@ -217,3 +217,26 @@ func (r *Repository) CountGlobal(ctx context.Context) (int, error) {
 
 	return count, nil
 }
+
+func (r *Repository) GetAllByWorldID(ctx context.Context, worldId string) ([]*model.CellInfo, error) {
+	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
+
+	subQuery := r.baseCellQuery(pb.DB()).Build()
+
+	var dtos []cellDTO
+	err := pb.DB().
+		Select("*").
+		From(fmt.Sprintf("(%s) t", subQuery.SQL())).
+		OrderBy("t.local_order ASC").
+		Where(dbx.HashExp{
+			pbhelper.DotExpand("t", schema.CellSchema.World): worldId,
+		}).
+		Bind(subQuery.Params()).
+		WithContext(ctx).
+		All(&dtos)
+	if err != nil {
+		return nil, err
+	}
+
+	return cellDTOsToCells(dtos), nil
+}

@@ -11,6 +11,8 @@ import (
 	"adventuria/internal/adventuria/activity_filters"
 	activityFiltersRepo "adventuria/internal/adventuria/activity_filters/repository"
 	"adventuria/internal/adventuria/board"
+	"adventuria/internal/adventuria/cell_events_schedules"
+	cellEventsSchedulesRepo "adventuria/internal/adventuria/cell_events_schedules/repository"
 	"adventuria/internal/adventuria/cells"
 	cellsRepo "adventuria/internal/adventuria/cells/repository"
 	"adventuria/internal/adventuria/companies"
@@ -70,74 +72,76 @@ type Registry struct {
 	pb core.App
 
 	// repos
-	seasonsRepo          *seasonsRepo.Repository
-	settingsRepo         *settingsRepo.Repository
-	cellsRepo            *cellsRepo.Repository
-	worldsRepo           *worldsRepo.Repository
-	actionsRepo          *actionsRepo.Repository
-	progressRepo         *progressRepo.Repository
-	playersRepo          *playersRepo.Repository
-	playerStatsRepo      *playerStatsRepo.Repository
-	inventoriesRepo      *inventoriesRepo.Repository
-	effectsRepo          *effectsRepo.Repository
-	activitiesRepo       *activitiesRepo.Repository
-	activityFiltersRepo  *activityFiltersRepo.Repository
-	itemsRepo            *itemsRepo.Repository
-	genresRepo           *genresRepo.Repository
-	reviewsRepo          *reviewsRepo.Repository
-	rollWheelRepo        *rollWheelRepo.Repository
-	outboxesRepo         *outboxesRepo.Repository
-	relationRepo         *activitiesRepo.RelationRepository
-	eventStatsRepo       *eventStatsRepo.Repository
-	eventStatsCachedRepo *eventStatsRepo.CachedRepository
-	streamTrackerRepo    *streamTrackerRepo.Repository
-	platformsRepo        *platformsRepo.Repository
-	companiesRepo        *companiesRepo.Repository
-	tagsRepo             *tagsRepo.Repository
-	themesRepo           *themesRepo.Repository
-	gameTypesRepo        *gameTypesRepo.Repository
-	hltbRepo             *hltbRepo.Repository
-	hltbRemoteRepo       *hltbRepo.RemoteRepository
-	steamSpyRepo         *steamSpyRepo.Repository
-	steamSpyRemoteRepo   *steamSpyRepo.RemoteRepository
-	cheapSharkRepo       *cheapSharkRepo.Repository
-	cheapSharkRemoteRepo *cheapSharkRepo.RemoteRepository
-	githubRepo           *githubRepo.Repository
-	igdbRepo             *igdbRepo.Repository
-	igdbRemoteRepo       *igdbRepo.RemoteRepository
-	actionEventsRepo     *actionEventsRepo.Repository
+	seasonsRepo             *seasonsRepo.Repository
+	settingsRepo            *settingsRepo.Repository
+	cellsRepo               *cellsRepo.Repository
+	worldsRepo              *worldsRepo.Repository
+	actionsRepo             *actionsRepo.Repository
+	progressRepo            *progressRepo.Repository
+	playersRepo             *playersRepo.Repository
+	playerStatsRepo         *playerStatsRepo.Repository
+	inventoriesRepo         *inventoriesRepo.Repository
+	effectsRepo             *effectsRepo.Repository
+	activitiesRepo          *activitiesRepo.Repository
+	activityFiltersRepo     *activityFiltersRepo.Repository
+	itemsRepo               *itemsRepo.Repository
+	genresRepo              *genresRepo.Repository
+	reviewsRepo             *reviewsRepo.Repository
+	rollWheelRepo           *rollWheelRepo.Repository
+	outboxesRepo            *outboxesRepo.Repository
+	relationRepo            *activitiesRepo.RelationRepository
+	eventStatsRepo          *eventStatsRepo.Repository
+	eventStatsCachedRepo    *eventStatsRepo.CachedRepository
+	streamTrackerRepo       *streamTrackerRepo.Repository
+	platformsRepo           *platformsRepo.Repository
+	companiesRepo           *companiesRepo.Repository
+	tagsRepo                *tagsRepo.Repository
+	themesRepo              *themesRepo.Repository
+	gameTypesRepo           *gameTypesRepo.Repository
+	hltbRepo                *hltbRepo.Repository
+	hltbRemoteRepo          *hltbRepo.RemoteRepository
+	steamSpyRepo            *steamSpyRepo.Repository
+	steamSpyRemoteRepo      *steamSpyRepo.RemoteRepository
+	cheapSharkRepo          *cheapSharkRepo.Repository
+	cheapSharkRemoteRepo    *cheapSharkRepo.RemoteRepository
+	githubRepo              *githubRepo.Repository
+	igdbRepo                *igdbRepo.Repository
+	igdbRemoteRepo          *igdbRepo.RemoteRepository
+	actionEventsRepo        *actionEventsRepo.Repository
+	cellEventsSchedulesRepo *cellEventsSchedulesRepo.Repository
 
 	// services
-	seasons         *seasons.Seasons
-	settings        *settings.Settings
-	worlds          *worlds.Worlds
-	cells           *cells.Cells
-	actions         *actions.Actions
-	progress        *player_progress.PlayerProgress
-	players         *players.Players
-	playerStats     *player_stats.PlayerStats
-	effects         *effects.Effects
-	inventories     *inventories.Inventories
-	activities      *activities.Activities
-	activityFilters *activity_filters.ActivityFilters
-	items           *items.Items
-	board           *board.Board
-	genres          *genres.Genres
-	reviews         *reviews.Reviews
-	outboxes        *outboxes.Outboxes
-	eventStats      *event_stats.EventStats
-	streamTracker   *stream_tracker.StreamTracker
-	platforms       *platforms.Platforms
-	companies       *companies.Companies
-	tags            *tags.Tags
-	themes          *themes.Themes
-	gameTypes       *game_types.GameTypes
-	hltb            *how_long_to_beat.HowLongToBeat
-	steamSpy        *steam_spy.SteamSpy
-	cheapShark      *cheapshark.CheapShark
-	github          *github.Github
-	igdb            *igdb.IGDB
-	actionEvents    *action_events.ActionEvents
+	seasons             *seasons.Seasons
+	settings            *settings.Settings
+	worlds              *worlds.Worlds
+	cells               *cells.Cells
+	actions             *actions.Actions
+	progress            *player_progress.PlayerProgress
+	players             *players.Players
+	playerStats         *player_stats.PlayerStats
+	effects             *effects.Effects
+	inventories         *inventories.Inventories
+	activities          *activities.Activities
+	activityFilters     *activity_filters.ActivityFilters
+	items               *items.Items
+	board               *board.Board
+	genres              *genres.Genres
+	reviews             *reviews.Reviews
+	outboxes            *outboxes.Outboxes
+	eventStats          *event_stats.EventStats
+	streamTracker       *stream_tracker.StreamTracker
+	platforms           *platforms.Platforms
+	companies           *companies.Companies
+	tags                *tags.Tags
+	themes              *themes.Themes
+	gameTypes           *game_types.GameTypes
+	hltb                *how_long_to_beat.HowLongToBeat
+	steamSpy            *steam_spy.SteamSpy
+	cheapShark          *cheapshark.CheapShark
+	github              *github.Github
+	igdb                *igdb.IGDB
+	actionEvents        *action_events.ActionEvents
+	cellEventsSchedules *cell_events_schedules.CellEventsSchedules
 }
 
 func NewRegistry(pb core.App) *Registry {
@@ -399,6 +403,13 @@ func (r *Registry) ActionEventsRepo() *actionEventsRepo.Repository {
 	return r.actionEventsRepo
 }
 
+func (r *Registry) CellEventsSchedulesRepo() *cellEventsSchedulesRepo.Repository {
+	if r.cellEventsSchedulesRepo == nil {
+		r.cellEventsSchedulesRepo = cellEventsSchedulesRepo.NewRepository(r.pb)
+	}
+	return r.cellEventsSchedulesRepo
+}
+
 func (r *Registry) Seasons() *seasons.Seasons {
 	if r.seasons == nil {
 		r.seasons = seasons.NewSeasons(r.SeasonsRepo())
@@ -620,4 +631,16 @@ func (r *Registry) ActionEvents() *action_events.ActionEvents {
 		r.actionEvents = action_events.NewActionEvents(r.ActionEventsRepo())
 	}
 	return r.actionEvents
+}
+
+func (r *Registry) CellEventsSchedules() *cell_events_schedules.CellEventsSchedules {
+	if r.cellEventsSchedules == nil {
+		r.cellEventsSchedules = cell_events_schedules.NewCellEventsSchedules(
+			r.CellEventsSchedulesRepo(),
+			r.Cells(),
+			r.Effects(),
+			r.ActionEvents(),
+		)
+	}
+	return r.cellEventsSchedules
 }

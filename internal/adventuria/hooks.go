@@ -1,13 +1,16 @@
 package adventuria
 
 import (
+	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/schema"
 	"context"
+	"errors"
 
+	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
 )
 
-func (g *Game) bindHooks(pb core.App) {
+func (g *Game) bindHooks(ctx context.Context, pb core.App) {
 	pb.OnRecordUpdate(schema.CollectionSettings).BindFunc(func(e *core.RecordEvent) error {
 		if ok := e.Record.GetBool(schema.SettingsSchema.KillParser); ok {
 			err := g.onKillParser().Trigger(e.Context, &onKillParserEvent{})
@@ -20,8 +23,6 @@ func (g *Game) bindHooks(pb core.App) {
 	})
 
 	pb.OnRecordEnrich(schema.CollectionInventory).BindFunc(func(e *core.RecordEnrichEvent) error {
-		ctx := context.Background()
-
 		currentSeason, err := g.settings.CurrentSeason(ctx)
 		if err != nil {
 			return err
@@ -49,6 +50,33 @@ func (g *Game) bindHooks(pb core.App) {
 		e.Record.WithCustomData(true)
 		e.Record.Set("can_use", canUse)
 		e.Record.Set("can_drop", canDrop)
+
+		return e.Next()
+	})
+
+	pb.OnRecordEnrich(schema.CollectionCells).BindFunc(func(e *core.RecordEnrichEvent) error {
+		cellEventId, err := g.cellEvents.GetIDByActiveCellID(ctx, e.Record.Id)
+		if err != nil {
+			if errors.Is(err, errs.ErrCellEventScheduleNotFound) {
+				return e.Next()
+			}
+			return err
+		}
+
+		var record core.Record
+		err = e.App.RecordQuery(schema.CollectionCellEventsSchedule).
+			WithContext(ctx).
+			Where(dbx.HashExp{
+				schema.CellEventsScheduleSchema.Id: cellEventId,
+			}).
+			Limit(1).
+			One(&record)
+		if err != nil {
+			return err
+		}
+
+		e.Record.WithCustomData(true)
+		e.Record.Set("cell_event", record)
 
 		return e.Next()
 	})

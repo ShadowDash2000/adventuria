@@ -1,8 +1,8 @@
 package adventuria
 
 import (
-	"adventuria/internal/adventuria/action_events"
 	"adventuria/internal/adventuria/actions"
+	"adventuria/internal/adventuria/cell_events_schedules"
 	"adventuria/internal/adventuria/cells"
 	"adventuria/internal/adventuria/effects"
 	"adventuria/internal/adventuria/errs"
@@ -29,7 +29,7 @@ type Game struct {
 	settings      *settings.Settings
 	players       *players.Players
 	cells         *cells.Cells
-	actionEvents  *action_events.ActionEvents
+	cellEvents    *cell_events_schedules.CellEventsSchedules
 	actions       *actions.Actions
 	inventories   *inventories.Inventories
 	effects       *effects.Effects
@@ -41,6 +41,9 @@ type Game struct {
 }
 
 func Start(fn func(game *Game, se *core.ServeEvent) error) (*Game, error) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	g := &Game{
 		pb:            pocketbase.New(),
 		playersLocker: locker.New[string](),
@@ -53,7 +56,7 @@ func Start(fn func(game *Game, se *core.ServeEvent) error) (*Game, error) {
 	})
 
 	g.pb.OnServe().BindFunc(func(e *core.ServeEvent) error {
-		if err := g.init(e.App); err != nil {
+		if err := g.init(ctx, e.App); err != nil {
 			return err
 		}
 		return e.Next()
@@ -89,7 +92,7 @@ func (g *Game) initScope(ctx context.Context, player *model.Player) (*scope.Scop
 		return nil, err
 	}
 
-	err = g.actionEvents.ListenToActionEvents(s.Events(), s.Player())
+	err = g.cellEvents.ListenToCellEvents(ctx, s.Events(), s.Player())
 	if err != nil {
 		return nil, err
 	}

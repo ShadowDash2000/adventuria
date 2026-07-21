@@ -15,6 +15,7 @@ type repository interface {
 	GetAllGlobalByType(ctx context.Context, t model.CellType) ([]*model.CellInfo, error)
 	CountLocal(ctx context.Context, worldId string) (int, error)
 	CountGlobal(ctx context.Context) (int, error)
+	GetAllByWorldID(ctx context.Context, worldId string) ([]*model.CellInfo, error)
 }
 
 type Cells struct {
@@ -93,4 +94,8 @@ func (c *Cells) CountGlobal(ctx context.Context) (int, error) {
 
 func (c *Cells) GetAllGlobalByType(ctx context.Context, t model.CellType) ([]*model.CellInfo, error) {
 	return c.repository.GetAllGlobalByType(ctx, t)
+}
+
+func (c *Cells) GetAllByWorldID(ctx context.Context, worldId string) ([]*model.CellInfo, error) {
+	return c.repository.GetAllByWorldID(ctx, worldId)
 }

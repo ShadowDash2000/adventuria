@@ -117,6 +117,10 @@ var (
 		Code:    "cell_event_not_found",
 		Message: "Cell event not found",
 	}
+	ErrCellEventScheduleNotFound = &AppError{
+		Code:    "cell_event_schedule_not_found",
+		Message: "Cell event schedule not found",
+	}
 
 	ErrReviewCommentTooLong = &AppError{
 		Code:    "review_comment_max_size",
