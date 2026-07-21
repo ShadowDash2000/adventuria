@@ -14,25 +14,27 @@ type items interface {
 
 var _ model.Refreshable = (*CellShop)(nil)
 
-const Type model.CellType = "shop"
-
 const shopMaxItems = 6
 
 type CellShop struct {
 	cells.CellBase
-	items items
+	itemsType model.ItemType
+	items     items
 }
 
 func NewDef(
+	cellType model.CellType,
+	itemsType model.ItemType,
 	items items,
 	categories ...string,
 ) cells.CellDef {
 	return cells.NewCell(
-		Type,
+		cellType,
 		func(cell model.CellInfo) model.Cell {
 			return &CellShop{
-				CellBase: cells.NewCellBase(cell),
-				items:    items,
+				CellBase:  cells.NewCellBase(cell),
+				itemsType: itemsType,
+				items:     items,
 			}
 		},
 		categories...,
@@ -59,7 +61,7 @@ func (c *CellShop) RefreshItems(ctx context.Context, _ *model.Events, player *mo
 }
 
 func (c *CellShop) refreshItems(ctx context.Context, player *model.Player) error {
-	items, err := c.items.GetAllBuyableByType(ctx, model.ItemTypeBuff)
+	items, err := c.items.GetAllBuyableByType(ctx, c.itemsType)
 	if err != nil {
 		return err
 	}
@@ -69,7 +71,7 @@ func (c *CellShop) refreshItems(ctx context.Context, player *model.Player) error
 	}
 
 	ids := make([]string, shopMaxItems)
-	for i := 0; i < shopMaxItems; i++ {
+	for i := range shopMaxItems {
 		ids[i] = items[rand.N(len(items))].ID()
 	}
 

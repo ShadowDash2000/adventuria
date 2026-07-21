@@ -18,8 +18,6 @@ type filters interface {
 
 var _ model.Rollable = (*CellActivity)(nil)
 
-const Type model.CellType = "activity"
-
 type CellActivity struct {
 	cells.CellBase
 	activityType model.ActivityType
