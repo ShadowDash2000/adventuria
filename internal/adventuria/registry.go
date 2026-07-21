@@ -63,13 +63,15 @@ import (
 	themesRepo "adventuria/internal/adventuria/themes/repository"
 	"adventuria/internal/adventuria/worlds"
 	worldsRepo "adventuria/internal/adventuria/worlds/repository"
+	"log/slog"
 	"os"
 
 	"github.com/pocketbase/pocketbase/core"
 )
 
 type Registry struct {
-	pb core.App
+	pb     core.App
+	logger *slog.Logger
 
 	// repos
 	seasonsRepo             *seasonsRepo.Repository
@@ -144,8 +146,11 @@ type Registry struct {
 	cellEventsSchedules *cell_events_schedules.CellEventsSchedules
 }
 
-func NewRegistry(pb core.App) *Registry {
-	return &Registry{pb: pb}
+func NewRegistry(pb core.App, logger *slog.Logger) *Registry {
+	return &Registry{
+		pb:     pb,
+		logger: logger,
+	}
 }
 
 func (r *Registry) SeasonsRepo() *seasonsRepo.Repository {
@@ -544,7 +549,7 @@ func (r *Registry) EventStats() *event_stats.EventStats {
 
 func (r *Registry) StreamTracker() *stream_tracker.StreamTracker {
 	if r.streamTracker == nil {
-		r.streamTracker = stream_tracker.NewStreamTracker(r.StreamTrackerRepo(), r.PlayersRepo())
+		r.streamTracker = stream_tracker.NewStreamTracker(r.logger, r.StreamTrackerRepo(), r.PlayersRepo())
 	}
 	return r.streamTracker
 }

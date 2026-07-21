@@ -3,6 +3,7 @@ package stream_tracker
 import (
 	"adventuria/internal/adventuria/model"
 	"context"
+	"log/slog"
 	"os"
 	"time"
 
@@ -19,6 +20,7 @@ type playersRepository interface {
 }
 
 type StreamTracker struct {
+	logger            *slog.Logger
 	repository        repository
 	playersRepository playersRepository
 	client            *streamlive.StreamLive
@@ -27,7 +29,7 @@ type StreamTracker struct {
 	youtubePlayers    map[string]string // youtube_channel_id -> player_id
 }
 
-func NewStreamTracker(repository repository, playersRepository playersRepository) *StreamTracker {
+func NewStreamTracker(logger *slog.Logger, repository repository, playersRepository playersRepository) *StreamTracker {
 	var clients []streamlive.Client
 
 	twitchClientId, twitchClientIdOk := os.LookupEnv("TWITCH_CLIENT_ID")
@@ -42,6 +44,7 @@ func NewStreamTracker(repository repository, playersRepository playersRepository
 	}
 
 	return &StreamTracker{
+		logger:            logger,
 		repository:        repository,
 		playersRepository: playersRepository,
 		client:            streamlive.New(clients...),
@@ -61,13 +64,16 @@ func (s *StreamTracker) Start(ctx context.Context) error {
 	s.twitchPlayers = make(map[string]string, len(players))
 	s.youtubePlayers = make(map[string]string, len(players))
 
-	s.client.OnStreamChange(func(e *streamlive.StreamChangeEvent) error {
-		return s.onStreamChange(e)
+	s.client.OnStreamChange(func(e *streamlive.StreamChangeEvent) {
+		err := s.onStreamChange(e)
+		if err != nil {
+			s.logger.Error("Stream tracker stream change error", "error", err)
+		}
+		e.Next()
 	})
-	s.client.OnRequestError(func(e *streamlive.RequestErrorEvent) error {
-		// TODO logger from ctx
-		//appCtx.App.Logger().Error("Stream tracker request error", "error", e.Error)
-		return e.Next()
+	s.client.OnRequestError(func(e *streamlive.RequestErrorEvent) {
+		s.logger.Error("Stream tracker request error", "errors", e.Errors)
+		e.Next()
 	})
 
 	twitchClient, _ := s.client.GetClient(streamlive.TwitchClientName)
@@ -97,7 +103,7 @@ func (s *StreamTracker) Start(ctx context.Context) error {
 func (s *StreamTracker) onStreamChange(e *streamlive.StreamChangeEvent) error {
 	playerId, ok := s.playerIdForChannel(e.Channel)
 	if !ok {
-		return e.Next()
+		return nil
 	}
 
 	ok, err := s.repository.UpdateStreamStatusOrSkip(context.Background(), playerId, e.Live)
@@ -112,7 +118,7 @@ func (s *StreamTracker) onStreamChange(e *streamlive.StreamChangeEvent) error {
 		}
 	}
 
-	return e.Next()
+	return nil
 }
 
 func (s *StreamTracker) updatePlayerLogin(client streamlive.Client, players map[string]string, playerId string, newLogin string) {

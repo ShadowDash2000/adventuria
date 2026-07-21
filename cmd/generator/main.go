@@ -1,9 +1,8 @@
 package main
 
 import (
+	"log/slog"
 	"os"
-
-	"golang.org/x/exp/slog"
 )
 
 var commands = map[string]func() error{

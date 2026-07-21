@@ -17,7 +17,7 @@ import (
 )
 
 func (g *Game) init(ctx context.Context, pb core.App) error {
-	registry := NewRegistry(pb)
+	registry := NewRegistry(pb, pb.Logger())
 
 	g.settings = registry.Settings()
 	g.players = registry.Players()
@@ -107,24 +107,39 @@ func (g *Game) init(ctx context.Context, pb core.App) error {
 		defer unsub()
 
 		if !settings.DisableSteamParser() {
+			pb.Logger().Info("Started SteamSpy parser")
+
 			err = registry.SteamSpy().Parse(ctx)
 			if err != nil {
+				pb.Logger().Error("SteamSpy parser failed", "error", err)
 				return
 			}
+
+			pb.Logger().Info("Finished SteamSpy parser")
 		}
 
 		if !settings.DisableCheapsharkParser() {
+			pb.Logger().Info("Started CheapShark parser")
+
 			err = registry.CheapShark().Parse(ctx)
 			if err != nil {
+				pb.Logger().Error("CheapShark parser failed", "error", err)
 				return
 			}
+
+			pb.Logger().Info("Finished CheapShark parser")
 		}
 
 		if !settings.DisableHltbParser() {
+			pb.Logger().Info("Started HLTB parser")
+
 			err = registry.HLTB().Parse(ctx)
 			if err != nil {
+				pb.Logger().Error("HLTB parser failed", "error", err)
 				return
 			}
+
+			pb.Logger().Info("Finished HLTB parser")
 		}
 
 		if !settings.DisableIgdbParser() {

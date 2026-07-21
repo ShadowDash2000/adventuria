@@ -4,8 +4,8 @@ git.nite07.com/shadod/go-igdb v1.0.3 h1:IvnLh0vEjiZf+15E6wcdgGGKFM4hDh+jhClp8yi3
 git.nite07.com/shadod/go-igdb v1.0.3/go.mod h1:YkNxvbTlqlxeatuV9KtjXmp8coaVdrcZSedtsbsdBzM=
 github.com/ShadowDash2000/howlongtobeat v1.1.12 h1:Sx0n6n8jIv5oSx5uAV/BxVuSH39rM1fQbm3F46kpnOE=
 github.com/ShadowDash2000/howlongtobeat v1.1.12/go.mod h1:sDwOgNGkztFkHhN9mpikXPMcRML2x/IocgiXlVg5oNo=
-github.com/ShadowDash2000/is-stream-live v0.3.0 h1:fGyrmfNX07eRUBTw0Lr9jo2ryHsuQ8QdXCan84xT0dk=
-github.com/ShadowDash2000/is-stream-live v0.3.0/go.mod h1:whb0ALBeYDxh8MZFkBVZgZkh4SSxxF8appwEFRHnzHg=
+github.com/ShadowDash2000/is-stream-live v0.4.0 h1:u070Z6bbNlDRalGxEyzlVC7hJ6MLbaooV+a6mniotNQ=
+github.com/ShadowDash2000/is-stream-live v0.4.0/go.mod h1:46oMIoJjEnsPucX2T6ll1sqhtme8BPvqJpsbvhcbg1I=
 github.com/ShadowDash2000/steam-store-go v1.0.0 h1:hdlInFgDvKDxK5Q1C8cm22YFiVtp9kbrUvAWJgi2Nog=
 github.com/ShadowDash2000/steam-store-go v1.0.0/go.mod h1:DZtahVlcR1WZKwrMZbLngluH4TEbmBKEW021IdLRkDY=
 github.com/asaskevich/govalidator v0.0.0-20200108200545-475eaeb16496/go.mod h1:oGkLhpf+kjZl6xBf758TQhh5XrAeiJv/7FRz/2spLIg=
