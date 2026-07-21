@@ -76,10 +76,14 @@ func RespondWithError(e *core.RequestEvent, err error) error {
 		return e.JSON(status, res)
 	}
 
-	return e.JSON(http.StatusInternalServerError, result{
+	if err := e.JSON(http.StatusInternalServerError, result{
 		Success: false,
 		Error:   "internal_server_error",
-	})
+	}); err != nil {
+		return err
+	}
+
+	return err
 }
 
 func RespondWithSuccess(e *core.RequestEvent, data any) error {
