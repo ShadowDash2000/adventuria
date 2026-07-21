@@ -1,9 +1,11 @@
 package cell_events_schedules
 
 import (
+	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
 	"adventuria/pkg/helper"
 	"context"
+	"errors"
 	"maps"
 	"slices"
 	"time"
@@ -184,6 +186,9 @@ func (c *CellEventsSchedules) ListenToCellEventEffects(ctx context.Context, even
 func (c *CellEventsSchedules) subscribeCellEventEffects(ctx context.Context, events *model.Events, player *model.Player) ([]string, error) {
 	cellEvent, err := c.repository.GetByActiveCellID(ctx, player.LastAction().Cell())
 	if err != nil {
+		if errors.Is(err, errs.ErrCellEventScheduleNotFound) {
+			return nil, nil
+		}
 		return nil, err
 	}
 
