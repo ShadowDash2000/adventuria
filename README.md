@@ -57,13 +57,6 @@ TWITCH_CLIENT_SECRET=***
 YOUTUBE_API_KEY=***
 ```
 
-Строка из этого параметра применяется в качестве "where = ..." для фильтрации игр при парсинге.
-Переменные для фильтрации https://api-docs.igdb.com/#game
-
-```
-IGDB_PARSE_FILTER="game_type = 0 & platforms = (6)"
-```
-
 ## Предметы и эффекты 📦✨
 
 Предметы в игре представляют собой набор эффектов, которые подписываются на игровые события.
@@ -143,7 +136,7 @@ player.SetLastAction(newAction)
 
 > [!WARNING]
 > Если клетка не представляет собой цепочку вызова `action`, то в `OnCellReached` обязательно нужно
-> вызывать `player.LastAction().SetCanMove(true)` для того, чтобы игрок мог идти дальше.
+> вызывать `player.Progress().SetCanMove(true)` для того, чтобы игрок мог идти дальше.
 
 ## Действия 🎲
 
@@ -172,9 +165,26 @@ GetView(ctx context.Context, events *Events, player *Player) (any, error)
 Пример реализации на эффекте: `internal/adventuria/effects/custom/paid_movement_in_radius/view.go`\
 Пример реализации на действии: `internal/adventuria/actions/custom/buy/view.go`
 
-## Тестирование 🔧
+## Настройки 🔧
 
-В процессе...
+При первом запуске автоматически создаётся запись в коллекции `settings` с дефолтными настройками.
+
+### Основные
+
+- block_all_actions — блокирует все действия для игроков
+
+### Настройки парсинга игр из IGDB
+
+Настройки парсинга позволяют применить фильтрацию по выгружаемым играм из IGDB. То бишь, позволяют отсеять ненужные игры.\
+Для работы этих настроек нужно произвести первую выгрузку из IGDB, чтобы загрузились game_types и platforms.
+По умолчанию в настройках включен параметр `disable_igdb_games_parser`, чтобы можно было выгрузить game_types и platforms,
+так как они не требуют фильтрации.\
+Для ручного запуска выгрузки нужно перейти в Pocketbase -> Settings -> Cron -> `games_parser`.
+
+- `igdb_filter_game_types` — фильтрует игры по типам (Main Game, DLC, Remake и т.д.)
+- `igdb_filter_platforms` — фильтрует игры по платформам, на которых они выходили
+- `igdb_filter_first_release_date_min` — отсеивает игры, вышедшие до указанной даты
+- `igdb_filter_first_release_date_max` — отсеивает игры, вышедшие после указанной даты
 
 ## Taskfile
 
