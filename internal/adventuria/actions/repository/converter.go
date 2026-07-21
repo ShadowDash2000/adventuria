@@ -15,14 +15,14 @@ func ActionToRecord(action *model.ActionInfo, record *core.Record) {
 	record.Set(schema.ActionSchema.Activity, action.Activity())
 	record.Set(schema.ActionSchema.Review, action.Review())
 	record.Set(schema.ActionSchema.CellsPassed, action.CellsPassed())
-	record.Set(schema.ActionSchema.DataList, action.DataList())
+	record.Set(schema.ActionSchema.DataList, actionDataListToDTO(action.DataList()))
 	record.Set(schema.ActionSchema.UsedItems, action.UsedItems())
-	record.Set(schema.ActionSchema.CustomActivityFilter, action.CustomActivityFilter())
+	record.Set(schema.ActionSchema.CustomActivityFilter, customActivityFilterToDTO(action.CustomActivityFilter()))
 }
 
 func RecordToAction(record *core.Record) (*model.ActionInfo, error) {
-	var actionDataList model.ActionDataList
-	err := record.UnmarshalJSONField(schema.ActionSchema.DataList, &actionDataList)
+	var dataListDTO actionDataListDTO
+	err := record.UnmarshalJSONField(schema.ActionSchema.DataList, &dataListDTO)
 	if err != nil {
 		return nil, err
 	}
@@ -31,8 +31,8 @@ func RecordToAction(record *core.Record) (*model.ActionInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	var customActivityFilter model.CustomActivityFilter
-	err = record.UnmarshalJSONField(schema.ActionSchema.CustomActivityFilter, &customActivityFilter)
+	var filterDTO customActivityFilterDTO
+	err = record.UnmarshalJSONField(schema.ActionSchema.CustomActivityFilter, &filterDTO)
 	if err != nil {
 		return nil, err
 	}
@@ -45,8 +45,8 @@ func RecordToAction(record *core.Record) (*model.ActionInfo, error) {
 		Activity:             record.GetString(schema.ActionSchema.Activity),
 		Review:               record.GetString(schema.ActionSchema.Review),
 		CellsPassed:          record.GetInt(schema.ActionSchema.CellsPassed),
-		DataList:             actionDataList,
+		DataList:             dtoToActionDataList(dataListDTO),
 		UsedItems:            usedItems,
-		CustomActivityFilter: customActivityFilter,
+		CustomActivityFilter: dtoToCustomActivityFilter(filterDTO),
 	}), nil
 }
