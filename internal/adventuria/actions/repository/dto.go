@@ -31,7 +31,7 @@ func actionDataListToDTO(dataList model.ActionDataList) actionDataListDTO {
 	}
 }
 
-func dtoToActionDataList(dto actionDataListDTO) model.ActionDataList {
+func actionDataListFromDTO(dto actionDataListDTO) model.ActionDataList {
 	return model.ActionDataList{
 		Activities: model.ActivitiesData{
 			Ids: dto.Activities.Ids,
@@ -75,7 +75,7 @@ func customActivityFilterToDTO(filter model.CustomActivityFilter) customActivity
 	}
 }
 
-func dtoToCustomActivityFilter(dto customActivityFilterDTO) model.CustomActivityFilter {
+func customActivityFilterFromDTO(dto customActivityFilterDTO) model.CustomActivityFilter {
 	return model.CustomActivityFilter{
 		Platforms:       dto.Platforms,
 		Developers:      dto.Developers,

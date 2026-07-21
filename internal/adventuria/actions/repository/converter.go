@@ -45,8 +45,8 @@ func RecordToAction(record *core.Record) (*model.ActionInfo, error) {
 		Activity:             record.GetString(schema.ActionSchema.Activity),
 		Review:               record.GetString(schema.ActionSchema.Review),
 		CellsPassed:          record.GetInt(schema.ActionSchema.CellsPassed),
-		DataList:             dtoToActionDataList(dataListDTO),
+		DataList:             actionDataListFromDTO(dataListDTO),
 		UsedItems:            usedItems,
-		CustomActivityFilter: dtoToCustomActivityFilter(filterDTO),
+		CustomActivityFilter: customActivityFilterFromDTO(filterDTO),
 	}), nil
 }
