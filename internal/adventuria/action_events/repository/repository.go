@@ -23,6 +23,27 @@ func NewRepository(pb core.App) *Repository {
 	return &Repository{pb: pb}
 }
 
+func (r *Repository) GetByID(ctx context.Context, id string) (*model.ActionEventInfo, error) {
+	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
+
+	var record core.Record
+	err := pb.RecordQuery(schema.CollectionActionEvents).
+		WithContext(ctx).
+		Where(dbx.HashExp{
+			schema.ActionEventsSchema.Id: id,
+		}).
+		Limit(1).
+		One(&record)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errs.ErrActionEventNotFound
+		}
+		return nil, err
+	}
+
+	return RecordToActionEvent(&record), err
+}
+
 func (r *Repository) GetByActiveCellID(ctx context.Context, activeCellId string) (*model.ActionEventInfo, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 

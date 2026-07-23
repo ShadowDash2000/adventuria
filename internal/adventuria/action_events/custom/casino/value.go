@@ -13,7 +13,7 @@ type cellEventCasinoValue struct {
 func (c *Casino) decodeValue(value string) (*cellEventCasinoValue, error) {
 	var decodedValue cellEventCasinoValue
 	if err := json.Unmarshal([]byte(value), &decodedValue); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal cell value: %w", err)
+		return nil, fmt.Errorf("failed to unmarshal event value: %w", err)
 	}
 	return &decodedValue, nil
 }

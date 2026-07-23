@@ -74,19 +74,21 @@ func (b *Buy) Do(ctx context.Context, events *model.Events, player *model.Player
 		return nil, errors.New("item id is required")
 	}
 
-	itemsData := player.LastAction().DataList().Items
-	index := slices.Index(itemsData.Ids, req.ItemId)
+	actionState := player.LastAction().State()
+	shopState := actionState.Shop
+	itemIds := shopState.Ids
+	index := slices.Index(itemIds, req.ItemId)
 	if index == -1 {
 		return nil, fmt.Errorf("item with id = %s not found", req.ItemId)
 	}
-	itemsData.Ids = slices.Delete(itemsData.Ids, index, index+1)
+	itemIds = slices.Delete(itemIds, index, index+1)
 
 	item, err := b.items.GetByID(ctx, req.ItemId)
 	if err != nil {
 		return nil, err
 	}
 
-	basePrice, err := b.calculatePrice(item.Price(), itemsData)
+	basePrice, err := b.calculatePrice(item.Price(), shopState)
 	if err != nil {
 		return nil, err
 	}
@@ -105,7 +107,9 @@ func (b *Buy) Do(ctx context.Context, events *model.Events, player *model.Player
 		return nil, err
 	}
 
-	player.LastAction().SetItemsData(itemsData)
+	actionState.Shop.Ids = itemIds
+	player.LastAction().SetState(actionState)
+
 	err = player.Progress().BalanceChange(-onBeforeItemBuy.Price)
 	if err != nil {
 		return nil, err

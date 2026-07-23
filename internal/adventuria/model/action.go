@@ -30,7 +30,7 @@ type ActionData struct {
 	Activity             string
 	Review               string
 	CellsPassed          int
-	DataList             ActionDataList
+	State                ActionState
 	UsedItems            []string
 	CustomActivityFilter CustomActivityFilter
 }
@@ -137,16 +137,12 @@ func (a *ActionInfo) SetCellsPassed(count int) {
 	a.data.CellsPassed = count
 }
 
-func (a *ActionInfo) DataList() ActionDataList {
-	return a.data.DataList
+func (a *ActionInfo) State() ActionState {
+	return a.data.State
 }
 
-func (a *ActionInfo) SetActivitiesData(data ActivitiesData) {
-	a.data.DataList.Activities = data
-}
-
-func (a *ActionInfo) SetItemsData(data ItemsData) {
-	a.data.DataList.Items = data
+func (a *ActionInfo) SetState(state ActionState) {
+	a.data.State = state
 }
 
 func (a *ActionInfo) UsedItems() []string {

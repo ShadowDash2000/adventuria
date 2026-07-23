@@ -27,7 +27,17 @@ type effects interface {
 }
 
 type actionEvents interface {
+	GetByIDWrapped(ctx context.Context, id string) (model.ActionEvent, error)
 	ListenToActionEvents(events *model.Events, player *model.Player) error
+}
+
+type players interface {
+	GetAllBySeasonID(ctx context.Context, seasonId string) ([]*model.Player, error)
+	Save(ctx context.Context, player *model.Player) error
+}
+
+type settings interface {
+	CurrentSeason(ctx context.Context) (string, error)
 }
 
 type CellEventsSchedules struct {
@@ -35,6 +45,8 @@ type CellEventsSchedules struct {
 	cells        cells
 	effects      effects
 	actionEvents actionEvents
+	players      players
+	settings     settings
 }
 
 func NewCellEventsSchedules(
@@ -42,15 +54,20 @@ func NewCellEventsSchedules(
 	cells cells,
 	effects effects,
 	actionEvents actionEvents,
+	players players,
+	settings settings,
 ) *CellEventsSchedules {
 	return &CellEventsSchedules{
 		repository:   repository,
 		cells:        cells,
 		effects:      effects,
 		actionEvents: actionEvents,
+		players:      players,
+		settings:     settings,
 	}
 }
 
+// CheckEventsSchedules TODO implement players actions block while updating
 func (c *CellEventsSchedules) CheckEventsSchedules(ctx context.Context) error {
 	events, err := c.repository.GetAll(ctx)
 	if err != nil {
@@ -62,6 +79,10 @@ func (c *CellEventsSchedules) CheckEventsSchedules(ctx context.Context) error {
 		if event.LastShiftChange().Add(time.Duration(event.ShiftInterval()) * time.Second).Before(time.Now()) {
 			eventsToUpdate = append(eventsToUpdate, event)
 		}
+	}
+
+	if len(eventsToUpdate) == 0 {
+		return nil
 	}
 
 	err = c.pickCellsForEvents(ctx, eventsToUpdate)
@@ -76,6 +97,11 @@ func (c *CellEventsSchedules) CheckEventsSchedules(ctx context.Context) error {
 		}
 	}
 
+	err = c.initActionEvents(ctx, eventsToUpdate)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -88,7 +114,7 @@ func (c *CellEventsSchedules) pickCellsForEvents(ctx context.Context, events []*
 	}
 
 	cellTypesByWorldId := make(map[string][]model.CellType, len(cellsByWorldId))
-	for worldId := range cellTypesByWorldId {
+	for worldId := range cellsByWorldId {
 		cells, err := c.cells.GetAllByWorldID(ctx, worldId)
 		if err != nil {
 			return err
@@ -224,6 +250,47 @@ func (c *CellEventsSchedules) subscribeCellEventEffects(ctx context.Context, eve
 	}
 
 	return unsubKeys, nil
+}
+
+func (c *CellEventsSchedules) initActionEvents(ctx context.Context, events []*model.CellEventSchedule) error {
+	currentSeason, err := c.settings.CurrentSeason(ctx)
+	if err != nil {
+		return err
+	}
+
+	players, err := c.players.GetAllBySeasonID(ctx, currentSeason)
+	if err != nil {
+		return err
+	}
+
+	if len(players) == 0 {
+		return nil
+	}
+
+	for _, event := range events {
+		actionEvent, err := c.actionEvents.GetByIDWrapped(ctx, event.ActionEvent())
+		if err != nil {
+			return err
+		}
+
+		for _, player := range players {
+			if event.ActiveCell() != player.LastAction().Cell() {
+				continue
+			}
+
+			err = actionEvent.Init(ctx, player)
+			if err != nil {
+				return err
+			}
+
+			err = c.players.Save(ctx, player)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 func (c *CellEventsSchedules) GetIDByActiveCellID(ctx context.Context, activeCellId string) (string, error) {

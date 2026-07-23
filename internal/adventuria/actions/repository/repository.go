@@ -32,7 +32,10 @@ func (r *Repository) Create(ctx context.Context, action *model.ActionInfo) (*mod
 	}
 
 	record := core.NewRecord(collection)
-	ActionToRecord(action, record)
+	err = ActionToRecord(action, record)
+	if err != nil {
+		return nil, err
+	}
 
 	err = pb.SaveWithContext(ctx, record)
 	if err != nil {
@@ -53,7 +56,11 @@ func (r *Repository) Update(ctx context.Context, action *model.ActionInfo) (*mod
 		return nil, err
 	}
 
-	ActionToRecord(action, record)
+	err = ActionToRecord(action, record)
+	if err != nil {
+		return nil, err
+	}
+
 	err = pb.SaveWithContext(ctx, record)
 	if err != nil {
 		return nil, err

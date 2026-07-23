@@ -8,6 +8,7 @@ import (
 )
 
 type repository interface {
+	GetByID(ctx context.Context, id string) (*model.ActionEventInfo, error)
 	GetByActiveCellID(ctx context.Context, activeCellId string) (*model.ActionEventInfo, error)
 }
 
@@ -19,9 +20,13 @@ func NewActionEvents(repository repository) *ActionEvents {
 	return &ActionEvents{repository: repository}
 }
 
+func toActionEvent(actionEventInfo *model.ActionEventInfo) (model.ActionEvent, error) {
+	return Create(*actionEventInfo)
+}
+
 func (a *ActionEvents) ListenToActionEvents(events *model.Events, player *model.Player) error {
 	events.OnAfterMove().BindFunc(func(ctx context.Context, e *model.OnAfterMoveEvent) error {
-		cellEventInfo, err := a.repository.GetByActiveCellID(ctx, e.CurrentCell.ID())
+		actionEventInfo, err := a.repository.GetByActiveCellID(ctx, e.CurrentCell.ID())
 		if err != nil {
 			if errors.Is(err, errs.ErrActionEventNotFound) {
 				return e.Next()
@@ -29,17 +34,29 @@ func (a *ActionEvents) ListenToActionEvents(events *model.Events, player *model.
 			return err
 		}
 
-		cellEvent, err := Create(*cellEventInfo)
+		actionEvent, err := Create(*actionEventInfo)
 		if err != nil {
 			return err
 		}
 
-		err = cellEvent.Init(ctx, player)
+		err = actionEvent.Init(ctx, player)
 
 		return e.Next()
 	})
 
 	return nil
+}
+
+func (a *ActionEvents) GetByID(ctx context.Context, id string) (*model.ActionEventInfo, error) {
+	return a.repository.GetByID(ctx, id)
+}
+
+func (a *ActionEvents) GetByIDWrapped(ctx context.Context, id string) (model.ActionEvent, error) {
+	actionEventInfo, err := a.GetByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return toActionEvent(actionEventInfo)
 }
 
 func (a *ActionEvents) GetByActiveCellID(ctx context.Context, activeCellId string) (*model.ActionEventInfo, error) {

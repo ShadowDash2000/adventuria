@@ -1,49 +1,11 @@
-package repository
+package dto
 
 import (
 	"adventuria/internal/adventuria/model"
 	"time"
 )
 
-type actionDataListDTO struct {
-	Activities activitiesDataDTO `json:"activities"`
-	Items      itemsDataDTO      `json:"items"`
-}
-
-type activitiesDataDTO struct {
-	Ids []string `json:"ids"`
-}
-
-type itemsDataDTO struct {
-	Ids             []string `json:"ids"`
-	PriceMultiplier float64  `json:"price_multiplier"`
-}
-
-func actionDataListToDTO(dataList model.ActionDataList) actionDataListDTO {
-	return actionDataListDTO{
-		Activities: activitiesDataDTO{
-			Ids: dataList.Activities.Ids,
-		},
-		Items: itemsDataDTO{
-			Ids:             dataList.Items.Ids,
-			PriceMultiplier: dataList.Items.PriceMultiplier,
-		},
-	}
-}
-
-func actionDataListFromDTO(dto actionDataListDTO) model.ActionDataList {
-	return model.ActionDataList{
-		Activities: model.ActivitiesData{
-			Ids: dto.Activities.Ids,
-		},
-		Items: model.ItemsData{
-			Ids:             dto.Items.Ids,
-			PriceMultiplier: dto.Items.PriceMultiplier,
-		},
-	}
-}
-
-type customActivityFilterDTO struct {
+type CustomActivityFilter struct {
 	Platforms       []string  `json:"platforms"`
 	Developers      []string  `json:"developers"`
 	Publishers      []string  `json:"publishers"`
@@ -58,8 +20,8 @@ type customActivityFilterDTO struct {
 	MaxCampaignTime float64   `json:"max_campaign_time"`
 }
 
-func customActivityFilterToDTO(filter model.CustomActivityFilter) customActivityFilterDTO {
-	return customActivityFilterDTO{
+func CustomActivityFilterToDTO(filter model.CustomActivityFilter) CustomActivityFilter {
+	return CustomActivityFilter{
 		Platforms:       filter.Platforms,
 		Developers:      filter.Developers,
 		Publishers:      filter.Publishers,
@@ -75,7 +37,7 @@ func customActivityFilterToDTO(filter model.CustomActivityFilter) customActivity
 	}
 }
 
-func customActivityFilterFromDTO(dto customActivityFilterDTO) model.CustomActivityFilter {
+func CustomActivityFilterFromDTO(dto CustomActivityFilter) model.CustomActivityFilter {
 	return model.CustomActivityFilter{
 		Platforms:       dto.Platforms,
 		Developers:      dto.Developers,

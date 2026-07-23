@@ -113,7 +113,7 @@ var ActionSchema = struct {
 	Activity             string
 	Review               string
 	CellsPassed          string
-	DataList             string
+	State                string
 	UsedItems            string
 	CustomActivityFilter string
 }{
@@ -124,7 +124,7 @@ var ActionSchema = struct {
 	Activity:             "activity",
 	Review:               "review",
 	CellsPassed:          "cells_passed",
-	DataList:             "data_list",
+	State:                "state",
 	UsedItems:            "used_items",
 	CustomActivityFilter: "custom_activity_filter",
 }

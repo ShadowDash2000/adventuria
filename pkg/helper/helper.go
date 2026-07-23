@@ -48,5 +48,9 @@ func SlicesIntersection[T comparable](a, b []T) []T {
 		}
 	}
 
+	if len(result) == 0 {
+		return make([]T, 0, 1)
+	}
+
 	return result
 }

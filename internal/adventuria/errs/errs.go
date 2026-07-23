@@ -114,12 +114,16 @@ var (
 		Message: "Player stats not found",
 	}
 	ErrActionEventNotFound = &AppError{
-		Code:    "cell_event_not_found",
-		Message: "Cell event not found",
+		Code:    "action_event_not_found",
+		Message: "Action event not found",
 	}
 	ErrCellEventScheduleNotFound = &AppError{
 		Code:    "cell_event_schedule_not_found",
 		Message: "Cell event schedule not found",
+	}
+	ErrActionDataNotFound = &AppError{
+		Code:    "action_data_not_found",
+		Message: "Action data not found",
 	}
 
 	ErrReviewCommentTooLong = &AppError{
@@ -183,5 +187,10 @@ var (
 	ErrActionIsNotEventCompatible = &AppError{
 		Code:    "action_is_not_event_compatible",
 		Message: "Action is not event compatible",
+	}
+
+	ErrNoActiveDeals = &AppError{
+		Code:    "no_active_deals",
+		Message: "No active deals",
 	}
 )

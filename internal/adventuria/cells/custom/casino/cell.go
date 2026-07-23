@@ -48,9 +48,9 @@ func (c *CellCasino) OnCellReached(_ context.Context, _ *model.Events, player *m
 		return err
 	}
 
-	itemsData := player.LastAction().DataList().Items
-	itemsData.PriceMultiplier = decodedValue.PriceMultiplier
-	player.LastAction().SetItemsData(itemsData)
+	actionState := player.LastAction().State()
+	actionState.Shop.PriceMultiplier = decodedValue.PriceMultiplier
+	player.LastAction().SetState(actionState)
 
 	return c.refreshItems(player)
 }
@@ -69,9 +69,9 @@ func (c *CellCasino) refreshItems(player *model.Player) error {
 		return err
 	}
 
-	itemsData := player.LastAction().DataList().Items
-	itemsData.Ids = decodedValue.ItemIds
-	player.LastAction().SetItemsData(itemsData)
+	actionState := player.LastAction().State()
+	actionState.Shop.Ids = decodedValue.ItemIds
+	player.LastAction().SetState(actionState)
 
 	return nil
 }

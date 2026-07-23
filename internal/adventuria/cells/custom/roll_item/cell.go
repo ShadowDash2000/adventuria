@@ -38,14 +38,14 @@ func NewDef(
 }
 
 func (c *CellRollItem) Roll(_ context.Context, _ *model.Events, player *model.Player) (*model.WheelRollResult, error) {
-	itemsData := player.LastAction().DataList().Items
+	itemsState := player.LastAction().State().Items
 
-	if len(itemsData.Ids) == 0 {
+	if len(itemsState.Ids) == 0 {
 		return nil, errors.New("no items to roll")
 	}
 
 	return &model.WheelRollResult{
-		WinnerId: helper.RandomItemFromSlice(itemsData.Ids),
+		WinnerId: helper.RandomItemFromSlice(itemsState.Ids),
 	}, nil
 }
 
@@ -77,9 +77,9 @@ func (c *CellRollItem) refreshItems(ctx context.Context, player *model.Player) e
 		ids[i] = item.ID()
 	}
 
-	itemsData := player.LastAction().DataList().Items
-	itemsData.Ids = ids
-	player.LastAction().SetItemsData(itemsData)
+	actionState := player.LastAction().State()
+	actionState.Items.Ids = ids
+	player.LastAction().SetState(actionState)
 
 	return nil
 }

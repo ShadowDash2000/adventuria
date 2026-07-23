@@ -645,6 +645,8 @@ func (r *Registry) CellEventsSchedules() *cell_events_schedules.CellEventsSchedu
 			r.Cells(),
 			r.Effects(),
 			r.ActionEvents(),
+			r.Players(),
+			r.Settings(),
 		)
 	}
 	return r.cellEventsSchedules

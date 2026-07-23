@@ -78,8 +78,8 @@ func TestChooseActivity_Subscribe(t *testing.T) {
 
 		events := model.NewEvents()
 		action := model.RestoreAction(model.ActionData{
-			DataList: model.ActionDataList{
-				Activities: model.ActivitiesData{
+			State: model.ActionState{
+				Activities: model.ActionActivitiesState{
 					Ids: []string{"game1", "game2"},
 				},
 			},

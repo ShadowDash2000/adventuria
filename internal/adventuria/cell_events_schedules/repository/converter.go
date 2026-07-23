@@ -30,10 +30,15 @@ func RecordsToCellEventSchedules(records []*core.Record) []*model.CellEventSched
 }
 
 func stringToCellTypes(s string) []model.CellType {
+	if s == "" {
+		return nil
+	}
+
 	cellTypes := strings.Split(s, ";")
 	res := make([]model.CellType, len(cellTypes))
 	for i, cellType := range cellTypes {
 		res[i] = model.CellType(cellType)
 	}
+
 	return res
 }

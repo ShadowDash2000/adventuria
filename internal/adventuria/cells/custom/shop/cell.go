@@ -75,9 +75,9 @@ func (c *CellShop) refreshItems(ctx context.Context, player *model.Player) error
 		ids[i] = items[rand.N(len(items))].ID()
 	}
 
-	itemsData := player.LastAction().DataList().Items
-	itemsData.Ids = ids
-	player.LastAction().SetItemsData(itemsData)
+	actionState := player.LastAction().State()
+	actionState.Shop.Ids = ids
+	player.LastAction().SetState(actionState)
 
 	return nil
 }

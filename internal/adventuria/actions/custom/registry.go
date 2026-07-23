@@ -4,6 +4,7 @@ import (
 	"adventuria/internal/adventuria/actions"
 	"adventuria/internal/adventuria/actions/custom/buy"
 	"adventuria/internal/adventuria/actions/custom/complete_activity"
+	"adventuria/internal/adventuria/actions/custom/deal"
 	"adventuria/internal/adventuria/actions/custom/done"
 	"adventuria/internal/adventuria/actions/custom/drop"
 	"adventuria/internal/adventuria/actions/custom/generate_wheel"
@@ -48,5 +49,6 @@ func RegisterActions(
 		roll_wheel.NewDef(cells, rollWheelRepo),
 		update_review.NewDef(reviews),
 		generate_wheel.NewDef(cells, actionsService),
+		deal.NewDef(inventories),
 	)
 }

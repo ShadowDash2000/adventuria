@@ -63,7 +63,7 @@ func (c *ChooseActivity) Subscribe(
 				return errors.New("invalid activity_id")
 			}
 
-			if !slices.Contains(player.LastAction().DataList().Activities.Ids, activityId) {
+			if !slices.Contains(player.LastAction().State().Activities.Ids, activityId) {
 				return errors.New("activity_id not found in items list")
 			}
 

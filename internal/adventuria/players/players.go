@@ -19,6 +19,7 @@ type actions interface {
 type playerProgress interface {
 	Save(ctx context.Context, progress *model.PlayerProgress) (*model.PlayerProgress, error)
 	GetFirstOrDefault(ctx context.Context, playerId, seasonId string) (*model.PlayerProgress, error)
+	GetAllBySeasonID(ctx context.Context, seasonId string) ([]*model.PlayerProgress, error)
 }
 
 type playerStats interface {
@@ -91,6 +92,42 @@ func (p *Players) GetByID(ctx context.Context, playerId, seasonId string) (*mode
 	)
 
 	return player, nil
+}
+
+func (p *Players) GetAllBySeasonID(ctx context.Context, seasonId string) ([]*model.Player, error) {
+	season, err := p.seasons.GetByID(ctx, seasonId)
+	if err != nil {
+		return nil, err
+	}
+
+	progresses, err := p.progress.GetAllBySeasonID(ctx, seasonId)
+	if err != nil {
+		return nil, err
+	}
+
+	players := make([]*model.Player, len(progresses))
+	for i, progress := range progresses {
+		playerId := progress.Player()
+
+		action, err := p.actions.GetLastOrDefault(ctx, playerId, season.SeasonDateStart())
+		if err != nil {
+			return nil, err
+		}
+
+		stats, err := p.stats.GetOrCreate(ctx, playerId, seasonId)
+		if err != nil {
+			return nil, err
+		}
+
+		players[i] = model.RestorePlayer(
+			model.PlayerData{Id: playerId},
+			progress,
+			action,
+			stats,
+		)
+	}
+
+	return players, nil
 }
 
 func (p *Players) Save(ctx context.Context, player *model.Player) error {
