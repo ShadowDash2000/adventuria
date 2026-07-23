@@ -2,6 +2,7 @@ package done
 
 import (
 	"adventuria/internal/adventuria/actions"
+	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
 	"context"
 	"errors"
@@ -81,6 +82,10 @@ func (d *Done) Do(ctx context.Context, events *model.Events, player *model.Playe
 	currentCell, err := d.cells.GetByPlayerWrapped(ctx, player)
 	if err != nil {
 		return nil, err
+	}
+
+	if currentCell.Data().EnergyConsume() > player.Progress().Energy() {
+		return nil, errs.ErrNotEnoughEnergy
 	}
 
 	onBeforeDoneEvent := &model.OnBeforeDoneEvent{
