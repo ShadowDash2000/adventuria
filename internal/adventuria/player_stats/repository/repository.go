@@ -89,3 +89,20 @@ func (r *Repository) GetByPlayerId(ctx context.Context, playerId, seasonId strin
 
 	return RecordToPlayerStats(&record)
 }
+
+func (r *Repository) GetAllBySeasonID(ctx context.Context, seasonId string) ([]*model.PlayerStats, error) {
+	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
+
+	var records []*core.Record
+	err := pb.RecordQuery(schema.CollectionPlayerStats).
+		WithContext(ctx).
+		Where(dbx.HashExp{
+			schema.PlayerStatsSchema.Season: seasonId,
+		}).
+		All(&records)
+	if err != nil {
+		return nil, err
+	}
+
+	return RecordsToPlayersStats(records)
+}

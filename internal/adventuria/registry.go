@@ -281,7 +281,7 @@ func (r *Registry) RelationRepo() *activitiesRepo.RelationRepository {
 
 func (r *Registry) EventStatsRepo() *eventStatsRepo.Repository {
 	if r.eventStatsRepo == nil {
-		r.eventStatsRepo = eventStatsRepo.NewRepository(r.pb)
+		r.eventStatsRepo = eventStatsRepo.NewRepository(r.pb, r.SeasonsRepo(), r.PlayerStatsRepo())
 	}
 	return r.eventStatsRepo
 }

@@ -8,12 +8,14 @@ var (
 	ItemTypeBuff    ItemType = "buff"
 	ItemTypeDebuff  ItemType = "debuff"
 	ItemTypeNeutral ItemType = "neutral"
+	ItemTypeDev     ItemType = "dev"
 )
 
 var itemTypes = map[ItemType]struct{}{
 	ItemTypeBuff:    {},
 	ItemTypeDebuff:  {},
 	ItemTypeNeutral: {},
+	ItemTypeDev:     {},
 }
 
 func NewItemType(value string) (ItemType, error) {

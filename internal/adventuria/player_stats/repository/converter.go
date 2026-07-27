@@ -29,6 +29,18 @@ func RecordToPlayerStats(record *core.Record) (*model.PlayerStats, error) {
 	}), nil
 }
 
+func RecordsToPlayersStats(records []*core.Record) ([]*model.PlayerStats, error) {
+	playersStats := make([]*model.PlayerStats, len(records))
+	for i, record := range records {
+		playerStats, err := RecordToPlayerStats(record)
+		if err != nil {
+			return nil, err
+		}
+		playersStats[i] = playerStats
+	}
+	return playersStats, nil
+}
+
 func PlayerStatsToRecord(stats *model.PlayerStats, record *core.Record) {
 	record.Id = stats.ID()
 	record.Set(schema.PlayerStatsSchema.Player, stats.Player())
