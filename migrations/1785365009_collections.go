@@ -610,7 +610,7 @@ func init() {
 				},
 				"authRule": "",
 				"authToken": {
-					"duration": 604800
+					"duration": 2628000
 				},
 				"confirmEmailChangeTemplate": {
 					"body": "<p>Hello,</p>\n<p>Click on the button below to confirm your new email address.</p>\n<p>\n  <a class=\"btn\" href=\"{APP_URL}/_/#/auth/confirm-email-change/{TOKEN}\" target=\"_blank\" rel=\"noopener\">Confirm new email</a>\n</p>\n<p><i>If you didn't ask to change your email address, you can ignore this email.</i></p>\n<p>\n  Thanks,<br/>\n  {APP_NAME} team\n</p>",
@@ -2757,7 +2757,7 @@ func init() {
 						"autogeneratePattern": "",
 						"help": "",
 						"hidden": false,
-						"id": "_clone_jAlx",
+						"id": "_clone_bUfc",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -2771,7 +2771,7 @@ func init() {
 					{
 						"help": "",
 						"hidden": false,
-						"id": "_clone_84rA",
+						"id": "_clone_KtLf",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_id",
@@ -2784,7 +2784,7 @@ func init() {
 					{
 						"help": "",
 						"hidden": false,
-						"id": "_clone_kf04",
+						"id": "_clone_81rE",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_price",
@@ -3020,7 +3020,7 @@ func init() {
 						"autogeneratePattern": "",
 						"help": "",
 						"hidden": false,
-						"id": "_clone_odf7",
+						"id": "_clone_2BeL",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -3034,7 +3034,7 @@ func init() {
 					{
 						"help": "",
 						"hidden": false,
-						"id": "_clone_51J6",
+						"id": "_clone_ji7Z",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_id",
@@ -3047,7 +3047,7 @@ func init() {
 					{
 						"help": "",
 						"hidden": false,
-						"id": "_clone_wboF",
+						"id": "_clone_Isxu",
 						"max": null,
 						"min": 0,
 						"name": "hltb_id",
@@ -3060,7 +3060,7 @@ func init() {
 					{
 						"help": "",
 						"hidden": false,
-						"id": "_clone_BFFD",
+						"id": "_clone_U0Bm",
 						"max": null,
 						"min": 0,
 						"name": "hltb_campaign_time",
@@ -3383,7 +3383,7 @@ func init() {
 						"autogeneratePattern": "",
 						"help": "",
 						"hidden": false,
-						"id": "_clone_9cSM",
+						"id": "_clone_PV6i",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -3397,7 +3397,7 @@ func init() {
 					{
 						"help": "",
 						"hidden": false,
-						"id": "_clone_FYuC",
+						"id": "_clone_mLcX",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_id",
@@ -3410,7 +3410,7 @@ func init() {
 					{
 						"help": "",
 						"hidden": false,
-						"id": "_clone_SMSF",
+						"id": "_clone_6Mnx",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_price",
@@ -3454,7 +3454,7 @@ func init() {
 						"autogeneratePattern": "",
 						"help": "",
 						"hidden": false,
-						"id": "_clone_G9np",
+						"id": "_clone_TVJO",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -3468,7 +3468,7 @@ func init() {
 					{
 						"help": "",
 						"hidden": false,
-						"id": "_clone_snoZ",
+						"id": "_clone_Obvg",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_id",
@@ -3481,7 +3481,7 @@ func init() {
 					{
 						"help": "",
 						"hidden": false,
-						"id": "_clone_PvBV",
+						"id": "_clone_vW8V",
 						"max": null,
 						"min": 0,
 						"name": "hltb_id",
@@ -3494,7 +3494,7 @@ func init() {
 					{
 						"help": "",
 						"hidden": false,
-						"id": "_clone_LRXm",
+						"id": "_clone_AENQ",
 						"max": null,
 						"min": 0,
 						"name": "hltb_campaign_time",
@@ -5670,11 +5670,38 @@ func init() {
 						"id": "date3313047137",
 						"max": "",
 						"min": "",
-						"name": "last_shift_change",
+						"name": "next_shift_change_at",
 						"presentable": false,
 						"required": false,
 						"system": false,
 						"type": "date"
+					},
+					{
+						"autogeneratePattern": "",
+						"help": "",
+						"hidden": false,
+						"id": "text3267281823",
+						"max": 0,
+						"min": 0,
+						"name": "colors",
+						"pattern": "^\\s*(?:rgba?\\(\\s*\\d+\\s*,\\s*\\d+\\s*,\\s*\\d+(?:\\s*,\\s*[\\d.]+)?\\s*\\)\\s*(?:,\\s*|$))+",
+						"presentable": false,
+						"primaryKey": false,
+						"required": false,
+						"system": false,
+						"type": "text"
+					},
+					{
+						"convertURLs": false,
+						"help": "",
+						"hidden": false,
+						"id": "editor1843675174",
+						"maxSize": 0,
+						"name": "description",
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "editor"
 					}
 				],
 				"id": "pbc_4243604864",

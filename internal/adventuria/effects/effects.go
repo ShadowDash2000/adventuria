@@ -3,6 +3,7 @@ package effects
 import (
 	"adventuria/internal/adventuria/model"
 	"context"
+	"log/slog"
 )
 
 type repository interface {
@@ -16,12 +17,14 @@ type inventories interface {
 }
 
 type Effects struct {
+	logger      *slog.Logger
 	repository  repository
 	inventories inventories
 }
 
-func NewEffects(repository repository, inventories inventories) *Effects {
+func NewEffects(logger *slog.Logger, repository repository, inventories inventories) *Effects {
 	return &Effects{
+		logger:      logger,
 		repository:  repository,
 		inventories: inventories,
 	}
@@ -90,7 +93,7 @@ func (e *Effects) effectCallback(
 
 	err := e.inventories.DeleteByID(ctx, item.Inventory().ID())
 	if err != nil {
-		// TODO
+		e.logger.Error("Failed to delete inventory item", "error", err, "item", item)
 	}
 }
 

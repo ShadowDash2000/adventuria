@@ -11,6 +11,7 @@ func RandomItemFromSlice[T any](slice []T) T {
 	}
 	return slice[n]
 }
+
 func RandomItemFromSliceWithIndex[T any](slice []T) (T, int) {
 	n := 0
 	if len(slice) > 1 {

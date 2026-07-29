@@ -8,10 +8,10 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"time"
 
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
-	"github.com/pocketbase/pocketbase/tools/types"
 )
 
 type Repository struct {
@@ -22,15 +22,15 @@ func NewRepository(pb core.App) *Repository {
 	return &Repository{pb: pb}
 }
 
-func (r *Repository) UpdateActiveCellByID(ctx context.Context, id, cellId string) error {
+func (r *Repository) UpdateActiveCellAndNextShiftByID(ctx context.Context, id, cellId string, nextShiftChangeAt time.Time) error {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 
 	res, err := pb.DB().
 		Update(
 			schema.CollectionCellEventsSchedule,
 			dbx.Params{
-				schema.CellEventsScheduleSchema.ActiveCell:      cellId,
-				schema.CellEventsScheduleSchema.LastShiftChange: types.NowDateTime(),
+				schema.CellEventsScheduleSchema.ActiveCell:        cellId,
+				schema.CellEventsScheduleSchema.NextShiftChangeAt: nextShiftChangeAt,
 			},
 			dbx.HashExp{
 				schema.CellEventsScheduleSchema.Id: id,

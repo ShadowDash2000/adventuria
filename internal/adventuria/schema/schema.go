@@ -620,21 +620,21 @@ var ActionEventsSchema = struct {
 }
 
 var CellEventsScheduleSchema = struct {
-	Id              string
-	ActionEvent     string
-	Effects         string
-	ActiveCell      string
-	CellTypes       string
-	Worlds          string
-	ShiftInterval   string
-	LastShiftChange string
+	Id                string
+	ActionEvent       string
+	Effects           string
+	ActiveCell        string
+	CellTypes         string
+	Worlds            string
+	ShiftInterval     string
+	NextShiftChangeAt string
 }{
-	Id:              "id",
-	ActionEvent:     "action_event",
-	Effects:         "effects",
-	ActiveCell:      "active_cell",
-	CellTypes:       "cell_types",
-	Worlds:          "worlds",
-	ShiftInterval:   "shift_interval",
-	LastShiftChange: "last_shift_change",
+	Id:                "id",
+	ActionEvent:       "action_event",
+	Effects:           "effects",
+	ActiveCell:        "active_cell",
+	CellTypes:         "cell_types",
+	Worlds:            "worlds",
+	ShiftInterval:     "shift_interval",
+	NextShiftChangeAt: "next_shift_change_at",
 }

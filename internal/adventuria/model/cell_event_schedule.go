@@ -3,14 +3,14 @@ package model
 import "time"
 
 type CellEventScheduleData struct {
-	Id              string
-	ActionEvent     string
-	Effects         []string
-	ActiveCell      string
-	CellTypes       []CellType
-	Worlds          []string
-	ShiftInterval   int
-	LastShiftChange time.Time
+	Id                string
+	ActionEvent       string
+	Effects           []string
+	ActiveCell        string
+	CellTypes         []CellType
+	Worlds            []string
+	ShiftInterval     int
+	NextShiftChangeAt time.Time
 }
 
 type CellEventSchedule struct {
@@ -53,10 +53,10 @@ func (c *CellEventSchedule) ShiftInterval() int {
 	return c.data.ShiftInterval
 }
 
-func (c *CellEventSchedule) LastShiftChange() time.Time {
-	return c.data.LastShiftChange
+func (c *CellEventSchedule) NextShiftChangeAt() time.Time {
+	return c.data.NextShiftChangeAt
 }
 
-func (c *CellEventSchedule) SetLastShiftChange(t time.Time) {
-	c.data.LastShiftChange = t
+func (c *CellEventSchedule) SetNextShiftChangeAt(t time.Time) {
+	c.data.NextShiftChangeAt = t
 }

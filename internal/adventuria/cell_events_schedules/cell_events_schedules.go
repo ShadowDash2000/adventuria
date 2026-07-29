@@ -13,7 +13,7 @@ import (
 )
 
 type repository interface {
-	UpdateActiveCellByID(ctx context.Context, id, cellId string) error
+	UpdateActiveCellAndNextShiftByID(ctx context.Context, id, cellId string, nextShiftChangeAt time.Time) error
 	GetByActiveCellID(ctx context.Context, activeCellId string) (*model.CellEventSchedule, error)
 	GetIDByActiveCellID(ctx context.Context, activeCellId string) (string, error)
 	GetAll(ctx context.Context) ([]*model.CellEventSchedule, error)
@@ -94,7 +94,7 @@ func (c *CellEventsSchedules) CheckEventsSchedules(ctx context.Context) error {
 
 	var eventsToUpdate []*model.CellEventSchedule
 	for _, event := range events {
-		if event.LastShiftChange().Add(time.Duration(event.ShiftInterval()) * time.Second).Before(time.Now()) {
+		if event.NextShiftChangeAt().Before(time.Now()) {
 			eventsToUpdate = append(eventsToUpdate, event)
 		}
 	}
@@ -109,7 +109,7 @@ func (c *CellEventsSchedules) CheckEventsSchedules(ctx context.Context) error {
 	}
 
 	for _, event := range eventsToUpdate {
-		err = c.repository.UpdateActiveCellByID(ctx, event.ID(), event.ActiveCell())
+		err = c.repository.UpdateActiveCellAndNextShiftByID(ctx, event.ID(), event.ActiveCell(), event.NextShiftChangeAt())
 		if err != nil {
 			return err
 		}
@@ -156,6 +156,10 @@ func (c *CellEventsSchedules) pickCellsForEvents(ctx context.Context, events []*
 	}
 
 	for _, event := range events {
+		event.SetNextShiftChangeAt(
+			event.NextShiftChangeAt().Add(time.Duration(event.ShiftInterval()) * time.Second),
+		)
+
 		worldId := helper.RandomItemFromSlice(event.Worlds())
 		availableCellTypes := cellTypesByWorldId[worldId]
 		if len(availableCellTypes) == 0 {

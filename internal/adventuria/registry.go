@@ -479,7 +479,7 @@ func (r *Registry) PlayerStats() *player_stats.PlayerStats {
 
 func (r *Registry) Effects() *effects.Effects {
 	if r.effects == nil {
-		r.effects = effects.NewEffects(r.EffectsRepo(), r.InventoriesRepo())
+		r.effects = effects.NewEffects(r.logger, r.EffectsRepo(), r.InventoriesRepo())
 	}
 	return r.effects
 }
