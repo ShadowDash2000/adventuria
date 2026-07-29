@@ -8,6 +8,7 @@ import (
 	"errors"
 	"maps"
 	"slices"
+	"sync/atomic"
 	"time"
 )
 
@@ -41,6 +42,7 @@ type settings interface {
 }
 
 type CellEventsSchedules struct {
+	running      atomic.Bool
 	repository   repository
 	cells        cells
 	effects      effects
@@ -67,8 +69,17 @@ func NewCellEventsSchedules(
 	}
 }
 
-// CheckEventsSchedules TODO implement players actions block while updating
+func (c *CellEventsSchedules) IsRunning() bool {
+	return c.running.Load()
+}
+
 func (c *CellEventsSchedules) CheckEventsSchedules(ctx context.Context) error {
+	isNotRunning := c.running.CompareAndSwap(false, true)
+	if !isNotRunning {
+		return errs.ErrCellEventSchedulerAlreadyRunning
+	}
+	defer c.running.Store(false)
+
 	events, err := c.repository.GetAll(ctx)
 	if err != nil {
 		return err

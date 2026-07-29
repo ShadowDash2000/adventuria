@@ -329,8 +329,21 @@ func (g *Game) EventStats(ctx context.Context) (*event_stats.EventStatsData, err
 	return g.eventStats.ComputeStats(ctx, currentSeason)
 }
 
-func (g *Game) IsActionsBlocked(ctx context.Context) (bool, error) {
-	return g.settings.IsActionsBlocked(ctx)
+func (g *Game) IsActionsBlocked(ctx context.Context) error {
+	if g.cellEvents.IsRunning() {
+		return errs.ErrCellEventSchedulerRunning
+	}
+
+	isBlocked, err := g.settings.IsActionsBlocked(ctx)
+	if err != nil {
+		return err
+	}
+
+	if isBlocked {
+		return errs.ErrAllActionsBlocked
+	}
+
+	return nil
 }
 
 func (g *Game) CurrentSeason(ctx context.Context) (string, error) {

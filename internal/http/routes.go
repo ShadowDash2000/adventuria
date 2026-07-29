@@ -1,8 +1,6 @@
 package http
 
 import (
-	"net/http"
-
 	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/tools/router"
@@ -22,18 +20,9 @@ func Route(game game, router *router.Router[*core.RequestEvent]) {
 
 	gab := ga.Group("")
 	gab.BindFunc(func(e *core.RequestEvent) error {
-		isBlocked, err := handlers.Game.IsActionsBlocked(e.Request.Context())
+		err := handlers.Game.IsActionsBlocked(e.Request.Context())
 		if err != nil {
 			return RespondWithError(e, err)
-		}
-
-		if isBlocked {
-			return e.JSON(http.StatusForbidden, result{
-				Success: false,
-				Data:    nil,
-				Error:   "all_actions_blocked",
-				Message: "All actions are blocked",
-			})
 		}
 
 		return e.Next()

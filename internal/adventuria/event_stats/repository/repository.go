@@ -39,7 +39,7 @@ func NewRepository(pb core.App, seasons seasons, playerStats playerStats) *Repos
 	}
 }
 
-func (r *Repository) ComputeStats(ctx context.Context, seasonId string) (*event_stats.EventStatsData, error) {
+func (r *Repository) ComputeStats(ctx context.Context, seasonId string) (*event_stats.EventStatsEntries, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 
 	season, err := r.seasons.GetByID(ctx, seasonId)
@@ -71,7 +71,7 @@ func (r *Repository) ComputeStats(ctx context.Context, seasonId string) (*event_
 		playerRecordsMap[playerRecord.Id] = playerRecord
 	}
 
-	stats := &event_stats.EventStatsData{
+	stats := &event_stats.EventStatsEntries{
 		MostGamesCompleted:    []event_stats.EventStatEntry{},
 		MostDrops:             []event_stats.EventStatEntry{},
 		MostRerolls:           []event_stats.EventStatEntry{},

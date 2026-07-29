@@ -25,7 +25,7 @@ type game interface {
 	GetEffectView(ctx context.Context, playerId, effectId string) (any, error)
 	GetActionView(ctx context.Context, playerId string, actionType model.ActionType) (any, error)
 	EventStats(ctx context.Context) (*event_stats.EventStatsData, error)
-	IsActionsBlocked(ctx context.Context) (bool, error)
+	IsActionsBlocked(ctx context.Context) error
 	CurrentSeason(ctx context.Context) (string, error)
 	IsEventEnded(ctx context.Context) (bool, error)
 }

@@ -193,4 +193,19 @@ var (
 		Code:    "no_active_deals",
 		Message: "No active deals",
 	}
+
+	ErrAllActionsBlocked = &AppError{
+		Code:    "all_actions_blocked",
+		Message: "All actions are blocked",
+		Status:  http.StatusLocked,
+	}
+	ErrCellEventSchedulerRunning = &AppError{
+		Code:    "cell_event_scheduler_running",
+		Message: "Cell event scheduler is running",
+		Status:  http.StatusLocked,
+	}
+	ErrCellEventSchedulerAlreadyRunning = &AppError{
+		Code:    "cell_event_scheduler_already_running",
+		Message: "Cell event scheduler is already running",
+	}
 )

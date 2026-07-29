@@ -166,6 +166,7 @@ func (g *Game) init(ctx context.Context, pb core.App) error {
 	pb.Cron().MustAdd("cell_events_scheduler", "*/1 * * * *", func() {
 		err := g.cellEvents.CheckEventsSchedules(ctx)
 		if err != nil {
+			pb.Logger().Error("Failed to run cell events scheduler", "error", err)
 			return
 		}
 	})
