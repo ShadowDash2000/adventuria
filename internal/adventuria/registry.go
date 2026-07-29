@@ -549,7 +549,12 @@ func (r *Registry) EventStats() *event_stats.EventStats {
 
 func (r *Registry) StreamTracker() *stream_tracker.StreamTracker {
 	if r.streamTracker == nil {
-		r.streamTracker = stream_tracker.NewStreamTracker(r.logger, r.StreamTrackerRepo(), r.PlayersRepo())
+		r.streamTracker = stream_tracker.NewStreamTracker(
+			r.logger,
+			r.StreamTrackerRepo(),
+			r.PlayersRepo(),
+			r.PlayersRepo(),
+		)
 	}
 	return r.streamTracker
 }
@@ -641,6 +646,7 @@ func (r *Registry) ActionEvents() *action_events.ActionEvents {
 func (r *Registry) CellEventsSchedules() *cell_events_schedules.CellEventsSchedules {
 	if r.cellEventsSchedules == nil {
 		r.cellEventsSchedules = cell_events_schedules.NewCellEventsSchedules(
+			r.CellEventsSchedulesRepo(),
 			r.CellEventsSchedulesRepo(),
 			r.Cells(),
 			r.Effects(),

@@ -16,6 +16,9 @@ type repository interface {
 
 type playersRepository interface {
 	GetAll(ctx context.Context) ([]*model.PlayerInfo, error)
+}
+
+type notifyPlayersRepository interface {
 	NotifyChange(ctx context.Context, id string) error
 }
 
@@ -23,13 +26,19 @@ type StreamTracker struct {
 	logger            *slog.Logger
 	repository        repository
 	playersRepository playersRepository
+	notifyPlayers     notifyPlayersRepository
 	client            *streamlive.StreamLive
 	started           bool
 	twitchPlayers     map[string]string // twitch_login -> player_id
 	youtubePlayers    map[string]string // youtube_channel_id -> player_id
 }
 
-func NewStreamTracker(logger *slog.Logger, repository repository, playersRepository playersRepository) *StreamTracker {
+func NewStreamTracker(
+	logger *slog.Logger,
+	repository repository,
+	playersRepository playersRepository,
+	notifyPlayers notifyPlayersRepository,
+) *StreamTracker {
 	var clients []streamlive.Client
 
 	twitchClientId, twitchClientIdOk := os.LookupEnv("TWITCH_CLIENT_ID")
@@ -47,6 +56,7 @@ func NewStreamTracker(logger *slog.Logger, repository repository, playersReposit
 		logger:            logger,
 		repository:        repository,
 		playersRepository: playersRepository,
+		notifyPlayers:     notifyPlayers,
 		client:            streamlive.New(clients...),
 	}
 }
@@ -112,7 +122,7 @@ func (s *StreamTracker) onStreamChange(e *streamlive.StreamChangeEvent) error {
 	}
 
 	if ok {
-		err = s.playersRepository.NotifyChange(context.Background(), playerId)
+		err = s.notifyPlayers.NotifyChange(context.Background(), playerId)
 		if err != nil {
 			return err
 		}

@@ -107,3 +107,29 @@ func (r *Repository) GetAll(ctx context.Context) ([]*model.CellEventSchedule, er
 
 	return RecordsToCellEventSchedules(records), nil
 }
+
+func (r *Repository) NotifyChange(ctx context.Context, id string) error {
+	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
+
+	var record core.Record
+	err := pb.RecordQuery(schema.CollectionCellEventsSchedule).
+		WithContext(ctx).
+		Where(dbx.HashExp{schema.CellEventsScheduleSchema.Id: id}).
+		Limit(1).
+		One(&record)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return errs.ErrCellEventScheduleNotFound
+		}
+		return err
+	}
+
+	event := &core.ModelEvent{
+		App:     pb,
+		Context: ctx,
+		Type:    core.ModelEventTypeUpdate,
+	}
+	event.Model = &record
+
+	return pb.OnModelAfterUpdateSuccess().Trigger(event)
+}

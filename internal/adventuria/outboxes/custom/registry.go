@@ -10,6 +10,6 @@ func RegisterOutboxes(
 	progress *player_progress.PlayerProgress,
 ) {
 	outboxes.Register(
-		change_balance.NewDef(progress),
+		change_balance.NewDef(progress, progress),
 	)
 }

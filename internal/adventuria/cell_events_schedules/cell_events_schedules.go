@@ -19,6 +19,10 @@ type repository interface {
 	GetAll(ctx context.Context) ([]*model.CellEventSchedule, error)
 }
 
+type notifyRepository interface {
+	NotifyChange(ctx context.Context, id string) error
+}
+
 type cells interface {
 	GetAllByWorldID(ctx context.Context, worldId string) ([]*model.CellInfo, error)
 }
@@ -42,17 +46,19 @@ type settings interface {
 }
 
 type CellEventsSchedules struct {
-	running      atomic.Bool
-	repository   repository
-	cells        cells
-	effects      effects
-	actionEvents actionEvents
-	players      players
-	settings     settings
+	running          atomic.Bool
+	repository       repository
+	notifyRepository notifyRepository
+	cells            cells
+	effects          effects
+	actionEvents     actionEvents
+	players          players
+	settings         settings
 }
 
 func NewCellEventsSchedules(
 	repository repository,
+	notifyRepository notifyRepository,
 	cells cells,
 	effects effects,
 	actionEvents actionEvents,
@@ -60,12 +66,13 @@ func NewCellEventsSchedules(
 	settings settings,
 ) *CellEventsSchedules {
 	return &CellEventsSchedules{
-		repository:   repository,
-		cells:        cells,
-		effects:      effects,
-		actionEvents: actionEvents,
-		players:      players,
-		settings:     settings,
+		repository:       repository,
+		notifyRepository: notifyRepository,
+		cells:            cells,
+		effects:          effects,
+		actionEvents:     actionEvents,
+		players:          players,
+		settings:         settings,
 	}
 }
 
@@ -103,6 +110,11 @@ func (c *CellEventsSchedules) CheckEventsSchedules(ctx context.Context) error {
 
 	for _, event := range eventsToUpdate {
 		err = c.repository.UpdateActiveCellByID(ctx, event.ID(), event.ActiveCell())
+		if err != nil {
+			return err
+		}
+
+		err = c.notifyRepository.NotifyChange(ctx, event.ID())
 		if err != nil {
 			return err
 		}
