@@ -70,7 +70,10 @@ func (c *CellCasino) refreshItems(player *model.Player) error {
 	}
 
 	actionState := player.LastAction().State()
-	actionState.Shop.Ids = decodedValue.ItemIds
+	actionState.Shop = &model.ActionShopState{
+		Type: model.ShopTypeCasino,
+		Ids:  decodedValue.ItemIds,
+	}
 	player.LastAction().SetState(actionState)
 
 	return nil

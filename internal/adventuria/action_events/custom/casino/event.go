@@ -38,8 +38,11 @@ func (c *Casino) Init(_ context.Context, player *model.Player) error {
 	}
 
 	actionState := player.LastAction().State()
-	actionState.Shop.Ids = decodedValue.ItemIds
-	actionState.Shop.PriceMultiplier = decodedValue.PriceMultiplier
+	actionState.Shop = &model.ActionShopState{
+		Type:            model.ShopTypeCasino,
+		Ids:             decodedValue.ItemIds,
+		PriceMultiplier: decodedValue.PriceMultiplier,
+	}
 	player.LastAction().SetState(actionState)
 
 	return nil

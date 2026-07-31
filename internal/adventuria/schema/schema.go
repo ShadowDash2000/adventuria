@@ -106,27 +106,25 @@ var SeasonSchema = struct {
 }
 
 var ActionSchema = struct {
-	Id                   string
-	Player               string
-	Cell                 string
-	Type                 string
-	Activity             string
-	Review               string
-	CellsPassed          string
-	State                string
-	UsedItems            string
-	CustomActivityFilter string
+	Id          string
+	Player      string
+	Cell        string
+	Type        string
+	Activity    string
+	Review      string
+	CellsPassed string
+	State       string
+	UsedItems   string
 }{
-	Id:                   "id",
-	Player:               "player",
-	Cell:                 "cell",
-	Type:                 "type",
-	Activity:             "activity",
-	Review:               "review",
-	CellsPassed:          "cells_passed",
-	State:                "state",
-	UsedItems:            "used_items",
-	CustomActivityFilter: "custom_activity_filter",
+	Id:          "id",
+	Player:      "player",
+	Cell:        "cell",
+	Type:        "type",
+	Activity:    "activity",
+	Review:      "review",
+	CellsPassed: "cells_passed",
+	State:       "state",
+	UsedItems:   "used_items",
 }
 
 var ActivitySchema = struct {

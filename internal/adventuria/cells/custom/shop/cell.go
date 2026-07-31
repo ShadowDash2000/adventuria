@@ -18,12 +18,14 @@ const shopMaxItems = 6
 
 type CellShop struct {
 	cells.CellBase
+	shopType  model.ShopType
 	itemsType model.ItemType
 	items     items
 }
 
 func NewDef(
 	cellType model.CellType,
+	shopType model.ShopType,
 	itemsType model.ItemType,
 	items items,
 	categories ...string,
@@ -33,6 +35,7 @@ func NewDef(
 		func(cell model.CellInfo) model.Cell {
 			return &CellShop{
 				CellBase:  cells.NewCellBase(cell),
+				shopType:  shopType,
 				itemsType: itemsType,
 				items:     items,
 			}
@@ -76,7 +79,10 @@ func (c *CellShop) refreshItems(ctx context.Context, player *model.Player) error
 	}
 
 	actionState := player.LastAction().State()
-	actionState.Shop.Ids = ids
+	actionState.Shop = &model.ActionShopState{
+		Type: c.shopType,
+		Ids:  ids,
+	}
 	player.LastAction().SetState(actionState)
 
 	return nil

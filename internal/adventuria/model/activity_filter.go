@@ -1,11 +1,12 @@
 package model
 
-import "time"
+import (
+	"slices"
+	"time"
+)
 
-type ActivityFilterData struct {
-	Id              string
+type ActivityFilter struct {
 	Type            ActivityType
-	Name            string
 	Platforms       []string
 	PlatformsStrict bool
 	GameTypes       []string
@@ -23,134 +24,169 @@ type ActivityFilterData struct {
 	Activities      []string
 }
 
-type ActivityFilter struct {
+func (a *ActivityFilter) Clone() ActivityFilter {
+	if a == nil {
+		return ActivityFilter{}
+	}
+
+	return ActivityFilter{
+		Type:            a.Type,
+		Platforms:       slices.Clone(a.Platforms),
+		PlatformsStrict: a.PlatformsStrict,
+		GameTypes:       slices.Clone(a.GameTypes),
+		Developers:      slices.Clone(a.Developers),
+		Publishers:      slices.Clone(a.Publishers),
+		Genres:          slices.Clone(a.Genres),
+		Tags:            slices.Clone(a.Tags),
+		Themes:          slices.Clone(a.Themes),
+		MinPrice:        a.MinPrice,
+		MaxPrice:        a.MaxPrice,
+		ReleaseDateFrom: a.ReleaseDateFrom,
+		ReleaseDateTo:   a.ReleaseDateTo,
+		MinCampaignTime: a.MinCampaignTime,
+		MaxCampaignTime: a.MaxCampaignTime,
+		Activities:      slices.Clone(a.Activities),
+	}
+}
+
+type ActivityFilterData struct {
+	Id   string
+	Name string
+	ActivityFilter
+}
+
+type ActivityFilterInfo struct {
 	data ActivityFilterData
 }
 
-func RestoreActivityFilter(data ActivityFilterData) *ActivityFilter {
-	return &ActivityFilter{data: data}
+func RestoreActivityFilter(data ActivityFilterData) *ActivityFilterInfo {
+	return &ActivityFilterInfo{data: data}
 }
 
-func (a *ActivityFilter) Id() string {
+func (a *ActivityFilterInfo) Id() string {
 	return a.data.Id
 }
 
-func (a *ActivityFilter) Type() ActivityType {
+func (a *ActivityFilterInfo) Filter() ActivityFilter {
+	return a.data.ActivityFilter.Clone()
+}
+
+func (a *ActivityFilterInfo) Type() ActivityType {
 	return a.data.Type
 }
 
-func (a *ActivityFilter) SetType(t ActivityType) {
+func (a *ActivityFilterInfo) SetType(t ActivityType) {
 	a.data.Type = t
 }
 
-func (a *ActivityFilter) Name() string {
+func (a *ActivityFilterInfo) Name() string {
 	return a.data.Name
 }
 
-func (a *ActivityFilter) Platforms() []string {
+func (a *ActivityFilterInfo) Platforms() []string {
 	return a.data.Platforms
 }
 
-func (a *ActivityFilter) SetPlatforms(platforms []string) {
+func (a *ActivityFilterInfo) SetPlatforms(platforms []string) {
 	a.data.Platforms = platforms
 }
 
-func (a *ActivityFilter) PlatformsStrict() bool {
+func (a *ActivityFilterInfo) PlatformsStrict() bool {
 	return a.data.PlatformsStrict
 }
 
-func (a *ActivityFilter) GameTypes() []string {
+func (a *ActivityFilterInfo) GameTypes() []string {
 	return a.data.GameTypes
 }
 
-func (a *ActivityFilter) Developers() []string {
+func (a *ActivityFilterInfo) Developers() []string {
 	return a.data.Developers
 }
 
-func (a *ActivityFilter) SetDevelopers(developers []string) {
+func (a *ActivityFilterInfo) SetDevelopers(developers []string) {
 	a.data.Developers = developers
 }
 
-func (a *ActivityFilter) Publishers() []string {
+func (a *ActivityFilterInfo) Publishers() []string {
 	return a.data.Publishers
 }
 
-func (a *ActivityFilter) SetPublishers(publishers []string) {
+func (a *ActivityFilterInfo) SetPublishers(publishers []string) {
 	a.data.Publishers = publishers
 }
 
-func (a *ActivityFilter) Genres() []string {
+func (a *ActivityFilterInfo) Genres() []string {
 	return a.data.Genres
 }
 
-func (a *ActivityFilter) SetGenres(genres []string) {
+func (a *ActivityFilterInfo) SetGenres(genres []string) {
 	a.data.Genres = genres
 }
 
-func (a *ActivityFilter) Tags() []string {
+func (a *ActivityFilterInfo) Tags() []string {
 	return a.data.Tags
 }
 
-func (a *ActivityFilter) SetTags(tags []string) {
+func (a *ActivityFilterInfo) SetTags(tags []string) {
 	a.data.Tags = tags
 }
 
-func (a *ActivityFilter) Themes() []string {
+func (a *ActivityFilterInfo) Themes() []string {
 	return a.data.Themes
 }
 
-func (a *ActivityFilter) SetThemes(themes []string) {
+func (a *ActivityFilterInfo) SetThemes(themes []string) {
 	a.data.Themes = themes
 }
 
-func (a *ActivityFilter) MinPrice() int {
+func (a *ActivityFilterInfo) MinPrice() int {
 	return a.data.MinPrice
 }
 
-func (a *ActivityFilter) SetMinPrice(minPrice int) {
+func (a *ActivityFilterInfo) SetMinPrice(minPrice int) {
 	a.data.MinPrice = minPrice
 }
 
-func (a *ActivityFilter) MaxPrice() int {
+func (a *ActivityFilterInfo) MaxPrice() int {
 	return a.data.MaxPrice
 }
 
-func (a *ActivityFilter) SetMaxPrice(maxPrice int) {
+func (a *ActivityFilterInfo) SetMaxPrice(maxPrice int) {
 	a.data.MaxPrice = maxPrice
 }
 
-func (a *ActivityFilter) ReleaseDateFrom() time.Time {
+func (a *ActivityFilterInfo) ReleaseDateFrom() time.Time {
 	return a.data.ReleaseDateFrom
 }
 
-func (a *ActivityFilter) SetReleaseDateFrom(releaseDateFrom time.Time) {
+func (a *ActivityFilterInfo) SetReleaseDateFrom(releaseDateFrom time.Time) {
 	a.data.ReleaseDateFrom = releaseDateFrom
 }
 
-func (a *ActivityFilter) ReleaseDateTo() time.Time {
+func (a *ActivityFilterInfo) ReleaseDateTo() time.Time {
 	return a.data.ReleaseDateTo
 }
 
-func (a *ActivityFilter) SetReleaseDateTo(releaseDateTo time.Time) {
+func (a *ActivityFilterInfo) SetReleaseDateTo(releaseDateTo time.Time) {
 	a.data.ReleaseDateTo = releaseDateTo
 }
 
-func (a *ActivityFilter) MinCampaignTime() float64 {
+func (a *ActivityFilterInfo) MinCampaignTime() float64 {
 	return a.data.MinCampaignTime
 }
 
-func (a *ActivityFilter) SetMinCampaignTime(minCampaignTime float64) {
+func (a *ActivityFilterInfo) SetMinCampaignTime(minCampaignTime float64) {
 	a.data.MinCampaignTime = minCampaignTime
 }
 
-func (a *ActivityFilter) MaxCampaignTime() float64 {
+func (a *ActivityFilterInfo) MaxCampaignTime() float64 {
 	return a.data.MaxCampaignTime
 }
 
-func (a *ActivityFilter) SetMaxCampaignTime(maxCampaignTime float64) {
+func (a *ActivityFilterInfo) SetMaxCampaignTime(maxCampaignTime float64) {
 	a.data.MaxCampaignTime = maxCampaignTime
 }
 
-func (a *ActivityFilter) Activities() []string {
+func (a *ActivityFilterInfo) Activities() []string {
 	return a.data.Activities
 }

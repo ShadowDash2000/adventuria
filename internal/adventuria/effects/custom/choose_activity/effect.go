@@ -3,6 +3,7 @@ package choose_activity
 import (
 	"adventuria/internal/adventuria/actions"
 	"adventuria/internal/adventuria/effects"
+	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
 	"adventuria/pkg/event"
 	"context"
@@ -42,6 +43,16 @@ func NewDef(actions actionsService, activities activities) effects.EffectDef {
 }
 
 func (c *ChooseActivity) CanUse(ctx context.Context, events *model.Events, player *model.Player) bool {
+	activitiesState := player.LastAction().State().Activities
+
+	if activitiesState == nil {
+		return false
+	}
+
+	if len(activitiesState.Ids) == 0 {
+		return false
+	}
+
 	return c.actions.CanDo(ctx, events, player, actions.ActionTypeDone)
 }
 
@@ -63,7 +74,12 @@ func (c *ChooseActivity) Subscribe(
 				return errors.New("invalid activity_id")
 			}
 
-			if !slices.Contains(player.LastAction().State().Activities.Ids, activityId) {
+			activitiesState := player.LastAction().State().Activities
+			if activitiesState == nil {
+				return errs.ErrNoActiveActivity
+			}
+
+			if !slices.Contains(activitiesState.Ids, activityId) {
 				return errors.New("activity_id not found in items list")
 			}
 

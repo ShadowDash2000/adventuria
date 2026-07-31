@@ -2,21 +2,19 @@ package no_time_limit
 
 import (
 	"adventuria/internal/adventuria/actions"
-	"adventuria/internal/adventuria/cells"
 	"adventuria/internal/adventuria/effects"
+	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
 	"adventuria/pkg/event"
 	"context"
-	"errors"
 )
 
 type actionsService interface {
 	CanDo(ctx context.Context, events *model.Events, player *model.Player, t model.ActionType) bool
 }
 
-type cellsService interface {
-	GetByPlayer(ctx context.Context, player *model.Player) (*model.CellInfo, error)
-	GetByPlayerWrapped(ctx context.Context, player *model.Player) (model.Cell, error)
+type activities interface {
+	GetByFilter(ctx context.Context, filter model.ActivityFilter) ([]string, error)
 }
 
 var _ model.Effect = (*NoTimeLimit)(nil)
@@ -25,18 +23,18 @@ const Type model.EffectType = "no_time_limit"
 
 type NoTimeLimit struct {
 	effects.EffectBase
-	actions actionsService
-	cells   cellsService
+	actions    actionsService
+	activities activities
 }
 
-func NewDef(actions actionsService, cells cellsService) effects.EffectDef {
+func NewDef(actions actionsService, activities activities) effects.EffectDef {
 	return effects.NewEffectDef(
 		Type,
 		func(effect model.EffectInfo) model.Effect {
 			return &NoTimeLimit{
 				EffectBase: effects.NewEffectBase(effect),
 				actions:    actions,
-				cells:      cells,
+				activities: activities,
 			}
 		},
 	)
@@ -47,12 +45,12 @@ func (n *NoTimeLimit) CanUse(ctx context.Context, events *model.Events, player *
 		return false
 	}
 
-	currentCell, err := n.cells.GetByPlayer(ctx, player)
-	if err != nil {
+	activityFilter := player.LastAction().State().ActivityFilter
+	if activityFilter == nil {
 		return false
 	}
 
-	if currentCell.Type() != cells.CellTypeGame {
+	if activityFilter.Type != model.ActivityTypeGame {
 		return false
 	}
 
@@ -72,7 +70,7 @@ func (n *NoTimeLimit) Subscribe(
 				return e.Next()
 			}
 
-			err := n.tryToApplyEffect(ctx, events, player)
+			err := n.tryToApplyEffect(ctx, player)
 			if err != nil {
 				return err
 			}
@@ -90,7 +88,7 @@ func (n *NoTimeLimit) Subscribe(
 				return e.Next()
 			}
 
-			err := n.tryToApplyEffect(ctx, events, player)
+			err := n.tryToApplyEffect(ctx, player)
 			if err != nil {
 				return err
 			}
@@ -102,21 +100,24 @@ func (n *NoTimeLimit) Subscribe(
 	}, nil
 }
 
-func (n *NoTimeLimit) tryToApplyEffect(ctx context.Context, events *model.Events, player *model.Player) error {
-	currentCell, err := n.cells.GetByPlayerWrapped(ctx, player)
+func (n *NoTimeLimit) tryToApplyEffect(ctx context.Context, player *model.Player) error {
+	actionState := player.LastAction().State()
+	if actionState.ActivityFilter == nil {
+		return errs.ErrNoActiveActivityFilter
+	}
+
+	actionState.ActivityFilter.MinCampaignTime = -1
+	actionState.ActivityFilter.MaxCampaignTime = -1
+
+	ids, err := n.activities.GetByFilter(ctx, *actionState.ActivityFilter)
 	if err != nil {
 		return err
 	}
 
-	cellRefreshable, ok := currentCell.(model.Refreshable)
-	if !ok {
-		return errors.New("current cell is not refreshable")
+	actionState.Activities = &model.ActionActivitiesState{
+		Ids: ids,
 	}
+	player.LastAction().SetState(actionState)
 
-	filter := player.LastAction().CustomActivityFilter()
-	filter.MinCampaignTime = -1
-	filter.MaxCampaignTime = -1
-	player.LastAction().SetCustomActivityFilter(filter)
-
-	return cellRefreshable.RefreshItems(ctx, events, player)
+	return nil
 }

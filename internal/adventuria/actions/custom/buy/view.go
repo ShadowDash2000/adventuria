@@ -1,6 +1,7 @@
 package buy
 
 import (
+	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
 	"adventuria/internal/adventuria/schema"
 	"context"
@@ -19,6 +20,10 @@ type itemView struct {
 
 func (b *Buy) GetView(ctx context.Context, events *model.Events, player *model.Player) (any, error) {
 	shopState := player.LastAction().State().Shop
+	if shopState == nil {
+		return nil, errs.ErrNoActiveShop
+	}
+
 	items, err := b.items.GetByIDs(ctx, shopState.Ids)
 	if err != nil {
 		return nil, err

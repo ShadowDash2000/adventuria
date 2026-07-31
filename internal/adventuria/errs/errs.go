@@ -189,9 +189,26 @@ var (
 		Message: "Action is not event compatible",
 	}
 
+	ErrNoActiveActivity = &AppError{
+		Code:    "no_active_activity",
+		Message: "No active activity",
+	}
+	ErrNoActiveActivityFilter = &AppError{
+		Code:    "no_active_activity_filter",
+		Message: "No active activity filter",
+	}
+	ErrNoActiveShop = &AppError{
+		Code:    "no_active_shop",
+		Message: "No active shop",
+	}
 	ErrNoActiveDeals = &AppError{
 		Code:    "no_active_deals",
 		Message: "No active deals",
+	}
+
+	ErrInvalidActivityFilter = &AppError{
+		Code:    "invalid_activity_filter",
+		Message: "Invalid activity filter",
 	}
 
 	ErrAllActionsBlocked = &AppError{

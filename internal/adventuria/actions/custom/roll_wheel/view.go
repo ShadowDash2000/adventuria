@@ -1,6 +1,7 @@
 package roll_wheel
 
 import (
+	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
 	"context"
 )
@@ -13,7 +14,12 @@ func (r *RollWheel) GetView(ctx context.Context, _ *model.Events, player *model.
 		return nil, err
 	}
 
-	activities, err := r.activities.GetDetailedByIDs(ctx, player.LastAction().State().Activities.Ids)
+	activitiesState := player.LastAction().State().Activities
+	if activitiesState == nil {
+		return nil, errs.ErrNoActiveActivity
+	}
+
+	activities, err := r.activities.GetDetailedByIDs(ctx, activitiesState.Ids)
 	if err != nil {
 		return nil, err
 	}

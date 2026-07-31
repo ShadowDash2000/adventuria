@@ -50,7 +50,7 @@ func RegisterCells(
 		roll_item.NewDef(items, "wheel"),
 		casino.NewDef(items, "shop"),
 		shop.NewDef(
-			cells.CellTypeShop, model.ItemTypeBuff, items,
+			cells.CellTypeShop, model.ShopTypeBuffet, model.ItemTypeBuff, items,
 			"shop",
 		),
 		teleport.NewDef(cellsService, board, actions),

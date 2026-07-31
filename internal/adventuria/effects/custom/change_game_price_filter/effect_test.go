@@ -3,7 +3,7 @@ package change_game_price_filter
 import (
 	"adventuria/internal/adventuria/actions"
 	actionsMocks "adventuria/internal/adventuria/actions/mocks"
-	filtersMocks "adventuria/internal/adventuria/activity_filters/mocks"
+	activitiesMocks "adventuria/internal/adventuria/activities/mocks"
 	"adventuria/internal/adventuria/cells"
 	cellsMocks "adventuria/internal/adventuria/cells/mocks"
 	"adventuria/internal/adventuria/effects"
@@ -15,10 +15,10 @@ import (
 func TestChangeGamePriceFilter_CanUse(t *testing.T) {
 	ctx := t.Context()
 
-	setup := func() (*ChangeGamePriceFilter, *actionsMocks.Actions, *cellsMocks.Cells, *filtersMocks.ActivityFilters) {
+	setup := func() (*ChangeGamePriceFilter, *actionsMocks.Actions, *cellsMocks.Cells, *activitiesMocks.Activities) {
 		mActions := &actionsMocks.Actions{}
 		mCells := &cellsMocks.Cells{}
-		mFilters := &filtersMocks.ActivityFilters{}
+		mActivities := &activitiesMocks.Activities{}
 
 		eff := &ChangeGamePriceFilter{
 			EffectBase: effects.NewEffectBase(
@@ -27,17 +27,24 @@ func TestChangeGamePriceFilter_CanUse(t *testing.T) {
 					Type: Type,
 				}),
 			),
-			actions:         mActions,
-			cells:           mCells,
-			activityFilters: mFilters,
+			actions:    mActions,
+			cells:      mCells,
+			activities: mActivities,
 		}
 
-		return eff, mActions, mCells, mFilters
+		return eff, mActions, mCells, mActivities
 	}
 
 	t.Run("success", func(t *testing.T) {
 		eff, mActions, mCells, _ := setup()
-		player := model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, nil, nil)
+		lastAction := model.RestoreAction(model.ActionData{
+			State: model.ActionState{
+				ActivityFilter: &model.ActivityFilter{
+					Type: model.ActivityTypeGame,
+				},
+			},
+		})
+		player := model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, lastAction, nil)
 
 		mActions.CanDoFunc = func(ctx context.Context, events *model.Events, p *model.Player, t model.ActionType) bool {
 			return t == actions.ActionTypeRollWheel
@@ -67,9 +74,16 @@ func TestChangeGamePriceFilter_CanUse(t *testing.T) {
 		}
 	})
 
-	t.Run("wrong cell type", func(t *testing.T) {
+	t.Run("wrong activity filter type", func(t *testing.T) {
 		eff, mActions, mCells, _ := setup()
-		player := model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, nil, nil)
+		lastAction := model.RestoreAction(model.ActionData{
+			State: model.ActionState{
+				ActivityFilter: &model.ActivityFilter{
+					Type: model.ActivityTypeGym,
+				},
+			},
+		})
+		player := model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, lastAction, nil)
 
 		mActions.CanDoFunc = func(ctx context.Context, events *model.Events, p *model.Player, t model.ActionType) bool {
 			return true
@@ -107,8 +121,15 @@ func TestChangeGamePriceFilter_CanUse(t *testing.T) {
 	})
 
 	t.Run("filter has activities", func(t *testing.T) {
-		eff, mActions, mCells, mFilters := setup()
-		player := model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, nil, nil)
+		eff, mActions, mCells, mActivities := setup()
+		lastAction := model.RestoreAction(model.ActionData{
+			State: model.ActionState{
+				ActivityFilter: &model.ActivityFilter{
+					Activities: []string{"act1"},
+				},
+			},
+		})
+		player := model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, lastAction, nil)
 
 		mActions.CanDoFunc = func(ctx context.Context, events *model.Events, p *model.Player, t model.ActionType) bool {
 			return true
@@ -121,10 +142,8 @@ func TestChangeGamePriceFilter_CanUse(t *testing.T) {
 			}), nil
 		}
 
-		mFilters.GetByIDFunc = func(ctx context.Context, id string) (*model.ActivityFilter, error) {
-			return model.RestoreActivityFilter(model.ActivityFilterData{
-				Activities: []string{"act1"},
-			}), nil
+		mActivities.GetByFilterFunc = func(ctx context.Context, filter model.ActivityFilter) ([]string, error) {
+			return []string{"act1"}, nil
 		}
 
 		if eff.CanUse(ctx, nil, player) {
@@ -143,10 +162,11 @@ func TestChangeGamePriceFilter_Subscribe(t *testing.T) {
 		*bool,
 		model.EffectCallback,
 		*cellsMocks.Cells,
+		*activitiesMocks.Activities,
 	) {
 		mActions := &actionsMocks.Actions{}
 		mCells := &cellsMocks.Cells{}
-		mFilters := &filtersMocks.ActivityFilters{}
+		mActivities := &activitiesMocks.Activities{}
 
 		eff := &ChangeGamePriceFilter{
 			EffectBase: effects.NewEffectBase(
@@ -156,13 +176,19 @@ func TestChangeGamePriceFilter_Subscribe(t *testing.T) {
 					Value: value,
 				}),
 			),
-			actions:         mActions,
-			cells:           mCells,
-			activityFilters: mFilters,
+			actions:    mActions,
+			cells:      mCells,
+			activities: mActivities,
 		}
 
 		events := model.NewEvents()
-		action := model.RestoreAction(model.ActionData{})
+		action := model.RestoreAction(model.ActionData{
+			State: model.ActionState{
+				ActivityFilter: &model.ActivityFilter{
+					Type: model.ActivityTypeGame,
+				},
+			},
+		})
 		player := model.RestorePlayer(
 			model.PlayerData{Id: "p1"},
 			&model.PlayerProgress{},
@@ -175,7 +201,7 @@ func TestChangeGamePriceFilter_Subscribe(t *testing.T) {
 			callbackCalled = true
 		}
 
-		return eff, events, player, &callbackCalled, callback, mCells
+		return eff, events, player, &callbackCalled, callback, mCells, mActivities
 	}
 
 	effectCtx := model.EffectContext{
@@ -184,7 +210,7 @@ func TestChangeGamePriceFilter_Subscribe(t *testing.T) {
 	}
 
 	t.Run("usable min price", func(t *testing.T) {
-		eff, events, player, called, callback, mCells := setup("100;min;usable")
+		eff, events, player, called, callback, mCells, mActivities := setup("100;min;usable")
 
 		mCell := &cellsMocks.RollableCell{
 			Cell: &cellsMocks.Cell{
@@ -193,6 +219,10 @@ func TestChangeGamePriceFilter_Subscribe(t *testing.T) {
 		}
 		mCells.GetByPlayerWrappedFunc = func(ctx context.Context, player *model.Player) (model.Cell, error) {
 			return mCell, nil
+		}
+
+		mActivities.GetByFilterFunc = func(ctx context.Context, filter model.ActivityFilter) ([]string, error) {
+			return []string{"act1"}, nil
 		}
 
 		_, err := eff.Subscribe(ctx, events, player, effectCtx, callback)
@@ -211,18 +241,14 @@ func TestChangeGamePriceFilter_Subscribe(t *testing.T) {
 			t.Error("Callback was not called")
 		}
 
-		filter := player.LastAction().CustomActivityFilter()
+		filter := player.LastAction().State().ActivityFilter
 		if filter.MinPrice != 100 || filter.MaxPrice != -1 {
 			t.Errorf("Invalid filter prices: %+v", filter)
-		}
-
-		if !mCell.RefreshCalled {
-			t.Error("RefreshItems was not called")
 		}
 	})
 
 	t.Run("unusable max price", func(t *testing.T) {
-		eff, events, player, called, callback, mCells := setup("500;max;unusable")
+		eff, events, player, called, callback, mCells, mActivities := setup("500;max;unusable")
 
 		mActions := eff.actions.(*actionsMocks.Actions)
 		mActions.CanDoFunc = func(ctx context.Context, events *model.Events, p *model.Player, t model.ActionType) bool {
@@ -243,6 +269,10 @@ func TestChangeGamePriceFilter_Subscribe(t *testing.T) {
 			}), nil
 		}
 
+		mActivities.GetByFilterFunc = func(ctx context.Context, filter model.ActivityFilter) ([]string, error) {
+			return []string{"act1"}, nil
+		}
+
 		_, err := eff.Subscribe(ctx, events, player, effectCtx, callback)
 		if err != nil {
 			t.Fatalf("Subscribe failed: %v", err)
@@ -257,13 +287,12 @@ func TestChangeGamePriceFilter_Subscribe(t *testing.T) {
 			t.Error("Callback was not called on OnAfterMove")
 		}
 
-		filter := player.LastAction().CustomActivityFilter()
+		filter := player.LastAction().State().ActivityFilter
 		if filter.MaxPrice != 500 || filter.MinPrice != -1 {
 			t.Errorf("Invalid filter prices: %+v", filter)
 		}
 
 		*called = false
-		player.LastAction().SetCustomActivityFilter(model.CustomActivityFilter{})
 
 		item := model.RestoreInventoryItem(
 			model.RestoreInventory(model.InventoryData{Id: "item1"}),

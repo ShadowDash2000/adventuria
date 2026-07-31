@@ -2,6 +2,7 @@ package jail
 
 import (
 	"adventuria/internal/adventuria/cells"
+	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
 	"adventuria/pkg/helper"
 	"context"
@@ -9,11 +10,11 @@ import (
 )
 
 type activities interface {
-	UpdateActivitiesFromFilter(ctx context.Context, player *model.Player, filter *model.ActivityFilter, forceUpdate bool) error
+	GetByFilter(ctx context.Context, filter model.ActivityFilter) ([]string, error)
 }
 
 type filters interface {
-	GetByID(ctx context.Context, id string) (*model.ActivityFilter, error)
+	GetByID(ctx context.Context, id string) (*model.ActivityFilterInfo, error)
 }
 
 var _ model.Rollable = (*CellJail)(nil)
@@ -62,7 +63,33 @@ func (c *CellJail) OnCellReached(ctx context.Context, events *model.Events, play
 	if player.Progress().IsInJail() {
 		player.Progress().SetCanMove(false)
 
-		err := events.OnAfterGoToJail().Trigger(ctx, &model.OnAfterGoToJailEvent{})
+		filter, err := c.filters.GetByID(ctx, c.Filter())
+		if err != nil {
+			return err
+		}
+
+		actionState := player.LastAction().State()
+		actionState.ActivityFilter = &model.ActivityFilter{
+			Type:            filter.Type(),
+			Platforms:       filter.Platforms(),
+			PlatformsStrict: filter.PlatformsStrict(),
+			GameTypes:       filter.GameTypes(),
+			Developers:      filter.Developers(),
+			Publishers:      filter.Publishers(),
+			Genres:          filter.Genres(),
+			Tags:            filter.Tags(),
+			Themes:          filter.Themes(),
+			MinPrice:        filter.MinPrice(),
+			MaxPrice:        filter.MaxPrice(),
+			ReleaseDateFrom: filter.ReleaseDateFrom(),
+			ReleaseDateTo:   filter.ReleaseDateTo(),
+			MinCampaignTime: filter.MinCampaignTime(),
+			MaxCampaignTime: filter.MaxCampaignTime(),
+			Activities:      filter.Activities(),
+		}
+		player.LastAction().SetState(actionState)
+
+		err = events.OnAfterGoToJail().Trigger(ctx, &model.OnAfterGoToJailEvent{})
 		if err != nil {
 			return err
 		}
@@ -83,10 +110,21 @@ func (c *CellJail) OnCellLeft(_ context.Context, _ *model.Events, player *model.
 }
 
 func (c *CellJail) RefreshItems(ctx context.Context, _ *model.Events, player *model.Player) error {
-	filter, err := c.filters.GetByID(ctx, c.Filter())
+	actionState := player.LastAction().State()
+
+	if actionState.ActivityFilter == nil {
+		return errs.ErrNoActiveActivityFilter
+	}
+
+	ids, err := c.activities.GetByFilter(ctx, *actionState.ActivityFilter)
 	if err != nil {
 		return err
 	}
-	filter.SetType(c.activityType)
-	return c.activities.UpdateActivitiesFromFilter(ctx, player, filter, true)
+
+	actionState.Activities = &model.ActionActivitiesState{
+		Ids: ids,
+	}
+	player.LastAction().SetState(actionState)
+
+	return nil
 }

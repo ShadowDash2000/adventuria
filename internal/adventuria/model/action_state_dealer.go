@@ -17,7 +17,22 @@ type ActionDealerState struct {
 	CoinsForItem *DealCoinsForItem
 }
 
-func (s ActionDealerState) AsCoinsForItemDeal() (DealCoinsForItem, error) {
+func (s *ActionDealerState) Clone() *ActionDealerState {
+	if s == nil {
+		return nil
+	}
+
+	return &ActionDealerState{
+		Type:         s.Type,
+		Description:  s.Description,
+		CoinsForItem: s.CoinsForItem,
+	}
+}
+
+func (s *ActionDealerState) AsCoinsForItemDeal() (DealCoinsForItem, error) {
+	if s == nil {
+		return DealCoinsForItem{}, errors.New("action dealer state is nil")
+	}
 	if s.Type != DealTypeCoinsForItem {
 		return DealCoinsForItem{}, fmt.Errorf("deal type is %q, expected %q", s.Type, DealTypeCoinsForItem)
 	}
@@ -33,8 +48,8 @@ type DealCoinsForItem struct {
 	ItemId string
 }
 
-func NewCoinsForItemDeal(description string, coins int, itemId string) ActionDealerState {
-	return ActionDealerState{
+func NewCoinsForItemDeal(description string, coins int, itemId string) *ActionDealerState {
+	return &ActionDealerState{
 		Type:        DealTypeCoinsForItem,
 		Description: description,
 		CoinsForItem: &DealCoinsForItem{

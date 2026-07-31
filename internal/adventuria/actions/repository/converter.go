@@ -23,7 +23,6 @@ func ActionToRecord(action *model.ActionInfo, record *core.Record) error {
 	record.Set(schema.ActionSchema.CellsPassed, action.CellsPassed())
 	record.Set(schema.ActionSchema.State, state)
 	record.Set(schema.ActionSchema.UsedItems, action.UsedItems())
-	record.Set(schema.ActionSchema.CustomActivityFilter, dto.CustomActivityFilterToDTO(action.CustomActivityFilter()))
 
 	return nil
 }
@@ -45,22 +44,15 @@ func RecordToAction(record *core.Record) (*model.ActionInfo, error) {
 		return nil, err
 	}
 
-	var filterDTO dto.CustomActivityFilter
-	err = record.UnmarshalJSONField(schema.ActionSchema.CustomActivityFilter, &filterDTO)
-	if err != nil {
-		return nil, err
-	}
-
 	return model.RestoreAction(model.ActionData{
-		Id:                   record.Id,
-		Player:               record.GetString(schema.ActionSchema.Player),
-		Cell:                 record.GetString(schema.ActionSchema.Cell),
-		Type:                 model.ActionType(record.GetString(schema.ActionSchema.Type)),
-		Activity:             record.GetString(schema.ActionSchema.Activity),
-		Review:               record.GetString(schema.ActionSchema.Review),
-		CellsPassed:          record.GetInt(schema.ActionSchema.CellsPassed),
-		State:                state,
-		UsedItems:            usedItems,
-		CustomActivityFilter: dto.CustomActivityFilterFromDTO(filterDTO),
+		Id:          record.Id,
+		Player:      record.GetString(schema.ActionSchema.Player),
+		Cell:        record.GetString(schema.ActionSchema.Cell),
+		Type:        model.ActionType(record.GetString(schema.ActionSchema.Type)),
+		Activity:    record.GetString(schema.ActionSchema.Activity),
+		Review:      record.GetString(schema.ActionSchema.Review),
+		CellsPassed: record.GetInt(schema.ActionSchema.CellsPassed),
+		State:       state,
+		UsedItems:   usedItems,
 	}), nil
 }

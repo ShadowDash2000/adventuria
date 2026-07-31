@@ -1,6 +1,7 @@
 package choose_activity
 
 import (
+	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
 	"context"
 )
@@ -13,15 +14,17 @@ type activityView struct {
 }
 
 func (c *ChooseActivity) GetView(ctx context.Context, _ *model.Events, player *model.Player) (any, error) {
-	activities, err := c.activities.GetByIDs(ctx, player.LastAction().State().Activities.Ids)
+	activitiesState := player.LastAction().State().Activities
+	if activitiesState == nil {
+		return nil, errs.ErrNoActiveActivity
+	}
+
+	activities, err := c.activities.GetByIDs(ctx, activitiesState.Ids)
 	if err != nil {
 		return nil, err
 	}
-	return struct {
-		Items []*activityView `json:"items"`
-	}{
-		Items: activitiesToActivitiesView(activities),
-	}, nil
+
+	return activitiesToActivitiesView(activities), nil
 }
 
 func activityToActivityView(activity *model.Activity) *activityView {

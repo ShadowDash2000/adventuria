@@ -5,7 +5,7 @@ import (
 	"context"
 )
 
-func (b *Buy) calculatePrice(basePrice int, shopState model.ActionShopState) (int, error) {
+func (b *Buy) calculatePrice(basePrice int, shopState *model.ActionShopState) (int, error) {
 	if shopState.PriceMultiplier != 0 {
 		basePrice = int(float64(basePrice) * shopState.PriceMultiplier)
 	}

@@ -15,16 +15,12 @@ type actionsService interface {
 	CanDo(ctx context.Context, events *model.Events, player *model.Player, t model.ActionType) bool
 }
 
-type cells interface {
-	GetByPlayerWrapped(ctx context.Context, player *model.Player) (model.Cell, error)
-}
-
 type genres interface {
 	Exists(ctx context.Context, id string) (bool, error)
 }
 
-type activityFilters interface {
-	GetByID(ctx context.Context, id string) (*model.ActivityFilter, error)
+type activities interface {
+	GetByFilter(ctx context.Context, filter model.ActivityFilter) ([]string, error)
 }
 
 var _ model.Effect = (*AddGameGenre)(nil)
@@ -33,22 +29,20 @@ const Type model.EffectType = "add_game_genre"
 
 type AddGameGenre struct {
 	effects.EffectBase
-	actions         actionsService
-	cells           cells
-	genres          genres
-	activityFilters activityFilters
+	actions    actionsService
+	genres     genres
+	activities activities
 }
 
-func NewDef(actions actionsService, cells cells, genres genres, activityFilters activityFilters) effects.EffectDef {
+func NewDef(actions actionsService, genres genres, activities activities) effects.EffectDef {
 	return effects.NewEffectDef(
 		Type,
 		func(effect model.EffectInfo) model.Effect {
 			return &AddGameGenre{
-				EffectBase:      effects.NewEffectBase(effect),
-				actions:         actions,
-				cells:           cells,
-				genres:          genres,
-				activityFilters: activityFilters,
+				EffectBase: effects.NewEffectBase(effect),
+				actions:    actions,
+				genres:     genres,
+				activities: activities,
 			}
 		},
 	)
@@ -59,30 +53,23 @@ func (a *AddGameGenre) CanUse(ctx context.Context, events *model.Events, player 
 		return false
 	}
 
-	currentCell, err := a.cells.GetByPlayerWrapped(ctx, player)
-	if err != nil {
+	activityFilter := player.LastAction().State().ActivityFilter
+	if activityFilter == nil {
 		return false
 	}
 
-	if !currentCell.InCategory("game") {
+	if activityFilter.Type != model.ActivityTypeGame {
 		return false
 	}
 
-	if filterId := currentCell.Data().Filter(); filterId != "" {
-		filter, err := a.activityFilters.GetByID(ctx, filterId)
-		if err != nil {
-			return false
-		}
-
-		if len(filter.Developers()) > 0 {
-			return false
-		}
-		if len(filter.Publishers()) > 0 {
-			return false
-		}
-		if len(filter.Activities()) > 0 {
-			return false
-		}
+	if len(activityFilter.Developers) > 0 {
+		return false
+	}
+	if len(activityFilter.Publishers) > 0 {
+		return false
+	}
+	if len(activityFilter.Activities) > 0 {
+		return false
 	}
 
 	return true
@@ -101,22 +88,12 @@ func (a *AddGameGenre) Subscribe(
 				return e.Next()
 			}
 
-			currentCell, err := a.cells.GetByPlayerWrapped(ctx, player)
-			if err != nil {
-				return err
-			}
-
-			cellWheel, ok := currentCell.(model.Rollable)
-			if !ok {
-				return errors.New("current cell is not refreshable")
-			}
-
 			genreId, ok := e.Data["genre_id"].(string)
 			if !ok {
 				return errors.New("genre_id not specified")
 			}
 
-			ok, err = a.genres.Exists(ctx, genreId)
+			ok, err := a.genres.Exists(ctx, genreId)
 			if err != nil {
 				return err
 			}
@@ -124,18 +101,26 @@ func (a *AddGameGenre) Subscribe(
 				return errs.ErrGenreNotFound
 			}
 
-			filter := player.LastAction().CustomActivityFilter()
-			if index := slices.Index(filter.Genres, genreId); index != -1 {
+			actionState := player.LastAction().State()
+			if actionState.ActivityFilter == nil {
+				return errs.ErrNoActiveActivityFilter
+			}
+
+			if index := slices.Index(actionState.ActivityFilter.Genres, genreId); index != -1 {
 				return errors.New("genre already exists")
 			}
 
-			filter.Genres = append(filter.Genres, genreId)
-			player.LastAction().SetCustomActivityFilter(filter)
+			actionState.ActivityFilter.Genres = append(actionState.ActivityFilter.Genres, genreId)
 
-			err = cellWheel.RefreshItems(ctx, events, player)
+			ids, err := a.activities.GetByFilter(ctx, *actionState.ActivityFilter)
 			if err != nil {
 				return err
 			}
+
+			actionState.Activities = &model.ActionActivitiesState{
+				Ids: ids,
+			}
+			player.LastAction().SetState(actionState)
 
 			callback(ctx)
 			return e.Next()

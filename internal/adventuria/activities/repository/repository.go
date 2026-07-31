@@ -45,13 +45,11 @@ func (r *Repository) GetByIdDb(ctx context.Context, idDb string) (*model.Activit
 	return RecordToActivity(&record), nil
 }
 
-func (r *Repository) GetActivitiesByFilter(ctx context.Context, filter *model.ActivityFilter, poolSize, resultSize int) ([]string, error) {
+func (r *Repository) GetByFilter(ctx context.Context, filter model.ActivityFilter, poolSize, resultSize int) ([]string, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 
 	countQuery := pb.DB().Select("count(*)")
-	if filter != nil {
-		buildQuery(pb, filter, countQuery)
-	}
+	buildQuery(pb, filter, countQuery)
 
 	var totalCount int
 	err := countQuery.WithContext(ctx).Row(&totalCount)
@@ -75,9 +73,7 @@ func (r *Repository) GetActivitiesByFilter(ctx context.Context, filter *model.Ac
 		Select("f.id").
 		Limit(int64(limit)).
 		Offset(int64(offset))
-	if filter != nil {
-		buildQuery(pb, filter, q)
-	}
+	buildQuery(pb, filter, q)
 
 	var records []struct {
 		Id string `db:"id"`
@@ -103,18 +99,18 @@ func (r *Repository) GetActivitiesByFilter(ctx context.Context, filter *model.Ac
 	return res, nil
 }
 
-func buildQuery(app core.App, filter *model.ActivityFilter, mainQuery *dbx.SelectQuery) {
+func buildQuery(app core.App, filter model.ActivityFilter, mainQuery *dbx.SelectQuery) {
 	q := app.DB().
 		Select("id").
 		From(schema.CollectionActivities)
 
 	// if ids are specified, then we don't need any other filters
-	if len(filter.Activities()) > 0 {
+	if len(filter.Activities) > 0 {
 		q.AndWhere(dbx.NewExp(
 			fmt.Sprintf(
 				"%s IN (%s)",
 				schema.ActivitySchema.Id,
-				pbhelper.SliceToSqlString(filter.Activities()),
+				pbhelper.SliceToSqlString(filter.Activities),
 			),
 		))
 
@@ -123,50 +119,50 @@ func buildQuery(app core.App, filter *model.ActivityFilter, mainQuery *dbx.Selec
 		return
 	}
 
-	if filter.Type() != "" {
-		q.Where(dbx.NewExp(fmt.Sprintf("%s = '%s'", schema.ActivitySchema.Type, filter.Type())))
+	if filter.Type != "" {
+		q.Where(dbx.NewExp(fmt.Sprintf("%s = '%s'", schema.ActivitySchema.Type, filter.Type)))
 	}
 
-	if len(filter.GameTypes()) > 0 {
+	if len(filter.GameTypes) > 0 {
 		q.AndWhere(dbx.NewExp(
 			fmt.Sprintf(
 				"%s IN (%s)",
 				schema.ActivitySchema.GameType,
-				pbhelper.SliceToSqlString(filter.GameTypes()),
+				pbhelper.SliceToSqlString(filter.GameTypes),
 			),
 		))
 	}
 
-	if filter.MinPrice() > 0 {
+	if filter.MinPrice > 0 {
 		q.AndWhere(dbx.NewExp(
-			fmt.Sprintf("%s > %d", schema.ActivitySchema.SteamAppPrice, filter.MinPrice()),
+			fmt.Sprintf("%s > %d", schema.ActivitySchema.SteamAppPrice, filter.MinPrice),
 		))
 	}
-	if filter.MaxPrice() > 0 {
+	if filter.MaxPrice > 0 {
 		q.AndWhere(dbx.NewExp(
-			fmt.Sprintf("%s < %d", schema.ActivitySchema.SteamAppPrice, filter.MaxPrice()),
-		))
-	}
-
-	if !filter.ReleaseDateFrom().IsZero() {
-		q.AndWhere(dbx.NewExp(
-			fmt.Sprintf("%s > '%s'", schema.ActivitySchema.ReleaseDate, filter.ReleaseDateFrom().String()),
-		))
-	}
-	if !filter.ReleaseDateTo().IsZero() {
-		q.AndWhere(dbx.NewExp(
-			fmt.Sprintf("%s < '%s'", schema.ActivitySchema.ReleaseDate, filter.ReleaseDateTo().String()),
+			fmt.Sprintf("%s < %d", schema.ActivitySchema.SteamAppPrice, filter.MaxPrice),
 		))
 	}
 
-	if filter.MinCampaignTime() > 0 {
+	if !filter.ReleaseDateFrom.IsZero() {
 		q.AndWhere(dbx.NewExp(
-			fmt.Sprintf("%s > %f", schema.ActivitySchema.HltbCampaignTime, filter.MinCampaignTime()),
+			fmt.Sprintf("%s > '%s'", schema.ActivitySchema.ReleaseDate, filter.ReleaseDateFrom.String()),
 		))
 	}
-	if filter.MaxCampaignTime() > 0 {
+	if !filter.ReleaseDateTo.IsZero() {
 		q.AndWhere(dbx.NewExp(
-			fmt.Sprintf("%s < %f", schema.ActivitySchema.HltbCampaignTime, filter.MaxCampaignTime()),
+			fmt.Sprintf("%s < '%s'", schema.ActivitySchema.ReleaseDate, filter.ReleaseDateTo.String()),
+		))
+	}
+
+	if filter.MinCampaignTime > 0 {
+		q.AndWhere(dbx.NewExp(
+			fmt.Sprintf("%s > %f", schema.ActivitySchema.HltbCampaignTime, filter.MinCampaignTime),
+		))
+	}
+	if filter.MaxCampaignTime > 0 {
+		q.AndWhere(dbx.NewExp(
+			fmt.Sprintf("%s < %f", schema.ActivitySchema.HltbCampaignTime, filter.MaxCampaignTime),
 		))
 	}
 
@@ -175,70 +171,70 @@ func buildQuery(app core.App, filter *model.ActivityFilter, mainQuery *dbx.Selec
 	setSubTablesFilters(app, filter, mainQuery)
 }
 
-func setSubTablesFilters(app core.App, filter *model.ActivityFilter, q *dbx.SelectQuery) {
-	if len(filter.Platforms()) > 0 {
+func setSubTablesFilters(app core.App, filter model.ActivityFilter, q *dbx.SelectQuery) {
+	if len(filter.Platforms) > 0 {
 		applyActivityRelationFilter(
 			app,
 			q,
 			schema.CollectionActivitiesPlatforms,
 			schema.ActivitiesPlatformsSchema.Activity,
 			schema.ActivitiesPlatformsSchema.Platform,
-			filter.Platforms(),
-			filter.PlatformsStrict(),
+			filter.Platforms,
+			filter.PlatformsStrict,
 		)
 	}
-	if len(filter.Developers()) > 0 {
+	if len(filter.Developers) > 0 {
 		applyActivityRelationFilter(
 			app,
 			q,
 			schema.CollectionActivitiesDevelopers,
 			schema.ActivitiesDevelopersSchema.Activity,
 			schema.ActivitiesDevelopersSchema.Developer,
-			filter.Developers(),
+			filter.Developers,
 			false,
 		)
 	}
-	if len(filter.Publishers()) > 0 {
+	if len(filter.Publishers) > 0 {
 		applyActivityRelationFilter(
 			app,
 			q,
 			schema.CollectionActivitiesPublishers,
 			schema.ActivitiesPublishersSchema.Activity,
 			schema.ActivitiesPublishersSchema.Publisher,
-			filter.Publishers(),
+			filter.Publishers,
 			false,
 		)
 	}
-	if len(filter.Genres()) > 0 {
+	if len(filter.Genres) > 0 {
 		applyActivityRelationFilter(
 			app,
 			q,
 			schema.CollectionActivitiesGenres,
 			schema.ActivitiesGenresSchema.Activity,
 			schema.ActivitiesGenresSchema.Genre,
-			filter.Genres(),
+			filter.Genres,
 			false,
 		)
 	}
-	if len(filter.Tags()) > 0 {
+	if len(filter.Tags) > 0 {
 		applyActivityRelationFilter(
 			app,
 			q,
 			schema.CollectionActivitiesTags,
 			schema.ActivitiesTagsSchema.Activity,
 			schema.ActivitiesTagsSchema.Tag,
-			filter.Tags(),
+			filter.Tags,
 			false,
 		)
 	}
-	if len(filter.Themes()) > 0 {
+	if len(filter.Themes) > 0 {
 		applyActivityRelationFilter(
 			app,
 			q,
 			schema.CollectionActivitiesThemes,
 			schema.ActivitiesThemesSchema.Activity,
 			schema.ActivitiesThemesSchema.Theme,
-			filter.Themes(),
+			filter.Themes,
 			false,
 		)
 	}

@@ -33,7 +33,14 @@ func TestChooseActivity_CanUse(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		eff, mActions := setup()
-		player := model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, nil, nil)
+		lastAction := model.RestoreAction(model.ActionData{
+			State: model.ActionState{
+				Activities: &model.ActionActivitiesState{
+					Ids: []string{"id1"},
+				},
+			},
+		})
+		player := model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, lastAction, nil)
 
 		mActions.CanDoFunc = func(ctx context.Context, events *model.Events, p *model.Player, t model.ActionType) bool {
 			return t == actions.ActionTypeDone
@@ -45,12 +52,8 @@ func TestChooseActivity_CanUse(t *testing.T) {
 	})
 
 	t.Run("failure", func(t *testing.T) {
-		eff, mActions := setup()
-		player := model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, nil, nil)
-
-		mActions.CanDoFunc = func(ctx context.Context, events *model.Events, p *model.Player, t model.ActionType) bool {
-			return false
-		}
+		eff, _ := setup()
+		player := model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, &model.ActionInfo{}, nil)
 
 		if eff.CanUse(ctx, nil, player) {
 			t.Error("CanUse should return false")
@@ -62,7 +65,6 @@ func TestChooseActivity_Subscribe(t *testing.T) {
 	ctx := t.Context()
 
 	setup := func() (*ChooseActivity, *model.Events, *model.Player, *bool, model.EffectCallback) {
-		mActions := &actionsMocks.Actions{}
 		mActivities := &activitiesMocks.Activities{}
 
 		eff := &ChooseActivity{
@@ -72,14 +74,13 @@ func TestChooseActivity_Subscribe(t *testing.T) {
 					Type: Type,
 				}),
 			),
-			actions:    mActions,
 			activities: mActivities,
 		}
 
 		events := model.NewEvents()
 		action := model.RestoreAction(model.ActionData{
 			State: model.ActionState{
-				Activities: model.ActionActivitiesState{
+				Activities: &model.ActionActivitiesState{
 					Ids: []string{"game1", "game2"},
 				},
 			},

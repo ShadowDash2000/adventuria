@@ -46,7 +46,6 @@ func (g *Game) init(ctx context.Context, pb core.App) error {
 		registry.Actions(),
 		registry.Cells(),
 		registry.Genres(),
-		registry.ActivityFilters(),
 		registry.Inventories(),
 		registry.Items(),
 		registry.Activities(),
@@ -69,6 +68,7 @@ func (g *Game) init(ctx context.Context, pb core.App) error {
 		registry.Items(),
 		registry.Inventories(),
 		registry.RollWheelRepo(),
+		registry.Activities(),
 	)
 
 	customOutboxes.RegisterOutboxes(

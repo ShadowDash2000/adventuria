@@ -3,8 +3,7 @@ package add_game_genre
 import (
 	"adventuria/internal/adventuria/actions"
 	actionsMocks "adventuria/internal/adventuria/actions/mocks"
-	filtersMocks "adventuria/internal/adventuria/activity_filters/mocks"
-	cellsMocks "adventuria/internal/adventuria/cells/mocks"
+	activitiesMocks "adventuria/internal/adventuria/activities/mocks"
 	"adventuria/internal/adventuria/effects"
 	genresMocks "adventuria/internal/adventuria/genres/mocks"
 	"adventuria/internal/adventuria/model"
@@ -16,11 +15,10 @@ import (
 func TestAddGameGenre_CanUse(t *testing.T) {
 	ctx := t.Context()
 
-	setup := func() (*AddGameGenre, *actionsMocks.Actions, *cellsMocks.Cells, *filtersMocks.ActivityFilters) {
+	setup := func() (*AddGameGenre, *actionsMocks.Actions, *activitiesMocks.Activities) {
 		mActions := &actionsMocks.Actions{}
-		mCells := &cellsMocks.Cells{}
 		mGenres := &genresMocks.Genres{}
-		mFilters := &filtersMocks.ActivityFilters{}
+		mActivities := &activitiesMocks.Activities{}
 
 		eff := &AddGameGenre{
 			EffectBase: effects.NewEffectBase(
@@ -29,28 +27,27 @@ func TestAddGameGenre_CanUse(t *testing.T) {
 					Type: Type,
 				}),
 			),
-			actions:         mActions,
-			cells:           mCells,
-			genres:          mGenres,
-			activityFilters: mFilters,
+			actions:    mActions,
+			genres:     mGenres,
+			activities: mActivities,
 		}
 
-		return eff, mActions, mCells, mFilters
+		return eff, mActions, mActivities
 	}
 
 	t.Run("success", func(t *testing.T) {
-		eff, mActions, mCells, _ := setup()
-		player := model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, nil, nil)
+		eff, mActions, _ := setup()
+		lastAction := model.RestoreAction(model.ActionData{
+			State: model.ActionState{
+				ActivityFilter: &model.ActivityFilter{
+					Type: model.ActivityTypeGame,
+				},
+			},
+		})
+		player := model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, lastAction, nil)
 
 		mActions.CanDoFunc = func(ctx context.Context, events *model.Events, p *model.Player, t model.ActionType) bool {
 			return t == actions.ActionTypeRollWheel
-		}
-
-		mCells.GetByPlayerWrappedFunc = func(ctx context.Context, player *model.Player) (model.Cell, error) {
-			return &cellsMocks.Cell{
-				CellInfo:        model.RestoreCellInfo(model.CellData{}),
-				CategoriesValue: []string{"game"},
-			}, nil
 		}
 
 		if !eff.CanUse(ctx, nil, player) {
@@ -59,7 +56,7 @@ func TestAddGameGenre_CanUse(t *testing.T) {
 	})
 
 	t.Run("cannot roll wheel", func(t *testing.T) {
-		eff, mActions, _, _ := setup()
+		eff, mActions, _ := setup()
 		player := model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, nil, nil)
 
 		mActions.CanDoFunc = func(ctx context.Context, events *model.Events, p *model.Player, t model.ActionType) bool {
@@ -71,46 +68,40 @@ func TestAddGameGenre_CanUse(t *testing.T) {
 		}
 	})
 
-	t.Run("wrong cell category", func(t *testing.T) {
-		eff, mActions, mCells, _ := setup()
-		player := model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, nil, nil)
+	t.Run("wrong activity filter type", func(t *testing.T) {
+		eff, mActions, _ := setup()
+		lastAction := model.RestoreAction(model.ActionData{
+			State: model.ActionState{
+				ActivityFilter: &model.ActivityFilter{
+					Type: model.ActivityTypeGym,
+				},
+			},
+		})
+		player := model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, lastAction, nil)
 
 		mActions.CanDoFunc = func(ctx context.Context, events *model.Events, p *model.Player, t model.ActionType) bool {
 			return true
 		}
 
-		mCells.GetByPlayerWrappedFunc = func(ctx context.Context, player *model.Player) (model.Cell, error) {
-			return &cellsMocks.Cell{
-				CategoriesValue: []string{"other"},
-			}, nil
-		}
-
 		if eff.CanUse(ctx, nil, player) {
-			t.Error("CanUse should return false when cell is not in 'game' category")
+			t.Error("CanUse should return false when activity filter is not a 'game' type")
 		}
 	})
 
 	t.Run("has developers filter", func(t *testing.T) {
-		eff, mActions, mCells, mFilters := setup()
-		player := model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, nil, nil)
+		eff, mActions, _ := setup()
+		lastAction := model.RestoreAction(model.ActionData{
+			State: model.ActionState{
+				ActivityFilter: &model.ActivityFilter{
+					Type:       model.ActivityTypeGame,
+					Developers: []string{"dev1"},
+				},
+			},
+		})
+		player := model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, lastAction, nil)
 
 		mActions.CanDoFunc = func(ctx context.Context, events *model.Events, p *model.Player, t model.ActionType) bool {
 			return true
-		}
-
-		mCells.GetByPlayerWrappedFunc = func(ctx context.Context, player *model.Player) (model.Cell, error) {
-			return &cellsMocks.Cell{
-				CellInfo: model.RestoreCellInfo(model.CellData{
-					Filter: "filter1",
-				}),
-				CategoriesValue: []string{"game"},
-			}, nil
-		}
-
-		mFilters.GetByIDFunc = func(ctx context.Context, id string) (*model.ActivityFilter, error) {
-			return model.RestoreActivityFilter(model.ActivityFilterData{
-				Developers: []string{"dev1"},
-			}), nil
 		}
 
 		if eff.CanUse(ctx, nil, player) {
@@ -128,13 +119,11 @@ func TestAddGameGenre_Subscribe(t *testing.T) {
 		*model.Player,
 		*bool,
 		func(context.Context),
-		*cellsMocks.Cells,
 		*genresMocks.Genres,
 	) {
 		mActions := &actionsMocks.Actions{}
-		mCells := &cellsMocks.Cells{}
 		mGenres := &genresMocks.Genres{}
-		mFilters := &filtersMocks.ActivityFilters{}
+		mActivities := &activitiesMocks.Activities{}
 
 		eff := &AddGameGenre{
 			EffectBase: effects.NewEffectBase(
@@ -143,14 +132,17 @@ func TestAddGameGenre_Subscribe(t *testing.T) {
 					Type: Type,
 				}),
 			),
-			actions:         mActions,
-			cells:           mCells,
-			genres:          mGenres,
-			activityFilters: mFilters,
+			actions:    mActions,
+			genres:     mGenres,
+			activities: mActivities,
 		}
 
 		events := model.NewEvents()
-		action := model.RestoreAction(model.ActionData{})
+		action := model.RestoreAction(model.ActionData{
+			State: model.ActionState{
+				ActivityFilter: &model.ActivityFilter{},
+			},
+		})
 		player := model.RestorePlayer(
 			model.PlayerData{Id: "p1"},
 			&model.PlayerProgress{},
@@ -163,7 +155,7 @@ func TestAddGameGenre_Subscribe(t *testing.T) {
 			callbackCalled = true
 		}
 
-		return eff, events, player, &callbackCalled, callback, mCells, mGenres
+		return eff, events, player, &callbackCalled, callback, mGenres
 	}
 
 	effectCtx := model.EffectContext{
@@ -172,20 +164,12 @@ func TestAddGameGenre_Subscribe(t *testing.T) {
 	}
 
 	t.Run("successful activation", func(t *testing.T) {
-		eff, events, player, called, callback, mCells, mGenres := setup()
+		eff, events, player, called, callback, mGenres := setup()
 		genreID := "rpg"
 
 		_, err := eff.Subscribe(ctx, events, player, effectCtx, callback)
 		if err != nil {
 			t.Fatalf("Subscribe failed: %v", err)
-		}
-
-		mCell := &cellsMocks.RollableCell{
-			Cell: &cellsMocks.Cell{CategoriesValue: []string{"game"}},
-		}
-
-		mCells.GetByPlayerWrappedFunc = func(ctx context.Context, player *model.Player) (model.Cell, error) {
-			return mCell, nil
 		}
 
 		mGenres.ExistsFunc = func(ctx context.Context, id string) (bool, error) {
@@ -204,11 +188,7 @@ func TestAddGameGenre_Subscribe(t *testing.T) {
 			t.Error("Callback was not called")
 		}
 
-		if !mCell.RefreshCalled {
-			t.Error("RefreshItems was not called on cell")
-		}
-
-		genres := player.LastAction().CustomActivityFilter().Genres
+		genres := player.LastAction().State().ActivityFilter.Genres
 		if !slices.Contains(genres, genreID) {
 			t.Errorf("Genre %s was not added to player filter: %v", genreID, genres)
 		}

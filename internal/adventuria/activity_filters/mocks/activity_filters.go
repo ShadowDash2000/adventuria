@@ -6,10 +6,10 @@ import (
 )
 
 type ActivityFilters struct {
-	GetByIDFunc func(ctx context.Context, id string) (*model.ActivityFilter, error)
+	GetByIDFunc func(ctx context.Context, id string) (*model.ActivityFilterInfo, error)
 }
 
-func (m *ActivityFilters) GetByID(ctx context.Context, id string) (*model.ActivityFilter, error) {
+func (m *ActivityFilters) GetByID(ctx context.Context, id string) (*model.ActivityFilterInfo, error) {
 	if m.GetByIDFunc == nil {
 		return nil, nil
 	}

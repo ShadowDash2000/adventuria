@@ -2,12 +2,11 @@ package change_game_price_filter
 
 import (
 	"adventuria/internal/adventuria/actions"
-	"adventuria/internal/adventuria/cells"
 	"adventuria/internal/adventuria/effects"
+	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
 	"adventuria/pkg/event"
 	"context"
-	"errors"
 )
 
 type actionsService interface {
@@ -16,11 +15,10 @@ type actionsService interface {
 
 type cellsService interface {
 	GetByPlayer(ctx context.Context, player *model.Player) (*model.CellInfo, error)
-	GetByPlayerWrapped(ctx context.Context, player *model.Player) (model.Cell, error)
 }
 
-type activityFilters interface {
-	GetByID(ctx context.Context, id string) (*model.ActivityFilter, error)
+type activities interface {
+	GetByFilter(ctx context.Context, filter model.ActivityFilter) ([]string, error)
 }
 
 var _ model.Effect = (*ChangeGamePriceFilter)(nil)
@@ -29,20 +27,20 @@ const Type model.EffectType = "change_game_price_filter"
 
 type ChangeGamePriceFilter struct {
 	effects.EffectBase
-	actions         actionsService
-	cells           cellsService
-	activityFilters activityFilters
+	actions    actionsService
+	cells      cellsService
+	activities activities
 }
 
-func NewDef(actions actionsService, cells cellsService, activityFilters activityFilters) effects.EffectDef {
+func NewDef(actions actionsService, cells cellsService, activities activities) effects.EffectDef {
 	return effects.NewEffectDef(
 		Type,
 		func(effect model.EffectInfo) model.Effect {
 			return &ChangeGamePriceFilter{
-				EffectBase:      effects.NewEffectBase(effect),
-				actions:         actions,
-				cells:           cells,
-				activityFilters: activityFilters,
+				EffectBase: effects.NewEffectBase(effect),
+				actions:    actions,
+				cells:      cells,
+				activities: activities,
 			}
 		},
 	)
@@ -58,23 +56,21 @@ func (c *ChangeGamePriceFilter) CanUse(ctx context.Context, events *model.Events
 		return false
 	}
 
-	if currentCell.Type() != cells.CellTypeGame {
-		return false
-	}
-
 	if currentCell.IsCustomFilterNotAllowed() {
 		return false
 	}
 
-	if filterId := currentCell.Filter(); filterId != "" {
-		filter, err := c.activityFilters.GetByID(ctx, filterId)
-		if err != nil {
-			return false
-		}
+	activityFilter := player.LastAction().State().ActivityFilter
+	if activityFilter == nil {
+		return false
+	}
 
-		if len(filter.Activities()) > 0 {
-			return false
-		}
+	if activityFilter.Type != model.ActivityTypeGame {
+		return false
+	}
+
+	if len(activityFilter.Activities) > 0 {
+		return false
 	}
 
 	return true
@@ -100,7 +96,7 @@ func (c *ChangeGamePriceFilter) Subscribe(
 					return e.Next()
 				}
 
-				err := c.tryToApplyEffect(ctx, events, player, effectValue)
+				err := c.tryToApplyEffect(ctx, player, effectValue)
 				if err != nil {
 					return err
 				}
@@ -117,7 +113,7 @@ func (c *ChangeGamePriceFilter) Subscribe(
 					return e.Next()
 				}
 
-				err := c.tryToApplyEffect(ctx, events, player, effectValue)
+				err := c.tryToApplyEffect(ctx, player, effectValue)
 				if err != nil {
 					return err
 				}
@@ -135,7 +131,7 @@ func (c *ChangeGamePriceFilter) Subscribe(
 					return e.Next()
 				}
 
-				err := c.tryToApplyEffect(ctx, events, player, effectValue)
+				err := c.tryToApplyEffect(ctx, player, effectValue)
 				if err != nil {
 					return err
 				}
@@ -149,31 +145,33 @@ func (c *ChangeGamePriceFilter) Subscribe(
 	return nil, nil
 }
 
-func (c *ChangeGamePriceFilter) tryToApplyEffect(
-	ctx context.Context,
-	events *model.Events,
-	player *model.Player,
-	effectValue *effectValue,
-) error {
-	currentCell, err := c.cells.GetByPlayerWrapped(ctx, player)
+func (c *ChangeGamePriceFilter) tryToApplyEffect(ctx context.Context, player *model.Player, effectValue *effectValue) error {
+	actionState := player.LastAction().State()
+	if actionState.ActivityFilter == nil {
+		return errs.ErrNoActiveActivityFilter
+	}
+
+	if effectValue.PriceType == priceTypeMin {
+		actionState.ActivityFilter.MinPrice = effectValue.Price
+		actionState.ActivityFilter.MaxPrice = -1
+	} else if effectValue.PriceType == priceTypeMax {
+		actionState.ActivityFilter.MinPrice = -1
+		actionState.ActivityFilter.MaxPrice = effectValue.Price
+	}
+
+	ids, err := c.activities.GetByFilter(ctx, *actionState.ActivityFilter)
 	if err != nil {
 		return err
 	}
 
-	cellRefreshable, ok := currentCell.(model.Refreshable)
-	if !ok {
-		return errors.New("current cell is not refreshable")
+	if len(ids) == 0 {
+		return errs.ErrInvalidActivityFilter
 	}
 
-	filter := player.LastAction().CustomActivityFilter()
-	if effectValue.PriceType == priceTypeMin {
-		filter.MinPrice = effectValue.Price
-		filter.MaxPrice = -1
-	} else if effectValue.PriceType == priceTypeMax {
-		filter.MinPrice = -1
-		filter.MaxPrice = effectValue.Price
+	actionState.Activities = &model.ActionActivitiesState{
+		Ids: ids,
 	}
-	player.LastAction().SetCustomActivityFilter(filter)
+	player.LastAction().SetState(actionState)
 
-	return cellRefreshable.RefreshItems(ctx, events, player)
+	return nil
 }

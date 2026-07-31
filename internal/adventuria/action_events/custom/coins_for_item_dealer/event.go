@@ -43,7 +43,7 @@ func (c *CoinsForItemDealer) Init(_ context.Context, player *model.Player) error
 		decodedValue.Coins,
 		decodedValue.ItemId,
 	)
-	actionState.Dealer = &dealerState
+	actionState.Dealer = dealerState
 	player.LastAction().SetState(actionState)
 
 	return nil

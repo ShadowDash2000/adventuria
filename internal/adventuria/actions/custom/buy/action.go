@@ -10,10 +10,6 @@ import (
 	"slices"
 )
 
-type cells interface {
-	GetByPlayerWrapped(ctx context.Context, player *model.Player) (model.Cell, error)
-}
-
 type items interface {
 	GetByID(ctx context.Context, id string) (*model.Item, error)
 	GetByIDs(ctx context.Context, ids []string) ([]*model.Item, error)
@@ -29,18 +25,16 @@ const Type model.ActionType = "buy"
 
 type Buy struct {
 	actions.ActionBase
-	cells       cells
 	items       items
 	inventories inventories
 }
 
-func NewDef(cells cells, items items, inventories inventories) actions.ActionDef {
+func NewDef(items items, inventories inventories) actions.ActionDef {
 	return actions.NewAction(
 		Type,
 		func() model.Action {
 			return &Buy{
 				ActionBase:  actions.NewActionBase(Type),
-				cells:       cells,
 				items:       items,
 				inventories: inventories,
 			}
@@ -48,17 +42,8 @@ func NewDef(cells cells, items items, inventories inventories) actions.ActionDef
 	)
 }
 
-func (b *Buy) CanDo(ctx context.Context, _ *model.Events, player *model.Player) bool {
-	currentCell, err := b.cells.GetByPlayerWrapped(ctx, player)
-	if err != nil {
-		return false
-	}
-
-	if !currentCell.InCategory("shop") {
-		return false
-	}
-
-	return true
+func (b *Buy) CanDo(_ context.Context, _ *model.Events, player *model.Player) bool {
+	return player.LastAction().State().Shop != nil
 }
 
 type Request struct {
@@ -76,6 +61,10 @@ func (b *Buy) Do(ctx context.Context, events *model.Events, player *model.Player
 
 	actionState := player.LastAction().State()
 	shopState := actionState.Shop
+	if shopState == nil {
+		return nil, errs.ErrNoActiveShop
+	}
+
 	itemIds := shopState.Ids
 	index := slices.Index(itemIds, req.ItemId)
 	if index == -1 {

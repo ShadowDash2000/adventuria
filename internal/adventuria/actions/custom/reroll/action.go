@@ -122,7 +122,7 @@ func (r *Reroll) Do(ctx context.Context, events *model.Events, player *model.Pla
 		return nil, err
 	}
 
-	newAction.SetCustomActivityFilter(lastAction.CustomActivityFilter())
+	newAction.SetState(lastAction.State())
 	player.SetLastAction(newAction)
 
 	err = cellRefreshable.RefreshItems(ctx, events, player)

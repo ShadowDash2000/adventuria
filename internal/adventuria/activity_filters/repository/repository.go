@@ -21,7 +21,7 @@ func NewRepository(pb core.App) *Repository {
 	return &Repository{pb: pb}
 }
 
-func (r *Repository) GetByID(ctx context.Context, id string) (*model.ActivityFilter, error) {
+func (r *Repository) GetByID(ctx context.Context, id string) (*model.ActivityFilterInfo, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 
 	var record core.Record

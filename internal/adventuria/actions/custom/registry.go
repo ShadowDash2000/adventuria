@@ -16,6 +16,7 @@ import (
 	"adventuria/internal/adventuria/actions/custom/roll_wheel"
 	rollWheelRepo "adventuria/internal/adventuria/actions/custom/roll_wheel/repository"
 	"adventuria/internal/adventuria/actions/custom/update_review"
+	"adventuria/internal/adventuria/activities"
 	"adventuria/internal/adventuria/board"
 	"adventuria/internal/adventuria/cells"
 	"adventuria/internal/adventuria/inventories"
@@ -35,20 +36,21 @@ func RegisterActions(
 	items *items.Items,
 	inventories *inventories.Inventories,
 	rollWheelRepo *rollWheelRepo.Repository,
+	activities *activities.Activities,
 ) {
 	actions.Register(
 		complete_activity.NewDef(cells),
 		done.NewDef(actionsService, cells, reviews),
 		drop.NewDef(actionsService, cells, reviews, players, settings, board),
 		reroll.NewDef(cells, reviews, actionsService),
-		buy.NewDef(cells, items, inventories),
+		buy.NewDef(items, inventories),
 		refresh_shop.NewActionRefreshShopDef(cells),
 		roll_dice.NewDef(actionsService, board),
 		roll_item.NewDef(actionsService, inventories, items),
 		roll_item_on_cell.NewDef(cells, inventories, items),
 		roll_wheel.NewDef(cells, rollWheelRepo),
 		update_review.NewDef(reviews),
-		generate_wheel.NewDef(cells, actionsService),
+		generate_wheel.NewDef(activities),
 		deal.NewDef(inventories),
 	)
 }

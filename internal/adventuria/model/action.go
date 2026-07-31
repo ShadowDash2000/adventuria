@@ -3,7 +3,6 @@ package model
 import (
 	"context"
 	"errors"
-	"time"
 )
 
 type ActionType string
@@ -23,31 +22,15 @@ type ActionEventCompatible interface {
 }
 
 type ActionData struct {
-	Id                   string
-	Player               string
-	Cell                 string
-	Type                 ActionType
-	Activity             string
-	Review               string
-	CellsPassed          int
-	State                ActionState
-	UsedItems            []string
-	CustomActivityFilter CustomActivityFilter
-}
-
-type CustomActivityFilter struct {
-	Platforms       []string
-	Developers      []string
-	Publishers      []string
-	Genres          []string
-	Tags            []string
-	Themes          []string
-	MinPrice        int
-	MaxPrice        int
-	ReleaseDateFrom time.Time
-	ReleaseDateTo   time.Time
-	MinCampaignTime float64
-	MaxCampaignTime float64
+	Id          string
+	Player      string
+	Cell        string
+	Type        ActionType
+	Activity    string
+	Review      string
+	CellsPassed int
+	State       ActionState
+	UsedItems   []string
 }
 
 type ActionInfo struct {
@@ -138,7 +121,7 @@ func (a *ActionInfo) SetCellsPassed(count int) {
 }
 
 func (a *ActionInfo) State() ActionState {
-	return a.data.State
+	return a.data.State.Clone()
 }
 
 func (a *ActionInfo) SetState(state ActionState) {
@@ -151,12 +134,4 @@ func (a *ActionInfo) UsedItems() []string {
 
 func (a *ActionInfo) AddUsedItems(items ...string) {
 	a.data.UsedItems = append(a.data.UsedItems, items...)
-}
-
-func (a *ActionInfo) CustomActivityFilter() CustomActivityFilter {
-	return a.data.CustomActivityFilter
-}
-
-func (a *ActionInfo) SetCustomActivityFilter(filter CustomActivityFilter) {
-	a.data.CustomActivityFilter = filter
 }

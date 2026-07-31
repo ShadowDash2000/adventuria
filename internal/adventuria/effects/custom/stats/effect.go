@@ -9,7 +9,7 @@ import (
 )
 
 type activityFilters interface {
-	GetByID(ctx context.Context, id string) (*model.ActivityFilter, error)
+	GetByID(ctx context.Context, id string) (*model.ActivityFilterInfo, error)
 }
 
 var _ model.EffectPersistent = (*Stats)(nil)

@@ -6,7 +6,7 @@ import (
 )
 
 type repository interface {
-	GetByID(ctx context.Context, id string) (*model.ActivityFilter, error)
+	GetByID(ctx context.Context, id string) (*model.ActivityFilterInfo, error)
 }
 
 type ActivityFilters struct {
@@ -17,6 +17,6 @@ func NewActivityFilters(repository repository) *ActivityFilters {
 	return &ActivityFilters{repository: repository}
 }
 
-func (a *ActivityFilters) GetByID(ctx context.Context, id string) (*model.ActivityFilter, error) {
+func (a *ActivityFilters) GetByID(ctx context.Context, id string) (*model.ActivityFilterInfo, error) {
 	return a.repository.GetByID(ctx, id)
 }
