@@ -39,10 +39,10 @@ func (g *GenerateWheel) CanDo(_ context.Context, _ *model.Events, player *model.
 	}
 
 	return !player.Progress().CanMove() &&
-		!slices.Contains([]model.ActionType{
-			actions.ActionTypeNeedToRollWheel,
-			actions.ActionTypeRollWheel,
-		}, player.LastAction().Type())
+		!slices.Contains([]model.ActionStatus{
+			model.ActionStatusNeedToRollWheel,
+			model.ActionStatusRollWheel,
+		}, player.LastAction().Status())
 }
 
 func (g *GenerateWheel) Do(ctx context.Context, _ *model.Events, player *model.Player, _ model.ActionRequest) (any, error) {
@@ -60,7 +60,7 @@ func (g *GenerateWheel) Do(ctx context.Context, _ *model.Events, player *model.P
 		Ids: ids,
 	}
 	player.LastAction().SetState(actionState)
-	player.LastAction().SetType(actions.ActionTypeNeedToRollWheel)
+	player.LastAction().SetStatus(model.ActionStatusNeedToRollWheel)
 
 	return nil, nil
 }

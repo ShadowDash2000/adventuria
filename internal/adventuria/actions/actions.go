@@ -67,7 +67,7 @@ func (a *Actions) GetLastOrDefault(ctx context.Context, playerId string, timeFro
 	action, err = model.NewAction(model.ActionCreate{
 		Player: playerId,
 		Cell:   cell.ID(),
-		Type:   "none",
+		Status: model.ActionStatusNone,
 	})
 
 	return action, nil

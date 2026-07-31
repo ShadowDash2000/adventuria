@@ -1,7 +1,6 @@
 package stay_on_cell_after_done
 
 import (
-	"adventuria/internal/adventuria/actions"
 	"adventuria/internal/adventuria/effects"
 	"adventuria/internal/adventuria/model"
 	"adventuria/pkg/event"
@@ -54,7 +53,7 @@ func (s *StayOnCellAfterDone) Subscribe(
 	return []event.Unsubscribe{
 		events.OnAfterDone().BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterDoneEvent) error {
 			lastAction := player.LastAction()
-			if lastAction.Type() != actions.ActionTypeDone {
+			if lastAction.Status() != model.ActionStatusDone {
 				return e.Next()
 			}
 
@@ -76,7 +75,7 @@ func (s *StayOnCellAfterDone) Subscribe(
 			lastAction, err = model.NewAction(model.ActionCreate{
 				Player: player.ID(),
 				Cell:   lastAction.Cell(),
-				Type:   actions.ActionTypeRollDice,
+				Status: model.ActionStatusRollDice,
 			})
 			if err != nil {
 				return err

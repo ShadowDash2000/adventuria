@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"adventuria/internal/adventuria/actions"
 	"adventuria/internal/adventuria/event_stats"
 	"adventuria/internal/adventuria/model"
 	"adventuria/internal/adventuria/schema"
@@ -276,14 +275,14 @@ func (r *Repository) getCellsVisitsStats(ctx context.Context, timeFrom time.Time
 		`,
 		schema.CollectionActions,
 		schema.ActionSchema.Cell,
-		schema.ActionSchema.Type,
-		pbhelper.SliceToSqlString([]model.ActionType{
-			actions.ActionTypeDone,
-			actions.ActionTypeDrop,
-			actions.ActionTypeRollDice,
-			actions.ActionTypeRollWheel,
-			actions.ActionTypeMove,
-			actions.ActionTypeRollItemOnCell,
+		schema.ActionSchema.Status,
+		pbhelper.SliceToSqlString([]model.ActionStatus{
+			model.ActionStatusDone,
+			model.ActionStatusDrop,
+			model.ActionStatusRollDice,
+			model.ActionStatusRollWheel,
+			model.ActionStatusMove,
+			model.ActionStatusRollItemOnCell,
 		}),
 	)).Bind(dbx.Params{
 		"date": dateFrom,

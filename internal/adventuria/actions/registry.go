@@ -21,9 +21,7 @@ func (a *ActionDef) Type() model.ActionType {
 
 type ActionCreator func() model.Action
 
-var registry = &Registry{actions: map[model.ActionType]ActionDef{
-	//"none": NewAction("none", &NoneAction{}),
-}}
+var registry = &Registry{actions: map[model.ActionType]ActionDef{}}
 
 type Registry struct {
 	actions map[model.ActionType]ActionDef

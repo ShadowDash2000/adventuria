@@ -1,7 +1,6 @@
 package teleport
 
 import (
-	"adventuria/internal/adventuria/actions"
 	"adventuria/internal/adventuria/cells"
 	"adventuria/internal/adventuria/model"
 	"context"
@@ -69,7 +68,7 @@ func (c *CellTeleport) OnCellReached(ctx context.Context, events *model.Events, 
 		return nil
 	}
 
-	player.LastAction().SetType(actions.ActionTypeTeleport)
+	player.LastAction().SetStatus(model.ActionStatusTeleport)
 	newAction, err := c.actions.Save(ctx, player.LastAction())
 	if err != nil {
 		return err

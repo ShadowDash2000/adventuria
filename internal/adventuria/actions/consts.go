@@ -5,7 +5,6 @@ import (
 )
 
 const (
-	ActionTypeMove             model.ActionType = "move"
 	ActionTypeRollDice         model.ActionType = "roll_dice"
 	ActionTypeCompleteActivity model.ActionType = "complete_activity"
 	ActionTypeDone             model.ActionType = "done"
@@ -15,9 +14,7 @@ const (
 	ActionTypeRollWheel        model.ActionType = "roll_wheel"
 	ActionTypeRollItem         model.ActionType = "roll_item"
 	ActionTypeRollItemOnCell   model.ActionType = "roll_item_on_cell"
-	ActionTypeTeleport         model.ActionType = "teleport"
 	ActionTypeBuy              model.ActionType = "buy"
 	ActionTypeRefreshShop      model.ActionType = "refresh_shop"
 	ActionTypeUpdateReview     model.ActionType = "update_review"
-	ActionTypeNeedToRollWheel  model.ActionType = "need_to_roll_wheel"
 )

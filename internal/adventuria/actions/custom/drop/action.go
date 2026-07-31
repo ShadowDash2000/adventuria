@@ -147,7 +147,7 @@ func (d *Drop) Do(ctx context.Context, events *model.Events, player *model.Playe
 	}
 
 	lastAction := player.LastAction()
-	lastAction.SetType(Type)
+	lastAction.SetStatus(model.ActionStatusDrop)
 	lastAction.SetReview(review.ID())
 	err = d.players.Save(ctx, player)
 	if err != nil {

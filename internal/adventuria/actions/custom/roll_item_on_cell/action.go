@@ -56,7 +56,7 @@ func (r *RollItemOnCell) CanDo(ctx context.Context, _ *model.Events, player *mod
 		return false
 	}
 
-	return !player.Progress().CanMove() && player.LastAction().Type() != Type
+	return !player.Progress().CanMove() && player.LastAction().Status() != model.ActionStatusRollItemOnCell
 }
 
 func (r *RollItemOnCell) Do(ctx context.Context, events *model.Events, player *model.Player, _ model.ActionRequest) (any, error) {
@@ -81,7 +81,7 @@ func (r *RollItemOnCell) Do(ctx context.Context, events *model.Events, player *m
 	}
 
 	lastAction := player.LastAction()
-	lastAction.SetType(Type)
+	lastAction.SetStatus(model.ActionStatusRollItemOnCell)
 
 	player.Progress().SetCanMove(true)
 

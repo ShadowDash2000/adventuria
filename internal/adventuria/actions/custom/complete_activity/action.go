@@ -33,7 +33,7 @@ func NewDef(cells cells) actions.ActionDef {
 }
 
 func (c *CompleteActivity) CanDo(_ context.Context, _ *model.Events, player *model.Player) bool {
-	return player.LastAction().Type() == actions.ActionTypeRollWheel
+	return player.LastAction().Status() == model.ActionStatusRollWheel
 }
 
 func (c *CompleteActivity) Do(_ context.Context, _ *model.Events, _ *model.Player, _ model.ActionRequest) (any, error) {

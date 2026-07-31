@@ -106,7 +106,7 @@ func (r *Reroll) Do(ctx context.Context, events *model.Events, player *model.Pla
 	}
 
 	lastAction := player.LastAction()
-	lastAction.SetType(Type)
+	lastAction.SetStatus(model.ActionStatusReroll)
 	lastAction.SetReview(review.ID())
 	_, err = r.actions.Save(ctx, lastAction)
 	if err != nil {
@@ -116,7 +116,7 @@ func (r *Reroll) Do(ctx context.Context, events *model.Events, player *model.Pla
 	newAction, err := model.NewAction(model.ActionCreate{
 		Player: player.ID(),
 		Cell:   currentCell.Data().ID(),
-		Type:   actions.ActionTypeNeedToRollWheel,
+		Status: model.ActionStatusNeedToRollWheel,
 	})
 	if err != nil {
 		return nil, err

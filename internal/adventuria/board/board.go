@@ -1,7 +1,6 @@
 package board
 
 import (
-	"adventuria/internal/adventuria/actions"
 	"adventuria/internal/adventuria/model"
 	"adventuria/pkg/mathhelper"
 	"context"
@@ -115,7 +114,7 @@ func (b *Board) Move(
 	newAction, err := model.NewAction(model.ActionCreate{
 		Player: player.ID(),
 		Cell:   currentCell.Data().ID(),
-		Type:   actions.ActionTypeMove,
+		Status: model.ActionStatusMove,
 	})
 	if err != nil {
 		return nil, err

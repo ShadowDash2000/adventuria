@@ -99,7 +99,7 @@ func (d *Done) Do(ctx context.Context, events *model.Events, player *model.Playe
 	}
 
 	lastAction := player.LastAction()
-	lastAction.SetType(Type)
+	lastAction.SetStatus(model.ActionStatusDone)
 	lastAction.SetReview(review.ID())
 
 	progress := player.Progress()

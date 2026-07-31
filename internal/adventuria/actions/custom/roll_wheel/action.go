@@ -40,7 +40,7 @@ func NewDef(cells cells, activities activities) actions.ActionDef {
 }
 
 func (r *RollWheel) CanDo(_ context.Context, _ *model.Events, player *model.Player) bool {
-	return player.LastAction().Type() == actions.ActionTypeNeedToRollWheel
+	return player.LastAction().Status() == model.ActionStatusNeedToRollWheel
 }
 
 func (r *RollWheel) Do(ctx context.Context, events *model.Events, player *model.Player, _ model.ActionRequest) (any, error) {
@@ -60,7 +60,7 @@ func (r *RollWheel) Do(ctx context.Context, events *model.Events, player *model.
 	}
 
 	lastAction := player.LastAction()
-	lastAction.SetType(Type)
+	lastAction.SetStatus(model.ActionStatusRollWheel)
 	lastAction.SetActivity(res.WinnerId)
 
 	err = events.OnAfterWheelRoll().Trigger(ctx, &model.OnAfterWheelRollEvent{

@@ -25,7 +25,7 @@ type ActionData struct {
 	Id          string
 	Player      string
 	Cell        string
-	Type        ActionType
+	Status      ActionStatus
 	Activity    string
 	Review      string
 	CellsPassed int
@@ -41,7 +41,7 @@ type ActionInfo struct {
 type ActionCreate struct {
 	Player string
 	Cell   string
-	Type   ActionType
+	Status ActionStatus
 }
 
 func NewAction(data ActionCreate) (*ActionInfo, error) {
@@ -51,15 +51,15 @@ func NewAction(data ActionCreate) (*ActionInfo, error) {
 	if data.Cell == "" {
 		return nil, errors.New("action: cell is empty")
 	}
-	if data.Type == "" {
-		return nil, errors.New("action: type is empty")
+	if data.Status == "" {
+		return nil, errors.New("action: status is empty")
 	}
 
 	return &ActionInfo{
 		data: ActionData{
 			Player: data.Player,
 			Cell:   data.Cell,
-			Type:   data.Type,
+			Status: data.Status,
 		},
 		isNew: true,
 	}, nil
@@ -88,12 +88,12 @@ func (a *ActionInfo) Cell() string {
 	return a.data.Cell
 }
 
-func (a *ActionInfo) Type() ActionType {
-	return a.data.Type
+func (a *ActionInfo) Status() ActionStatus {
+	return a.data.Status
 }
 
-func (a *ActionInfo) SetType(t ActionType) {
-	a.data.Type = t
+func (a *ActionInfo) SetStatus(s ActionStatus) {
+	a.data.Status = s
 }
 
 func (a *ActionInfo) Activity() string {

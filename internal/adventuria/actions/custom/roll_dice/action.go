@@ -113,7 +113,7 @@ func (r *RollDice) Do(ctx context.Context, events *model.Events, player *model.P
 		}
 	}
 
-	player.LastAction().SetType(Type)
+	player.LastAction().SetStatus(model.ActionStatusRollDice)
 
 	err = events.OnAfterRoll().Trigger(ctx, &model.OnAfterRollEvent{
 		Dices: onBeforeRollEvent.Dices,
