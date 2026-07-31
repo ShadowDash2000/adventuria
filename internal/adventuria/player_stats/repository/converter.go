@@ -19,6 +19,7 @@ func RecordToPlayerStats(record *core.Record) (*model.PlayerStats, error) {
 		Player:          record.GetString(schema.PlayerStatsSchema.Player),
 		Season:          record.GetString(schema.PlayerStatsSchema.Season),
 		ActivitiesStats: activitiesStatsFromDTO(activitiesStatsDTO),
+		CellsPassed:     record.GetInt(schema.PlayerStatsSchema.CellsPassed),
 		Drops:           record.GetInt(schema.PlayerStatsSchema.Drops),
 		Rerolls:         record.GetInt(schema.PlayerStatsSchema.Rerolls),
 		WasInJail:       record.GetInt(schema.PlayerStatsSchema.WasInJail),
@@ -46,6 +47,7 @@ func PlayerStatsToRecord(stats *model.PlayerStats, record *core.Record) {
 	record.Set(schema.PlayerStatsSchema.Player, stats.Player())
 	record.Set(schema.PlayerStatsSchema.Season, stats.Season())
 	record.Set(schema.PlayerStatsSchema.Activities, activitiesStatsToDTO(stats.ActivitiesStats()))
+	record.Set(schema.PlayerStatsSchema.CellsPassed, stats.CellsPassed())
 	record.Set(schema.PlayerStatsSchema.Drops, stats.Drops())
 	record.Set(schema.PlayerStatsSchema.Rerolls, stats.Rerolls())
 	record.Set(schema.PlayerStatsSchema.WasInJail, stats.WasInJail())
