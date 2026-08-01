@@ -10,8 +10,6 @@ type items interface {
 	GetByIDs(ctx context.Context, ids []string) ([]*model.Item, error)
 }
 
-var _ model.Refreshable = (*CellCasino)(nil)
-
 const Type model.CellType = "casino"
 
 type CellCasino struct {
@@ -49,32 +47,23 @@ func (c *CellCasino) OnCellReached(_ context.Context, _ *model.Events, player *m
 	}
 
 	actionState := player.LastAction().State()
-	actionState.Shop.PriceMultiplier = decodedValue.PriceMultiplier
-	player.LastAction().SetState(actionState)
-
-	return c.refreshItems(player)
-}
-
-func (c *CellCasino) OnCellLeft(_ context.Context, _ *model.Events, _ *model.Player) error {
-	return nil
-}
-
-func (c *CellCasino) RefreshItems(_ context.Context, _ *model.Events, player *model.Player) error {
-	return c.refreshItems(player)
-}
-
-func (c *CellCasino) refreshItems(player *model.Player) error {
-	decodedValue, err := c.decodeValue(c.Value())
+	actionState.ShopFilter = &model.ActionShopFilterState{
+		Ids: decodedValue.ItemIds,
+	}
+	actionState.Shop, err = model.NewShopState(model.ActionShopStateCreate{
+		Type:            model.ShopTypeCasino,
+		Ids:             decodedValue.ItemIds,
+		PriceMultiplier: decodedValue.PriceMultiplier,
+	})
 	if err != nil {
 		return err
 	}
 
-	actionState := player.LastAction().State()
-	actionState.Shop = &model.ActionShopState{
-		Type: model.ShopTypeCasino,
-		Ids:  decodedValue.ItemIds,
-	}
 	player.LastAction().SetState(actionState)
 
+	return nil
+}
+
+func (c *CellCasino) OnCellLeft(_ context.Context, _ *model.Events, _ *model.Player) error {
 	return nil
 }

@@ -201,6 +201,10 @@ var (
 		Code:    "no_active_shop",
 		Message: "No active shop",
 	}
+	ErrNoActiveShopFilter = &AppError{
+		Code:    "no_active_shop_filter",
+		Message: "No active shop filter",
+	}
 	ErrNoActiveDeals = &AppError{
 		Code:    "no_active_deals",
 		Message: "No active deals",

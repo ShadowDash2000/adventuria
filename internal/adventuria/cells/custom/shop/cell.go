@@ -4,30 +4,25 @@ import (
 	"adventuria/internal/adventuria/cells"
 	"adventuria/internal/adventuria/model"
 	"context"
-	"errors"
 	"math/rand/v2"
 )
 
-type items interface {
-	GetAllBuyableByType(ctx context.Context, t model.ItemType) ([]*model.Item, error)
+type itemsService interface {
+	GetAllBuyableIDsByType(ctx context.Context, t model.ItemType) ([]string, error)
 }
-
-var _ model.Refreshable = (*CellShop)(nil)
 
 const shopMaxItems = 6
 
 type CellShop struct {
 	cells.CellBase
-	shopType  model.ShopType
 	itemsType model.ItemType
-	items     items
+	items     itemsService
 }
 
 func NewDef(
 	cellType model.CellType,
-	shopType model.ShopType,
 	itemsType model.ItemType,
-	items items,
+	items itemsService,
 	categories ...string,
 ) cells.CellDef {
 	return cells.NewCell(
@@ -35,7 +30,6 @@ func NewDef(
 		func(cell model.CellInfo) model.Cell {
 			return &CellShop{
 				CellBase:  cells.NewCellBase(cell),
-				shopType:  shopType,
 				itemsType: itemsType,
 				items:     items,
 			}
@@ -45,12 +39,26 @@ func NewDef(
 }
 
 func (c *CellShop) OnCellReached(ctx context.Context, _ *model.Events, player *model.Player, _ *model.ReachedContext) error {
-	err := c.refreshItems(ctx, player)
+	player.Progress().SetCanMove(true)
+
+	ids, err := c.items.GetAllBuyableIDsByType(ctx, c.itemsType)
 	if err != nil {
 		return err
 	}
 
-	player.Progress().SetCanMove(true)
+	actionState := player.LastAction().State()
+	actionState.ShopFilter = &model.ActionShopFilterState{
+		ItemType: c.itemsType,
+	}
+	actionState.Shop, err = model.NewShopState(model.ActionShopStateCreate{
+		Type: model.ShopTypeBuffet,
+		Ids:  PickRandomIDs(ids),
+	})
+	if err != nil {
+		return err
+	}
+
+	player.LastAction().SetState(actionState)
 
 	return nil
 }
@@ -59,31 +67,12 @@ func (c *CellShop) OnCellLeft(_ context.Context, _ *model.Events, _ *model.Playe
 	return nil
 }
 
-func (c *CellShop) RefreshItems(ctx context.Context, _ *model.Events, player *model.Player) error {
-	return c.refreshItems(ctx, player)
-}
-
-func (c *CellShop) refreshItems(ctx context.Context, player *model.Player) error {
-	items, err := c.items.GetAllBuyableByType(ctx, c.itemsType)
-	if err != nil {
-		return err
+func PickRandomIDs(ids []string) []string {
+	res := make([]string, 0, shopMaxItems)
+	if len(ids) > 0 {
+		for range shopMaxItems {
+			res = append(res, ids[rand.N(len(ids))])
+		}
 	}
-
-	if len(items) == 0 {
-		return errors.New("no items to buy")
-	}
-
-	ids := make([]string, shopMaxItems)
-	for i := range shopMaxItems {
-		ids[i] = items[rand.N(len(items))].ID()
-	}
-
-	actionState := player.LastAction().State()
-	actionState.Shop = &model.ActionShopState{
-		Type: c.shopType,
-		Ids:  ids,
-	}
-	player.LastAction().SetState(actionState)
-
-	return nil
+	return res
 }

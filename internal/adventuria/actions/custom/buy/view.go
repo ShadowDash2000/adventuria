@@ -54,9 +54,11 @@ func (b *Buy) GetView(ctx context.Context, events *model.Events, player *model.P
 	}
 
 	return struct {
-		Items []*itemView `json:"items"`
+		ShopType model.ShopType `json:"shop_type"`
+		Items    []*itemView    `json:"items"`
 	}{
-		Items: result,
+		ShopType: shopState.Type,
+		Items:    result,
 	}, nil
 }
 

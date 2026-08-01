@@ -12,6 +12,7 @@ type ActionState struct {
 	ActivityFilter *ActivityFilterState `json:"activity_filter,omitempty"`
 	Items          *ItemsState          `json:"items,omitempty"`
 	Shop           *ShopState           `json:"shop,omitempty"`
+	ShopFilter     *ShopFilterState     `json:"shop_filter,omitempty"`
 	Dealer         *DealerState         `json:"dealer,omitempty"`
 }
 
@@ -46,6 +47,12 @@ type ShopState struct {
 	Type            model.ShopType `json:"type"`
 	Ids             []string       `json:"ids"`
 	PriceMultiplier float64        `json:"price_multiplier"`
+	RefreshPrice    int            `json:"refresh_price"`
+}
+
+type ShopFilterState struct {
+	ItemType model.ItemType `json:"item_type"`
+	Ids      []string       `json:"ids"`
 }
 
 type DealerState struct {
@@ -70,6 +77,7 @@ func ActionStateToDTO(state model.ActionState) (ActionState, error) {
 		ActivityFilter: activityFilterStateToDTO(state.ActivityFilter),
 		Items:          itemsStateToDTO(state.Items),
 		Shop:           shopStateToDTO(state.Shop),
+		ShopFilter:     shopFilterStateToDTO(state.ShopFilter),
 		Dealer:         dealerStateDTO,
 	}, nil
 }
@@ -85,6 +93,7 @@ func ActionStateFromDTO(dto ActionState) (model.ActionState, error) {
 		ActivityFilter: activityFilterStateFromDTO(dto.ActivityFilter),
 		Items:          itemsStateFromDTO(dto.Items),
 		Shop:           shopStateFromDTO(dto.Shop),
+		ShopFilter:     shopFilterStateFromDTO(dto.ShopFilter),
 		Dealer:         dealerState,
 	}, nil
 }
@@ -188,6 +197,7 @@ func shopStateToDTO(state *model.ActionShopState) *ShopState {
 		Type:            state.Type,
 		Ids:             state.Ids,
 		PriceMultiplier: state.PriceMultiplier,
+		RefreshPrice:    state.RefreshPrice,
 	}
 }
 
@@ -200,6 +210,29 @@ func shopStateFromDTO(dto *ShopState) *model.ActionShopState {
 		Type:            dto.Type,
 		Ids:             dto.Ids,
 		PriceMultiplier: dto.PriceMultiplier,
+		RefreshPrice:    dto.RefreshPrice,
+	}
+}
+
+func shopFilterStateToDTO(state *model.ActionShopFilterState) *ShopFilterState {
+	if state == nil {
+		return nil
+	}
+
+	return &ShopFilterState{
+		ItemType: state.ItemType,
+		Ids:      state.Ids,
+	}
+}
+
+func shopFilterStateFromDTO(dto *ShopFilterState) *model.ActionShopFilterState {
+	if dto == nil {
+		return nil
+	}
+
+	return &model.ActionShopFilterState{
+		ItemType: dto.ItemType,
+		Ids:      dto.Ids,
 	}
 }
 

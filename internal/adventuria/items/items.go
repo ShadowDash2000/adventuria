@@ -10,7 +10,7 @@ type repository interface {
 	GetByIDs(ctx context.Context, ids []string) ([]*model.Item, error)
 	GetAllRollable(ctx context.Context) ([]*model.Item, error)
 	GetAllRollableByType(ctx context.Context, t model.ItemType) ([]*model.Item, error)
-	GetAllBuyableByType(ctx context.Context, t model.ItemType) ([]*model.Item, error)
+	GetIDsByFilter(ctx context.Context, filter Filter) ([]string, error)
 }
 
 type Items struct {
@@ -37,6 +37,14 @@ func (i *Items) GetAllRollableByType(ctx context.Context, t model.ItemType) ([]*
 	return i.repository.GetAllRollableByType(ctx, t)
 }
 
-func (i *Items) GetAllBuyableByType(ctx context.Context, t model.ItemType) ([]*model.Item, error) {
-	return i.repository.GetAllBuyableByType(ctx, t)
+func (i *Items) GetIDsByFilter(ctx context.Context, filter Filter) ([]string, error) {
+	return i.repository.GetIDsByFilter(ctx, filter)
+}
+
+func (i *Items) GetAllBuyableIDsByType(ctx context.Context, t model.ItemType) ([]string, error) {
+	return i.GetIDsByFilter(ctx, Filter{
+		ItemType:         t,
+		IsRollable:       new(true),
+		PriceGreaterThan: new(0),
+	})
 }
