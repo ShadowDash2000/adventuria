@@ -108,11 +108,3 @@ func (r *Repository) Update(ctx context.Context, company *model.Company) (*model
 
 	return RecordToCompany(record), nil
 }
-
-func (r *Repository) Save(ctx context.Context, company *model.Company) (*model.Company, error) {
-	if company.IsNew() {
-		return r.Create(ctx, company)
-	}
-
-	return r.Update(ctx, company)
-}

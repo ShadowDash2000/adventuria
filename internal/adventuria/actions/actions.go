@@ -10,7 +10,7 @@ import (
 
 type repository interface {
 	Create(ctx context.Context, action *model.ActionInfo) (*model.ActionInfo, error)
-	Save(ctx context.Context, action *model.ActionInfo) (*model.ActionInfo, error)
+	Update(ctx context.Context, action *model.ActionInfo) (*model.ActionInfo, error)
 	GetLastActionByPlayerId(ctx context.Context, playerId string, timeFrom time.Time) (*model.ActionInfo, error)
 }
 
@@ -43,7 +43,11 @@ func NewActions(repository repository, worlds worlds, cells cells, actionEvents 
 }
 
 func (a *Actions) Save(ctx context.Context, action *model.ActionInfo) (*model.ActionInfo, error) {
-	return a.repository.Save(ctx, action)
+	if action.IsNew() {
+		return a.repository.Create(ctx, action)
+	}
+
+	return a.repository.Update(ctx, action)
 }
 
 func (a *Actions) GetLastOrDefault(ctx context.Context, playerId string, timeFrom time.Time) (*model.ActionInfo, error) {

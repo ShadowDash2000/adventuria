@@ -7,7 +7,8 @@ import (
 )
 
 type repository interface {
-	Save(ctx context.Context, hltb *model.HowLongToBeat) (*model.HowLongToBeat, error)
+	Create(ctx context.Context, hltb *model.HowLongToBeat) (*model.HowLongToBeat, error)
+	Update(ctx context.Context, hltb *model.HowLongToBeat) (*model.HowLongToBeat, error)
 	ExistsByIdDb(ctx context.Context, idDb int) (bool, error)
 	GetByNameAndYear(ctx context.Context, name string, year int) (*model.HowLongToBeat, error)
 }
@@ -59,13 +60,21 @@ func (h *HowLongToBeat) Parse(ctx context.Context) error {
 			return err
 		}
 
-		_, err = h.repository.Save(ctx, hltb)
+		_, err = h.Save(ctx, hltb)
 		if err != nil {
 			return err
 		}
 	}
 
 	return nil
+}
+
+func (h *HowLongToBeat) Save(ctx context.Context, hltb *model.HowLongToBeat) (*model.HowLongToBeat, error) {
+	if hltb.IsNew() {
+		return h.repository.Create(ctx, hltb)
+	}
+
+	return h.repository.Update(ctx, hltb)
 }
 
 func (h *HowLongToBeat) GetByNameAndYear(ctx context.Context, name string, year int) (*model.HowLongToBeat, error) {

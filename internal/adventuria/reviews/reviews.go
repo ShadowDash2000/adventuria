@@ -6,7 +6,8 @@ import (
 )
 
 type repository interface {
-	Save(ctx context.Context, review *model.Review) (*model.Review, error)
+	Create(ctx context.Context, review *model.Review) (*model.Review, error)
+	Update(ctx context.Context, review *model.Review) (*model.Review, error)
 	GetByActionID(ctx context.Context, actionId string) (*model.Review, error)
 }
 
@@ -19,7 +20,11 @@ func NewReviews(repository repository) *Reviews {
 }
 
 func (r *Reviews) Save(ctx context.Context, review *model.Review) (*model.Review, error) {
-	return r.repository.Save(ctx, review)
+	if review.IsNew() {
+		return r.repository.Create(ctx, review)
+	}
+
+	return r.repository.Update(ctx, review)
 }
 
 func (r *Reviews) GetByActionID(ctx context.Context, actionId string) (*model.Review, error) {

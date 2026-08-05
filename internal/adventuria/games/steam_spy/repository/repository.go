@@ -60,14 +60,6 @@ func (r *Repository) Update(ctx context.Context, steamSpy *model.SteamSpy) (*mod
 	return RecordToSteamSpy(record), nil
 }
 
-func (r *Repository) Save(ctx context.Context, steamSpy *model.SteamSpy) (*model.SteamSpy, error) {
-	if steamSpy.IsNew() {
-		return r.Create(ctx, steamSpy)
-	}
-
-	return r.Update(ctx, steamSpy)
-}
-
 func (r *Repository) ExistsByIdDb(ctx context.Context, idDb int) (bool, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 

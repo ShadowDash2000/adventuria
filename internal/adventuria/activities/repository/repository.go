@@ -379,11 +379,3 @@ func (r *Repository) Update(ctx context.Context, activity *model.Activity) (*mod
 
 	return RecordToActivity(record), nil
 }
-
-func (r *Repository) Save(ctx context.Context, activity *model.Activity) (*model.Activity, error) {
-	if activity.IsNew() {
-		return r.Create(ctx, activity)
-	}
-
-	return r.Update(ctx, activity)
-}

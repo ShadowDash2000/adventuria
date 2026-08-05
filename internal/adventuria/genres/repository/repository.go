@@ -130,11 +130,3 @@ func (r *Repository) Update(ctx context.Context, genre *model.Genre) (*model.Gen
 
 	return RecordToGenre(record), nil
 }
-
-func (r *Repository) Save(ctx context.Context, genre *model.Genre) (*model.Genre, error) {
-	if genre.IsNew() {
-		return r.Create(ctx, genre)
-	}
-
-	return r.Update(ctx, genre)
-}

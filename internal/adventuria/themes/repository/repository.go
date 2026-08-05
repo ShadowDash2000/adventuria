@@ -108,11 +108,3 @@ func (r *Repository) Update(ctx context.Context, theme *model.Theme) (*model.The
 
 	return RecordToTheme(record), nil
 }
-
-func (r *Repository) Save(ctx context.Context, theme *model.Theme) (*model.Theme, error) {
-	if theme.IsNew() {
-		return r.Create(ctx, theme)
-	}
-
-	return r.Update(ctx, theme)
-}

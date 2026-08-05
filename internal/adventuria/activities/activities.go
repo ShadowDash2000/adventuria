@@ -8,12 +8,13 @@ import (
 )
 
 type repository interface {
+	Create(ctx context.Context, activity *model.Activity) (*model.Activity, error)
+	Update(ctx context.Context, activity *model.Activity) (*model.Activity, error)
 	GetByIdDb(ctx context.Context, idDb string) (*model.Activity, error)
 	GetByFilter(ctx context.Context, filter model.ActivityFilter, poolSize, resultSize int) ([]string, error)
 	GetByID(ctx context.Context, id string) (*model.Activity, error)
 	GetByIDs(ctx context.Context, ids []string) ([]*model.Activity, error)
 	GetChecksumsByIDs(ctx context.Context, ids []string) (map[string]string, error)
-	Save(ctx context.Context, activity *model.Activity) (*model.Activity, error)
 }
 
 type Activities struct {
@@ -53,5 +54,9 @@ func (a *Activities) GetChecksumsByIDs(ctx context.Context, ids []string) (map[s
 }
 
 func (a *Activities) Save(ctx context.Context, activity *model.Activity) (*model.Activity, error) {
-	return a.repository.Save(ctx, activity)
+	if activity.IsNew() {
+		return a.repository.Create(ctx, activity)
+	}
+
+	return a.repository.Update(ctx, activity)
 }

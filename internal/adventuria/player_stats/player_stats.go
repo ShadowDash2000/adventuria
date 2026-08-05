@@ -9,7 +9,7 @@ import (
 
 type repository interface {
 	Create(ctx context.Context, stats *model.PlayerStats) (*model.PlayerStats, error)
-	Save(ctx context.Context, stats *model.PlayerStats) (*model.PlayerStats, error)
+	Update(ctx context.Context, stats *model.PlayerStats) (*model.PlayerStats, error)
 	GetByPlayerId(ctx context.Context, playerId, seasonId string) (*model.PlayerStats, error)
 }
 
@@ -24,7 +24,11 @@ func NewPlayerStats(repository repository) *PlayerStats {
 }
 
 func (p *PlayerStats) Save(ctx context.Context, stats *model.PlayerStats) (*model.PlayerStats, error) {
-	return p.repository.Save(ctx, stats)
+	if stats.IsNew() {
+		return p.repository.Create(ctx, stats)
+	}
+
+	return p.repository.Update(ctx, stats)
 }
 
 func (p *PlayerStats) GetOrCreate(ctx context.Context, playerId, seasonId string) (*model.PlayerStats, error) {

@@ -115,11 +115,3 @@ func (r *Repository) Update(ctx context.Context, gameType *model.GameType) (*mod
 
 	return RecordToGameType(&record), nil
 }
-
-func (r *Repository) Save(ctx context.Context, gameType *model.GameType) (*model.GameType, error) {
-	if gameType.IsNew() {
-		return r.Create(ctx, gameType)
-	}
-
-	return r.Update(ctx, gameType)
-}

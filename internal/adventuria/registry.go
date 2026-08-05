@@ -535,7 +535,7 @@ func (r *Registry) Reviews() *reviews.Reviews {
 
 func (r *Registry) Outboxes() *outboxes.Outboxes {
 	if r.outboxes == nil {
-		r.outboxes = outboxes.NewOutboxes(r.OutboxesRepo())
+		r.outboxes = outboxes.NewOutboxes(r.logger, r.OutboxesRepo())
 	}
 	return r.outboxes
 }
@@ -613,6 +613,13 @@ func (r *Registry) CheapShark() *cheapshark.CheapShark {
 		r.cheapShark = cheapshark.NewCheapShark(r.CheapSharkRepo(), r.CheapSharkRemoteRepo())
 	}
 	return r.cheapShark
+}
+
+func (r *Registry) Github() *github.Github {
+	if r.github == nil {
+		r.github = github.NewGithub(r.GithubRepo())
+	}
+	return r.github
 }
 
 func (r *Registry) IGDB() *igdb.IGDB {

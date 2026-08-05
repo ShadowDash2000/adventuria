@@ -60,14 +60,6 @@ func (r *Repository) Update(ctx context.Context, cheapShark *model.CheapShark) (
 	return RecordToCheapShark(record), nil
 }
 
-func (r *Repository) Save(ctx context.Context, cheapShark *model.CheapShark) (*model.CheapShark, error) {
-	if cheapShark.IsNew() {
-		return r.Create(ctx, cheapShark)
-	}
-
-	return r.Update(ctx, cheapShark)
-}
-
 func (r *Repository) ExistsByIdDb(ctx context.Context, idDb int) (bool, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 

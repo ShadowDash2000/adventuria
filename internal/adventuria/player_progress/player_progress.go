@@ -9,7 +9,7 @@ import (
 
 type repository interface {
 	Create(ctx context.Context, progress *model.PlayerProgress) (*model.PlayerProgress, error)
-	Save(ctx context.Context, progress *model.PlayerProgress) (*model.PlayerProgress, error)
+	Update(ctx context.Context, progress *model.PlayerProgress) (*model.PlayerProgress, error)
 	GetByPlayerId(ctx context.Context, playerId, seasonId string) (*model.PlayerProgress, error)
 	GetAllBySeasonID(ctx context.Context, seasonId string) ([]*model.PlayerProgress, error)
 	ChangeBalance(ctx context.Context, id string, amount int) error
@@ -76,7 +76,11 @@ func (p *PlayerProgress) GetAllBySeasonID(ctx context.Context, seasonId string) 
 }
 
 func (p *PlayerProgress) Save(ctx context.Context, progress *model.PlayerProgress) (*model.PlayerProgress, error) {
-	return p.repository.Save(ctx, progress)
+	if progress.IsNew() {
+		return p.repository.Create(ctx, progress)
+	}
+
+	return p.repository.Update(ctx, progress)
 }
 
 func (p *PlayerProgress) ChangeBalance(ctx context.Context, id string, amount int) error {

@@ -63,14 +63,6 @@ func (r *Repository) Update(ctx context.Context, inventory *model.Inventory) (*m
 	return RecordToInventory(record), nil
 }
 
-func (r *Repository) Save(ctx context.Context, inventory *model.Inventory) (*model.Inventory, error) {
-	if inventory.IsNew() {
-		return r.Create(ctx, inventory)
-	}
-
-	return r.Update(ctx, inventory)
-}
-
 func (r *Repository) GetAllByPlayerID(ctx context.Context, playerId string) ([]*model.InventoryItem, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 

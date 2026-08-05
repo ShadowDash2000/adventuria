@@ -61,14 +61,6 @@ func (r *Repository) Update(ctx context.Context, review *model.Review) (*model.R
 	return RecordToReview(record), nil
 }
 
-func (r *Repository) Save(ctx context.Context, review *model.Review) (*model.Review, error) {
-	if review.IsNew() {
-		return r.Create(ctx, review)
-	}
-
-	return r.Update(ctx, review)
-}
-
 func (r *Repository) GetByActionID(ctx context.Context, actionId string) (*model.Review, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 

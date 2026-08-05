@@ -8,9 +8,10 @@ import (
 )
 
 type repository interface {
+	Create(ctx context.Context, theme *model.Theme) (*model.Theme, error)
+	Update(ctx context.Context, theme *model.Theme) (*model.Theme, error)
 	GetByIdDb(ctx context.Context, idDb string) (*model.Theme, error)
 	GetChecksumsByIDs(ctx context.Context, ids []string) (map[string]string, error)
-	Save(ctx context.Context, theme *model.Theme) (*model.Theme, error)
 }
 
 type Themes struct {
@@ -40,5 +41,9 @@ func (t *Themes) GetChecksumsByIDs(ctx context.Context, ids []string) (map[strin
 }
 
 func (t *Themes) Save(ctx context.Context, theme *model.Theme) (*model.Theme, error) {
-	return t.repository.Save(ctx, theme)
+	if theme.IsNew() {
+		return t.repository.Create(ctx, theme)
+	}
+
+	return t.repository.Update(ctx, theme)
 }

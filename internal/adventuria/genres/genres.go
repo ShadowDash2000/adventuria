@@ -8,10 +8,11 @@ import (
 )
 
 type repository interface {
+	Create(ctx context.Context, genre *model.Genre) (*model.Genre, error)
+	Update(ctx context.Context, genre *model.Genre) (*model.Genre, error)
 	Exists(ctx context.Context, id string) (bool, error)
 	GetByIdDb(ctx context.Context, idDb string) (*model.Genre, error)
 	GetChecksumsByIDs(ctx context.Context, ids []string) (map[string]string, error)
-	Save(ctx context.Context, genre *model.Genre) (*model.Genre, error)
 }
 
 type Genres struct {
@@ -43,5 +44,9 @@ func (g *Genres) GetChecksumsByIDs(ctx context.Context, ids []string) (map[strin
 }
 
 func (g *Genres) Save(ctx context.Context, genre *model.Genre) (*model.Genre, error) {
-	return g.repository.Save(ctx, genre)
+	if genre.IsNew() {
+		return g.repository.Create(ctx, genre)
+	}
+
+	return g.repository.Update(ctx, genre)
 }

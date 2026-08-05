@@ -69,14 +69,6 @@ func (r *Repository) Update(ctx context.Context, action *model.ActionInfo) (*mod
 	return RecordToAction(record)
 }
 
-func (r *Repository) Save(ctx context.Context, action *model.ActionInfo) (*model.ActionInfo, error) {
-	if action.IsNew() {
-		return r.Create(ctx, action)
-	}
-
-	return r.Update(ctx, action)
-}
-
 func (r *Repository) GetLastActionByPlayerId(ctx context.Context, playerId string, timeFrom time.Time) (*model.ActionInfo, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 

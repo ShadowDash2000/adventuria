@@ -6,20 +6,27 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"time"
 )
 
 type repository interface {
-	Save(ctx context.Context, outbox *model.OutboxInfo) (*model.OutboxInfo, error)
+	Create(ctx context.Context, outbox *model.OutboxInfo) (*model.OutboxInfo, error)
+	Update(ctx context.Context, outbox *model.OutboxInfo) (*model.OutboxInfo, error)
 	GetAndLockNextPending(ctx context.Context) (*model.OutboxInfo, error)
+	UpdateStatus(ctx context.Context, id string, status model.OutboxStatus) error
 }
 
 type Outboxes struct {
+	logger     *slog.Logger
 	repository repository
 }
 
-func NewOutboxes(repository repository) *Outboxes {
-	return &Outboxes{repository: repository}
+func NewOutboxes(logger *slog.Logger, repository repository) *Outboxes {
+	return &Outboxes{
+		logger:     logger,
+		repository: repository,
+	}
 }
 
 func (o *Outboxes) Start(ctx context.Context) {
@@ -48,26 +55,25 @@ func (o *Outboxes) processAllPending(ctx context.Context) {
 			break
 		}
 
-		o.process(ctx, outbox)
+		err = o.process(ctx, outbox)
+		if err != nil {
+			o.logger.Error("Failed to process outbox", "outbox_id", outbox.ID(), "error", err)
+		}
 	}
 }
 
-func (o *Outboxes) process(ctx context.Context, outbox *model.OutboxInfo) {
+func (o *Outboxes) process(ctx context.Context, outbox *model.OutboxInfo) error {
 	outboxDef, ok := Get(outbox.Type())
 	if !ok {
-		outbox.SetStatus(model.OutboxStatusFailed)
-		_, _ = o.repository.Save(ctx, outbox)
-		return
+		return o.repository.UpdateStatus(ctx, outbox.ID(), model.OutboxStatusFailed)
 	}
 
 	err := outboxDef.New().Process(ctx, outbox)
 	if err != nil {
-		outbox.SetStatus(model.OutboxStatusFailed)
-	} else {
-		outbox.SetStatus(model.OutboxStatusCompleted)
+		return o.repository.UpdateStatus(ctx, outbox.ID(), model.OutboxStatusFailed)
 	}
 
-	_, _ = o.repository.Save(ctx, outbox)
+	return o.repository.UpdateStatus(ctx, outbox.ID(), model.OutboxStatusCompleted)
 }
 
 func (o *Outboxes) Save(ctx context.Context, outbox *model.OutboxInfo) (*model.OutboxInfo, error) {
@@ -81,5 +87,9 @@ func (o *Outboxes) Save(ctx context.Context, outbox *model.OutboxInfo) (*model.O
 		return nil, err
 	}
 
-	return o.repository.Save(ctx, outbox)
+	if outbox.IsNew() {
+		return o.repository.Create(ctx, outbox)
+	}
+
+	return o.repository.Update(ctx, outbox)
 }

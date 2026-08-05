@@ -65,14 +65,6 @@ func (r *Repository) Update(ctx context.Context, hltb *model.HowLongToBeat) (*mo
 	return RecordToHowLongToBeat(record), nil
 }
 
-func (r *Repository) Save(ctx context.Context, hltb *model.HowLongToBeat) (*model.HowLongToBeat, error) {
-	if hltb.IsNew() {
-		return r.Create(ctx, hltb)
-	}
-
-	return r.Update(ctx, hltb)
-}
-
 func (r *Repository) ExistsByIdDb(ctx context.Context, idDb int) (bool, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 

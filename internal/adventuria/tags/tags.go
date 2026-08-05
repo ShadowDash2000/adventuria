@@ -8,9 +8,10 @@ import (
 )
 
 type repository interface {
+	Create(ctx context.Context, tag *model.Tag) (*model.Tag, error)
+	Update(ctx context.Context, tag *model.Tag) (*model.Tag, error)
 	GetByIdDb(ctx context.Context, idDb string) (*model.Tag, error)
 	GetChecksumsByIDs(ctx context.Context, ids []string) (map[string]string, error)
-	Save(ctx context.Context, tag *model.Tag) (*model.Tag, error)
 }
 
 type Tags struct {
@@ -40,5 +41,9 @@ func (t *Tags) GetChecksumsByIDs(ctx context.Context, ids []string) (map[string]
 }
 
 func (t *Tags) Save(ctx context.Context, tag *model.Tag) (*model.Tag, error) {
-	return t.repository.Save(ctx, tag)
+	if tag.IsNew() {
+		return t.repository.Create(ctx, tag)
+	}
+
+	return t.repository.Update(ctx, tag)
 }

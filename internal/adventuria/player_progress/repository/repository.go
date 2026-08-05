@@ -62,14 +62,6 @@ func (r *Repository) Update(ctx context.Context, progress *model.PlayerProgress)
 	return RecordToPlayerProgress(record), nil
 }
 
-func (r *Repository) Save(ctx context.Context, progress *model.PlayerProgress) (*model.PlayerProgress, error) {
-	if progress.IsNew() {
-		return r.Create(ctx, progress)
-	}
-
-	return r.Update(ctx, progress)
-}
-
 func (r *Repository) GetByPlayerId(ctx context.Context, playerId, seasonId string) (*model.PlayerProgress, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 

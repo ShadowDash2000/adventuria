@@ -8,9 +8,10 @@ import (
 )
 
 type repository interface {
+	Create(ctx context.Context, gameType *model.GameType) (*model.GameType, error)
+	Update(ctx context.Context, gameType *model.GameType) (*model.GameType, error)
 	GetByIdDb(ctx context.Context, idDb string) (*model.GameType, error)
 	GetChecksumsByIDs(ctx context.Context, ids []string) (map[string]string, error)
-	Save(ctx context.Context, gameType *model.GameType) (*model.GameType, error)
 }
 
 type GameTypes struct {
@@ -40,5 +41,9 @@ func (t *GameTypes) GetChecksumsByIDs(ctx context.Context, ids []string) (map[st
 }
 
 func (t *GameTypes) Save(ctx context.Context, gameType *model.GameType) (*model.GameType, error) {
-	return t.repository.Save(ctx, gameType)
+	if gameType.IsNew() {
+		return t.repository.Create(ctx, gameType)
+	}
+
+	return t.repository.Update(ctx, gameType)
 }

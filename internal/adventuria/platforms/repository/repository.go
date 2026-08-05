@@ -108,11 +108,3 @@ func (r *Repository) Update(ctx context.Context, platform *model.Platform) (*mod
 
 	return RecordToPlatform(record), nil
 }
-
-func (r *Repository) Save(ctx context.Context, platform *model.Platform) (*model.Platform, error) {
-	if platform.IsNew() {
-		return r.Create(ctx, platform)
-	}
-
-	return r.Update(ctx, platform)
-}

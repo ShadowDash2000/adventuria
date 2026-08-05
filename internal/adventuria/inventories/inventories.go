@@ -7,7 +7,8 @@ import (
 )
 
 type repository interface {
-	Save(ctx context.Context, inventory *model.Inventory) (*model.Inventory, error)
+	Create(ctx context.Context, inventory *model.Inventory) (*model.Inventory, error)
+	Update(ctx context.Context, inventory *model.Inventory) (*model.Inventory, error)
 	GetByID(ctx context.Context, id string) (*model.Inventory, error)
 	GetPlayerInventoryItemByID(ctx context.Context, playerId, itemId string) (*model.InventoryItem, error)
 	GetAllByPlayerID(ctx context.Context, playerId string) ([]*model.InventoryItem, error)
@@ -42,7 +43,11 @@ func NewInventories(repository repository, effects effectsService, items items) 
 }
 
 func (i *Inventories) Save(ctx context.Context, inventory *model.Inventory) (*model.Inventory, error) {
-	return i.repository.Save(ctx, inventory)
+	if inventory.IsNew() {
+		return i.repository.Create(ctx, inventory)
+	}
+
+	return i.repository.Update(ctx, inventory)
 }
 
 func (i *Inventories) GetByID(ctx context.Context, id string) (*model.Inventory, error) {
@@ -89,7 +94,7 @@ func (i *Inventories) AddItem(
 		return nil, err
 	}
 
-	inventory, err = i.repository.Save(ctx, inventory)
+	inventory, err = i.Save(ctx, inventory)
 	if err != nil {
 		return nil, err
 	}

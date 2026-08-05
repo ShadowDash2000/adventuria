@@ -6,7 +6,8 @@ import (
 )
 
 type repository interface {
-	Save(ctx context.Context, cheapShark *model.CheapShark) (*model.CheapShark, error)
+	Create(ctx context.Context, cheapShark *model.CheapShark) (*model.CheapShark, error)
+	Update(ctx context.Context, cheapShark *model.CheapShark) (*model.CheapShark, error)
 	ExistsByIdDb(ctx context.Context, idDb int) (bool, error)
 	GetByAppID(ctx context.Context, id int) (*model.CheapShark, error)
 }
@@ -57,13 +58,21 @@ func (c *CheapShark) Parse(ctx context.Context) error {
 			return err
 		}
 
-		_, err = c.repository.Save(ctx, cs)
+		_, err = c.Save(ctx, cs)
 		if err != nil {
 			return err
 		}
 	}
 
 	return nil
+}
+
+func (c *CheapShark) Save(ctx context.Context, cheapShark *model.CheapShark) (*model.CheapShark, error) {
+	if cheapShark.IsNew() {
+		return c.repository.Create(ctx, cheapShark)
+	}
+
+	return c.repository.Update(ctx, cheapShark)
 }
 
 func (c *CheapShark) GetByAppID(ctx context.Context, id int) (*model.CheapShark, error) {

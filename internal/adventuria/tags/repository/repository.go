@@ -108,11 +108,3 @@ func (r *Repository) Update(ctx context.Context, tag *model.Tag) (*model.Tag, er
 
 	return RecordToTag(record), nil
 }
-
-func (r *Repository) Save(ctx context.Context, tag *model.Tag) (*model.Tag, error) {
-	if tag.IsNew() {
-		return r.Create(ctx, tag)
-	}
-
-	return r.Update(ctx, tag)
-}

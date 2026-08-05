@@ -61,14 +61,6 @@ func (r *Repository) Update(ctx context.Context, outbox *model.OutboxInfo) (*mod
 	return RecordToOutbox(record), nil
 }
 
-func (r *Repository) Save(ctx context.Context, outbox *model.OutboxInfo) (*model.OutboxInfo, error) {
-	if outbox.IsNew() {
-		return r.Create(ctx, outbox)
-	}
-
-	return r.Update(ctx, outbox)
-}
-
 func (r *Repository) GetAndLockNextPending(ctx context.Context) (*model.OutboxInfo, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 
@@ -117,4 +109,31 @@ func (r *Repository) GetAndLockNextPending(ctx context.Context) (*model.OutboxIn
 	}
 
 	return RecordToOutbox(&record), nil
+}
+
+func (r *Repository) UpdateStatus(ctx context.Context, id string, status model.OutboxStatus) error {
+	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
+
+	res, err := pb.DB().
+		Update(
+			schema.CollectionsOutbox,
+			dbx.Params{
+				schema.OutboxSchema.Status: status,
+			},
+			dbx.HashExp{
+				schema.OutboxSchema.Id: id,
+			},
+		).
+		WithContext(ctx).
+		Execute()
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, _ := res.RowsAffected()
+	if rowsAffected == 0 {
+		return errs.ErrOutboxNotFound
+	}
+
+	return nil
 }

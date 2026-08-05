@@ -8,9 +8,10 @@ import (
 )
 
 type repository interface {
+	Create(ctx context.Context, platform *model.Platform) (*model.Platform, error)
+	Update(ctx context.Context, platform *model.Platform) (*model.Platform, error)
 	GetByIdDb(ctx context.Context, idDb string) (*model.Platform, error)
 	GetChecksumsByIDs(ctx context.Context, ids []string) (map[string]string, error)
-	Save(ctx context.Context, platform *model.Platform) (*model.Platform, error)
 }
 
 type Platforms struct {
@@ -38,5 +39,9 @@ func (p *Platforms) GetChecksumsByIDs(ctx context.Context, ids []string) (map[st
 }
 
 func (p *Platforms) Save(ctx context.Context, platform *model.Platform) (*model.Platform, error) {
-	return p.repository.Save(ctx, platform)
+	if platform.IsNew() {
+		return p.repository.Create(ctx, platform)
+	}
+
+	return p.repository.Update(ctx, platform)
 }

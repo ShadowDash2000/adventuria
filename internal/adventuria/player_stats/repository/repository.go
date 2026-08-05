@@ -60,14 +60,6 @@ func (r *Repository) Update(ctx context.Context, stats *model.PlayerStats) (*mod
 	return RecordToPlayerStats(record)
 }
 
-func (r *Repository) Save(ctx context.Context, stats *model.PlayerStats) (*model.PlayerStats, error) {
-	if stats.IsNew() {
-		return r.Create(ctx, stats)
-	}
-
-	return r.Update(ctx, stats)
-}
-
 func (r *Repository) GetByPlayerId(ctx context.Context, playerId, seasonId string) (*model.PlayerStats, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 

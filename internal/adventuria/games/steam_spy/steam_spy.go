@@ -6,7 +6,8 @@ import (
 )
 
 type repository interface {
-	Save(ctx context.Context, steamSpy *model.SteamSpy) (*model.SteamSpy, error)
+	Create(ctx context.Context, steamSpy *model.SteamSpy) (*model.SteamSpy, error)
+	Update(ctx context.Context, steamSpy *model.SteamSpy) (*model.SteamSpy, error)
 	ExistsByIdDb(ctx context.Context, idDb int) (bool, error)
 	GetByAppID(ctx context.Context, id int) (*model.SteamSpy, error)
 }
@@ -57,13 +58,21 @@ func (s *SteamSpy) Parse(ctx context.Context) error {
 			return err
 		}
 
-		_, err = s.repository.Save(ctx, steamSpy)
+		_, err = s.Save(ctx, steamSpy)
 		if err != nil {
 			return err
 		}
 	}
 
 	return nil
+}
+
+func (s *SteamSpy) Save(ctx context.Context, steamSpy *model.SteamSpy) (*model.SteamSpy, error) {
+	if steamSpy.IsNew() {
+		return s.repository.Create(ctx, steamSpy)
+	}
+
+	return s.repository.Update(ctx, steamSpy)
 }
 
 func (s *SteamSpy) GetByAppID(ctx context.Context, id int) (*model.SteamSpy, error) {
