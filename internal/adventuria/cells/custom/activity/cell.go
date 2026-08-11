@@ -10,7 +10,7 @@ import (
 )
 
 type activities interface {
-	GetByFilter(ctx context.Context, filter model.ActivityFilter) ([]string, error)
+	GetRandomIDsByFilter(ctx context.Context, filter model.ActivityFilter) ([]string, error)
 }
 
 type filters interface {
@@ -101,7 +101,7 @@ func (c *CellActivity) RefreshItems(ctx context.Context, _ *model.Events, player
 		return errs.ErrNoActiveActivityFilter
 	}
 
-	ids, err := c.activities.GetByFilter(ctx, *actionState.ActivityFilter)
+	ids, err := c.activities.GetRandomIDsByFilter(ctx, *actionState.ActivityFilter)
 	if err != nil {
 		return err
 	}

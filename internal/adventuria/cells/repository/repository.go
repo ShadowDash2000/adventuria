@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"adventuria/internal/adventuria/cells/repository/dto"
 	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
 	"adventuria/internal/adventuria/schema"
@@ -23,7 +24,7 @@ func NewRepository(pb core.App) *Repository {
 	return &Repository{pb: pb}
 }
 
-func (r *Repository) baseCellQuery(db dbx.Builder) *dbx.SelectQuery {
+func baseCellQuery(db dbx.Builder) *dbx.SelectQuery {
 	return db.
 		Select(
 			fmt.Sprintf("%s.*", schema.CollectionCells),
@@ -56,9 +57,9 @@ func (r *Repository) baseCellQuery(db dbx.Builder) *dbx.SelectQuery {
 func (r *Repository) GetByID(ctx context.Context, id string) (*model.CellInfo, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 
-	subQuery := r.baseCellQuery(pb.DB()).Build()
+	subQuery := baseCellQuery(pb.DB()).Build()
 
-	var dto cellDTO
+	var dto dto.Cell
 	err := pb.DB().
 		Select("*").
 		From(fmt.Sprintf("(%s) t", subQuery.SQL())).
@@ -85,9 +86,9 @@ func (r *Repository) GetByIDs(ctx context.Context, ids []string) ([]*model.CellI
 		return []*model.CellInfo{}, nil
 	}
 
-	subQuery := r.baseCellQuery(pb.DB()).Build()
+	subQuery := baseCellQuery(pb.DB()).Build()
 
-	var dtos []cellDTO
+	var dtos []dto.Cell
 	err := pb.DB().
 		Select("*").
 		From(fmt.Sprintf("(%s) t", subQuery.SQL())).
@@ -108,9 +109,9 @@ func (r *Repository) GetByIDs(ctx context.Context, ids []string) ([]*model.CellI
 func (r *Repository) GetByLocalOrder(ctx context.Context, worldId string, order int) (*model.CellInfo, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 
-	subQuery := r.baseCellQuery(pb.DB()).Build()
+	subQuery := baseCellQuery(pb.DB()).Build()
 
-	var dto cellDTO
+	var dto dto.Cell
 	err := pb.DB().
 		Select("*").
 		From(fmt.Sprintf("(%s) t", subQuery.SQL())).
@@ -134,9 +135,9 @@ func (r *Repository) GetByLocalOrder(ctx context.Context, worldId string, order 
 func (r *Repository) GetByGlobalOrder(ctx context.Context, order int) (*model.CellInfo, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 
-	subQuery := r.baseCellQuery(pb.DB()).Build()
+	subQuery := baseCellQuery(pb.DB()).Build()
 
-	var dto cellDTO
+	var dto dto.Cell
 	err := pb.DB().
 		Select("*").
 		From(fmt.Sprintf("(%s) t", subQuery.SQL())).
@@ -159,9 +160,9 @@ func (r *Repository) GetByGlobalOrder(ctx context.Context, order int) (*model.Ce
 func (r *Repository) GetAllGlobalByType(ctx context.Context, t model.CellType) ([]*model.CellInfo, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 
-	subQuery := r.baseCellQuery(pb.DB()).Build()
+	subQuery := baseCellQuery(pb.DB()).Build()
 
-	var dtos []cellDTO
+	var dtos []dto.Cell
 	err := pb.DB().
 		Select("*").
 		From(fmt.Sprintf("(%s) t", subQuery.SQL())).
@@ -221,9 +222,9 @@ func (r *Repository) CountGlobal(ctx context.Context) (int, error) {
 func (r *Repository) GetAllByWorldID(ctx context.Context, worldId string) ([]*model.CellInfo, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 
-	subQuery := r.baseCellQuery(pb.DB()).Build()
+	subQuery := baseCellQuery(pb.DB()).Build()
 
-	var dtos []cellDTO
+	var dtos []dto.Cell
 	err := pb.DB().
 		Select("*").
 		From(fmt.Sprintf("(%s) t", subQuery.SQL())).
@@ -239,4 +240,69 @@ func (r *Repository) GetAllByWorldID(ctx context.Context, worldId string) ([]*mo
 	}
 
 	return cellDTOsToCells(dtos), nil
+}
+
+func (r *Repository) GetAllIDs(ctx context.Context) ([]string, error) {
+	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
+
+	var ids []string
+	err := pb.DB().
+		Select(schema.CellSchema.Id).
+		From(schema.CollectionCells).
+		WithContext(ctx).
+		Column(&ids)
+	if err != nil {
+		return nil, err
+	}
+
+	return ids, nil
+}
+
+func (r *Repository) GetActivityFilterIDByID(ctx context.Context, id string) (string, error) {
+	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
+
+	var filterId string
+	err := pb.DB().
+		Select(schema.CellSchema.Filter).
+		From(schema.CollectionCells).
+		Where(dbx.HashExp{
+			schema.CellSchema.Id: id,
+		}).
+		Limit(1).
+		WithContext(ctx).
+		Row(&filterId)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", errs.ErrCellNotFound
+		}
+		return "", err
+	}
+
+	return filterId, nil
+}
+
+func (r *Repository) UpdateAverageCampaignTimeByID(ctx context.Context, id string, campaignTime float64) error {
+	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
+
+	res, err := pb.DB().
+		Update(
+			schema.CollectionCells,
+			dbx.Params{
+				schema.CellSchema.AverageCampaignTime: campaignTime,
+			},
+			dbx.HashExp{
+				schema.CellSchema.Id: id,
+			},
+		).
+		Execute()
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, _ := res.RowsAffected()
+	if rowsAffected == 0 {
+		return errs.ErrCellNotFound
+	}
+
+	return nil
 }

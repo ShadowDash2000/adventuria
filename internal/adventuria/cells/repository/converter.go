@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"adventuria/internal/adventuria/cells/repository/dto"
 	"adventuria/internal/adventuria/model"
 	"adventuria/internal/adventuria/schema"
 
@@ -23,6 +24,7 @@ func RecordToCell(record *core.Record) *model.CellInfo {
 		Coins:                    record.GetInt(schema.CellSchema.Coins),
 		Description:              record.GetString(schema.CellSchema.Description),
 		Color:                    record.GetString(schema.CellSchema.Color),
+		AverageCampaignTime:      record.GetFloat(schema.CellSchema.AverageCampaignTime),
 		CantDrop:                 record.GetBool(schema.CellSchema.CantDrop),
 		CantReroll:               record.GetBool(schema.CellSchema.CantReroll),
 		IsSafeDrop:               record.GetBool(schema.CellSchema.IsSafeDrop),
@@ -43,7 +45,7 @@ func RecordsToCells(records []*core.Record) []*model.CellInfo {
 	return cells
 }
 
-func cellDTOToCell(dto *cellDTO) *model.CellInfo {
+func cellDTOToCell(dto *dto.Cell) *model.CellInfo {
 	value := ""
 	if dto.Value != nil {
 		value = *dto.Value
@@ -64,6 +66,7 @@ func cellDTOToCell(dto *cellDTO) *model.CellInfo {
 		Coins:                    dto.Coins,
 		Description:              dto.Description,
 		Color:                    dto.Color,
+		AverageCampaignTime:      dto.AverageCampaignTime,
 		CantDrop:                 dto.CantDrop,
 		CantReroll:               dto.CantReroll,
 		IsSafeDrop:               dto.IsSafeDrop,
@@ -76,7 +79,7 @@ func cellDTOToCell(dto *cellDTO) *model.CellInfo {
 	})
 }
 
-func cellDTOsToCells(dtos []cellDTO) []*model.CellInfo {
+func cellDTOsToCells(dtos []dto.Cell) []*model.CellInfo {
 	cells := make([]*model.CellInfo, len(dtos))
 	for i := range dtos {
 		cells[i] = cellDTOToCell(&dtos[i])

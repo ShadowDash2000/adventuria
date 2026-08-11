@@ -6,14 +6,14 @@ import (
 )
 
 type Activities struct {
-	GetByFilterFunc func(ctx context.Context, filter model.ActivityFilter) ([]string, error)
-	GetByIDFunc     func(ctx context.Context, id string) (*model.Activity, error)
-	GetByIDsFunc    func(ctx context.Context, ids []string) ([]*model.Activity, error)
+	GetRandomIDsByFilterFunc func(ctx context.Context, filter model.ActivityFilter) ([]string, error)
+	GetByIDFunc              func(ctx context.Context, id string) (*model.Activity, error)
+	GetByIDsFunc             func(ctx context.Context, ids []string) ([]*model.Activity, error)
 }
 
-func (m *Activities) GetByFilter(ctx context.Context, filter model.ActivityFilter) ([]string, error) {
-	if m.GetByFilterFunc != nil {
-		return m.GetByFilterFunc(ctx, filter)
+func (m *Activities) GetRandomIDsByFilter(ctx context.Context, filter model.ActivityFilter) ([]string, error) {
+	if m.GetRandomIDsByFilterFunc != nil {
+		return m.GetRandomIDsByFilterFunc(ctx, filter)
 	}
 
 	return nil, nil

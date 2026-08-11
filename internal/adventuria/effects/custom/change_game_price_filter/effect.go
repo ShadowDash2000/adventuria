@@ -18,7 +18,7 @@ type cellsService interface {
 }
 
 type activities interface {
-	GetByFilter(ctx context.Context, filter model.ActivityFilter) ([]string, error)
+	GetRandomIDsByFilter(ctx context.Context, filter model.ActivityFilter) ([]string, error)
 }
 
 var _ model.Effect = (*ChangeGamePriceFilter)(nil)
@@ -159,7 +159,7 @@ func (c *ChangeGamePriceFilter) tryToApplyEffect(ctx context.Context, player *mo
 		actionState.ActivityFilter.MaxPrice = effectValue.Price
 	}
 
-	ids, err := c.activities.GetByFilter(ctx, *actionState.ActivityFilter)
+	ids, err := c.activities.GetRandomIDsByFilter(ctx, *actionState.ActivityFilter)
 	if err != nil {
 		return err
 	}

@@ -438,7 +438,7 @@ func (r *Registry) Worlds() *worlds.Worlds {
 
 func (r *Registry) Cells() *cells.Cells {
 	if r.cells == nil {
-		r.cells = cells.NewCells(r.CellsRepo())
+		r.cells = cells.NewCells(r.CellsRepo(), r.ActivityFilters(), r.Activities())
 	}
 	return r.cells
 }

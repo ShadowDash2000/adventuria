@@ -9,7 +9,7 @@ import (
 )
 
 type activities interface {
-	GetByFilter(ctx context.Context, filter model.ActivityFilter) ([]string, error)
+	GetRandomIDsByFilter(ctx context.Context, filter model.ActivityFilter) ([]string, error)
 }
 
 var _ model.Action = (*GenerateWheel)(nil)
@@ -51,7 +51,7 @@ func (g *GenerateWheel) Do(ctx context.Context, _ *model.Events, player *model.P
 		return nil, errs.ErrNoActiveActivityFilter
 	}
 
-	ids, err := g.activities.GetByFilter(ctx, *actionState.ActivityFilter)
+	ids, err := g.activities.GetRandomIDsByFilter(ctx, *actionState.ActivityFilter)
 	if err != nil {
 		return nil, err
 	}

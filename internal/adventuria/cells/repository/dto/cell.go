@@ -1,6 +1,6 @@
-package repository
+package dto
 
-type cellDTO struct {
+type Cell struct {
 	Id                       string  `db:"id"`
 	Disabled                 bool    `db:"disabled"`
 	Sort                     int     `db:"sort"`
@@ -15,6 +15,7 @@ type cellDTO struct {
 	Coins                    int     `db:"coins"`
 	Description              string  `db:"description"`
 	Color                    string  `db:"color"`
+	AverageCampaignTime      float64 `db:"average_campaign_time"`
 	CantDrop                 bool    `db:"cant_drop"`
 	CantReroll               bool    `db:"cant_reroll"`
 	IsSafeDrop               bool    `db:"is_safe_drop"`

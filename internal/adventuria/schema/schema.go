@@ -256,6 +256,7 @@ var CellSchema = struct {
 	Coins                    string
 	Description              string
 	Color                    string
+	AverageCampaignTime      string
 	CantDrop                 string
 	CantReroll               string
 	IsSafeDrop               string
@@ -278,6 +279,7 @@ var CellSchema = struct {
 	Coins:                    "coins",
 	Description:              "description",
 	Color:                    "color",
+	AverageCampaignTime:      "average_campaign_time",
 	CantDrop:                 "cant_drop",
 	CantReroll:               "cant_reroll",
 	IsSafeDrop:               "is_safe_drop",

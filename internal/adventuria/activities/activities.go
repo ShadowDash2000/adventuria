@@ -5,13 +5,16 @@ import (
 	"adventuria/internal/adventuria/model"
 	"context"
 	"errors"
+	"math/rand/v2"
 )
 
 type repository interface {
 	Create(ctx context.Context, activity *model.Activity) (*model.Activity, error)
 	Update(ctx context.Context, activity *model.Activity) (*model.Activity, error)
 	GetByIdDb(ctx context.Context, idDb string) (*model.Activity, error)
-	GetByFilter(ctx context.Context, filter model.ActivityFilter, poolSize, resultSize int) ([]string, error)
+	GetCountByFilter(ctx context.Context, filter model.ActivityFilter) (int, error)
+	GetIDsByFilter(ctx context.Context, filter model.ActivityFilter, offset, limit int) ([]string, error)
+	GetAverageCampaignTimeByFilter(ctx context.Context, filter model.ActivityFilter) (float64, error)
 	GetByID(ctx context.Context, id string) (*model.Activity, error)
 	GetByIDs(ctx context.Context, ids []string) ([]*model.Activity, error)
 	GetChecksumsByIDs(ctx context.Context, ids []string) (map[string]string, error)
@@ -37,8 +40,54 @@ func (a *Activities) GetOrCreate(ctx context.Context, data model.ActivityCreate)
 	return activity, nil
 }
 
-func (a *Activities) GetByFilter(ctx context.Context, filter model.ActivityFilter) ([]string, error) {
-	return a.repository.GetByFilter(ctx, filter, 20000, 20)
+func (a *Activities) Save(ctx context.Context, activity *model.Activity) (*model.Activity, error) {
+	if activity.IsNew() {
+		return a.repository.Create(ctx, activity)
+	}
+
+	return a.repository.Update(ctx, activity)
+}
+
+const (
+	poolSize   = 20000
+	resultSize = 20
+)
+
+func (a *Activities) GetRandomIDsByFilter(ctx context.Context, filter model.ActivityFilter) ([]string, error) {
+	count, err := a.repository.GetCountByFilter(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+
+	limit := count
+	offset := 0
+
+	if count > poolSize {
+		limit = poolSize
+		offset = rand.N(count - poolSize + 1)
+	}
+
+	ids, err := a.GetIDsByFilter(ctx, filter, offset, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	rand.Shuffle(len(ids), func(i, j int) {
+		ids[i], ids[j] = ids[j], ids[i]
+	})
+
+	resultSize := min(len(ids), resultSize)
+
+	res := make([]string, resultSize)
+	for i := range resultSize {
+		res[i] = ids[i]
+	}
+
+	return res, nil
+}
+
+func (a *Activities) GetIDsByFilter(ctx context.Context, filter model.ActivityFilter, offset, limit int) ([]string, error) {
+	return a.repository.GetIDsByFilter(ctx, filter, offset, limit)
 }
 
 func (a *Activities) GetByID(ctx context.Context, id string) (*model.Activity, error) {
@@ -53,10 +102,6 @@ func (a *Activities) GetChecksumsByIDs(ctx context.Context, ids []string) (map[s
 	return a.repository.GetChecksumsByIDs(ctx, ids)
 }
 
-func (a *Activities) Save(ctx context.Context, activity *model.Activity) (*model.Activity, error) {
-	if activity.IsNew() {
-		return a.repository.Create(ctx, activity)
-	}
-
-	return a.repository.Update(ctx, activity)
+func (a *Activities) GetAverageCampaignTimeByFilter(ctx context.Context, filter model.ActivityFilter) (float64, error) {
+	return a.repository.GetAverageCampaignTimeByFilter(ctx, filter)
 }

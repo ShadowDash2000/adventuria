@@ -142,7 +142,7 @@ func TestChangeGamePriceFilter_CanUse(t *testing.T) {
 			}), nil
 		}
 
-		mActivities.GetByFilterFunc = func(ctx context.Context, filter model.ActivityFilter) ([]string, error) {
+		mActivities.GetRandomIDsByFilterFunc = func(ctx context.Context, filter model.ActivityFilter) ([]string, error) {
 			return []string{"act1"}, nil
 		}
 
@@ -221,7 +221,7 @@ func TestChangeGamePriceFilter_Subscribe(t *testing.T) {
 			return mCell, nil
 		}
 
-		mActivities.GetByFilterFunc = func(ctx context.Context, filter model.ActivityFilter) ([]string, error) {
+		mActivities.GetRandomIDsByFilterFunc = func(ctx context.Context, filter model.ActivityFilter) ([]string, error) {
 			return []string{"act1"}, nil
 		}
 
@@ -269,7 +269,7 @@ func TestChangeGamePriceFilter_Subscribe(t *testing.T) {
 			}), nil
 		}
 
-		mActivities.GetByFilterFunc = func(ctx context.Context, filter model.ActivityFilter) ([]string, error) {
+		mActivities.GetRandomIDsByFilterFunc = func(ctx context.Context, filter model.ActivityFilter) ([]string, error) {
 			return []string{"act1"}, nil
 		}
 

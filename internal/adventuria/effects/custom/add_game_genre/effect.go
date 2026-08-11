@@ -20,7 +20,7 @@ type genres interface {
 }
 
 type activities interface {
-	GetByFilter(ctx context.Context, filter model.ActivityFilter) ([]string, error)
+	GetRandomIDsByFilter(ctx context.Context, filter model.ActivityFilter) ([]string, error)
 }
 
 var _ model.Effect = (*AddGameGenre)(nil)
@@ -112,7 +112,7 @@ func (a *AddGameGenre) Subscribe(
 
 			actionState.ActivityFilter.Genres = append(actionState.ActivityFilter.Genres, genreId)
 
-			ids, err := a.activities.GetByFilter(ctx, *actionState.ActivityFilter)
+			ids, err := a.activities.GetRandomIDsByFilter(ctx, *actionState.ActivityFilter)
 			if err != nil {
 				return err
 			}

@@ -14,7 +14,7 @@ type actionsService interface {
 }
 
 type activities interface {
-	GetByFilter(ctx context.Context, filter model.ActivityFilter) ([]string, error)
+	GetRandomIDsByFilter(ctx context.Context, filter model.ActivityFilter) ([]string, error)
 }
 
 var _ model.Effect = (*NoTimeLimit)(nil)
@@ -109,7 +109,7 @@ func (n *NoTimeLimit) tryToApplyEffect(ctx context.Context, player *model.Player
 	actionState.ActivityFilter.MinCampaignTime = -1
 	actionState.ActivityFilter.MaxCampaignTime = -1
 
-	ids, err := n.activities.GetByFilter(ctx, *actionState.ActivityFilter)
+	ids, err := n.activities.GetRandomIDsByFilter(ctx, *actionState.ActivityFilter)
 	if err != nil {
 		return err
 	}

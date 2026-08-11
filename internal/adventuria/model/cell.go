@@ -47,6 +47,7 @@ type CellData struct {
 	Coins                    int
 	Description              string
 	Color                    string
+	AverageCampaignTime      float64
 	CantDrop                 bool
 	CantReroll               bool
 	IsSafeDrop               bool
@@ -121,6 +122,10 @@ func (c *CellInfo) Description() string {
 
 func (c *CellInfo) Color() string {
 	return c.data.Color
+}
+
+func (c *CellInfo) AverageCampaignTime() float64 {
+	return c.data.AverageCampaignTime
 }
 
 func (c *CellInfo) CantDrop() bool {

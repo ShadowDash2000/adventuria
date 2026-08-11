@@ -16,15 +16,30 @@ type repository interface {
 	CountLocal(ctx context.Context, worldId string) (int, error)
 	CountGlobal(ctx context.Context) (int, error)
 	GetAllByWorldID(ctx context.Context, worldId string) ([]*model.CellInfo, error)
+	GetAllIDs(ctx context.Context) ([]string, error)
+	GetActivityFilterIDByID(ctx context.Context, id string) (string, error)
+	UpdateAverageCampaignTimeByID(ctx context.Context, id string, campaignTime float64) error
+}
+
+type activityFilters interface {
+	GetByID(ctx context.Context, id string) (*model.ActivityFilterInfo, error)
+}
+
+type activities interface {
+	GetAverageCampaignTimeByFilter(ctx context.Context, filter model.ActivityFilter) (float64, error)
 }
 
 type Cells struct {
-	repository repository
+	repository     repository
+	activityFilter activityFilters
+	activities     activities
 }
 
-func NewCells(repository repository) *Cells {
+func NewCells(repository repository, activityFilter activityFilters, activities activities) *Cells {
 	return &Cells{
-		repository: repository,
+		repository:     repository,
+		activityFilter: activityFilter,
+		activities:     activities,
 	}
 }
 
@@ -98,4 +113,30 @@ func (c *Cells) GetAllGlobalByType(ctx context.Context, t model.CellType) ([]*mo
 
 func (c *Cells) GetAllByWorldID(ctx context.Context, worldId string) ([]*model.CellInfo, error) {
 	return c.repository.GetAllByWorldID(ctx, worldId)
+}
+
+func (c *Cells) GetAllIDs(ctx context.Context) ([]string, error) {
+	return c.repository.GetAllIDs(ctx)
+}
+
+func (c *Cells) GetAverageCampaignTimeByID(ctx context.Context, id string) (float64, error) {
+	activityFilterId, err := c.repository.GetActivityFilterIDByID(ctx, id)
+	if err != nil {
+		return 0, err
+	}
+
+	if activityFilterId == "" {
+		return 0, nil
+	}
+
+	activityFilter, err := c.activityFilter.GetByID(ctx, activityFilterId)
+	if err != nil {
+		return 0, err
+	}
+
+	return c.activities.GetAverageCampaignTimeByFilter(ctx, activityFilter.Filter())
+}
+
+func (c *Cells) UpdateAverageCampaignTimeByID(ctx context.Context, id string, campaignTime float64) error {
+	return c.repository.UpdateAverageCampaignTimeByID(ctx, id, campaignTime)
 }

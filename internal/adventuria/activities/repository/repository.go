@@ -10,7 +10,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"math/rand/v2"
 
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
@@ -22,6 +21,45 @@ type Repository struct {
 
 func NewRepository(pb core.App) *Repository {
 	return &Repository{pb: pb}
+}
+
+func (r *Repository) Create(ctx context.Context, activity *model.Activity) (*model.Activity, error) {
+	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
+
+	collection, err := pb.FindCollectionByNameOrId(schema.CollectionActivities)
+	if err != nil {
+		return nil, err
+	}
+
+	record := core.NewRecord(collection)
+	ActivityToRecord(activity, record)
+
+	err = pb.SaveWithContext(ctx, record)
+	if err != nil {
+		return nil, err
+	}
+
+	return RecordToActivity(record), nil
+}
+
+func (r *Repository) Update(ctx context.Context, activity *model.Activity) (*model.Activity, error) {
+	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
+
+	record, err := pb.FindRecordById(schema.CollectionActivities, activity.ID())
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errs.ErrActivityNotFound
+		}
+		return nil, err
+	}
+
+	ActivityToRecord(activity, record)
+	err = pb.SaveWithContext(ctx, record)
+	if err != nil {
+		return nil, err
+	}
+
+	return RecordToActivity(record), nil
 }
 
 func (r *Repository) GetByIdDb(ctx context.Context, idDb string) (*model.Activity, error) {
@@ -45,7 +83,7 @@ func (r *Repository) GetByIdDb(ctx context.Context, idDb string) (*model.Activit
 	return RecordToActivity(&record), nil
 }
 
-func (r *Repository) GetByFilter(ctx context.Context, filter model.ActivityFilter, poolSize, resultSize int) ([]string, error) {
+func (r *Repository) GetCountByFilter(ctx context.Context, filter model.ActivityFilter) (int, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 
 	countQuery := pb.DB().Select("count(*)")
@@ -54,54 +92,62 @@ func (r *Repository) GetByFilter(ctx context.Context, filter model.ActivityFilte
 	var totalCount int
 	err := countQuery.WithContext(ctx).Row(&totalCount)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
 
-	if totalCount == 0 {
-		return []string{}, nil
-	}
+	return totalCount, nil
+}
 
-	limit := totalCount
-	offset := 0
-
-	if totalCount > poolSize {
-		limit = poolSize
-		offset = rand.N(totalCount - poolSize + 1)
-	}
+func (r *Repository) GetIDsByFilter(ctx context.Context, filter model.ActivityFilter, offset, limit int) ([]string, error) {
+	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 
 	q := pb.DB().
-		Select("f.id").
+		Select(fmt.Sprintf("f.%s", schema.ActivitySchema.Id)).
 		Limit(int64(limit)).
 		Offset(int64(offset))
-	buildQuery(pb, filter, q)
+	buildQuery(pb, filter, q, schema.ActivitySchema.Id)
 
-	var records []struct {
-		Id string `db:"id"`
-	}
-	err = q.WithContext(ctx).All(&records)
+	var ids []string
+	err := q.WithContext(ctx).Column(&ids)
 	if err != nil {
 		return nil, err
 	}
 
-	rand.Shuffle(len(records), func(i, j int) {
-		records[i], records[j] = records[j], records[i]
-	})
-
-	if len(records) < resultSize {
-		resultSize = len(records)
-	}
-
-	res := make([]string, resultSize)
-	for i := 0; i < resultSize; i++ {
-		res[i] = records[i].Id
-	}
-
-	return res, nil
+	return ids, nil
 }
 
-func buildQuery(app core.App, filter model.ActivityFilter, mainQuery *dbx.SelectQuery) {
+func (r *Repository) GetAverageCampaignTimeByFilter(ctx context.Context, filter model.ActivityFilter) (float64, error) {
+	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
+
+	q := pb.DB().
+		Select(
+			fmt.Sprintf(
+				"avg(nullif(f.%s, 0))",
+				schema.ActivitySchema.HltbCampaignTime,
+			),
+		)
+	buildQuery(
+		pb, filter, q,
+		schema.ActivitySchema.Id,
+		schema.ActivitySchema.HltbCampaignTime,
+	)
+
+	var campaignTime sql.NullFloat64
+	err := q.WithContext(ctx).Row(&campaignTime)
+	if err != nil {
+		return 0, err
+	}
+
+	if !campaignTime.Valid {
+		return 0, nil
+	}
+
+	return campaignTime.Float64, nil
+}
+
+func buildQuery(app core.App, filter model.ActivityFilter, mainQuery *dbx.SelectQuery, fields ...string) {
 	q := app.DB().
-		Select("id").
+		Select(fields...).
 		From(schema.CollectionActivities)
 
 	// if ids are specified, then we don't need any other filters
@@ -243,8 +289,8 @@ func setSubTablesFilters(app core.App, filter model.ActivityFilter, q *dbx.Selec
 func applyActivityRelationFilter(
 	pb core.App,
 	query *dbx.SelectQuery,
-	collectionName,
-	activityField,
+	collectionName string,
+	activityField string,
 	relationField string,
 	values []string,
 	strict bool,
@@ -339,43 +385,4 @@ func (r *Repository) GetChecksumsByIDs(ctx context.Context, ids []string) (map[s
 	}
 
 	return checksums, nil
-}
-
-func (r *Repository) Create(ctx context.Context, activity *model.Activity) (*model.Activity, error) {
-	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
-
-	collection, err := pb.FindCollectionByNameOrId(schema.CollectionActivities)
-	if err != nil {
-		return nil, err
-	}
-
-	record := core.NewRecord(collection)
-	ActivityToRecord(activity, record)
-
-	err = pb.SaveWithContext(ctx, record)
-	if err != nil {
-		return nil, err
-	}
-
-	return RecordToActivity(record), nil
-}
-
-func (r *Repository) Update(ctx context.Context, activity *model.Activity) (*model.Activity, error) {
-	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
-
-	record, err := pb.FindRecordById(schema.CollectionActivities, activity.ID())
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, errs.ErrActivityNotFound
-		}
-		return nil, err
-	}
-
-	ActivityToRecord(activity, record)
-	err = pb.SaveWithContext(ctx, record)
-	if err != nil {
-		return nil, err
-	}
-
-	return RecordToActivity(record), nil
 }
