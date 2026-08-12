@@ -80,4 +80,30 @@ func (g *Game) bindHooks(ctx context.Context, pb core.App) {
 
 		return e.Next()
 	})
+
+	pb.OnRecordAfterDeleteSuccess(schema.CollectionActions).BindFunc(func(e *core.RecordEvent) error {
+		reviewId := e.Record.GetString(schema.ActionSchema.Review)
+		if reviewId == "" {
+			return e.Next()
+		}
+
+		var record core.Record
+		err := e.App.RecordQuery(schema.CollectionReviews).
+			WithContext(ctx).
+			Where(dbx.HashExp{
+				schema.ReviewSchema.Id: reviewId,
+			}).
+			Limit(1).
+			One(&record)
+		if err != nil {
+			return err
+		}
+
+		err = pb.DeleteWithContext(ctx, &record)
+		if err != nil {
+			return err
+		}
+
+		return e.Next()
+	})
 }
