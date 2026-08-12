@@ -13,7 +13,7 @@ type cells interface {
 }
 
 type activities interface {
-	GetDetailedByIDs(ctx context.Context, ids []string) ([]*model.ActivityViewDetailed, error)
+	GetDetailedByIDs(ctx context.Context, ids []string) ([]*model.ActivityDetailed, error)
 }
 
 var _ model.Action = (*RollWheel)(nil)

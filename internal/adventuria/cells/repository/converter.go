@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"adventuria/internal/adventuria/cells/repository/dto"
 	"adventuria/internal/adventuria/model"
 	"adventuria/internal/adventuria/schema"
 
@@ -37,15 +36,7 @@ func RecordToCell(record *core.Record) *model.CellInfo {
 	})
 }
 
-func RecordsToCells(records []*core.Record) []*model.CellInfo {
-	cells := make([]*model.CellInfo, len(records))
-	for i, record := range records {
-		cells[i] = RecordToCell(record)
-	}
-	return cells
-}
-
-func cellDTOToCell(dto *dto.Cell) *model.CellInfo {
+func cellRowToCellInfo(dto *cellRow) *model.CellInfo {
 	value := ""
 	if dto.Value != nil {
 		value = *dto.Value
@@ -79,10 +70,10 @@ func cellDTOToCell(dto *dto.Cell) *model.CellInfo {
 	})
 }
 
-func cellDTOsToCells(dtos []dto.Cell) []*model.CellInfo {
-	cells := make([]*model.CellInfo, len(dtos))
-	for i := range dtos {
-		cells[i] = cellDTOToCell(&dtos[i])
+func cellRowsToCellInfos(cellRows []cellRow) []*model.CellInfo {
+	cells := make([]*model.CellInfo, len(cellRows))
+	for i := range cellRows {
+		cells[i] = cellRowToCellInfo(&cellRows[i])
 	}
 	return cells
 }

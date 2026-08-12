@@ -16,8 +16,8 @@ func main() {
 		log.Printf("Failed to load .env file: %v", err)
 	}
 
-	_, err := adventuria.Start(func(game *adventuria.Game, se *core.ServeEvent) error {
-		http.Route(game, se.Router)
+	_, err := adventuria.Start(func(game *adventuria.Game, registry *adventuria.Registry, se *core.ServeEvent) error {
+		http.Route(game, registry, se.Router)
 
 		return se.Next()
 	})

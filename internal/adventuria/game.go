@@ -40,7 +40,7 @@ type Game struct {
 	onKillParserEvent *event.Hook[*onKillParserEvent]
 }
 
-func Start(fn func(game *Game, se *core.ServeEvent) error) (*Game, error) {
+func Start(fn func(game *Game, registry *Registry, se *core.ServeEvent) error) (*Game, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -56,14 +56,17 @@ func Start(fn func(game *Game, se *core.ServeEvent) error) (*Game, error) {
 	})
 
 	g.pb.OnServe().BindFunc(func(e *core.ServeEvent) error {
-		if err := g.init(ctx, e.App); err != nil {
+		registry, err := g.init(ctx, e.App)
+		if err != nil {
 			return err
 		}
-		return e.Next()
-	})
 
-	g.pb.OnServe().BindFunc(func(e *core.ServeEvent) error {
-		return fn(g, e)
+		err = fn(g, registry, e)
+		if err != nil {
+			return err
+		}
+
+		return e.Next()
 	})
 
 	err := g.pb.Start()
@@ -344,12 +347,4 @@ func (g *Game) IsActionsBlocked(ctx context.Context) error {
 	}
 
 	return nil
-}
-
-func (g *Game) CurrentSeason(ctx context.Context) (string, error) {
-	return g.settings.CurrentSeason(ctx)
-}
-
-func (g *Game) IsEventEnded(ctx context.Context) (bool, error) {
-	return g.settings.IsEventEnded(ctx)
 }

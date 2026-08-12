@@ -1,4 +1,4 @@
-package dto
+package repository
 
 import (
 	"adventuria/internal/adventuria/model"
@@ -7,20 +7,20 @@ import (
 	"time"
 )
 
-type ActionState struct {
-	Activities     *ActivitiesState     `json:"activities,omitempty"`
-	ActivityFilter *ActivityFilterState `json:"activity_filter,omitempty"`
-	Items          *ItemsState          `json:"items,omitempty"`
-	Shop           *ShopState           `json:"shop,omitempty"`
-	ShopFilter     *ShopFilterState     `json:"shop_filter,omitempty"`
-	Dealer         *DealerState         `json:"dealer,omitempty"`
+type actionState struct {
+	Activities     *activitiesState     `json:"activities,omitempty"`
+	ActivityFilter *activityFilterState `json:"activity_filter,omitempty"`
+	Items          *itemsState          `json:"items,omitempty"`
+	Shop           *shopState           `json:"shop,omitempty"`
+	ShopFilter     *shopFilterState     `json:"shop_filter,omitempty"`
+	Dealer         *dealerState         `json:"dealer,omitempty"`
 }
 
-type ActivitiesState struct {
+type activitiesState struct {
 	Ids []string `json:"ids"`
 }
 
-type ActivityFilterState struct {
+type activityFilterState struct {
 	Type            model.ActivityType `json:"type"`
 	Platforms       []string           `json:"platforms"`
 	PlatformsStrict bool               `json:"platforms_strict"`
@@ -39,40 +39,40 @@ type ActivityFilterState struct {
 	Activities      []string           `json:"activities"`
 }
 
-type ItemsState struct {
+type itemsState struct {
 	Ids []string `json:"ids"`
 }
 
-type ShopState struct {
+type shopState struct {
 	Type            model.ShopType `json:"type"`
 	Ids             []string       `json:"ids"`
 	PriceMultiplier float64        `json:"price_multiplier"`
 	RefreshPrice    int            `json:"refresh_price"`
 }
 
-type ShopFilterState struct {
+type shopFilterState struct {
 	ItemType model.ItemType `json:"item_type"`
 	Ids      []string       `json:"ids"`
 }
 
-type DealerState struct {
+type dealerState struct {
 	Type         string            `json:"type"`
 	Description  string            `json:"description"`
-	CoinsForItem *DealCoinsForItem `json:"coins_for_item"`
+	CoinsForItem *dealCoinsForItem `json:"coins_for_item"`
 }
 
-type DealCoinsForItem struct {
+type dealCoinsForItem struct {
 	Coins  int    `json:"coins"`
 	ItemId string `json:"item_id"`
 }
 
-func ActionStateToDTO(state model.ActionState) (ActionState, error) {
+func actionStateToDTO(state model.ActionState) (actionState, error) {
 	dealerStateDTO, err := dealerStateToDTO(state.Dealer)
 	if err != nil {
-		return ActionState{}, err
+		return actionState{}, err
 	}
 
-	return ActionState{
+	return actionState{
 		Activities:     activitiesStateToDTO(state.Activities),
 		ActivityFilter: activityFilterStateToDTO(state.ActivityFilter),
 		Items:          itemsStateToDTO(state.Items),
@@ -82,7 +82,7 @@ func ActionStateToDTO(state model.ActionState) (ActionState, error) {
 	}, nil
 }
 
-func ActionStateFromDTO(dto ActionState) (model.ActionState, error) {
+func actionStateFromDTO(dto actionState) (model.ActionState, error) {
 	dealerState, err := dealerStateFromDTO(dto.Dealer)
 	if err != nil {
 		return model.ActionState{}, err
@@ -98,17 +98,17 @@ func ActionStateFromDTO(dto ActionState) (model.ActionState, error) {
 	}, nil
 }
 
-func activitiesStateToDTO(state *model.ActionActivitiesState) *ActivitiesState {
+func activitiesStateToDTO(state *model.ActionActivitiesState) *activitiesState {
 	if state == nil {
 		return nil
 	}
 
-	return &ActivitiesState{
+	return &activitiesState{
 		Ids: state.Ids,
 	}
 }
 
-func activitiesStateFromDTO(dto *ActivitiesState) *model.ActionActivitiesState {
+func activitiesStateFromDTO(dto *activitiesState) *model.ActionActivitiesState {
 	if dto == nil {
 		return nil
 	}
@@ -118,12 +118,12 @@ func activitiesStateFromDTO(dto *ActivitiesState) *model.ActionActivitiesState {
 	}
 }
 
-func activityFilterStateToDTO(state *model.ActivityFilter) *ActivityFilterState {
+func activityFilterStateToDTO(state *model.ActivityFilter) *activityFilterState {
 	if state == nil {
 		return nil
 	}
 
-	return &ActivityFilterState{
+	return &activityFilterState{
 		Type:            state.Type,
 		Platforms:       state.Platforms,
 		PlatformsStrict: state.PlatformsStrict,
@@ -143,7 +143,7 @@ func activityFilterStateToDTO(state *model.ActivityFilter) *ActivityFilterState 
 	}
 }
 
-func activityFilterStateFromDTO(dto *ActivityFilterState) *model.ActivityFilter {
+func activityFilterStateFromDTO(dto *activityFilterState) *model.ActivityFilter {
 	if dto == nil {
 		return nil
 	}
@@ -168,17 +168,17 @@ func activityFilterStateFromDTO(dto *ActivityFilterState) *model.ActivityFilter 
 	}
 }
 
-func itemsStateToDTO(state *model.ActionItemsState) *ItemsState {
+func itemsStateToDTO(state *model.ActionItemsState) *itemsState {
 	if state == nil {
 		return nil
 	}
 
-	return &ItemsState{
+	return &itemsState{
 		Ids: state.Ids,
 	}
 }
 
-func itemsStateFromDTO(dto *ItemsState) *model.ActionItemsState {
+func itemsStateFromDTO(dto *itemsState) *model.ActionItemsState {
 	if dto == nil {
 		return nil
 	}
@@ -188,12 +188,12 @@ func itemsStateFromDTO(dto *ItemsState) *model.ActionItemsState {
 	}
 }
 
-func shopStateToDTO(state *model.ActionShopState) *ShopState {
+func shopStateToDTO(state *model.ActionShopState) *shopState {
 	if state == nil {
 		return nil
 	}
 
-	return &ShopState{
+	return &shopState{
 		Type:            state.Type,
 		Ids:             state.Ids,
 		PriceMultiplier: state.PriceMultiplier,
@@ -201,7 +201,7 @@ func shopStateToDTO(state *model.ActionShopState) *ShopState {
 	}
 }
 
-func shopStateFromDTO(dto *ShopState) *model.ActionShopState {
+func shopStateFromDTO(dto *shopState) *model.ActionShopState {
 	if dto == nil {
 		return nil
 	}
@@ -214,18 +214,18 @@ func shopStateFromDTO(dto *ShopState) *model.ActionShopState {
 	}
 }
 
-func shopFilterStateToDTO(state *model.ActionShopFilterState) *ShopFilterState {
+func shopFilterStateToDTO(state *model.ActionShopFilterState) *shopFilterState {
 	if state == nil {
 		return nil
 	}
 
-	return &ShopFilterState{
+	return &shopFilterState{
 		ItemType: state.ItemType,
 		Ids:      state.Ids,
 	}
 }
 
-func shopFilterStateFromDTO(dto *ShopFilterState) *model.ActionShopFilterState {
+func shopFilterStateFromDTO(dto *shopFilterState) *model.ActionShopFilterState {
 	if dto == nil {
 		return nil
 	}
@@ -236,12 +236,12 @@ func shopFilterStateFromDTO(dto *ShopFilterState) *model.ActionShopFilterState {
 	}
 }
 
-func dealerStateToDTO(state *model.ActionDealerState) (*DealerState, error) {
+func dealerStateToDTO(state *model.ActionDealerState) (*dealerState, error) {
 	if state == nil {
 		return nil, nil
 	}
 
-	dto := &DealerState{
+	dto := &dealerState{
 		Type:        string(state.Type),
 		Description: state.Description,
 	}
@@ -251,7 +251,7 @@ func dealerStateToDTO(state *model.ActionDealerState) (*DealerState, error) {
 			return nil, errors.New("deal data is nil")
 		}
 
-		dto.CoinsForItem = &DealCoinsForItem{
+		dto.CoinsForItem = &dealCoinsForItem{
 			Coins:  state.CoinsForItem.Coins,
 			ItemId: state.CoinsForItem.ItemId,
 		}
@@ -262,7 +262,7 @@ func dealerStateToDTO(state *model.ActionDealerState) (*DealerState, error) {
 	return dto, nil
 }
 
-func dealerStateFromDTO(dto *DealerState) (*model.ActionDealerState, error) {
+func dealerStateFromDTO(dto *dealerState) (*model.ActionDealerState, error) {
 	if dto == nil {
 		return nil, nil
 	}

@@ -16,7 +16,7 @@ type activityViewDetailed struct {
 	Themes     []themeView    `json:"themes"`
 }
 
-func toActivityViewDetailed(activityDetailed *model.ActivityViewDetailed) activityViewDetailed {
+func toActivityViewDetailed(activityDetailed *model.ActivityDetailed) activityViewDetailed {
 	return activityViewDetailed{
 		Activity:   toActivityView(activityDetailed.Activity()),
 		Platforms:  toPlatformViews(activityDetailed.Platforms()),
@@ -28,7 +28,7 @@ func toActivityViewDetailed(activityDetailed *model.ActivityViewDetailed) activi
 	}
 }
 
-func toActivityViewDetailedList(activitiesDetailed []*model.ActivityViewDetailed) []activityViewDetailed {
+func toActivityViewDetailedList(activitiesDetailed []*model.ActivityDetailed) []activityViewDetailed {
 	res := make([]activityViewDetailed, len(activitiesDetailed))
 	for i, activityDetailed := range activitiesDetailed {
 		res[i] = toActivityViewDetailed(activityDetailed)

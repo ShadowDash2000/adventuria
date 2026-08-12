@@ -16,7 +16,7 @@ import (
 	"github.com/pocketbase/pocketbase/core"
 )
 
-func (g *Game) init(ctx context.Context, pb core.App) error {
+func (g *Game) init(ctx context.Context, pb core.App) (*Registry, error) {
 	registry := NewRegistry(pb, pb.Logger())
 
 	g.settings = registry.Settings()
@@ -79,7 +79,7 @@ func (g *Game) init(ctx context.Context, pb core.App) error {
 	registry.Outboxes().Start(ctx)
 	err := registry.StreamTracker().Start(ctx)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// hooks
@@ -93,5 +93,5 @@ func (g *Game) init(ctx context.Context, pb core.App) error {
 	// crons
 	g.registerCrons(ctx, pb, registry)
 
-	return nil
+	return registry, nil
 }

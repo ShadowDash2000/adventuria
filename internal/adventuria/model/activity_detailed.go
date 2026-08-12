@@ -1,6 +1,6 @@
 package model
 
-type ActivityViewDetailed struct {
+type ActivityDetailed struct {
 	activity   *Activity
 	platforms  []*Platform
 	developers []*Company
@@ -10,7 +10,7 @@ type ActivityViewDetailed struct {
 	themes     []*Theme
 }
 
-func RestoreActivityViewDetailed(
+func RestoreActivityDetailed(
 	activity *Activity,
 	platforms []*Platform,
 	developers []*Company,
@@ -18,8 +18,8 @@ func RestoreActivityViewDetailed(
 	genres []*Genre,
 	tags []*Tag,
 	themes []*Theme,
-) *ActivityViewDetailed {
-	return &ActivityViewDetailed{
+) *ActivityDetailed {
+	return &ActivityDetailed{
 		activity:   activity,
 		platforms:  platforms,
 		developers: developers,
@@ -30,30 +30,30 @@ func RestoreActivityViewDetailed(
 	}
 }
 
-func (a *ActivityViewDetailed) Activity() *Activity {
+func (a *ActivityDetailed) Activity() *Activity {
 	return a.activity
 }
 
-func (a *ActivityViewDetailed) Platforms() []*Platform {
+func (a *ActivityDetailed) Platforms() []*Platform {
 	return a.platforms
 }
 
-func (a *ActivityViewDetailed) Developers() []*Company {
+func (a *ActivityDetailed) Developers() []*Company {
 	return a.developers
 }
 
-func (a *ActivityViewDetailed) Publishers() []*Company {
+func (a *ActivityDetailed) Publishers() []*Company {
 	return a.publishers
 }
 
-func (a *ActivityViewDetailed) Genres() []*Genre {
+func (a *ActivityDetailed) Genres() []*Genre {
 	return a.genres
 }
 
-func (a *ActivityViewDetailed) Tags() []*Tag {
+func (a *ActivityDetailed) Tags() []*Tag {
 	return a.tags
 }
 
-func (a *ActivityViewDetailed) Themes() []*Theme {
+func (a *ActivityDetailed) Themes() []*Theme {
 	return a.themes
 }

@@ -7,11 +7,10 @@ import (
 	"adventuria/internal/adventuria/actions/custom/drop"
 	"adventuria/internal/adventuria/actions/custom/reroll"
 	"adventuria/internal/adventuria/actions/custom/update_review"
-	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/event_stats"
 	"adventuria/internal/adventuria/model"
+	"adventuria/internal/http/response"
 	"context"
-	"errors"
 	"net/http"
 
 	"github.com/pocketbase/pocketbase/core"
@@ -26,95 +25,47 @@ type game interface {
 	GetActionView(ctx context.Context, playerId string, actionType model.ActionType) (any, error)
 	EventStats(ctx context.Context) (*event_stats.EventStatsData, error)
 	IsActionsBlocked(ctx context.Context) error
+}
+
+type settings interface {
 	CurrentSeason(ctx context.Context) (string, error)
 	IsEventEnded(ctx context.Context) (bool, error)
 }
 
-type result struct {
-	Success bool   `json:"success"`
-	Data    any    `json:"data,omitempty"`
-	Error   string `json:"error,omitempty"`
-	Message string `json:"message,omitempty"`
-}
-
 type Handlers struct {
-	Game game
+	game     game
+	settings settings
 }
 
-func New(game game) *Handlers {
-	return &Handlers{Game: game}
-}
-
-func getLang(e *core.RequestEvent) string {
-	lang := e.Request.Header.Get("Accept-Language")
-	if lang == "" {
-		lang = "ru"
+func New(game game, settings settings) *Handlers {
+	return &Handlers{
+		game:     game,
+		settings: settings,
 	}
-	return lang
-}
-
-func RespondWithError(e *core.RequestEvent, err error) error {
-	lang := getLang(e)
-
-	if appErr, ok := errors.AsType[*errs.AppError](err); ok {
-		res := result{
-			Success: false,
-			Data:    nil,
-			Error:   appErr.Code,
-			Message: appErr.Message,
-		}
-
-		status := http.StatusInternalServerError
-		if appErr.Status > 0 {
-			status = appErr.Status
-		}
-
-		if msg, ok := appErr.Translates[lang]; ok {
-			res.Message = msg
-		}
-
-		return e.JSON(status, res)
-	}
-
-	if err := e.JSON(http.StatusInternalServerError, result{
-		Success: false,
-		Error:   "internal_server_error",
-	}); err != nil {
-		return err
-	}
-
-	return err
-}
-
-func RespondWithSuccess(e *core.RequestEvent, data any) error {
-	return e.JSON(http.StatusOK, result{
-		Success: true,
-		Data:    data,
-	})
 }
 
 func (h *Handlers) UpdateReviewHandler(e *core.RequestEvent) error {
 	req := update_review.Request{}
 
 	if err := e.BindBody(&req); err != nil {
-		return RespondWithError(e, err)
+		return response.Error(e, err)
 	}
 
-	res, err := h.Game.DoAction(e.Request.Context(), e.App, e.Auth.Id, actions.ActionTypeUpdateReview, req)
+	res, err := h.game.DoAction(e.Request.Context(), e.App, e.Auth.Id, actions.ActionTypeUpdateReview, req)
 	if err != nil {
-		return RespondWithError(e, err)
+		return response.Error(e, err)
 	}
 
-	return RespondWithSuccess(e, res)
+	return response.Success(e, res)
 }
 
 func (h *Handlers) RollHandler(e *core.RequestEvent) error {
-	res, err := h.Game.DoAction(e.Request.Context(), e.App, e.Auth.Id, actions.ActionTypeRollDice, nil)
+	res, err := h.game.DoAction(e.Request.Context(), e.App, e.Auth.Id, actions.ActionTypeRollDice, nil)
 	if err != nil {
-		return RespondWithError(e, err)
+		return response.Error(e, err)
 	}
 
-	return RespondWithSuccess(e, res)
+	return response.Success(e, res)
 }
 
 func (h *Handlers) RerollHandler(e *core.RequestEvent) error {
@@ -124,12 +75,12 @@ func (h *Handlers) RerollHandler(e *core.RequestEvent) error {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	res, err := h.Game.DoAction(e.Request.Context(), e.App, e.Auth.Id, actions.ActionTypeReroll, req)
+	res, err := h.game.DoAction(e.Request.Context(), e.App, e.Auth.Id, actions.ActionTypeReroll, req)
 	if err != nil {
-		return RespondWithError(e, err)
+		return response.Error(e, err)
 	}
 
-	return RespondWithSuccess(e, res)
+	return response.Success(e, res)
 }
 
 func (h *Handlers) DropHandler(e *core.RequestEvent) error {
@@ -140,12 +91,12 @@ func (h *Handlers) DropHandler(e *core.RequestEvent) error {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	res, err := h.Game.DoAction(e.Request.Context(), e.App, e.Auth.Id, actions.ActionTypeDrop, req)
+	res, err := h.game.DoAction(e.Request.Context(), e.App, e.Auth.Id, actions.ActionTypeDrop, req)
 	if err != nil {
-		return RespondWithError(e, err)
+		return response.Error(e, err)
 	}
 
-	return RespondWithSuccess(e, res)
+	return response.Success(e, res)
 }
 
 func (h *Handlers) DoneHandler(e *core.RequestEvent) error {
@@ -155,48 +106,48 @@ func (h *Handlers) DoneHandler(e *core.RequestEvent) error {
 		return e.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	res, err := h.Game.DoAction(e.Request.Context(), e.App, e.Auth.Id, actions.ActionTypeDone, req)
+	res, err := h.game.DoAction(e.Request.Context(), e.App, e.Auth.Id, actions.ActionTypeDone, req)
 	if err != nil {
-		return RespondWithError(e, err)
+		return response.Error(e, err)
 	}
 
-	return RespondWithSuccess(e, res)
+	return response.Success(e, res)
 }
 
 func (h *Handlers) GenerateWheelHandler(e *core.RequestEvent) error {
-	res, err := h.Game.DoAction(e.Request.Context(), e.App, e.Auth.Id, actions.ActionTypeGenerateWheel, nil)
+	res, err := h.game.DoAction(e.Request.Context(), e.App, e.Auth.Id, actions.ActionTypeGenerateWheel, nil)
 	if err != nil {
-		return RespondWithError(e, err)
+		return response.Error(e, err)
 	}
 
-	return RespondWithSuccess(e, res)
+	return response.Success(e, res)
 }
 
 func (h *Handlers) RollWheelHandler(e *core.RequestEvent) error {
-	res, err := h.Game.DoAction(e.Request.Context(), e.App, e.Auth.Id, actions.ActionTypeRollWheel, nil)
+	res, err := h.game.DoAction(e.Request.Context(), e.App, e.Auth.Id, actions.ActionTypeRollWheel, nil)
 	if err != nil {
-		return RespondWithError(e, err)
+		return response.Error(e, err)
 	}
 
-	return RespondWithSuccess(e, res)
+	return response.Success(e, res)
 }
 
 func (h *Handlers) RollItemHandler(e *core.RequestEvent) error {
-	res, err := h.Game.DoAction(e.Request.Context(), e.App, e.Auth.Id, actions.ActionTypeRollItem, nil)
+	res, err := h.game.DoAction(e.Request.Context(), e.App, e.Auth.Id, actions.ActionTypeRollItem, nil)
 	if err != nil {
-		return RespondWithError(e, err)
+		return response.Error(e, err)
 	}
 
-	return RespondWithSuccess(e, res)
+	return response.Success(e, res)
 }
 
 func (h *Handlers) RollItemOnCellHandler(e *core.RequestEvent) error {
-	res, err := h.Game.DoAction(e.Request.Context(), e.App, e.Auth.Id, actions.ActionTypeRollItemOnCell, nil)
+	res, err := h.game.DoAction(e.Request.Context(), e.App, e.Auth.Id, actions.ActionTypeRollItemOnCell, nil)
 	if err != nil {
-		return RespondWithError(e, err)
+		return response.Error(e, err)
 	}
 
-	return RespondWithSuccess(e, res)
+	return response.Success(e, res)
 }
 
 func (h *Handlers) BuyItemHandler(e *core.RequestEvent) error {
@@ -204,16 +155,16 @@ func (h *Handlers) BuyItemHandler(e *core.RequestEvent) error {
 
 	err := e.BindBody(&req)
 	if err != nil {
-		return RespondWithError(e, err)
+		return response.Error(e, err)
 	}
 
-	res, err := h.Game.DoAction(e.Request.Context(), e.App, e.Auth.Id, actions.ActionTypeBuy, req)
+	res, err := h.game.DoAction(e.Request.Context(), e.App, e.Auth.Id, actions.ActionTypeBuy, req)
 	if err != nil {
 		e.App.Logger().Error("Failed to buy item", "err", err)
-		return RespondWithError(e, err)
+		return response.Error(e, err)
 	}
 
-	return RespondWithSuccess(e, res)
+	return response.Success(e, res)
 }
 
 func (h *Handlers) UseItemHandler(e *core.RequestEvent) error {
@@ -224,15 +175,15 @@ func (h *Handlers) UseItemHandler(e *core.RequestEvent) error {
 
 	err := e.BindBody(&data)
 	if err != nil {
-		return RespondWithError(e, err)
+		return response.Error(e, err)
 	}
 
-	err = h.Game.UseItem(e.Request.Context(), e.App, e.Auth.Id, data.ItemId, data.Data)
+	err = h.game.UseItem(e.Request.Context(), e.App, e.Auth.Id, data.ItemId, data.Data)
 	if err != nil {
-		return RespondWithError(e, err)
+		return response.Error(e, err)
 	}
 
-	return RespondWithSuccess(e, nil)
+	return response.Success(e, nil)
 }
 
 func (h *Handlers) DropItemHandler(e *core.RequestEvent) error {
@@ -242,24 +193,24 @@ func (h *Handlers) DropItemHandler(e *core.RequestEvent) error {
 
 	err := e.BindBody(&data)
 	if err != nil {
-		return RespondWithError(e, err)
+		return response.Error(e, err)
 	}
 
-	err = h.Game.DropItem(e.Request.Context(), e.App, e.Auth.Id, data.ItemId)
+	err = h.game.DropItem(e.Request.Context(), e.App, e.Auth.Id, data.ItemId)
 	if err != nil {
-		return RespondWithError(e, err)
+		return response.Error(e, err)
 	}
 
-	return RespondWithSuccess(e, nil)
+	return response.Success(e, nil)
 }
 
 func (h *Handlers) GetAvailableActions(e *core.RequestEvent) error {
-	res, err := h.Game.GetAvailableActions(e.Request.Context(), e.Auth.Id)
+	res, err := h.game.GetAvailableActions(e.Request.Context(), e.Auth.Id)
 	if err != nil {
-		return RespondWithError(e, err)
+		return response.Error(e, err)
 	}
 
-	return RespondWithSuccess(e, res)
+	return response.Success(e, res)
 }
 
 func (h *Handlers) GetEffectView(e *core.RequestEvent) error {
@@ -268,60 +219,60 @@ func (h *Handlers) GetEffectView(e *core.RequestEvent) error {
 	}{}
 
 	if err := e.BindBody(&req); err != nil {
-		return RespondWithError(e, err)
+		return response.Error(e, err)
 	}
 
-	res, err := h.Game.GetEffectView(e.Request.Context(), e.Auth.Id, req.EffectId)
+	res, err := h.game.GetEffectView(e.Request.Context(), e.Auth.Id, req.EffectId)
 	if err != nil {
-		return RespondWithError(e, err)
+		return response.Error(e, err)
 	}
 
-	return RespondWithSuccess(e, res)
+	return response.Success(e, res)
 }
 
 func (h *Handlers) GetActionView(e *core.RequestEvent) error {
 	action := e.Request.URL.Query().Get("action")
 
-	res, err := h.Game.GetActionView(e.Request.Context(), e.Auth.Id, model.ActionType(action))
+	res, err := h.game.GetActionView(e.Request.Context(), e.Auth.Id, model.ActionType(action))
 	if err != nil {
-		return RespondWithError(e, err)
+		return response.Error(e, err)
 	}
 
-	return RespondWithSuccess(e, res)
+	return response.Success(e, res)
 }
 
 func (h *Handlers) RefreshShopHandler(e *core.RequestEvent) error {
-	res, err := h.Game.DoAction(e.Request.Context(), e.App, e.Auth.Id, actions.ActionTypeRefreshShop, nil)
+	res, err := h.game.DoAction(e.Request.Context(), e.App, e.Auth.Id, actions.ActionTypeRefreshShop, nil)
 	if err != nil {
-		return RespondWithError(e, err)
+		return response.Error(e, err)
 	}
 
-	return RespondWithSuccess(e, res)
+	return response.Success(e, res)
 }
 
 func (h *Handlers) EventStats(e *core.RequestEvent) error {
-	res, err := h.Game.EventStats(e.Request.Context())
+	res, err := h.game.EventStats(e.Request.Context())
 	if err != nil {
-		return RespondWithError(e, err)
+		return response.Error(e, err)
 	}
 
-	return RespondWithSuccess(e, res)
+	return response.Success(e, res)
 }
 
 func (h *Handlers) CurrentSeason(e *core.RequestEvent) error {
-	res, err := h.Game.CurrentSeason(e.Request.Context())
+	res, err := h.settings.CurrentSeason(e.Request.Context())
 	if err != nil {
-		return RespondWithError(e, err)
+		return response.Error(e, err)
 	}
 
-	return RespondWithSuccess(e, res)
+	return response.Success(e, res)
 }
 
 func (h *Handlers) IsEventEnded(e *core.RequestEvent) error {
-	res, err := h.Game.IsEventEnded(e.Request.Context())
+	res, err := h.settings.IsEventEnded(e.Request.Context())
 	if err != nil {
-		return RespondWithError(e, err)
+		return response.Error(e, err)
 	}
 
-	return RespondWithSuccess(e, res)
+	return response.Success(e, res)
 }

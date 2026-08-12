@@ -21,7 +21,7 @@ func NewRepository(pb core.App) *Repository {
 	return &Repository{pb: pb}
 }
 
-func (r *Repository) GetDetailedByIDs(ctx context.Context, ids []string) ([]*model.ActivityViewDetailed, error) {
+func (r *Repository) GetDetailedByIDs(ctx context.Context, ids []string) ([]*model.ActivityDetailed, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 
 	var records []*core.Record
@@ -48,7 +48,7 @@ func (r *Repository) GetDetailedByIDs(ctx context.Context, ids []string) ([]*mod
 		return nil, fmt.Errorf("failed to expand records: %v", errs)
 	}
 
-	activities := make([]*model.ActivityViewDetailed, len(records))
+	activities := make([]*model.ActivityDetailed, len(records))
 	for i, record := range records {
 		activities[i] = repository.RecordToActivityViewDetailed(record)
 	}

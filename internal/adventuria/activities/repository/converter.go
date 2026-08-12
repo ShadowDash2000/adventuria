@@ -148,8 +148,8 @@ func RecordsToThemes(records []*core.Record) []*model.Theme {
 	return themes
 }
 
-func RecordToActivityViewDetailed(record *core.Record) *model.ActivityViewDetailed {
-	return model.RestoreActivityViewDetailed(
+func RecordToActivityViewDetailed(record *core.Record) *model.ActivityDetailed {
+	return model.RestoreActivityDetailed(
 		RecordToActivity(record),
 		RecordsToPlatforms(record.ExpandedAll(schema.ActivitySchema.Platforms)),
 		RecordsToCompanies(record.ExpandedAll(schema.ActivitySchema.Developers)),

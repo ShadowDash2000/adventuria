@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"adventuria/internal/adventuria/actions/repository/dto"
 	"adventuria/internal/adventuria/model"
 	"adventuria/internal/adventuria/schema"
 
@@ -9,7 +8,7 @@ import (
 )
 
 func ActionToRecord(action *model.ActionInfo, record *core.Record) error {
-	state, err := dto.ActionStateToDTO(action.State())
+	state, err := actionStateToDTO(action.State())
 	if err != nil {
 		return err
 	}
@@ -28,12 +27,12 @@ func ActionToRecord(action *model.ActionInfo, record *core.Record) error {
 }
 
 func RecordToAction(record *core.Record) (*model.ActionInfo, error) {
-	var stateDTO dto.ActionState
+	var stateDTO actionState
 	err := record.UnmarshalJSONField(schema.ActionSchema.State, &stateDTO)
 	if err != nil {
 		return nil, err
 	}
-	state, err := dto.ActionStateFromDTO(stateDTO)
+	state, err := actionStateFromDTO(stateDTO)
 	if err != nil {
 		return nil, err
 	}

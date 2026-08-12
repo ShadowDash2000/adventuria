@@ -1,6 +1,6 @@
-package dto
+package repository
 
-type Cell struct {
+type cellRow struct {
 	Id                       string  `db:"id"`
 	Disabled                 bool    `db:"disabled"`
 	Sort                     int     `db:"sort"`
