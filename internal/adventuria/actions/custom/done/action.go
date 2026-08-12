@@ -60,8 +60,8 @@ func (d *Done) CanDo(ctx context.Context, events *model.Events, player *model.Pl
 }
 
 type Request struct {
-	Comment string `json:"comment"`
-	Score   int    `json:"score"`
+	Comment string  `json:"comment"`
+	Score   float64 `json:"score"`
 }
 
 func (d *Done) Do(ctx context.Context, events *model.Events, player *model.Player, actionReq model.ActionRequest) (any, error) {

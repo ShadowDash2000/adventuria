@@ -17,6 +17,6 @@ func RecordToReview(record *core.Record) *model.Review {
 	return model.RestoreReview(model.ReviewData{
 		Id:      record.Id,
 		Comment: model.ReviewComment(record.GetString(schema.ReviewSchema.Comment)),
-		Score:   model.ReviewScore(record.GetInt(schema.ReviewSchema.Score)),
+		Score:   model.ReviewScore(record.GetFloat(schema.ReviewSchema.Score)),
 	})
 }

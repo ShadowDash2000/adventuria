@@ -76,8 +76,8 @@ func (r *Reroll) CanDo(ctx context.Context, events *model.Events, player *model.
 }
 
 type Request struct {
-	Comment string `json:"comment"`
-	Score   int    `json:"score"`
+	Comment string  `json:"comment"`
+	Score   float64 `json:"score"`
 }
 
 func (r *Reroll) Do(ctx context.Context, events *model.Events, player *model.Player, actionReq model.ActionRequest) (any, error) {

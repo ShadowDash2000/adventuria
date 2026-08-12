@@ -11,7 +11,7 @@ type Review struct {
 	isNew bool
 }
 
-func NewReview(comment string, score int) (*Review, error) {
+func NewReview(comment string, score float64) (*Review, error) {
 	reviewComment, err := NewReviewComment(comment)
 	if err != nil {
 		return nil, err
