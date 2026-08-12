@@ -3,7 +3,15 @@ package players
 import "adventuria/internal/adventuria/model"
 
 type CompletedActivity struct {
-	Player CompletedActivityPlayer
+	Id       string
+	Name     string
+	Cover    string
+	CoverAlt string
+	Players  []*CompletedActivityPlayerStatus
+}
+
+type CompletedActivityPlayerStatus struct {
+	Player *CompletedActivityPlayer
 	Status model.ActionStatus
 }
 

@@ -91,11 +91,12 @@ func (r *Repository) GetActivitiesByCellIDWithStatus(
 	cellId string,
 	statuses []model.ActionStatus,
 	limit int,
-) (map[string][]*players.CompletedActivity, error) {
+) ([]*players.CompletedActivity, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 
 	actionsTable := schema.CollectionActions
 	playersTable := schema.CollectionPlayers
+	activitiesTable := schema.CollectionActivities
 	actionActivity := pbhelper.DotExpand(actionsTable, schema.ActionSchema.Activity)
 	actionStatus := pbhelper.DotExpand(actionsTable, schema.ActionSchema.Status)
 	actionCell := pbhelper.DotExpand(actionsTable, schema.ActionSchema.Cell)
@@ -105,15 +106,16 @@ func (r *Repository) GetActivitiesByCellIDWithStatus(
 	playerName := pbhelper.DotExpand(playersTable, schema.PlayerSchema.Name)
 	playerAvatar := pbhelper.DotExpand(playersTable, schema.PlayerSchema.Avatar)
 	playerColor := pbhelper.DotExpand(playersTable, schema.PlayerSchema.Color)
+	activityId := pbhelper.DotExpand(activitiesTable, schema.ActivitySchema.Id)
+	activityName := pbhelper.DotExpand(activitiesTable, schema.ActivitySchema.Name)
+	activityCover := pbhelper.DotExpand(activitiesTable, schema.ActivitySchema.Cover)
+	activityCoverAlt := pbhelper.DotExpand(activitiesTable, schema.ActivitySchema.CoverAlt)
 
 	selectedActivitiesQuery :=
 		pb.DB().
 			Select(
 				actionActivity,
-				fmt.Sprintf(
-					"MAX(%s) AS last_action_at",
-					actionCreated,
-				),
+				fmt.Sprintf("MAX(%s) AS last_action_at", actionCreated),
 			).
 			From(actionsTable).
 			Where(dbx.And(
@@ -139,18 +141,15 @@ func (r *Repository) GetActivitiesByCellIDWithStatus(
 	var playerActivityRows []*playerActivityRow
 	err := pb.DB().
 		Select(
-			fmt.Sprintf(
-				"%s AS activity_id",
-				actionActivity,
-			),
+			fmt.Sprintf("%s AS activity_id", actionActivity),
+			fmt.Sprintf("%s AS activity_name", activityName),
+			fmt.Sprintf("%s AS activity_cover", activityCover),
+			fmt.Sprintf("%s AS activity_cover_alt", activityCoverAlt),
 			actionStatus,
-			fmt.Sprintf(
-				"%s AS player_id",
-				playerId,
-			),
-			playerName,
-			playerAvatar,
-			playerColor,
+			fmt.Sprintf("%s AS player_id", playerId),
+			fmt.Sprintf("%s AS player_name", playerName),
+			fmt.Sprintf("%s AS player_avatar", playerAvatar),
+			fmt.Sprintf("%s AS player_color", playerColor),
 		).
 		From(fmt.Sprintf(
 			"(%s) AS selected_activities",
@@ -174,10 +173,11 @@ func (r *Repository) GetActivitiesByCellIDWithStatus(
 		).
 		InnerJoin(
 			playersTable,
-			dbx.NewExp(pbhelper.Eq(
-				playerId,
-				actionPlayer,
-			)),
+			dbx.NewExp(pbhelper.Eq(playerId, actionPlayer)),
+		).
+		InnerJoin(
+			activitiesTable,
+			dbx.NewExp(pbhelper.Eq(activityId, actionActivity)),
 		).
 		OrderBy(
 			"selected_activities.last_action_at DESC",
@@ -190,11 +190,19 @@ func (r *Repository) GetActivitiesByCellIDWithStatus(
 		return nil, err
 	}
 
-	res := make(map[string][]*players.CompletedActivity)
-	for _, playerActivityRow := range playerActivityRows {
-		res[playerActivityRow.ActivityId] = append(
-			res[playerActivityRow.ActivityId],
-			playerActivityRowToCompletedActivity(playerActivityRow),
+	res := make([]*players.CompletedActivity, 0)
+	mapById := make(map[string]*players.CompletedActivity)
+	for _, row := range playerActivityRows {
+		activity, ok := mapById[row.ActivityId]
+		if !ok {
+			activity = playerActivityRowToCompletedActivity(row)
+			mapById[row.ActivityId] = activity
+			res = append(res, activity)
+		}
+
+		activity.Players = append(
+			activity.Players,
+			playerActivityRowToCompletedActivityPlayerStatus(row),
 		)
 	}
 

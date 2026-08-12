@@ -9,7 +9,7 @@ import (
 )
 
 type game interface {
-	GetCompletedActivitiesByCellID(ctx context.Context, cellId string) (map[string][]*players.CompletedActivity, error)
+	GetCompletedActivitiesByCellID(ctx context.Context, cellId string) ([]*players.CompletedActivity, error)
 }
 
 type Handler struct {
@@ -28,5 +28,5 @@ func (h *Handler) GetCompletedActivitiesByCellID(e *core.RequestEvent) error {
 		return response.Error(e, err)
 	}
 
-	return response.Success(e, completedActivityMapToViewMap(res))
+	return response.Success(e, completedActivitiesToView(res))
 }

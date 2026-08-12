@@ -9,7 +9,7 @@ import (
 
 type repository interface {
 	Exists(ctx context.Context, id string) (bool, error)
-	GetActivitiesByCellIDWithStatus(ctx context.Context, cellId string, statuses []model.ActionStatus, limit int) (map[string][]*CompletedActivity, error)
+	GetActivitiesByCellIDWithStatus(ctx context.Context, cellId string, statuses []model.ActionStatus, limit int) ([]*CompletedActivity, error)
 }
 
 type actions interface {
@@ -154,7 +154,7 @@ func (p *Players) Save(ctx context.Context, player *model.Player) error {
 	return nil
 }
 
-func (p *Players) GetCompletedActivitiesByCellID(ctx context.Context, cellId string) (map[string][]*CompletedActivity, error) {
+func (p *Players) GetCompletedActivitiesByCellID(ctx context.Context, cellId string) ([]*CompletedActivity, error) {
 	return p.repository.GetActivitiesByCellIDWithStatus(
 		ctx,
 		cellId,
