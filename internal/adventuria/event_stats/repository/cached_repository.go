@@ -12,23 +12,28 @@ type dbRepository interface {
 }
 
 type CachedRepository struct {
-	mu              sync.RWMutex
-	repository      dbRepository
-	cachedStats     *event_stats.EventStatsEntries
-	cachedExpiresAt time.Time
+	mu          sync.RWMutex
+	repository  dbRepository
+	cachedStats map[string]*statCacheEntry
+}
+
+type statCacheEntry struct {
+	stats     *event_stats.EventStatsEntries
+	expiresAt time.Time
 }
 
 func NewCachedRepository(repository dbRepository) *CachedRepository {
 	return &CachedRepository{
-		repository: repository,
+		repository:  repository,
+		cachedStats: make(map[string]*statCacheEntry),
 	}
 }
 
 func (c *CachedRepository) ComputeStats(ctx context.Context, seasonId string) (*event_stats.EventStatsData, error) {
-	if cachedStats, ok := c.getCachedStats(); ok {
+	if cachedStats, ok := c.getCachedStats(seasonId); ok {
 		return &event_stats.EventStatsData{
-			NextUpdateAt: c.cachedExpiresAt,
-			Stats:        cachedStats.Clone(),
+			NextUpdateAt: cachedStats.expiresAt,
+			Stats:        cachedStats.stats.Clone(),
 		}, nil
 	}
 
@@ -38,28 +43,32 @@ func (c *CachedRepository) ComputeStats(ctx context.Context, seasonId string) (*
 	}
 
 	c.mu.Lock()
-	c.cachedStats = stats.Clone()
-	c.cachedExpiresAt = time.Now().Add(time.Hour * 3)
+	cachedStats := &statCacheEntry{
+		stats:     stats.Clone(),
+		expiresAt: time.Now().Add(time.Hour * 3),
+	}
+	c.cachedStats[seasonId] = cachedStats
 	c.mu.Unlock()
 
 	return &event_stats.EventStatsData{
-		NextUpdateAt: c.cachedExpiresAt,
+		NextUpdateAt: cachedStats.expiresAt,
 		Stats:        stats,
 	}, nil
 }
 
-func (c *CachedRepository) getCachedStats() (*event_stats.EventStatsEntries, bool) {
+func (c *CachedRepository) getCachedStats(seasonId string) (*statCacheEntry, bool) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
-	if c.cachedStats == nil {
+	cachedStats, ok := c.cachedStats[seasonId]
+	if !ok {
 		return nil, false
 	}
 
-	if c.cachedExpiresAt.Before(time.Now()) {
-		c.cachedStats = nil
+	if cachedStats.expiresAt.Before(time.Now()) {
+		delete(c.cachedStats, seasonId)
 		return nil, false
 	}
 
-	return c.cachedStats, true
+	return cachedStats, true
 }

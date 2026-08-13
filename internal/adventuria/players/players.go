@@ -9,7 +9,6 @@ import (
 
 type repository interface {
 	Exists(ctx context.Context, id string) (bool, error)
-	GetActivitiesByCellIDWithStatus(ctx context.Context, cellId string, statuses []model.ActionStatus, limit int) ([]*CompletedActivity, error)
 }
 
 type actions interface {
@@ -152,16 +151,4 @@ func (p *Players) Save(ctx context.Context, player *model.Player) error {
 	player.SetStats(stats)
 
 	return nil
-}
-
-func (p *Players) GetCompletedActivitiesByCellID(ctx context.Context, cellId string) ([]*CompletedActivity, error) {
-	return p.repository.GetActivitiesByCellIDWithStatus(
-		ctx,
-		cellId,
-		[]model.ActionStatus{
-			model.ActionStatusDone,
-			model.ActionStatusDrop,
-		},
-		20,
-	)
 }

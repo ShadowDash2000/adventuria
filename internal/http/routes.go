@@ -12,7 +12,7 @@ import (
 
 func Route(game *adventuria.Game, registry *adventuria.Registry, router *router.Router[*core.RequestEvent]) {
 	handlers := New(game, registry.Settings())
-	completedActivities := completed_activities.New(registry.Players())
+	completedActivities := completed_activities.New(registry.CompletedActivities())
 
 	g := router.Group("/api")
 

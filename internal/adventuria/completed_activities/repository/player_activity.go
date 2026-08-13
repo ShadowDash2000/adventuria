@@ -1,8 +1,8 @@
 package repository
 
 import (
+	"adventuria/internal/adventuria/completed_activities"
 	"adventuria/internal/adventuria/model"
-	"adventuria/internal/adventuria/players"
 )
 
 type playerActivityRow struct {
@@ -17,8 +17,8 @@ type playerActivityRow struct {
 	PlayerColor      string `db:"player_color"`
 }
 
-func playerActivityRowToCompletedActivity(playerActivity *playerActivityRow) *players.CompletedActivity {
-	return &players.CompletedActivity{
+func playerActivityRowToCompletedActivity(playerActivity *playerActivityRow) *completed_activities.CompletedActivity {
+	return &completed_activities.CompletedActivity{
 		Id:       playerActivity.ActivityId,
 		Name:     playerActivity.ActivityName,
 		Cover:    playerActivity.ActivityCover,
@@ -27,15 +27,15 @@ func playerActivityRowToCompletedActivity(playerActivity *playerActivityRow) *pl
 	}
 }
 
-func playerActivityRowToCompletedActivityPlayerStatus(playerActivity *playerActivityRow) *players.CompletedActivityPlayerStatus {
-	return &players.CompletedActivityPlayerStatus{
+func playerActivityRowToCompletedActivityPlayerStatus(playerActivity *playerActivityRow) *completed_activities.CompletedActivityPlayerStatus {
+	return &completed_activities.CompletedActivityPlayerStatus{
 		Player: playerActivityRowToCompletedActivityPlayer(playerActivity),
 		Status: model.ActionStatus(playerActivity.Status),
 	}
 }
 
-func playerActivityRowToCompletedActivityPlayer(playerActivity *playerActivityRow) *players.CompletedActivityPlayer {
-	return &players.CompletedActivityPlayer{
+func playerActivityRowToCompletedActivityPlayer(playerActivity *playerActivityRow) *completed_activities.CompletedActivityPlayer {
+	return &completed_activities.CompletedActivityPlayer{
 		Id:     playerActivity.PlayerId,
 		Name:   playerActivity.PlayerName,
 		Avatar: playerActivity.PlayerAvatar,

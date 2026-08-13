@@ -1,29 +1,29 @@
 package completed_activities
 
 import (
-	"adventuria/internal/adventuria/players"
+	"adventuria/internal/adventuria/completed_activities"
 	"adventuria/internal/http/response"
 	"context"
 
 	"github.com/pocketbase/pocketbase/core"
 )
 
-type game interface {
-	GetCompletedActivitiesByCellID(ctx context.Context, cellId string) ([]*players.CompletedActivity, error)
+type completedActivities interface {
+	GetCompletedActivitiesByCellID(ctx context.Context, cellId string) ([]*completed_activities.CompletedActivity, error)
 }
 
 type Handler struct {
-	game game
+	completedActivities completedActivities
 }
 
-func New(game game) *Handler {
-	return &Handler{game: game}
+func New(completedActivities completedActivities) *Handler {
+	return &Handler{completedActivities: completedActivities}
 }
 
 func (h *Handler) GetCompletedActivitiesByCellID(e *core.RequestEvent) error {
 	cellId := e.Request.URL.Query().Get("cellId")
 
-	res, err := h.game.GetCompletedActivitiesByCellID(e.Request.Context(), cellId)
+	res, err := h.completedActivities.GetCompletedActivitiesByCellID(e.Request.Context(), cellId)
 	if err != nil {
 		return response.Error(e, err)
 	}

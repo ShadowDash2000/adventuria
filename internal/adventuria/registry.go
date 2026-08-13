@@ -17,6 +17,8 @@ import (
 	cellsRepo "adventuria/internal/adventuria/cells/repository"
 	"adventuria/internal/adventuria/companies"
 	companiesRepo "adventuria/internal/adventuria/companies/repository"
+	"adventuria/internal/adventuria/completed_activities"
+	completedActivitiesRepo "adventuria/internal/adventuria/completed_activities/repository"
 	"adventuria/internal/adventuria/effects"
 	effectsRepo "adventuria/internal/adventuria/effects/repository"
 	"adventuria/internal/adventuria/event_stats"
@@ -111,6 +113,7 @@ type Registry struct {
 	igdbRemoteRepo          *igdbRepo.RemoteRepository
 	actionEventsRepo        *actionEventsRepo.Repository
 	cellEventsSchedulesRepo *cellEventsSchedulesRepo.Repository
+	completedActivitiesRepo *completedActivitiesRepo.Repository
 
 	// services
 	seasons             *seasons.Seasons
@@ -144,6 +147,7 @@ type Registry struct {
 	igdb                *igdb.IGDB
 	actionEvents        *action_events.ActionEvents
 	cellEventsSchedules *cell_events_schedules.CellEventsSchedules
+	completedActivities *completed_activities.Query
 }
 
 func NewRegistry(pb core.App, logger *slog.Logger) *Registry {
@@ -415,6 +419,13 @@ func (r *Registry) CellEventsSchedulesRepo() *cellEventsSchedulesRepo.Repository
 	return r.cellEventsSchedulesRepo
 }
 
+func (r *Registry) CompletedActivitiesRepo() *completedActivitiesRepo.Repository {
+	if r.completedActivitiesRepo == nil {
+		r.completedActivitiesRepo = completedActivitiesRepo.NewRepository(r.pb)
+	}
+	return r.completedActivitiesRepo
+}
+
 func (r *Registry) Seasons() *seasons.Seasons {
 	if r.seasons == nil {
 		r.seasons = seasons.NewSeasons(r.SeasonsRepo())
@@ -663,4 +674,11 @@ func (r *Registry) CellEventsSchedules() *cell_events_schedules.CellEventsSchedu
 		)
 	}
 	return r.cellEventsSchedules
+}
+
+func (r *Registry) CompletedActivities() *completed_activities.Query {
+	if r.completedActivities == nil {
+		r.completedActivities = completed_activities.NewQuery(r.CompletedActivitiesRepo())
+	}
+	return r.completedActivities
 }

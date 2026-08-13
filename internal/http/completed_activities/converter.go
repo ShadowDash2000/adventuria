@@ -1,11 +1,11 @@
 package completed_activities
 
 import (
-	"adventuria/internal/adventuria/players"
+	"adventuria/internal/adventuria/completed_activities"
 	"adventuria/internal/adventuria/schema"
 )
 
-func completedActivityToView(activity *players.CompletedActivity) *completedActivityView {
+func completedActivityToView(activity *completed_activities.CompletedActivity) *completedActivityView {
 	playersView := make([]*playerStatusView, len(activity.Players))
 	for i, activityPlayer := range activity.Players {
 		playersView[i] = completedActivityPlayerStatusToView(activityPlayer)
@@ -21,7 +21,7 @@ func completedActivityToView(activity *players.CompletedActivity) *completedActi
 	}
 }
 
-func completedActivitiesToView(completedActivities []*players.CompletedActivity) []*completedActivityView {
+func completedActivitiesToView(completedActivities []*completed_activities.CompletedActivity) []*completedActivityView {
 	res := make([]*completedActivityView, len(completedActivities))
 	for i, activity := range completedActivities {
 		res[i] = completedActivityToView(activity)
@@ -29,14 +29,14 @@ func completedActivitiesToView(completedActivities []*players.CompletedActivity)
 	return res
 }
 
-func completedActivityPlayerStatusToView(activityPlayerStatus *players.CompletedActivityPlayerStatus) *playerStatusView {
+func completedActivityPlayerStatusToView(activityPlayerStatus *completed_activities.CompletedActivityPlayerStatus) *playerStatusView {
 	return &playerStatusView{
 		Player: completedActivityPlayerToView(activityPlayerStatus.Player),
 		Status: activityPlayerStatus.Status,
 	}
 }
 
-func completedActivityPlayerToView(activityPlayer *players.CompletedActivityPlayer) *playerView {
+func completedActivityPlayerToView(activityPlayer *completed_activities.CompletedActivityPlayer) *playerView {
 	return &playerView{
 		CollectionName: schema.CollectionPlayers,
 		Id:             activityPlayer.Id,

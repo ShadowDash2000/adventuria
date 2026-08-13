@@ -1,4 +1,4 @@
-package players
+package completed_activities
 
 import "adventuria/internal/adventuria/model"
 
