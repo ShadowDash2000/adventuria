@@ -5,6 +5,7 @@ import (
 )
 
 const (
+	ActionTypeStart            model.ActionType = "start"
 	ActionTypeRollDice         model.ActionType = "roll_dice"
 	ActionTypeCompleteActivity model.ActionType = "complete_activity"
 	ActionTypeDone             model.ActionType = "done"

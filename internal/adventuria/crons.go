@@ -11,7 +11,7 @@ func (g *Game) registerCrons(ctx context.Context, pb core.App, registry *Registr
 		ctx, cancel := context.WithCancel(ctx)
 		defer cancel()
 
-		settings, err := g.settings.GetFirstOrDefault(ctx)
+		settings, err := g.settings.GetFirst(ctx)
 		if err != nil {
 			return
 		}

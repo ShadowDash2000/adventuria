@@ -80,7 +80,7 @@ type cheapShark interface {
 }
 
 type settings interface {
-	GetFirstOrDefault(ctx context.Context) (*model.Settings, error)
+	GetFirst(ctx context.Context) (*model.Settings, error)
 	UpdateIGDBGamesParsedByID(ctx context.Context, id string, amount int) error
 }
 
@@ -138,7 +138,7 @@ func (i *IGDB) ParseGames(ctx context.Context, filter string, limit uint64) erro
 		return err
 	}
 
-	settings, err := i.settings.GetFirstOrDefault(ctx)
+	settings, err := i.settings.GetFirst(ctx)
 	if err != nil {
 		return err
 	}

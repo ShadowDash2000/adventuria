@@ -47,10 +47,5 @@ func (p *PlayerStats) GetOrCreate(ctx context.Context, playerId, seasonId string
 		return nil, err
 	}
 
-	stats, err = p.repository.Create(ctx, stats)
-	if err != nil {
-		return nil, err
-	}
-
 	return stats, nil
 }

@@ -17,7 +17,7 @@ type repository interface {
 }
 
 type seasons interface {
-	GetFirstOrDefault(ctx context.Context) (*model.Season, error)
+	InitDefault(ctx context.Context) (*model.Season, error)
 }
 
 type Settings struct {
@@ -46,7 +46,7 @@ func NewSettings(repo repository, seasons seasons) *Settings {
 	}
 }
 
-func (s *Settings) GetFirstOrDefault(ctx context.Context) (*model.Settings, error) {
+func (s *Settings) InitDefault(ctx context.Context) (*model.Settings, error) {
 	settings, err := s.repository.GetFirst(ctx)
 	if err == nil {
 		return settings, err
@@ -54,7 +54,7 @@ func (s *Settings) GetFirstOrDefault(ctx context.Context) (*model.Settings, erro
 		return nil, err
 	}
 
-	season, err := s.seasons.GetFirstOrDefault(ctx)
+	season, err := s.seasons.InitDefault(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -70,6 +70,10 @@ func (s *Settings) GetFirstOrDefault(ctx context.Context) (*model.Settings, erro
 	}
 
 	return settings, nil
+}
+
+func (s *Settings) GetFirst(ctx context.Context) (*model.Settings, error) {
+	return s.repository.GetFirst(ctx)
 }
 
 func (s *Settings) CurrentSeason(ctx context.Context) (string, error) {

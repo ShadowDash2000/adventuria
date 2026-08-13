@@ -57,6 +57,15 @@ func (h *Handlers) UpdateReviewHandler(e *core.RequestEvent) error {
 	return response.Success(e, res)
 }
 
+func (h *Handlers) StartHandler(e *core.RequestEvent) error {
+	res, err := h.game.DoAction(e.Request.Context(), e.App, e.Auth.Id, actions.ActionTypeStart, nil)
+	if err != nil {
+		return response.Error(e, err)
+	}
+
+	return response.Success(e, res)
+}
+
 func (h *Handlers) RollHandler(e *core.RequestEvent) error {
 	res, err := h.game.DoAction(e.Request.Context(), e.App, e.Auth.Id, actions.ActionTypeRollDice, nil)
 	if err != nil {

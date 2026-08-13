@@ -24,7 +24,7 @@ type players interface {
 }
 
 type settings interface {
-	GetFirstOrDefault(ctx context.Context) (*model.Settings, error)
+	GetFirst(ctx context.Context) (*model.Settings, error)
 }
 
 type board interface {
@@ -122,7 +122,7 @@ func (d *Drop) Do(ctx context.Context, events *model.Events, player *model.Playe
 		return nil, err
 	}
 
-	settings, err := d.settings.GetFirstOrDefault(ctx)
+	settings, err := d.settings.GetFirst(ctx)
 	if err != nil {
 		return nil, err
 	}

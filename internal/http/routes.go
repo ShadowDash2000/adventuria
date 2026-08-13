@@ -2,6 +2,7 @@ package http
 
 import (
 	"adventuria/internal/adventuria"
+	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/http/completed_activities"
 	"adventuria/internal/http/event_stats"
 	"adventuria/internal/http/response"
@@ -28,13 +29,23 @@ func Route(game *adventuria.Game, registry *adventuria.Registry, router *router.
 
 	gab := ga.Group("")
 	gab.BindFunc(func(e *core.RequestEvent) error {
-		err := handlers.game.IsActionsBlocked(e.Request.Context())
+		err := game.IsActionsBlocked(e.Request.Context())
 		if err != nil {
 			return response.Error(e, err)
 		}
 
+		isDisabled, err := registry.Players().IsDisabled(e.Request.Context(), e.Auth.Id)
+		if err != nil {
+			return response.Error(e, err)
+		}
+		if isDisabled {
+			return response.Error(e, errs.ErrPlayerIsDisabled)
+		}
+
 		return e.Next()
 	})
+
+	gab.POST("/start", handlers.StartHandler)
 
 	gab.POST("/roll", handlers.RollHandler)
 

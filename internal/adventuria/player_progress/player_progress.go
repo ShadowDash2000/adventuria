@@ -27,14 +27,14 @@ type worlds interface {
 type PlayerProgress struct {
 	repository       repository
 	notifyRepository notifyRepository
-	worldsRepository worlds
+	worlds           worlds
 }
 
 func NewPlayerProgress(repository repository, notifyRepository notifyRepository, worlds worlds) *PlayerProgress {
 	return &PlayerProgress{
 		repository:       repository,
 		notifyRepository: notifyRepository,
-		worldsRepository: worlds,
+		worlds:           worlds,
 	}
 }
 
@@ -46,7 +46,7 @@ func (p *PlayerProgress) GetFirstOrDefault(ctx context.Context, playerId, season
 		return nil, err
 	}
 
-	world, err := p.worldsRepository.GetDefault(ctx)
+	world, err := p.worlds.GetDefault(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -62,11 +62,6 @@ func (p *PlayerProgress) GetFirstOrDefault(ctx context.Context, playerId, season
 	}
 
 	progress.SetCanMove(true)
-
-	progress, err = p.repository.Create(ctx, progress)
-	if err != nil {
-		return nil, err
-	}
 
 	return progress, nil
 }

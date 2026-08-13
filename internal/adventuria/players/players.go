@@ -9,6 +9,7 @@ import (
 
 type repository interface {
 	Exists(ctx context.Context, id string) (bool, error)
+	IsDisabled(ctx context.Context, id string) (bool, error)
 }
 
 type actions interface {
@@ -151,4 +152,8 @@ func (p *Players) Save(ctx context.Context, player *model.Player) error {
 	player.SetStats(stats)
 
 	return nil
+}
+
+func (p *Players) IsDisabled(ctx context.Context, id string) (bool, error) {
+	return p.repository.IsDisabled(ctx, id)
 }

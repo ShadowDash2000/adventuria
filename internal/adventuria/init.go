@@ -19,6 +19,11 @@ import (
 func (g *Game) init(ctx context.Context, pb core.App) (*Registry, error) {
 	registry := NewRegistry(pb, pb.Logger())
 
+	_, err := registry.Settings().InitDefault(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	g.settings = registry.Settings()
 	g.players = registry.Players()
 	g.cells = registry.Cells()
@@ -76,7 +81,7 @@ func (g *Game) init(ctx context.Context, pb core.App) (*Registry, error) {
 
 	// background tasks
 	registry.Outboxes().Start(ctx)
-	err := registry.StreamTracker().Start(ctx)
+	err = registry.StreamTracker().Start(ctx)
 	if err != nil {
 		return nil, err
 	}

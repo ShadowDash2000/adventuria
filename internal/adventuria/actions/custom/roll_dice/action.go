@@ -39,7 +39,7 @@ func NewDef(actionsService actionsService, board board) actions.ActionDef {
 }
 
 func (r *RollDice) CanDo(_ context.Context, _ *model.Events, player *model.Player) bool {
-	return player.Progress().CanMove()
+	return player.Progress().CanMove() && player.LastAction().Status() != model.ActionStatusNone
 }
 
 type rollDiceResult struct {

@@ -29,7 +29,7 @@ func NewSeasons(repo repository) *Seasons {
 	return &Seasons{repository: repo}
 }
 
-func (s *Seasons) GetFirstOrDefault(ctx context.Context) (*model.Season, error) {
+func (s *Seasons) InitDefault(ctx context.Context) (*model.Season, error) {
 	season, err := s.repository.GetFirst(ctx)
 	if err == nil {
 		return season, err
@@ -48,6 +48,10 @@ func (s *Seasons) GetFirstOrDefault(ctx context.Context) (*model.Season, error) 
 	}
 
 	return season, nil
+}
+
+func (s *Seasons) GetFirst(ctx context.Context) (*model.Season, error) {
+	return s.repository.GetFirst(ctx)
 }
 
 func (s *Seasons) GetByID(ctx context.Context, id string) (*model.Season, error) {

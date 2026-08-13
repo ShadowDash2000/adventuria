@@ -39,6 +39,7 @@ const (
 
 var PlayerSchema = struct {
 	Id               string
+	Disabled         string
 	Name             string
 	Avatar           string
 	Color            string
@@ -49,6 +50,7 @@ var PlayerSchema = struct {
 }{
 	Id:               "id",
 	Name:             "name",
+	Disabled:         "disabled",
 	Avatar:           "avatar",
 	Color:            "color",
 	Twitch:           "twitch",

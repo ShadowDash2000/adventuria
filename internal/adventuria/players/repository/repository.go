@@ -82,3 +82,24 @@ func (r *Repository) NotifyChange(ctx context.Context, id string) error {
 
 	return pb.OnModelAfterUpdateSuccess().Trigger(event)
 }
+
+func (r *Repository) IsDisabled(ctx context.Context, id string) (bool, error) {
+	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
+
+	var isDisabled bool
+	err := pb.DB().
+		Select(schema.PlayerSchema.Disabled).
+		From(schema.CollectionPlayers).
+		Where(dbx.HashExp{schema.PlayerSchema.Id: id}).
+		Limit(1).
+		WithContext(ctx).
+		Row(&isDisabled)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return false, errs.ErrPlayerNotFound
+		}
+		return false, err
+	}
+
+	return isDisabled, nil
+}

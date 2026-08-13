@@ -220,6 +220,10 @@ var (
 		Message: "All actions are blocked",
 		Status:  http.StatusLocked,
 	}
+	ErrPlayerIsDisabled = &AppError{
+		Code:    "player_is_disabled",
+		Message: "Player is disabled",
+	}
 	ErrCellEventSchedulerRunning = &AppError{
 		Code:    "cell_event_scheduler_running",
 		Message: "Cell event scheduler is running",

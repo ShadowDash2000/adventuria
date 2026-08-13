@@ -4,6 +4,7 @@ type ActionStatus string
 
 const (
 	ActionStatusNone            ActionStatus = "none"
+	ActionStatusStart           ActionStatus = "start"
 	ActionStatusMove            ActionStatus = "move"
 	ActionStatusRollDice        ActionStatus = "roll_dice"
 	ActionStatusDone            ActionStatus = "done"
