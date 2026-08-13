@@ -6,7 +6,6 @@ import (
 	"adventuria/internal/adventuria/cells"
 	"adventuria/internal/adventuria/effects"
 	"adventuria/internal/adventuria/errs"
-	"adventuria/internal/adventuria/event_stats"
 	"adventuria/internal/adventuria/inventories"
 	"adventuria/internal/adventuria/model"
 	"adventuria/internal/adventuria/players"
@@ -34,7 +33,6 @@ type Game struct {
 	inventories   *inventories.Inventories
 	effects       *effects.Effects
 	worlds        *worlds.Worlds
-	eventStats    *event_stats.EventStats
 	playersLocker *locker.Locker[string]
 
 	onKillParserEvent *event.Hook[*onKillParserEvent]
@@ -321,15 +319,6 @@ func (g *Game) GetActionView(ctx context.Context, playerId string, actionType mo
 	}
 
 	return g.actions.GetView(ctx, s.Events(), s.Player(), actionType)
-}
-
-func (g *Game) EventStats(ctx context.Context) (*event_stats.EventStatsData, error) {
-	currentSeason, err := g.settings.CurrentSeason(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	return g.eventStats.ComputeStats(ctx, currentSeason)
 }
 
 func (g *Game) IsActionsBlocked(ctx context.Context) error {

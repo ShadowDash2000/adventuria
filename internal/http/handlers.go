@@ -7,7 +7,6 @@ import (
 	"adventuria/internal/adventuria/actions/custom/drop"
 	"adventuria/internal/adventuria/actions/custom/reroll"
 	"adventuria/internal/adventuria/actions/custom/update_review"
-	"adventuria/internal/adventuria/event_stats"
 	"adventuria/internal/adventuria/model"
 	"adventuria/internal/http/response"
 	"context"
@@ -23,7 +22,6 @@ type game interface {
 	GetAvailableActions(ctx context.Context, playerId string) ([]model.ActionType, error)
 	GetEffectView(ctx context.Context, playerId, effectId string) (any, error)
 	GetActionView(ctx context.Context, playerId string, actionType model.ActionType) (any, error)
-	EventStats(ctx context.Context) (*event_stats.EventStatsData, error)
 	IsActionsBlocked(ctx context.Context) error
 }
 
@@ -243,15 +241,6 @@ func (h *Handlers) GetActionView(e *core.RequestEvent) error {
 
 func (h *Handlers) RefreshShopHandler(e *core.RequestEvent) error {
 	res, err := h.game.DoAction(e.Request.Context(), e.App, e.Auth.Id, actions.ActionTypeRefreshShop, nil)
-	if err != nil {
-		return response.Error(e, err)
-	}
-
-	return response.Success(e, res)
-}
-
-func (h *Handlers) EventStats(e *core.RequestEvent) error {
-	res, err := h.game.EventStats(e.Request.Context())
 	if err != nil {
 		return response.Error(e, err)
 	}

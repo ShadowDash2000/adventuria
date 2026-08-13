@@ -3,6 +3,7 @@ package http
 import (
 	"adventuria/internal/adventuria"
 	"adventuria/internal/http/completed_activities"
+	"adventuria/internal/http/event_stats"
 	"adventuria/internal/http/response"
 
 	"github.com/pocketbase/pocketbase/apis"
@@ -12,11 +13,12 @@ import (
 
 func Route(game *adventuria.Game, registry *adventuria.Registry, router *router.Router[*core.RequestEvent]) {
 	handlers := New(game, registry.Settings())
-	completedActivities := completed_activities.New(registry.CompletedActivities())
+	completedActivities := completed_activities.NewHandler(registry.CompletedActivities())
+	eventStats := event_stats.NewHandler(registry.EventStats())
 
 	g := router.Group("/api")
 
-	g.GET("/event-stats", handlers.EventStats)
+	g.GET("/event-stats", eventStats.EventStats)
 	g.GET("/current-season", handlers.CurrentSeason)
 	g.GET("/event-ended", handlers.IsEventEnded)
 	g.GET("/completed-activities", completedActivities.GetCompletedActivitiesByCellID)

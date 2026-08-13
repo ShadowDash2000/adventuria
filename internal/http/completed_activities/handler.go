@@ -16,7 +16,7 @@ type Handler struct {
 	completedActivities completedActivities
 }
 
-func New(completedActivities completedActivities) *Handler {
+func NewHandler(completedActivities completedActivities) *Handler {
 	return &Handler{completedActivities: completedActivities}
 }
 
