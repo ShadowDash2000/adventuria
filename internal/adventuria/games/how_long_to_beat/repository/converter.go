@@ -17,6 +17,14 @@ func RecordToHowLongToBeat(record *core.Record) *model.HowLongToBeat {
 	})
 }
 
+func RecordsToHowLongToBeat(records []*core.Record) []*model.HowLongToBeat {
+	res := make([]*model.HowLongToBeat, len(records))
+	for i, record := range records {
+		res[i] = RecordToHowLongToBeat(record)
+	}
+	return res
+}
+
 func HowLongToBeatToRecord(hltb *model.HowLongToBeat, record *core.Record) {
 	record.Id = hltb.ID()
 	record.Set(schema.HowLongToBeatSchema.IdDb, hltb.IdDb())
