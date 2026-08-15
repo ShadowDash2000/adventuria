@@ -25,7 +25,7 @@ func migrateActionsCommand(pb core.App) *cobra.Command {
 	return &cobra.Command{
 		Use:          "actions <base-url>",
 		Example:      "migrate-data v2 actions http://127.0.0.1:8080",
-		Short:        "Migrates all actions from Adventuria v2 through Pocketbase HTTP API",
+		Short:        "Migrates actions from Adventuria v2 through Pocketbase HTTP API",
 		SilenceUsage: true,
 		Args:         cobra.ExactArgs(1),
 		RunE: func(command *cobra.Command, args []string) error {
@@ -88,10 +88,10 @@ type action struct {
 }
 
 type actionExpand struct {
-	User user `json:"user"`
+	User expandedActionUser `json:"user"`
 }
 
-type user struct {
+type expandedActionUser struct {
 	Name string `json:"name"`
 }
 

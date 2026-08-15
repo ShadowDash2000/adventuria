@@ -336,6 +336,9 @@ func (r *Repository) GetByID(ctx context.Context, id string) (*model.Activity, e
 		Limit(1).
 		One(&record)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errs.ErrActivityNotFound
+		}
 		return nil, err
 	}
 
@@ -385,4 +388,43 @@ func (r *Repository) GetChecksumsByIDs(ctx context.Context, ids []string) (map[s
 	}
 
 	return checksums, nil
+}
+
+func (r *Repository) GetByName(ctx context.Context, name string) (*model.Activity, error) {
+	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
+
+	var record core.Record
+	err := pb.RecordQuery(schema.CollectionActivities).
+		WithContext(ctx).
+		Where(dbx.HashExp{
+			schema.ActivitySchema.Name: name,
+		}).
+		Limit(1).
+		One(&record)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errs.ErrActivityNotFound
+		}
+		return nil, err
+	}
+
+	return RecordToActivity(&record), nil
+}
+
+func (r *Repository) GetByNameParts(ctx context.Context, nameParts []string) ([]*model.Activity, error) {
+	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
+
+	var records []*core.Record
+	err := pb.RecordQuery(schema.CollectionActivities).
+		WithContext(ctx).
+		Where(dbx.Like(schema.ActivitySchema.Name, nameParts...)).
+		All(&records)
+	if err != nil {
+		return nil, err
+	}
+	if len(records) == 0 {
+		return nil, errs.ErrActivityNotFound
+	}
+
+	return RecordsToActivities(records), nil
 }

@@ -23,8 +23,8 @@ func NewRepository(pb core.App) *Repository {
 	return &Repository{pb: pb}
 }
 
-func baseCellQuery(db dbx.Builder) *dbx.SelectQuery {
-	return db.
+func baseCellQuery(db dbx.Builder, includeDisabled bool) *dbx.SelectQuery {
+	q := db.
 		Select(
 			fmt.Sprintf("%s.*", schema.CollectionCells),
 			fmt.Sprintf(
@@ -47,16 +47,21 @@ func baseCellQuery(db dbx.Builder) *dbx.SelectQuery {
 				pbhelper.DotExpand(schema.CollectionCells, schema.CellSchema.World),
 				pbhelper.DotExpand(schema.CollectionWorlds, schema.WorldSchema.Id),
 			)),
-		).
-		Where(dbx.HashExp{
+		)
+
+	if !includeDisabled {
+		q.Where(dbx.HashExp{
 			pbhelper.DotExpand(schema.CollectionCells, schema.CellSchema.Disabled): false,
 		})
+	}
+
+	return q
 }
 
 func (r *Repository) GetByID(ctx context.Context, id string) (*model.CellInfo, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 
-	subQuery := baseCellQuery(pb.DB()).Build()
+	subQuery := baseCellQuery(pb.DB(), false).Build()
 
 	var cell cellRow
 	err := pb.DB().
@@ -78,6 +83,30 @@ func (r *Repository) GetByID(ctx context.Context, id string) (*model.CellInfo, e
 	return cellRowToCellInfo(&cell), nil
 }
 
+func (r *Repository) GetByName(ctx context.Context, name string, includeDisabled bool) (*model.CellInfo, error) {
+	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
+	subQuery := baseCellQuery(pb.DB(), includeDisabled).Build()
+
+	var cell cellRow
+	err := pb.DB().
+		Select("*").
+		From(fmt.Sprintf("(%s) t", subQuery.SQL())).
+		Where(dbx.HashExp{
+			pbhelper.DotExpand("t", schema.CellSchema.Name): name,
+		}).
+		Bind(subQuery.Params()).
+		WithContext(ctx).
+		One(&cell)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errs.ErrCellNotFound
+		}
+		return nil, err
+	}
+
+	return cellRowToCellInfo(&cell), nil
+}
+
 func (r *Repository) GetByIDs(ctx context.Context, ids []string) ([]*model.CellInfo, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 
@@ -85,7 +114,7 @@ func (r *Repository) GetByIDs(ctx context.Context, ids []string) ([]*model.CellI
 		return []*model.CellInfo{}, nil
 	}
 
-	subQuery := baseCellQuery(pb.DB()).Build()
+	subQuery := baseCellQuery(pb.DB(), false).Build()
 
 	var cells []cellRow
 	err := pb.DB().
@@ -108,7 +137,7 @@ func (r *Repository) GetByIDs(ctx context.Context, ids []string) ([]*model.CellI
 func (r *Repository) GetByLocalOrder(ctx context.Context, worldId string, order int) (*model.CellInfo, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 
-	subQuery := baseCellQuery(pb.DB()).Build()
+	subQuery := baseCellQuery(pb.DB(), false).Build()
 
 	var cell cellRow
 	err := pb.DB().
@@ -134,7 +163,7 @@ func (r *Repository) GetByLocalOrder(ctx context.Context, worldId string, order 
 func (r *Repository) GetByGlobalOrder(ctx context.Context, order int) (*model.CellInfo, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 
-	subQuery := baseCellQuery(pb.DB()).Build()
+	subQuery := baseCellQuery(pb.DB(), false).Build()
 
 	var cell cellRow
 	err := pb.DB().
@@ -159,7 +188,7 @@ func (r *Repository) GetByGlobalOrder(ctx context.Context, order int) (*model.Ce
 func (r *Repository) GetAllGlobalByType(ctx context.Context, t model.CellType) ([]*model.CellInfo, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 
-	subQuery := baseCellQuery(pb.DB()).Build()
+	subQuery := baseCellQuery(pb.DB(), false).Build()
 
 	var cells []cellRow
 	err := pb.DB().
@@ -221,7 +250,7 @@ func (r *Repository) CountGlobal(ctx context.Context) (int, error) {
 func (r *Repository) GetAllByWorldID(ctx context.Context, worldId string) ([]*model.CellInfo, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 
-	subQuery := baseCellQuery(pb.DB()).Build()
+	subQuery := baseCellQuery(pb.DB(), false).Build()
 
 	var cells []cellRow
 	err := pb.DB().

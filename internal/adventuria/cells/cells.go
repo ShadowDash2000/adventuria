@@ -9,6 +9,7 @@ import (
 
 type repository interface {
 	GetByID(ctx context.Context, id string) (*model.CellInfo, error)
+	GetByName(ctx context.Context, name string, includeDisabled bool) (*model.CellInfo, error)
 	GetByIDs(ctx context.Context, ids []string) ([]*model.CellInfo, error)
 	GetByLocalOrder(ctx context.Context, worldId string, order int) (*model.CellInfo, error)
 	GetByGlobalOrder(ctx context.Context, order int) (*model.CellInfo, error)
@@ -61,6 +62,10 @@ func (c *Cells) GetByPlayerWrapped(ctx context.Context, player *model.Player) (m
 
 func (c *Cells) GetByID(ctx context.Context, id string) (*model.CellInfo, error) {
 	return c.repository.GetByID(ctx, id)
+}
+
+func (c *Cells) GetByName(ctx context.Context, name string, includeDisabled bool) (*model.CellInfo, error) {
+	return c.repository.GetByName(ctx, name, includeDisabled)
 }
 
 func (c *Cells) GetByIDWrapped(ctx context.Context, id string) (model.Cell, error) {

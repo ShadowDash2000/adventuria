@@ -3,9 +3,13 @@ package activities
 import (
 	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
+	"adventuria/pkg/levenshtein"
+	"adventuria/pkg/mathhelper"
 	"context"
 	"errors"
 	"math/rand/v2"
+	"sort"
+	"strings"
 )
 
 type repository interface {
@@ -18,6 +22,8 @@ type repository interface {
 	GetByID(ctx context.Context, id string) (*model.Activity, error)
 	GetByIDs(ctx context.Context, ids []string) ([]*model.Activity, error)
 	GetChecksumsByIDs(ctx context.Context, ids []string) (map[string]string, error)
+	GetByName(ctx context.Context, name string) (*model.Activity, error)
+	GetByNameParts(ctx context.Context, nameParts []string) ([]*model.Activity, error)
 }
 
 type Activities struct {
@@ -104,4 +110,54 @@ func (a *Activities) GetChecksumsByIDs(ctx context.Context, ids []string) (map[s
 
 func (a *Activities) GetAverageCampaignTimeByFilter(ctx context.Context, filter model.ActivityFilter) (float64, error) {
 	return a.repository.GetAverageCampaignTimeByFilter(ctx, filter)
+}
+
+func (a *Activities) GetByName(ctx context.Context, name string) (*model.Activity, error) {
+	activity, err := a.repository.GetByName(ctx, name)
+	if err == nil {
+		return activity, nil
+	}
+	if !errors.Is(err, errs.ErrActivityNotFound) {
+		return nil, err
+	}
+
+	normalizedName := NormalizeTitle(name)
+	parts := strings.Fields(normalizedName)
+	if len(parts) == 0 {
+		return nil, errs.ErrActivityNotFound
+	}
+
+	activities, err := a.repository.GetByNameParts(ctx, parts)
+	if err != nil {
+		return nil, err
+	}
+
+	type match struct {
+		activity *model.Activity
+		exact    bool
+		distance int
+		diffLen  int
+	}
+	matches := make([]match, len(activities))
+	for i, activity := range activities {
+		dbName := NormalizeTitle(activity.Name())
+		matches[i] = match{
+			activity: activity,
+			exact:    dbName == normalizedName,
+			distance: levenshtein.Distance(normalizedName, dbName),
+			diffLen:  mathhelper.Abs(len(normalizedName) - len(dbName)),
+		}
+	}
+
+	sort.Slice(matches, func(i, j int) bool {
+		if matches[i].exact != matches[j].exact {
+			return matches[i].exact
+		}
+		if matches[i].distance != matches[j].distance {
+			return matches[i].distance < matches[j].distance
+		}
+		return matches[i].diffLen < matches[j].diffLen
+	})
+
+	return matches[0].activity, nil
 }
