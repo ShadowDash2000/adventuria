@@ -1,7 +1,7 @@
 package main
 
 import (
-	v2tov3 "adventuria/internal/migrator/v2-to-v3"
+	v2 "adventuria/internal/migrator/v2"
 	"log"
 
 	"github.com/pocketbase/pocketbase"
@@ -15,7 +15,7 @@ func main() {
 		Use: "migrate-data",
 	}
 
-	command.AddCommand(v2tov3.NewV2ToV3MigratorCommand(pb))
+	command.AddCommand(v2.NewV2MigratorCommand(pb))
 
 	pb.RootCmd.AddCommand(command)
 

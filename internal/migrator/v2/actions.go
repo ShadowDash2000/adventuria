@@ -1,4 +1,4 @@
-package v2_to_v3
+package v2
 
 import (
 	actionsRepo "adventuria/internal/adventuria/actions/repository"
@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"slices"
 
 	"github.com/google/go-querystring/query"
 	"github.com/pocketbase/dbx"
@@ -23,8 +24,8 @@ import (
 func migrateActionsCommand(pb core.App) *cobra.Command {
 	return &cobra.Command{
 		Use:          "actions <base-url>",
-		Example:      "migrate-data v2-to-v3 actions http://127.0.0.1:8080",
-		Short:        "Migrates all actions from Adventuria v2 to v3 through Pocketbase HTTP API",
+		Example:      "migrate-data v2 actions http://127.0.0.1:8080",
+		Short:        "Migrates all actions from Adventuria v2 through Pocketbase HTTP API",
 		SilenceUsage: true,
 		Args:         cobra.ExactArgs(1),
 		RunE: func(command *cobra.Command, args []string) error {
@@ -183,7 +184,9 @@ func saveAction(pb core.App, action action) error {
 		return err
 	}
 
-	if action.Comment != "" {
+	// we must save review if action type is one of those types to preserve edit ability, even if comment is empty
+	mustSaveReview := action.Comment != "" || slices.Contains([]string{"done", "drop", "reroll"}, action.Type)
+	if mustSaveReview {
 		reviewRecord, err := saveReview(pb, action.Comment)
 		if err != nil {
 			return err
