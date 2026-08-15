@@ -16,7 +16,6 @@ import (
 	"adventuria/internal/adventuria/actions/custom/roll_wheel"
 	rollWheelRepo "adventuria/internal/adventuria/actions/custom/roll_wheel/repository"
 	"adventuria/internal/adventuria/actions/custom/start"
-	"adventuria/internal/adventuria/actions/custom/update_review"
 	"adventuria/internal/adventuria/activities"
 	"adventuria/internal/adventuria/board"
 	"adventuria/internal/adventuria/cells"
@@ -51,7 +50,6 @@ func RegisterActions(
 		roll_item.NewDef(actionsService, inventories, items),
 		roll_item_on_cell.NewDef(cells, inventories, items),
 		roll_wheel.NewDef(cells, rollWheelRepo),
-		update_review.NewDef(reviews),
 		generate_wheel.NewDef(activities),
 		deal.NewDef(inventories),
 	)

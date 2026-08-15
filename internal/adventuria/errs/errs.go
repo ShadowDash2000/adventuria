@@ -233,4 +233,10 @@ var (
 		Code:    "cell_event_scheduler_already_running",
 		Message: "Cell event scheduler is already running",
 	}
+
+	ErrNothingToUpdate = &AppError{
+		Code:    "nothing_to_update",
+		Message: "Nothing to update",
+		Status:  http.StatusBadRequest,
+	}
 )

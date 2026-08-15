@@ -6,7 +6,6 @@ import (
 	"adventuria/internal/adventuria/actions/custom/done"
 	"adventuria/internal/adventuria/actions/custom/drop"
 	"adventuria/internal/adventuria/actions/custom/reroll"
-	"adventuria/internal/adventuria/actions/custom/update_review"
 	"adventuria/internal/adventuria/model"
 	"adventuria/internal/http/response"
 	"context"
@@ -40,21 +39,6 @@ func New(game game, settings settings) *Handlers {
 		game:     game,
 		settings: settings,
 	}
-}
-
-func (h *Handlers) UpdateReviewHandler(e *core.RequestEvent) error {
-	req := update_review.Request{}
-
-	if err := e.BindBody(&req); err != nil {
-		return response.Error(e, err)
-	}
-
-	res, err := h.game.DoAction(e.Request.Context(), e.App, e.Auth.Id, actions.ActionTypeUpdateReview, req)
-	if err != nil {
-		return response.Error(e, err)
-	}
-
-	return response.Success(e, res)
 }
 
 func (h *Handlers) StartHandler(e *core.RequestEvent) error {

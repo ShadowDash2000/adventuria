@@ -6,6 +6,7 @@ import (
 	"adventuria/internal/http/completed_activities"
 	"adventuria/internal/http/event_stats"
 	"adventuria/internal/http/response"
+	"adventuria/internal/http/update_review"
 
 	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/core"
@@ -16,6 +17,7 @@ func Route(game *adventuria.Game, registry *adventuria.Registry, router *router.
 	handlers := New(game, registry.Settings())
 	completedActivities := completed_activities.NewHandler(registry.CompletedActivities())
 	eventStats := event_stats.NewHandler(registry.EventStats())
+	updateReview := update_review.NewHandler(registry.Reviews())
 
 	g := router.Group("/api")
 
@@ -49,7 +51,7 @@ func Route(game *adventuria.Game, registry *adventuria.Registry, router *router.
 
 	gab.POST("/roll", handlers.RollHandler)
 
-	gab.POST("/update-action", handlers.UpdateReviewHandler)
+	gab.POST("/update-review", updateReview.UpdateReviewByActionID)
 	gab.GET("/available-actions", handlers.GetAvailableActions)
 	gab.GET("/action-view", handlers.GetActionView)
 

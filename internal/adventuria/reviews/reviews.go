@@ -1,6 +1,7 @@
 package reviews
 
 import (
+	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
 	"context"
 )
@@ -8,7 +9,7 @@ import (
 type repository interface {
 	Create(ctx context.Context, review *model.Review) (*model.Review, error)
 	Update(ctx context.Context, review *model.Review) (*model.Review, error)
-	GetByActionID(ctx context.Context, actionId string) (*model.Review, error)
+	GetByActionAndPlayerID(ctx context.Context, actionId, playerId string) (*model.Review, error)
 }
 
 type Reviews struct {
@@ -27,6 +28,45 @@ func (r *Reviews) Save(ctx context.Context, review *model.Review) (*model.Review
 	return r.repository.Update(ctx, review)
 }
 
-func (r *Reviews) GetByActionID(ctx context.Context, actionId string) (*model.Review, error) {
-	return r.repository.GetByActionID(ctx, actionId)
+type UpdateInput struct {
+	Comment *string
+	Score   *float64
+}
+
+func (r *Reviews) UpdateByActionAndPlayerID(ctx context.Context, actionId, playerId string, input UpdateInput) (*model.Review, error) {
+	review, err := r.repository.GetByActionAndPlayerID(ctx, actionId, playerId)
+	if err != nil {
+		return nil, err
+	}
+
+	nothingToUpdate := true
+
+	if input.Comment != nil {
+		comment, err := model.NewReviewComment(*input.Comment)
+		if err != nil {
+			return nil, err
+		}
+		review.SetComment(comment)
+		nothingToUpdate = false
+	}
+
+	if input.Score != nil {
+		score, err := model.NewReviewScore(*input.Score)
+		if err != nil {
+			return nil, err
+		}
+		review.SetScore(score)
+		nothingToUpdate = false
+	}
+
+	if nothingToUpdate {
+		return nil, errs.ErrNothingToUpdate
+	}
+
+	_, err = r.Save(ctx, review)
+	if err != nil {
+		return nil, err
+	}
+
+	return nil, nil
 }

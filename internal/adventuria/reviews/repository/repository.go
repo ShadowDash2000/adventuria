@@ -61,7 +61,7 @@ func (r *Repository) Update(ctx context.Context, review *model.Review) (*model.R
 	return RecordToReview(record), nil
 }
 
-func (r *Repository) GetByActionID(ctx context.Context, actionId string) (*model.Review, error) {
+func (r *Repository) GetByActionAndPlayerID(ctx context.Context, actionId, playerId string) (*model.Review, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 
 	var record core.Record
@@ -75,7 +75,8 @@ func (r *Repository) GetByActionID(ctx context.Context, actionId string) (*model
 			)),
 		).
 		Where(dbx.HashExp{
-			pbhelper.DotExpand(schema.CollectionActions, schema.ActionSchema.Id): actionId,
+			pbhelper.DotExpand(schema.CollectionActions, schema.ActionSchema.Id):     actionId,
+			pbhelper.DotExpand(schema.CollectionActions, schema.ActionSchema.Player): playerId,
 		}).
 		One(&record)
 	if err != nil {
