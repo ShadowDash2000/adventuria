@@ -34,7 +34,7 @@ func (h *Handler) UpdateReviewByActionID(e *core.RequestEvent) error {
 		return response.Error(e, err)
 	}
 
-	res, err := h.reviews.UpdateByActionAndPlayerID(e.Request.Context(), req.ActionID, e.Auth.Id, reviews.UpdateInput{
+	_, err = h.reviews.UpdateByActionAndPlayerID(e.Request.Context(), req.ActionID, e.Auth.Id, reviews.UpdateInput{
 		Comment: req.Comment,
 		Score:   req.Score,
 	})
@@ -42,5 +42,5 @@ func (h *Handler) UpdateReviewByActionID(e *core.RequestEvent) error {
 		return response.Error(e, err)
 	}
 
-	return response.Success(e, res)
+	return response.Success(e, nil)
 }

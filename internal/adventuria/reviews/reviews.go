@@ -63,10 +63,10 @@ func (r *Reviews) UpdateByActionAndPlayerID(ctx context.Context, actionId, playe
 		return nil, errs.ErrNothingToUpdate
 	}
 
-	_, err = r.Save(ctx, review)
+	review, err = r.Save(ctx, review)
 	if err != nil {
 		return nil, err
 	}
 
-	return nil, nil
+	return review, nil
 }
