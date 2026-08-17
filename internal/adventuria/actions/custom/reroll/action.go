@@ -3,6 +3,7 @@ package reroll
 import (
 	"adventuria/internal/adventuria/actions"
 	"adventuria/internal/adventuria/model"
+	"adventuria/internal/adventuria/reviews"
 	"context"
 	"errors"
 )
@@ -12,8 +13,8 @@ type cells interface {
 	GetByPlayerWrapped(ctx context.Context, player *model.Player) (model.Cell, error)
 }
 
-type reviews interface {
-	Save(ctx context.Context, review *model.Review) (*model.Review, error)
+type reviewsService interface {
+	Create(ctx context.Context, input reviews.CreateInput) (*model.Review, error)
 }
 
 type actionsService interface {
@@ -28,11 +29,11 @@ const Type model.ActionType = "reroll"
 type Reroll struct {
 	actions.ActionBase
 	cells   cells
-	reviews reviews
+	reviews reviewsService
 	actions actionsService
 }
 
-func NewDef(cells cells, reviews reviews, actionsService actionsService) actions.ActionDef {
+func NewDef(cells cells, reviews reviewsService, actionsService actionsService) actions.ActionDef {
 	return actions.NewAction(
 		Type,
 		func() model.Action {
@@ -86,11 +87,10 @@ func (r *Reroll) Do(ctx context.Context, events *model.Events, player *model.Pla
 		return nil, errors.New("invalid request")
 	}
 
-	review, err := model.NewReview(req.Comment, req.Score)
-	if err != nil {
-		return nil, err
-	}
-	review, err = r.reviews.Save(ctx, review)
+	review, err := r.reviews.Create(ctx, reviews.CreateInput{
+		Comment: req.Comment,
+		Score:   req.Score,
+	})
 	if err != nil {
 		return nil, err
 	}

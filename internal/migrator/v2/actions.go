@@ -4,8 +4,10 @@ import (
 	actionsRepo "adventuria/internal/adventuria/actions/repository"
 	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
-	reviewsRepo "adventuria/internal/adventuria/reviews/repository"
+	"adventuria/internal/adventuria/reviews"
 	"adventuria/internal/adventuria/schema"
+	"adventuria/pkg/pbtransaction"
+	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -21,7 +23,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func migrateActionsCommand(pb core.App) *cobra.Command {
+func migrateActionsCommand(pb core.App, reviews reviewsService) *cobra.Command {
+	migrator := newActionsMigrator(pb, reviews)
+
 	return &cobra.Command{
 		Use:          "actions <base-url>",
 		Example:      "migrate-data v2 actions http://127.0.0.1:8080",
@@ -29,7 +33,7 @@ func migrateActionsCommand(pb core.App) *cobra.Command {
 		SilenceUsage: true,
 		Args:         cobra.ExactArgs(1),
 		RunE: func(command *cobra.Command, args []string) error {
-			return migrateActions(pb, args[0])
+			return migrator.migrate(command.Context(), args[0])
 		},
 	}
 }
@@ -39,24 +43,36 @@ const (
 	actionsPerPage = 500
 )
 
-func migrateActions(pb core.App, baseUrl string) error {
-	res, err := getActions(baseUrl, 1, actionsPerPage)
+type actionsMigrator struct {
+	pb      core.App
+	reviews reviewsService
+}
+
+func newActionsMigrator(pb core.App, reviews reviewsService) *actionsMigrator {
+	return &actionsMigrator{
+		pb:      pb,
+		reviews: reviews,
+	}
+}
+
+func (a *actionsMigrator) migrate(ctx context.Context, baseUrl string) error {
+	res, err := getActions(ctx, baseUrl, 1, actionsPerPage)
 	if err != nil {
 		return err
 	}
 
-	err = saveActions(pb, res.Items)
+	err = a.saveActions(ctx, res.Items)
 	if err != nil {
 		return err
 	}
 
 	for page := 2; page <= res.TotalPages; page++ {
-		res, err := getActions(baseUrl, page, actionsPerPage)
+		res, err := getActions(ctx, baseUrl, page, actionsPerPage)
 		if err != nil {
 			return err
 		}
 
-		err = saveActions(pb, res.Items)
+		err = a.saveActions(ctx, res.Items)
 		if err != nil {
 			return err
 		}
@@ -103,7 +119,7 @@ type getActionsResponse struct {
 	TotalPages int      `json:"totalPages"`
 }
 
-func getActions(baseUrl string, page, perPage int) (*getActionsResponse, error) {
+func getActions(ctx context.Context, baseUrl string, page, perPage int) (*getActionsResponse, error) {
 	q, err := query.Values(getActionsQuery{
 		Page:    page,
 		PerPage: perPage,
@@ -115,10 +131,6 @@ func getActions(baseUrl string, page, perPage int) (*getActionsResponse, error) 
 		return nil, fmt.Errorf("encode actions query: %w", err)
 	}
 
-	return requestActions(baseUrl, q)
-}
-
-func requestActions(baseUrl string, q url.Values) (*getActionsResponse, error) {
 	requestUrl, err := url.JoinPath(baseUrl, actionsPath)
 	if err != nil {
 		return nil, fmt.Errorf("build actions URL: %w", err)
@@ -130,7 +142,12 @@ func requestActions(baseUrl string, q url.Values) (*getActionsResponse, error) {
 	}
 	parsedUrl.RawQuery = q.Encode()
 
-	res, err := http.Get(parsedUrl.String())
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, parsedUrl.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("request actions: %w", err)
 	}
@@ -148,10 +165,10 @@ func requestActions(baseUrl string, q url.Values) (*getActionsResponse, error) {
 	return &actionsResponse, nil
 }
 
-func saveActions(pb core.App, actions []action) error {
+func (a *actionsMigrator) saveActions(ctx context.Context, actions []action) error {
 	for _, action := range actions {
-		err := pb.RunInTransaction(func(txApp core.App) error {
-			return saveAction(txApp, action)
+		err := pbtransaction.RunInTransaction(ctx, a.pb, func(ctx context.Context, txApp core.App) error {
+			return a.saveAction(ctx, action)
 		})
 		if err != nil {
 			return err
@@ -161,7 +178,9 @@ func saveActions(pb core.App, actions []action) error {
 	return nil
 }
 
-func saveAction(pb core.App, action action) error {
+func (a *actionsMigrator) saveAction(ctx context.Context, action action) error {
+	pb := pbtransaction.GetCtxTransactionOrApp(ctx, a.pb)
+
 	playerId, err := getPlayerIdByName(pb, action.Expand.User.Name)
 	if err != nil {
 		if errors.Is(err, errs.ErrPlayerNotFound) {
@@ -187,12 +206,15 @@ func saveAction(pb core.App, action action) error {
 	// we must save review if action type is one of those types to preserve edit ability, even if comment is empty
 	mustSaveReview := action.Comment != "" || slices.Contains([]string{"done", "drop", "reroll"}, action.Type)
 	if mustSaveReview {
-		reviewRecord, err := saveReview(pb, action.Comment)
+		review, err := a.reviews.Create(ctx, reviews.CreateInput{
+			Comment: action.Comment,
+			Score:   0,
+		})
 		if err != nil {
 			return err
 		}
 
-		newAction.SetReview(reviewRecord.Id)
+		newAction.SetReview(review.ID())
 	}
 
 	newAction.SetActivity(action.Activity)
@@ -233,28 +255,6 @@ func actionTypeToStatus(actionType string) (model.ActionStatus, error) {
 	}
 
 	return status, nil
-}
-
-func saveReview(pb core.App, comment string) (*core.Record, error) {
-	collection, err := pb.FindCollectionByNameOrId(schema.CollectionReviews)
-	if err != nil {
-		return nil, err
-	}
-
-	review, err := model.NewReview(comment, 0)
-	if err != nil {
-		return nil, err
-	}
-
-	record := core.NewRecord(collection)
-	reviewsRepo.ReviewToRecord(review, record)
-
-	err = pb.Save(record)
-	if err != nil {
-		return nil, err
-	}
-
-	return record, nil
 }
 
 func getPlayerIdByName(pb core.App, name string) (string, error) {

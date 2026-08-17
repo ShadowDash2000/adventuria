@@ -13,6 +13,7 @@ const (
 	CollectionSeasons            = "seasons"
 	CollectionWorlds             = "worlds"
 	CollectionReviews            = "reviews"
+	CollectionReviewsFiles       = "reviews_files"
 	CollectionsOutbox            = "outbox"
 	CollectionActionEvents       = "action_events"
 	CollectionCellEventsSchedule = "cell_events_schedule"
@@ -537,10 +538,12 @@ var ReviewSchema = struct {
 	Id      string
 	Comment string
 	Score   string
+	Files   string
 }{
 	Id:      "id",
 	Comment: "comment",
 	Score:   "score",
+	Files:   "files",
 }
 
 var OutboxSchema = struct {
@@ -639,4 +642,12 @@ var CellEventsScheduleSchema = struct {
 	Worlds:            "worlds",
 	ShiftInterval:     "shift_interval",
 	NextShiftChangeAt: "next_shift_change_at",
+}
+
+var ReviewsFilesSchema = struct {
+	Id   string
+	File string
+}{
+	Id:   "id",
+	File: "file",
 }

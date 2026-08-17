@@ -55,3 +55,23 @@ func SlicesIntersection[T comparable](a, b []T) []T {
 
 	return result
 }
+
+func SlicesDifference[T comparable](a, b []T) []T {
+	set := make(map[T]struct{}, len(b))
+	for _, v := range b {
+		set[v] = struct{}{}
+	}
+
+	var result []T
+	for _, v := range a {
+		if _, exists := set[v]; !exists {
+			result = append(result, v)
+		}
+	}
+
+	if len(result) == 0 {
+		return make([]T, 0, 1)
+	}
+
+	return result
+}

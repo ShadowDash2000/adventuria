@@ -3,6 +3,7 @@ package drop
 import (
 	"adventuria/internal/adventuria/actions"
 	"adventuria/internal/adventuria/model"
+	"adventuria/internal/adventuria/reviews"
 	"context"
 	"errors"
 )
@@ -15,8 +16,8 @@ type cells interface {
 	GetByPlayer(ctx context.Context, player *model.Player) (*model.CellInfo, error)
 }
 
-type reviews interface {
-	Save(ctx context.Context, review *model.Review) (*model.Review, error)
+type reviewsService interface {
+	Create(ctx context.Context, input reviews.CreateInput) (*model.Review, error)
 }
 
 type players interface {
@@ -39,7 +40,7 @@ type Drop struct {
 	actions.ActionBase
 	actions  actionsService
 	cells    cells
-	reviews  reviews
+	reviews  reviewsService
 	players  players
 	settings settings
 	board    board
@@ -48,7 +49,7 @@ type Drop struct {
 func NewDef(
 	actionsService actionsService,
 	cells cells,
-	reviews reviews,
+	reviews reviewsService,
 	players players,
 	settings settings,
 	board board,
@@ -113,11 +114,10 @@ func (d *Drop) Do(ctx context.Context, events *model.Events, player *model.Playe
 		return nil, errors.New("invalid request")
 	}
 
-	review, err := model.NewReview(req.Comment, req.Score)
-	if err != nil {
-		return nil, err
-	}
-	review, err = d.reviews.Save(ctx, review)
+	review, err := d.reviews.Create(ctx, reviews.CreateInput{
+		Comment: req.Comment,
+		Score:   req.Score,
+	})
 	if err != nil {
 		return nil, err
 	}

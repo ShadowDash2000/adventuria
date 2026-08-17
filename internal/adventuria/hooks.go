@@ -3,6 +3,7 @@ package adventuria
 import (
 	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/schema"
+	"adventuria/pkg/pbhelper"
 	"context"
 	"errors"
 
@@ -102,6 +103,34 @@ func (g *Game) bindHooks(ctx context.Context, pb core.App) {
 		err = pb.DeleteWithContext(ctx, &record)
 		if err != nil {
 			return err
+		}
+
+		return e.Next()
+	})
+
+	pb.OnRecordAfterDeleteSuccess(schema.CollectionReviews).BindFunc(func(e *core.RecordEvent) error {
+		filesIds := e.Record.GetStringSlice(schema.ReviewSchema.Files)
+		if len(filesIds) == 0 {
+			return e.Next()
+		}
+
+		var records []*core.Record
+		err := e.App.RecordQuery(schema.CollectionReviewsFiles).
+			WithContext(ctx).
+			Where(dbx.In(
+				schema.ReviewsFilesSchema.Id,
+				pbhelper.SliceToAny(filesIds)...,
+			)).
+			All(&records)
+		if err != nil {
+			return err
+		}
+
+		for _, record := range records {
+			err = pb.DeleteWithContext(ctx, record)
+			if err != nil {
+				return err
+			}
 		}
 
 		return e.Next()

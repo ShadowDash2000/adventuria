@@ -11,6 +11,7 @@ func ReviewToRecord(review *model.Review, record *core.Record) {
 	record.Id = review.ID()
 	record.Set(schema.ReviewSchema.Comment, review.Comment())
 	record.Set(schema.ReviewSchema.Score, review.Score())
+	record.Set(schema.ReviewSchema.Files, review.Files())
 }
 
 func RecordToReview(record *core.Record) *model.Review {
@@ -18,5 +19,6 @@ func RecordToReview(record *core.Record) *model.Review {
 		Id:      record.Id,
 		Comment: model.ReviewComment(record.GetString(schema.ReviewSchema.Comment)),
 		Score:   model.ReviewScore(record.GetFloat(schema.ReviewSchema.Score)),
+		Files:   record.GetStringSlice(schema.ReviewSchema.Files),
 	})
 }

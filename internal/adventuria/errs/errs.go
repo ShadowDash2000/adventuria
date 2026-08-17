@@ -125,6 +125,10 @@ var (
 		Code:    "action_data_not_found",
 		Message: "Action data not found",
 	}
+	ErrReviewFileNotFound = &AppError{
+		Code:    "review_file_not_found",
+		Message: "Review file not found",
+	}
 
 	ErrReviewCommentTooLong = &AppError{
 		Code:    "review_comment_max_size",

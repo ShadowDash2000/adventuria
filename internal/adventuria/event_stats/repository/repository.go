@@ -283,6 +283,7 @@ func (r *Repository) getCellsVisitsStats(ctx context.Context, timeFrom time.Time
 			model.ActionStatusRollWheel,
 			model.ActionStatusMove,
 			model.ActionStatusRollItemOnCell,
+			// TODO return model.ActionStatusTeleport?
 		}),
 	)).Bind(dbx.Params{
 		"date": dateFrom,

@@ -4,6 +4,7 @@ import (
 	"adventuria/internal/adventuria/actions"
 	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
+	"adventuria/internal/adventuria/reviews"
 	"context"
 	"errors"
 )
@@ -17,8 +18,8 @@ type cells interface {
 	GetByPlayerWrapped(ctx context.Context, player *model.Player) (model.Cell, error)
 }
 
-type reviews interface {
-	Save(ctx context.Context, review *model.Review) (*model.Review, error)
+type reviewsService interface {
+	Create(ctx context.Context, input reviews.CreateInput) (*model.Review, error)
 }
 
 var _ model.Action = (*Done)(nil)
@@ -29,10 +30,10 @@ type Done struct {
 	actions.ActionBase
 	actions actionsService
 	cells   cells
-	reviews reviews
+	reviews reviewsService
 }
 
-func NewDef(actionsService actionsService, cells cells, reviews reviews) actions.ActionDef {
+func NewDef(actionsService actionsService, cells cells, reviews reviewsService) actions.ActionDef {
 	return actions.NewAction(
 		Type,
 		func() model.Action {
@@ -70,11 +71,10 @@ func (d *Done) Do(ctx context.Context, events *model.Events, player *model.Playe
 		return nil, errors.New("invalid request")
 	}
 
-	review, err := model.NewReview(req.Comment, req.Score)
-	if err != nil {
-		return nil, err
-	}
-	review, err = d.reviews.Save(ctx, review)
+	review, err := d.reviews.Create(ctx, reviews.CreateInput{
+		Comment: req.Comment,
+		Score:   req.Score,
+	})
 	if err != nil {
 		return nil, err
 	}

@@ -4,6 +4,7 @@ type ReviewData struct {
 	Id      string
 	Comment ReviewComment
 	Score   ReviewScore
+	Files   []string
 }
 
 type Review struct {
@@ -59,4 +60,12 @@ func (r *Review) Score() ReviewScore {
 
 func (r *Review) SetScore(score ReviewScore) {
 	r.data.Score = score
+}
+
+func (r *Review) Files() []string {
+	return r.data.Files
+}
+
+func (r *Review) SetFiles(files []string) {
+	r.data.Files = files
 }

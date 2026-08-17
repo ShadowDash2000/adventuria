@@ -53,6 +53,8 @@ import (
 	playersRepo "adventuria/internal/adventuria/players/repository"
 	"adventuria/internal/adventuria/reviews"
 	reviewsRepo "adventuria/internal/adventuria/reviews/repository"
+	"adventuria/internal/adventuria/reviews_files"
+	reviewsStorageRepo "adventuria/internal/adventuria/reviews_files/repository"
 	"adventuria/internal/adventuria/seasons"
 	seasonsRepo "adventuria/internal/adventuria/seasons/repository"
 	"adventuria/internal/adventuria/settings"
@@ -91,6 +93,7 @@ type Registry struct {
 	itemsRepo               *itemsRepo.Repository
 	genresRepo              *genresRepo.Repository
 	reviewsRepo             *reviewsRepo.Repository
+	reviewsFilesRepo        *reviewsStorageRepo.Repository
 	rollWheelRepo           *rollWheelRepo.Repository
 	outboxesRepo            *outboxesRepo.Repository
 	relationRepo            *activitiesRepo.RelationRepository
@@ -132,6 +135,7 @@ type Registry struct {
 	board               *board.Board
 	genres              *genres.Genres
 	reviews             *reviews.Reviews
+	reviewsFiles        *reviews_files.ReviewsFiles
 	outboxes            *outboxes.Outboxes
 	eventStats          *event_stats.EventStats
 	streamTracker       *stream_tracker.StreamTracker
@@ -260,6 +264,13 @@ func (r *Registry) ReviewsRepo() *reviewsRepo.Repository {
 		r.reviewsRepo = reviewsRepo.NewRepository(r.pb)
 	}
 	return r.reviewsRepo
+}
+
+func (r *Registry) ReviewsFilesRepo() *reviewsStorageRepo.Repository {
+	if r.reviewsFilesRepo == nil {
+		r.reviewsFilesRepo = reviewsStorageRepo.NewRepository(r.pb)
+	}
+	return r.reviewsFilesRepo
 }
 
 func (r *Registry) RollWheelRepo() *rollWheelRepo.Repository {
@@ -539,9 +550,16 @@ func (r *Registry) Genres() *genres.Genres {
 
 func (r *Registry) Reviews() *reviews.Reviews {
 	if r.reviews == nil {
-		r.reviews = reviews.NewReviews(r.ReviewsRepo())
+		r.reviews = reviews.NewReviews("", r.ReviewsRepo(), r.ReviewsFiles())
 	}
 	return r.reviews
+}
+
+func (r *Registry) ReviewsFiles() *reviews_files.ReviewsFiles {
+	if r.reviewsFiles == nil {
+		r.reviewsFiles = reviews_files.NewReviewsFiles(r.ReviewsFilesRepo())
+	}
+	return r.reviewsFiles
 }
 
 func (r *Registry) Outboxes() *outboxes.Outboxes {
