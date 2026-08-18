@@ -85,7 +85,7 @@ func RegisterEffects(
 		roll_reverse.NewDef(),
 		safe_drop.NewDef(cells),
 		save_from_hole.NewDef(cells),
-		stay_on_cell_after_done.NewDef(cells, actions),
+		stay_on_cell_after_done.NewDef(actions, activities),
 		teleport_to_random_cell.NewDef(actions, cells, board),
 		teleport_to_closest_cell_by_type.NewDef(actions, board),
 		drop_points_divide.NewDef(),

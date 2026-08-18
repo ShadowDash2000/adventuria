@@ -112,6 +112,7 @@ var ActionSchema = struct {
 	Id          string
 	Player      string
 	Cell        string
+	RootAction  string
 	Status      string
 	Activity    string
 	Review      string
@@ -122,6 +123,7 @@ var ActionSchema = struct {
 	Id:          "id",
 	Player:      "player",
 	Cell:        "cell",
+	RootAction:  "root_action",
 	Status:      "status",
 	Activity:    "activity",
 	Review:      "review",

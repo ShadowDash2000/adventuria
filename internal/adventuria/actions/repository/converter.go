@@ -16,6 +16,7 @@ func ActionToRecord(action *model.ActionInfo, record *core.Record) error {
 	record.Id = action.ID()
 	record.Set(schema.ActionSchema.Player, action.Player())
 	record.Set(schema.ActionSchema.Cell, action.Cell())
+	record.Set(schema.ActionSchema.RootAction, action.RootAction())
 	record.Set(schema.ActionSchema.Status, string(action.Status()))
 	record.Set(schema.ActionSchema.Activity, action.Activity())
 	record.Set(schema.ActionSchema.Review, action.Review())
@@ -47,6 +48,7 @@ func RecordToAction(record *core.Record) (*model.ActionInfo, error) {
 		Id:          record.Id,
 		Player:      record.GetString(schema.ActionSchema.Player),
 		Cell:        record.GetString(schema.ActionSchema.Cell),
+		RootAction:  record.GetString(schema.ActionSchema.RootAction),
 		Status:      model.ActionStatus(record.GetString(schema.ActionSchema.Status)),
 		Activity:    record.GetString(schema.ActionSchema.Activity),
 		Review:      record.GetString(schema.ActionSchema.Review),

@@ -2,7 +2,6 @@ package custom
 
 import (
 	"adventuria/internal/adventuria/actions"
-	"adventuria/internal/adventuria/activities"
 	"adventuria/internal/adventuria/activity_filters"
 	"adventuria/internal/adventuria/board"
 	"adventuria/internal/adventuria/cells"
@@ -18,7 +17,6 @@ import (
 )
 
 func RegisterCells(
-	activities *activities.Activities,
 	activityFilters *activity_filters.ActivityFilters,
 	items *items.Items,
 	cellsService *cells.Cells,
@@ -28,23 +26,23 @@ func RegisterCells(
 	cells.Register(
 		start.NewDef(),
 		activity.NewDef(
-			model.ActivityTypeGame, activities, activityFilters,
+			model.ActivityTypeGame, activityFilters,
 			"wheel", "activity", "game",
 		),
 		activity.NewDef(
-			model.ActivityTypeMovie, activities, activityFilters,
+			model.ActivityTypeMovie, activityFilters,
 			"wheel", "activity",
 		),
 		activity.NewDef(
-			model.ActivityTypeGym, activities, activityFilters,
+			model.ActivityTypeGym, activityFilters,
 			"wheel", "activity",
 		),
 		activity.NewDef(
-			model.ActivityTypeKaraoke, activities, activityFilters,
+			model.ActivityTypeKaraoke, activityFilters,
 			"wheel", "activity",
 		),
 		jail.NewDef(
-			activities, activityFilters,
+			activityFilters,
 			"wheel", "activity", "game",
 		),
 		roll_item.NewDef(items, "wheel"),

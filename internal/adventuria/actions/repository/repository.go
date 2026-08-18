@@ -48,7 +48,14 @@ func (r *Repository) Create(ctx context.Context, action *model.ActionInfo) (*mod
 func (r *Repository) Update(ctx context.Context, action *model.ActionInfo) (*model.ActionInfo, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 
-	record, err := pb.FindRecordById(schema.CollectionActions, action.ID())
+	var record core.Record
+	err := pb.RecordQuery(schema.CollectionActions).
+		WithContext(ctx).
+		Where(dbx.HashExp{
+			schema.ActionSchema.Id: action.ID(),
+		}).
+		Limit(1).
+		One(&record)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, errs.ErrActionNotFound
@@ -56,17 +63,17 @@ func (r *Repository) Update(ctx context.Context, action *model.ActionInfo) (*mod
 		return nil, err
 	}
 
-	err = ActionToRecord(action, record)
+	err = ActionToRecord(action, &record)
 	if err != nil {
 		return nil, err
 	}
 
-	err = pb.SaveWithContext(ctx, record)
+	err = pb.SaveWithContext(ctx, &record)
 	if err != nil {
 		return nil, err
 	}
 
-	return RecordToAction(record)
+	return RecordToAction(&record)
 }
 
 func (r *Repository) GetLastActionByPlayerId(ctx context.Context, playerId string, timeFrom time.Time) (*model.ActionInfo, error) {
@@ -100,4 +107,25 @@ func (r *Repository) GetLastActionByPlayerId(ctx context.Context, playerId strin
 	}
 
 	return action, nil
+}
+
+func (r *Repository) GetByID(ctx context.Context, id string) (*model.ActionInfo, error) {
+	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
+
+	var record core.Record
+	err := pb.RecordQuery(schema.CollectionActions).
+		WithContext(ctx).
+		Where(dbx.HashExp{
+			schema.ActionSchema.Id: id,
+		}).
+		Limit(1).
+		One(&record)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errs.ErrActionNotFound
+		}
+		return nil, err
+	}
+
+	return RecordToAction(&record)
 }

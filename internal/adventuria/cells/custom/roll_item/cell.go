@@ -49,10 +49,6 @@ func (c *CellRollItem) Roll(_ context.Context, _ *model.Events, player *model.Pl
 	}, nil
 }
 
-func (c *CellRollItem) RefreshItems(ctx context.Context, _ *model.Events, player *model.Player) error {
-	return c.refreshItems(ctx, player)
-}
-
 func (c *CellRollItem) OnCellReached(ctx context.Context, _ *model.Events, player *model.Player, _ *model.ReachedContext) error {
 	return c.refreshItems(ctx, player)
 }

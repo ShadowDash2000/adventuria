@@ -2,18 +2,18 @@ package stay_on_cell_after_done
 
 import (
 	"adventuria/internal/adventuria/effects"
+	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
 	"adventuria/pkg/event"
 	"context"
-	"errors"
 )
-
-type cellsService interface {
-	GetByPlayerWrapped(ctx context.Context, player *model.Player) (model.Cell, error)
-}
 
 type actionsService interface {
 	Save(ctx context.Context, action *model.ActionInfo) (*model.ActionInfo, error)
+}
+
+type activities interface {
+	GetRandomIDsByFilter(ctx context.Context, filter model.ActivityFilter) ([]string, error)
 }
 
 var _ model.Effect = (*StayOnCellAfterDone)(nil)
@@ -22,18 +22,18 @@ const Type model.EffectType = "stay_on_cell_after_done"
 
 type StayOnCellAfterDone struct {
 	effects.EffectBase
-	cells   cellsService
-	actions actionsService
+	actions    actionsService
+	activities activities
 }
 
-func NewDef(cells cellsService, actions actionsService) effects.EffectDef {
+func NewDef(actions actionsService, activities activities) effects.EffectDef {
 	return effects.NewEffectDef(
 		Type,
 		func(effect model.EffectInfo) model.Effect {
 			return &StayOnCellAfterDone{
 				EffectBase: effects.NewEffectBase(effect),
-				cells:      cells,
 				actions:    actions,
+				activities: activities,
 			}
 		},
 	)
@@ -57,22 +57,17 @@ func (s *StayOnCellAfterDone) Subscribe(
 				return e.Next()
 			}
 
-			currentCell, err := s.cells.GetByPlayerWrapped(ctx, player)
+			actionState := player.LastAction().State()
+			if actionState.ActivityFilter == nil {
+				return errs.ErrNoActiveActivityFilter
+			}
+
+			lastAction, err := s.actions.Save(ctx, lastAction)
 			if err != nil {
 				return err
 			}
 
-			cellRefreshable, ok := currentCell.(model.Refreshable)
-			if !ok {
-				return errors.New("current cell is not refreshable")
-			}
-
-			_, err = s.actions.Save(ctx, lastAction)
-			if err != nil {
-				return err
-			}
-
-			lastAction, err = model.NewAction(model.ActionCreate{
+			newAction, err := model.NewAction(model.ActionCreate{
 				Player: player.ID(),
 				Cell:   lastAction.Cell(),
 				Status: model.ActionStatusRollDice,
@@ -81,12 +76,16 @@ func (s *StayOnCellAfterDone) Subscribe(
 				return err
 			}
 
-			player.SetLastAction(lastAction)
-
-			err = cellRefreshable.RefreshItems(ctx, events, player)
+			ids, err := s.activities.GetRandomIDsByFilter(ctx, *actionState.ActivityFilter)
 			if err != nil {
 				return err
 			}
+
+			actionState.Activities = &model.ActionActivitiesState{
+				Ids: ids,
+			}
+			newAction.SetState(actionState)
+			player.SetLastAction(newAction)
 
 			callback(ctx)
 

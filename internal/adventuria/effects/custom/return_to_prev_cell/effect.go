@@ -9,7 +9,9 @@ import (
 )
 
 type actionsService interface {
+	Save(ctx context.Context, action *model.ActionInfo) (*model.ActionInfo, error)
 	CanDo(ctx context.Context, events *model.Events, player *model.Player, t model.ActionType) bool
+	GetByID(ctx context.Context, id string) (*model.ActionInfo, error)
 }
 
 type board interface {
@@ -44,7 +46,7 @@ func (r *ReturnToPrevCell) CanUse(ctx context.Context, events *model.Events, pla
 		return false
 	}
 
-	return !r.actions.CanDo(ctx, events, player, actions.ActionTypeDone)
+	return !r.actions.CanDo(ctx, events, player, actions.ActionTypeCompleteActivity)
 }
 
 func (r *ReturnToPrevCell) Subscribe(
@@ -60,7 +62,24 @@ func (r *ReturnToPrevCell) Subscribe(
 				return e.Next()
 			}
 
-			_, err := r.board.Move(ctx, events, player, -player.LastAction().CellsPassed(), model.MoveTypePath)
+			lastAction := player.LastAction()
+			lastAction.SetStatus(model.ActionStatusEscape)
+			lastAction, err := r.actions.Save(ctx, lastAction)
+			if err != nil {
+				return err
+			}
+
+			rootAction := lastAction
+			rootActionId := rootAction.RootAction()
+			if rootActionId != "" {
+				action, err := r.actions.GetByID(ctx, rootActionId)
+				if err != nil {
+					return err
+				}
+				rootAction = action
+			}
+
+			_, err = r.board.Move(ctx, events, player, -rootAction.CellsPassed(), model.MoveTypePath)
 			if err != nil {
 				return err
 			}

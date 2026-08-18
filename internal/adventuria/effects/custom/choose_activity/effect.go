@@ -53,7 +53,7 @@ func (c *ChooseActivity) CanUse(ctx context.Context, events *model.Events, playe
 		return false
 	}
 
-	return c.actions.CanDo(ctx, events, player, actions.ActionTypeDone)
+	return c.actions.CanDo(ctx, events, player, actions.ActionTypeCompleteActivity)
 }
 
 func (c *ChooseActivity) Subscribe(

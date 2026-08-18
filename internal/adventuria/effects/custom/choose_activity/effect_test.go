@@ -43,7 +43,7 @@ func TestChooseActivity_CanUse(t *testing.T) {
 		player := model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, lastAction, nil)
 
 		mActions.CanDoFunc = func(ctx context.Context, events *model.Events, p *model.Player, t model.ActionType) bool {
-			return t == actions.ActionTypeDone
+			return t == actions.ActionTypeCompleteActivity
 		}
 
 		if !eff.CanUse(ctx, nil, player) {

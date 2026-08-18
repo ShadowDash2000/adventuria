@@ -43,7 +43,7 @@ func RegisterActions(
 		complete_activity.NewDef(cells),
 		done.NewDef(actionsService, cells, reviews),
 		drop.NewDef(actionsService, cells, reviews, players, settings, board),
-		reroll.NewDef(cells, reviews, actionsService),
+		reroll.NewDef(cells, reviews, actionsService, activities),
 		buy.NewDef(items, inventories),
 		refresh_shop.NewActionRefreshShopDef(items),
 		roll_dice.NewDef(actionsService, board),

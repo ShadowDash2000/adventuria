@@ -2,6 +2,7 @@ package reroll
 
 import (
 	"adventuria/internal/adventuria/actions"
+	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
 	"adventuria/internal/adventuria/reviews"
 	"context"
@@ -10,7 +11,6 @@ import (
 
 type cells interface {
 	GetByPlayer(ctx context.Context, player *model.Player) (*model.CellInfo, error)
-	GetByPlayerWrapped(ctx context.Context, player *model.Player) (model.Cell, error)
 }
 
 type reviewsService interface {
@@ -22,18 +22,23 @@ type actionsService interface {
 	Save(ctx context.Context, action *model.ActionInfo) (*model.ActionInfo, error)
 }
 
+type activities interface {
+	GetRandomIDsByFilter(ctx context.Context, filter model.ActivityFilter) ([]string, error)
+}
+
 var _ model.Action = (*Reroll)(nil)
 
 const Type model.ActionType = "reroll"
 
 type Reroll struct {
 	actions.ActionBase
-	cells   cells
-	reviews reviewsService
-	actions actionsService
+	cells      cells
+	reviews    reviewsService
+	actions    actionsService
+	activities activities
 }
 
-func NewDef(cells cells, reviews reviewsService, actionsService actionsService) actions.ActionDef {
+func NewDef(cells cells, reviews reviewsService, actionsService actionsService, activities activities) actions.ActionDef {
 	return actions.NewAction(
 		Type,
 		func() model.Action {
@@ -42,6 +47,7 @@ func NewDef(cells cells, reviews reviewsService, actionsService actionsService) 
 				cells:      cells,
 				reviews:    reviews,
 				actions:    actionsService,
+				activities: activities,
 			}
 		},
 	)
@@ -87,6 +93,11 @@ func (r *Reroll) Do(ctx context.Context, events *model.Events, player *model.Pla
 		return nil, errors.New("invalid request")
 	}
 
+	actionState := player.LastAction().State()
+	if actionState.ActivityFilter == nil {
+		return nil, errs.ErrNoActiveActivityFilter
+	}
+
 	review, err := r.reviews.Create(ctx, reviews.CreateInput{
 		Comment: req.Comment,
 		Score:   req.Score,
@@ -95,40 +106,40 @@ func (r *Reroll) Do(ctx context.Context, events *model.Events, player *model.Pla
 		return nil, err
 	}
 
-	currentCell, err := r.cells.GetByPlayerWrapped(ctx, player)
-	if err != nil {
-		return nil, err
-	}
-
-	cellRefreshable, ok := currentCell.(model.Refreshable)
-	if !ok {
-		return nil, errors.New("current cell is not refreshable")
-	}
-
 	lastAction := player.LastAction()
 	lastAction.SetStatus(model.ActionStatusReroll)
 	lastAction.SetReview(review.ID())
-	_, err = r.actions.Save(ctx, lastAction)
+	lastAction, err = r.actions.Save(ctx, lastAction)
 	if err != nil {
 		return nil, err
 	}
 
 	newAction, err := model.NewAction(model.ActionCreate{
 		Player: player.ID(),
-		Cell:   currentCell.Data().ID(),
+		Cell:   lastAction.Cell(),
 		Status: model.ActionStatusNeedToRollWheel,
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	newAction.SetState(lastAction.State())
-	player.SetLastAction(newAction)
-
-	err = cellRefreshable.RefreshItems(ctx, events, player)
+	ids, err := r.activities.GetRandomIDsByFilter(ctx, *actionState.ActivityFilter)
 	if err != nil {
 		return nil, err
 	}
+
+	actionState.Activities = &model.ActionActivitiesState{
+		Ids: ids,
+	}
+	newAction.SetState(actionState)
+
+	rootActionId := lastAction.RootAction()
+	if rootActionId == "" {
+		rootActionId = lastAction.ID()
+	}
+	newAction.SetRootAction(rootActionId)
+
+	player.SetLastAction(newAction)
 
 	return nil, events.OnAfterReroll().Trigger(ctx, &model.OnAfterRerollEvent{})
 }

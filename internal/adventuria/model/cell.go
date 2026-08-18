@@ -24,12 +24,7 @@ type Verifiable interface {
 
 type Rollable interface {
 	Cell
-	Refreshable
 	Roll(ctx context.Context, events *Events, player *Player) (*WheelRollResult, error)
-}
-
-type Refreshable interface {
-	RefreshItems(ctx context.Context, events *Events, player *Player) error
 }
 
 type CellData struct {

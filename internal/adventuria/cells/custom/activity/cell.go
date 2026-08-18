@@ -9,10 +9,6 @@ import (
 	"errors"
 )
 
-type activities interface {
-	GetRandomIDsByFilter(ctx context.Context, filter model.ActivityFilter) ([]string, error)
-}
-
 type filters interface {
 	GetByID(ctx context.Context, id string) (*model.ActivityFilterInfo, error)
 }
@@ -21,13 +17,11 @@ var _ model.Rollable = (*CellActivity)(nil)
 
 type CellActivity struct {
 	cells.CellBase
-	activities activities
-	filters    filters
+	filters filters
 }
 
 func NewDef(
 	activityType model.ActivityType,
-	activities activities,
 	activityFilters filters,
 	categories ...string,
 ) cells.CellDef {
@@ -35,9 +29,8 @@ func NewDef(
 		model.CellType(activityType),
 		func(cell model.CellInfo) model.Cell {
 			return &CellActivity{
-				CellBase:   cells.NewCellBase(cell),
-				activities: activities,
-				filters:    activityFilters,
+				CellBase: cells.NewCellBase(cell),
+				filters:  activityFilters,
 			}
 		},
 		categories...,
@@ -91,25 +84,5 @@ func (c *CellActivity) OnCellReached(ctx context.Context, _ *model.Events, playe
 }
 
 func (c *CellActivity) OnCellLeft(_ context.Context, _ *model.Events, _ *model.Player) error {
-	return nil
-}
-
-func (c *CellActivity) RefreshItems(ctx context.Context, _ *model.Events, player *model.Player) error {
-	actionState := player.LastAction().State()
-
-	if actionState.ActivityFilter == nil {
-		return errs.ErrNoActiveActivityFilter
-	}
-
-	ids, err := c.activities.GetRandomIDsByFilter(ctx, *actionState.ActivityFilter)
-	if err != nil {
-		return err
-	}
-
-	actionState.Activities = &model.ActionActivitiesState{
-		Ids: ids,
-	}
-	player.LastAction().SetState(actionState)
-
 	return nil
 }

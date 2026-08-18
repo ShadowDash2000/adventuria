@@ -34,7 +34,6 @@ func (g *Game) init(ctx context.Context, pb core.App) (*Registry, error) {
 	g.worlds = registry.Worlds()
 
 	customCells.RegisterCells(
-		registry.Activities(),
 		registry.ActivityFilters(),
 		registry.Items(),
 		registry.Cells(),

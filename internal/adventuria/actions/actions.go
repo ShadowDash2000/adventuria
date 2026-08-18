@@ -12,6 +12,7 @@ type repository interface {
 	Create(ctx context.Context, action *model.ActionInfo) (*model.ActionInfo, error)
 	Update(ctx context.Context, action *model.ActionInfo) (*model.ActionInfo, error)
 	GetLastActionByPlayerId(ctx context.Context, playerId string, timeFrom time.Time) (*model.ActionInfo, error)
+	GetByID(ctx context.Context, id string) (*model.ActionInfo, error)
 }
 
 type worlds interface {
@@ -212,4 +213,8 @@ func (a *Actions) GetView(ctx context.Context, events *model.Events, player *mod
 		}
 	}
 	return nil, errs.ErrUnknownAction
+}
+
+func (a *Actions) GetByID(ctx context.Context, id string) (*model.ActionInfo, error) {
+	return a.repository.GetByID(ctx, id)
 }

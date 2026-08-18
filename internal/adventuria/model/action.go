@@ -25,6 +25,7 @@ type ActionData struct {
 	Id          string
 	Player      string
 	Cell        string
+	RootAction  string
 	Status      ActionStatus
 	Activity    string
 	Review      string
@@ -86,6 +87,14 @@ func (a *ActionInfo) Player() string {
 
 func (a *ActionInfo) Cell() string {
 	return a.data.Cell
+}
+
+func (a *ActionInfo) RootAction() string {
+	return a.data.RootAction
+}
+
+func (a *ActionInfo) SetRootAction(id string) {
+	a.data.RootAction = id
 }
 
 func (a *ActionInfo) Status() ActionStatus {

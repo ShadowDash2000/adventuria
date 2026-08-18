@@ -6,6 +6,7 @@ const (
 	ActionStatusNone            ActionStatus = "none"
 	ActionStatusStart           ActionStatus = "start"
 	ActionStatusMove            ActionStatus = "move"
+	ActionStatusEscape          ActionStatus = "escape"
 	ActionStatusRollDice        ActionStatus = "roll_dice"
 	ActionStatusDone            ActionStatus = "done"
 	ActionStatusReroll          ActionStatus = "reroll"

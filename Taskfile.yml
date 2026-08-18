@@ -4,6 +4,10 @@ tasks:
   default:
     cmd: task --list-all
 
+  serve:
+    desc: "Starts the server"
+    cmd: go run ./cmd/main.go serve
+
   migrate:
     desc: "Migrates collections"
     cmd: go run ./cmd/main.go migrate collections

@@ -2,16 +2,11 @@ package jail
 
 import (
 	"adventuria/internal/adventuria/cells"
-	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
 	"adventuria/pkg/helper"
 	"context"
 	"errors"
 )
-
-type activities interface {
-	GetRandomIDsByFilter(ctx context.Context, filter model.ActivityFilter) ([]string, error)
-}
 
 type filters interface {
 	GetByID(ctx context.Context, id string) (*model.ActivityFilterInfo, error)
@@ -24,12 +19,10 @@ const Type model.CellType = "jail"
 type CellJail struct {
 	cells.CellBase
 	activityType model.ActivityType
-	activities   activities
 	filters      filters
 }
 
 func NewDef(
-	activities activities,
 	activityFilters filters,
 	categories ...string,
 ) cells.CellDef {
@@ -39,7 +32,6 @@ func NewDef(
 			return &CellJail{
 				CellBase:     cells.NewCellBase(cell),
 				activityType: model.ActivityTypeGame,
-				activities:   activities,
 				filters:      activityFilters,
 			}
 		},
@@ -105,26 +97,6 @@ func (c *CellJail) OnCellLeft(_ context.Context, _ *model.Events, player *model.
 		player.Progress().SetIsInJail(false)
 		player.Progress().SetDropsInARow(0)
 	}
-
-	return nil
-}
-
-func (c *CellJail) RefreshItems(ctx context.Context, _ *model.Events, player *model.Player) error {
-	actionState := player.LastAction().State()
-
-	if actionState.ActivityFilter == nil {
-		return errs.ErrNoActiveActivityFilter
-	}
-
-	ids, err := c.activities.GetRandomIDsByFilter(ctx, *actionState.ActivityFilter)
-	if err != nil {
-		return err
-	}
-
-	actionState.Activities = &model.ActionActivitiesState{
-		Ids: ids,
-	}
-	player.LastAction().SetState(actionState)
 
 	return nil
 }
