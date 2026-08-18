@@ -25,7 +25,8 @@ func (r *Repository) GetActivitiesByCellIDWithStatus(
 	ctx context.Context,
 	cellId string,
 	statuses []model.ActionStatus,
-	limit int,
+	limitActivities int,
+	limitActions int,
 ) ([]*completed_activities.CompletedActivity, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 
@@ -70,7 +71,7 @@ func (r *Repository) GetActivitiesByCellIDWithStatus(
 				"last_action_at DESC",
 				actionActivity,
 			).
-			Limit(int64(limit)).
+			Limit(int64(limitActivities)).
 			Build()
 
 	var playerActivityRows []*playerActivityRow
@@ -81,6 +82,7 @@ func (r *Repository) GetActivitiesByCellIDWithStatus(
 			fmt.Sprintf("%s AS activity_cover", activityCover),
 			fmt.Sprintf("%s AS activity_cover_alt", activityCoverAlt),
 			actionStatus,
+			actionCreated,
 			fmt.Sprintf("%s AS player_id", playerId),
 			fmt.Sprintf("%s AS player_name", playerName),
 			fmt.Sprintf("%s AS player_avatar", playerAvatar),
@@ -118,6 +120,7 @@ func (r *Repository) GetActivitiesByCellIDWithStatus(
 			"selected_activities.last_action_at DESC",
 			fmt.Sprintf("%s DESC", actionCreated),
 		).
+		Limit(int64(limitActions)).
 		Bind(selectedActivitiesQuery.Params()).
 		WithContext(ctx).
 		All(&playerActivityRows)

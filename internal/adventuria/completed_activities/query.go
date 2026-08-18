@@ -6,7 +6,7 @@ import (
 )
 
 type repository interface {
-	GetActivitiesByCellIDWithStatus(ctx context.Context, cellId string, statuses []model.ActionStatus, limit int) ([]*CompletedActivity, error)
+	GetActivitiesByCellIDWithStatus(ctx context.Context, cellId string, statuses []model.ActionStatus, limitActivities, limitActions int) ([]*CompletedActivity, error)
 }
 
 type Query struct {
@@ -28,5 +28,6 @@ func (q *Query) GetCompletedActivitiesByCellID(ctx context.Context, cellId strin
 			model.ActionStatusDrop,
 		},
 		20,
+		100,
 	)
 }

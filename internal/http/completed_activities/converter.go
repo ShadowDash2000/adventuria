@@ -33,6 +33,7 @@ func completedActivityPlayerStatusToView(activityPlayerStatus *completed_activit
 	return &playerStatusView{
 		Player: completedActivityPlayerToView(activityPlayerStatus.Player),
 		Status: activityPlayerStatus.Status,
+		Date:   activityPlayerStatus.Date,
 	}
 }
 

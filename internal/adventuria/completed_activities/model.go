@@ -1,6 +1,9 @@
 package completed_activities
 
-import "adventuria/internal/adventuria/model"
+import (
+	"adventuria/internal/adventuria/model"
+	"time"
+)
 
 type CompletedActivity struct {
 	Id       string
@@ -13,6 +16,7 @@ type CompletedActivity struct {
 type CompletedActivityPlayerStatus struct {
 	Player *CompletedActivityPlayer
 	Status model.ActionStatus
+	Date   time.Time
 }
 
 type CompletedActivityPlayer struct {
