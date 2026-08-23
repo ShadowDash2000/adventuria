@@ -58,7 +58,7 @@ func BindHooks(app core.App, repo relationRepository) {
 		return pbtransaction.RunInTransaction(e.Context, e.App, func(ctx context.Context, txApp core.App) error {
 			for field, ic := range indexCollections {
 				relationIds := e.Record.GetStringSlice(field)
-				err := repo.SyncRelations(e.Context, ic.collection, ic.activityField, ic.relationField, e.Record.Id, relationIds)
+				err := repo.SyncRelations(ctx, ic.collection, ic.activityField, ic.relationField, e.Record.Id, relationIds)
 				if err != nil {
 					return err
 				}
@@ -80,7 +80,7 @@ func BindHooks(app core.App, repo relationRepository) {
 					continue
 				}
 
-				err := repo.SyncRelations(e.Context, ic.collection, ic.activityField, ic.relationField, e.Record.Id, currentSlice)
+				err := repo.SyncRelations(ctx, ic.collection, ic.activityField, ic.relationField, e.Record.Id, currentSlice)
 				if err != nil {
 					return err
 				}
@@ -92,7 +92,7 @@ func BindHooks(app core.App, repo relationRepository) {
 	app.OnRecordAfterDeleteSuccess(schema.CollectionActivities).BindFunc(func(e *core.RecordEvent) error {
 		return pbtransaction.RunInTransaction(e.Context, e.App, func(ctx context.Context, txApp core.App) error {
 			for _, ic := range indexCollections {
-				err := repo.DeleteAllRelations(e.Context, ic.collection, ic.activityField, e.Record.Id)
+				err := repo.DeleteAllRelations(ctx, ic.collection, ic.activityField, e.Record.Id)
 				if err != nil {
 					return err
 				}
