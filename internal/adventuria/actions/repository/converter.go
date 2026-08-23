@@ -22,7 +22,6 @@ func ActionToRecord(action *model.ActionInfo, record *core.Record) error {
 	record.Set(schema.ActionSchema.Review, action.Review())
 	record.Set(schema.ActionSchema.CellsPassed, action.CellsPassed())
 	record.Set(schema.ActionSchema.State, state)
-	record.Set(schema.ActionSchema.UsedItems, action.UsedItems())
 
 	return nil
 }
@@ -38,12 +37,6 @@ func RecordToAction(record *core.Record) (*model.ActionInfo, error) {
 		return nil, err
 	}
 
-	var usedItems []string
-	err = record.UnmarshalJSONField(schema.ActionSchema.UsedItems, &usedItems)
-	if err != nil {
-		return nil, err
-	}
-
 	return model.RestoreAction(model.ActionData{
 		Id:          record.Id,
 		Player:      record.GetString(schema.ActionSchema.Player),
@@ -54,6 +47,5 @@ func RecordToAction(record *core.Record) (*model.ActionInfo, error) {
 		Review:      record.GetString(schema.ActionSchema.Review),
 		CellsPassed: record.GetInt(schema.ActionSchema.CellsPassed),
 		State:       state,
-		UsedItems:   usedItems,
 	}), nil
 }

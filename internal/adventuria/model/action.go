@@ -31,7 +31,6 @@ type ActionData struct {
 	Review      string
 	CellsPassed int
 	State       ActionState
-	UsedItems   []string
 }
 
 type ActionInfo struct {
@@ -135,12 +134,4 @@ func (a *ActionInfo) State() ActionState {
 
 func (a *ActionInfo) SetState(state ActionState) {
 	a.data.State = state
-}
-
-func (a *ActionInfo) UsedItems() []string {
-	return a.data.UsedItems
-}
-
-func (a *ActionInfo) AddUsedItems(items ...string) {
-	a.data.UsedItems = append(a.data.UsedItems, items...)
 }

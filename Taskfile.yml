@@ -12,6 +12,10 @@ tasks:
     desc: "Migrates collections"
     cmd: go run ./cmd/main.go migrate collections
 
+  migrate-data:
+    desc: "Migrates data. Usage: task migrate-data <version> <data> <url>"
+    cmd: go run ./cmd/data-migrator migrate-data {{.CLI_ARGS}}
+
   create:effect:
     desc: "Generates a boilerplate code for an effect. Usage: task create:effect <effect_name>"
     cmd: go run ./cmd/generator create effect {{.CLI_ARGS}}

@@ -76,10 +76,14 @@ func (r *Repository) Update(ctx context.Context, action *model.ActionInfo) (*mod
 	return RecordToAction(&record)
 }
 
-func (r *Repository) GetLastActionByPlayerId(ctx context.Context, playerId string, timeFrom time.Time) (*model.ActionInfo, error) {
+func (r *Repository) GetLastActionByPlayerId(ctx context.Context, playerId string, timeFrom, timeTo time.Time) (*model.ActionInfo, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 
 	dateFrom, err := types.ParseDateTime(timeFrom)
+	if err != nil {
+		return nil, err
+	}
+	dateTo, err := types.ParseDateTime(timeTo)
 	if err != nil {
 		return nil, err
 	}
@@ -87,10 +91,10 @@ func (r *Repository) GetLastActionByPlayerId(ctx context.Context, playerId strin
 	var record core.Record
 	err = pb.RecordQuery(schema.CollectionActions).
 		WithContext(ctx).
-		Where(dbx.HashExp{schema.ActionSchema.Player: playerId}).
-		AndWhere(dbx.NewExp("created > {:date}", dbx.Params{
-			"date": dateFrom,
-		})).
+		Where(dbx.And(
+			dbx.HashExp{schema.ActionSchema.Player: playerId},
+			dbx.Between("created", dateFrom, dateTo),
+		)).
 		OrderBy("created DESC", "rowid DESC").
 		Limit(1).
 		One(&record)

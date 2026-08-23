@@ -49,6 +49,14 @@ func (a *ActivityFilter) Clone() ActivityFilter {
 	}
 }
 
+func (a *ActivityFilter) CloneNil() *ActivityFilter {
+	if a == nil {
+		return nil
+	}
+
+	return new(a.Clone())
+}
+
 type ActivityFilterData struct {
 	Id   string
 	Name string

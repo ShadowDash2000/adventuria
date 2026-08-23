@@ -14,7 +14,7 @@ type repository interface {
 
 type actions interface {
 	Save(ctx context.Context, action *model.ActionInfo) (*model.ActionInfo, error)
-	GetLastOrDefault(ctx context.Context, playerId string, timeFrom time.Time) (*model.ActionInfo, error)
+	GetLastOrDefault(ctx context.Context, playerId string, timeFrom, timeTo time.Time) (*model.ActionInfo, error)
 }
 
 type playerProgress interface {
@@ -75,7 +75,7 @@ func (p *Players) GetByID(ctx context.Context, playerId, seasonId string) (*mode
 		return nil, err
 	}
 
-	action, err := p.actions.GetLastOrDefault(ctx, playerId, season.SeasonDateStart())
+	action, err := p.actions.GetLastOrDefault(ctx, playerId, season.SeasonDateStart(), season.SeasonDateEnd())
 	if err != nil {
 		return nil, err
 	}
@@ -110,7 +110,7 @@ func (p *Players) GetAllBySeasonID(ctx context.Context, seasonId string) ([]*mod
 	for i, progress := range progresses {
 		playerId := progress.Player()
 
-		action, err := p.actions.GetLastOrDefault(ctx, playerId, season.SeasonDateStart())
+		action, err := p.actions.GetLastOrDefault(ctx, playerId, season.SeasonDateStart(), season.SeasonDateEnd())
 		if err != nil {
 			return nil, err
 		}

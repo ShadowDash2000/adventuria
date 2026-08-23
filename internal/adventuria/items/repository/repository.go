@@ -61,34 +61,14 @@ func (r *Repository) GetByIDs(ctx context.Context, ids []string) ([]*model.Item,
 	return RecordsToItems(records), nil
 }
 
-func (r *Repository) GetAllRollable(ctx context.Context) ([]*model.Item, error) {
+func (r *Repository) GetByFilter(ctx context.Context, filter items.Filter) ([]*model.Item, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 
 	var records []*core.Record
-	err := pb.RecordQuery(schema.CollectionItems).
-		WithContext(ctx).
-		Where(dbx.And(
-			dbx.HashExp{schema.ItemSchema.IsRollable: true},
-		)).
-		All(&records)
-	if err != nil {
-		return nil, err
-	}
-
-	return RecordsToItems(records), nil
-}
-
-func (r *Repository) GetAllRollableByType(ctx context.Context, t model.ItemType) ([]*model.Item, error) {
-	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
-
-	var records []*core.Record
-	err := pb.RecordQuery(schema.CollectionItems).
-		WithContext(ctx).
-		Where(dbx.And(
-			dbx.HashExp{schema.ItemSchema.Type: t},
-			dbx.HashExp{schema.ItemSchema.IsRollable: true},
-		)).
-		All(&records)
+	q := pb.RecordQuery(schema.CollectionItems).
+		WithContext(ctx)
+	buildQueryFromFilter(filter, q)
+	err := q.All(&records)
 	if err != nil {
 		return nil, err
 	}
@@ -113,6 +93,25 @@ func (r *Repository) GetIDsByFilter(ctx context.Context, filter items.Filter) ([
 	return ids, nil
 }
 
+func (r *Repository) GetByName(ctx context.Context, name string) (*model.Item, error) {
+	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
+
+	var record core.Record
+	err := pb.RecordQuery(schema.CollectionItems).
+		WithContext(ctx).
+		Where(dbx.HashExp{schema.ItemSchema.Name: name}).
+		Limit(1).
+		One(&record)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errs.ErrItemNotFound
+		}
+		return nil, err
+	}
+
+	return RecordToItem(&record), nil
+}
+
 func buildQueryFromFilter(filter items.Filter, q *dbx.SelectQuery) {
 	if len(filter.Ids) > 0 {
 		q.AndWhere(dbx.In(
@@ -125,6 +124,12 @@ func buildQueryFromFilter(filter items.Filter, q *dbx.SelectQuery) {
 	if filter.ItemType != "" {
 		q.AndWhere(dbx.HashExp{
 			schema.ItemSchema.Type: filter.ItemType,
+		})
+	}
+
+	if filter.Disabled != nil {
+		q.AndWhere(dbx.HashExp{
+			schema.ItemSchema.Disabled: *filter.Disabled,
 		})
 	}
 

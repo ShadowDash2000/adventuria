@@ -23,8 +23,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func migrateActionsCommand(pb core.App, reviews reviewsService) *cobra.Command {
-	migrator := newActionsMigrator(pb, reviews)
+func migrateActionsCommand(pb core.App, reviews reviewsService, items itemsService) *cobra.Command {
+	migrator := newActionsMigrator(pb, reviews, items)
 
 	return &cobra.Command{
 		Use:          "actions <base-url>",
@@ -41,21 +41,36 @@ func migrateActionsCommand(pb core.App, reviews reviewsService) *cobra.Command {
 const (
 	actionsPath    = "/api/collections/actions/records"
 	actionsPerPage = 500
+	itemsPath      = "/api/collections/items/records"
+	itemsPerPage   = 100
 )
 
 type actionsMigrator struct {
-	pb      core.App
-	reviews reviewsService
+	pb       core.App
+	itemsMap map[string]item
+	reviews  reviewsService
+	items    itemsService
 }
 
-func newActionsMigrator(pb core.App, reviews reviewsService) *actionsMigrator {
+func newActionsMigrator(pb core.App, reviews reviewsService, items itemsService) *actionsMigrator {
 	return &actionsMigrator{
 		pb:      pb,
 		reviews: reviews,
+		items:   items,
 	}
 }
 
 func (a *actionsMigrator) migrate(ctx context.Context, baseUrl string) error {
+	items, err := getAllItems(ctx, baseUrl)
+	if err != nil {
+		return err
+	}
+
+	a.itemsMap = make(map[string]item, len(items))
+	for _, item := range items {
+		a.itemsMap[item.Id] = item
+	}
+
 	res, err := getActions(ctx, baseUrl, 1, actionsPerPage)
 	if err != nil {
 		return err
@@ -90,15 +105,16 @@ type getActionsQuery struct {
 }
 
 type action struct {
-	Id       string         `json:"id"`
-	Created  types.DateTime `json:"created"`
-	Updated  types.DateTime `json:"updated"`
-	User     string         `json:"user"`
-	Cell     string         `json:"cell"`
-	Type     string         `json:"type"`
-	Activity string         `json:"activity"`
-	Comment  string         `json:"comment"`
-	DiceRoll int            `json:"diceRoll"`
+	Id        string         `json:"id"`
+	Created   types.DateTime `json:"created"`
+	Updated   types.DateTime `json:"updated"`
+	User      string         `json:"user"`
+	Cell      string         `json:"cell"`
+	Type      string         `json:"type"`
+	Activity  string         `json:"activity"`
+	Comment   string         `json:"comment"`
+	DiceRoll  int            `json:"diceRoll"`
+	UsedItems []string       `json:"used_items"`
 
 	Expand actionExpand `json:"expand"`
 }
@@ -217,6 +233,15 @@ func (a *actionsMigrator) saveAction(ctx context.Context, action action) error {
 		newAction.SetReview(review.ID())
 	}
 
+	usedItemsState, err := a.oldItemsIDsToState(ctx, action.UsedItems)
+	if err != nil {
+		return err
+	}
+
+	newActionState := newAction.State()
+	newActionState.UsedItems = usedItemsState
+	newAction.SetState(newActionState)
+
 	newAction.SetActivity(action.Activity)
 	newAction.SetCellsPassed(action.DiceRoll)
 
@@ -235,6 +260,27 @@ func (a *actionsMigrator) saveAction(ctx context.Context, action action) error {
 	record.SetRaw("updated", action.Updated)
 
 	return pb.Save(record)
+}
+
+func (a *actionsMigrator) oldItemsIDsToState(ctx context.Context, oldIDs []string) (model.ActionUsedItemsState, error) {
+	var res model.ActionUsedItemsState
+	for _, oldID := range oldIDs {
+		oldItem, ok := a.itemsMap[oldID]
+		if !ok {
+			return nil, fmt.Errorf("item with id %s not found", oldID)
+		}
+
+		item, err := a.items.GetByName(ctx, oldItem.Name)
+		if err != nil {
+			return nil, err
+		}
+
+		res = append(res, model.ActionUsedItemState{
+			Id: item.ID(),
+		})
+	}
+
+	return res, nil
 }
 
 var actionTypeToActionStatus = map[string]model.ActionStatus{
@@ -275,4 +321,88 @@ func getPlayerIdByName(pb core.App, name string) (string, error) {
 	}
 
 	return id, nil
+}
+
+type getItemsQuery struct {
+	Page    int    `url:"page"`
+	PerPage int    `url:"perPage"`
+	Fields  string `url:"fields,omitempty"`
+}
+
+type item struct {
+	Id   string `json:"id"`
+	Name string `json:"name"`
+}
+
+type getItemsResponse struct {
+	Items      []item `json:"items"`
+	Page       int    `json:"page"`
+	PerPage    int    `json:"perPage"`
+	TotalItems int    `json:"totalItems"`
+	TotalPages int    `json:"totalPages"`
+}
+
+func getItems(ctx context.Context, baseUrl string, page, perPage int) (*getItemsResponse, error) {
+	q, err := query.Values(getItemsQuery{
+		Page:    page,
+		PerPage: perPage,
+		Fields:  "id,name",
+	})
+	if err != nil {
+		return nil, fmt.Errorf("encode items query: %w", err)
+	}
+
+	requestUrl, err := url.JoinPath(baseUrl, itemsPath)
+	if err != nil {
+		return nil, fmt.Errorf("build items URL: %w", err)
+	}
+
+	parsedUrl, err := url.Parse(requestUrl)
+	if err != nil {
+		return nil, fmt.Errorf("parse items URL: %w", err)
+	}
+	parsedUrl.RawQuery = q.Encode()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, parsedUrl.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("request items: %w", err)
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode < http.StatusOK || res.StatusCode >= http.StatusMultipleChoices {
+		return nil, fmt.Errorf("request items: unexpected HTTP status %s", res.Status)
+	}
+
+	var itemsResponse getItemsResponse
+	if err = json.NewDecoder(res.Body).Decode(&itemsResponse); err != nil {
+		return nil, fmt.Errorf("decode items response: %w", err)
+	}
+
+	return &itemsResponse, nil
+}
+
+func getAllItems(ctx context.Context, baseUrl string) ([]item, error) {
+	res, err := getItems(ctx, baseUrl, 1, itemsPerPage)
+	if err != nil {
+		return nil, err
+	}
+
+	var items []item
+	items = append(items, res.Items...)
+
+	for page := 2; page <= res.TotalPages; page++ {
+		res, err := getItems(ctx, baseUrl, page, itemsPerPage)
+		if err != nil {
+			return nil, err
+		}
+
+		items = append(items, res.Items...)
+	}
+
+	return items, nil
 }

@@ -2,6 +2,7 @@ package model
 
 type ActionState struct {
 	Activities     *ActionActivitiesState
+	UsedItems      ActionUsedItemsState
 	ActivityFilter *ActivityFilter
 	Items          *ActionItemsState
 	Shop           *ActionShopState
@@ -12,7 +13,8 @@ type ActionState struct {
 func (a ActionState) Clone() ActionState {
 	return ActionState{
 		Activities:     a.Activities.Clone(),
-		ActivityFilter: new(a.ActivityFilter.Clone()),
+		UsedItems:      a.UsedItems.Clone(),
+		ActivityFilter: a.ActivityFilter.CloneNil(),
 		Items:          a.Items.Clone(),
 		Shop:           a.Shop.Clone(),
 		ShopFilter:     a.ShopFilter.Clone(),

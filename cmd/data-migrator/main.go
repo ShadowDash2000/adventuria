@@ -19,7 +19,7 @@ func main() {
 
 	registry := adventuria.NewRegistry(pb, pb.Logger())
 	command.AddCommand(v1.NewV1MigratorCommand(pb, registry.Activities(), registry.Cells(), registry.Reviews()))
-	command.AddCommand(v2.NewV2MigratorCommand(pb, registry.Reviews()))
+	command.AddCommand(v2.NewV2MigratorCommand(pb, registry.Reviews(), registry.Items()))
 
 	pb.RootCmd.AddCommand(command)
 

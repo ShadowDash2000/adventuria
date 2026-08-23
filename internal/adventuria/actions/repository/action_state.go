@@ -9,6 +9,7 @@ import (
 
 type actionState struct {
 	Activities     *activitiesState     `json:"activities,omitempty"`
+	UsedItems      usedItemsState       `json:"used_items,omitempty"`
 	ActivityFilter *activityFilterState `json:"activity_filter,omitempty"`
 	Items          *itemsState          `json:"items,omitempty"`
 	Shop           *shopState           `json:"shop,omitempty"`
@@ -18,6 +19,12 @@ type actionState struct {
 
 type activitiesState struct {
 	Ids []string `json:"ids"`
+}
+
+type usedItemsState []usedItemState
+
+type usedItemState struct {
+	Id string `json:"id"`
 }
 
 type activityFilterState struct {
@@ -74,6 +81,7 @@ func actionStateToDTO(state model.ActionState) (actionState, error) {
 
 	return actionState{
 		Activities:     activitiesStateToDTO(state.Activities),
+		UsedItems:      usedItemsStateToDTO(state.UsedItems),
 		ActivityFilter: activityFilterStateToDTO(state.ActivityFilter),
 		Items:          itemsStateToDTO(state.Items),
 		Shop:           shopStateToDTO(state.Shop),
@@ -90,6 +98,7 @@ func actionStateFromDTO(dto actionState) (model.ActionState, error) {
 
 	return model.ActionState{
 		Activities:     activitiesStateFromDTO(dto.Activities),
+		UsedItems:      usedItemsStateFromDTO(dto.UsedItems),
 		ActivityFilter: activityFilterStateFromDTO(dto.ActivityFilter),
 		Items:          itemsStateFromDTO(dto.Items),
 		Shop:           shopStateFromDTO(dto.Shop),
@@ -115,6 +124,48 @@ func activitiesStateFromDTO(dto *activitiesState) *model.ActionActivitiesState {
 
 	return &model.ActionActivitiesState{
 		Ids: dto.Ids,
+	}
+}
+
+func usedItemsStateToDTO(state model.ActionUsedItemsState) usedItemsState {
+	if state == nil {
+		return nil
+	}
+
+	res := make([]usedItemState, len(state))
+	for i, item := range state {
+		res[i] = usedItemState{
+			Id: item.Id,
+		}
+	}
+
+	return res
+}
+
+func usedItemStateToDTO(state model.ActionUsedItemState) usedItemState {
+	return usedItemState{
+		Id: state.Id,
+	}
+}
+
+func usedItemsStateFromDTO(dto usedItemsState) model.ActionUsedItemsState {
+	if dto == nil {
+		return nil
+	}
+
+	res := make([]model.ActionUsedItemState, len(dto))
+	for i, item := range dto {
+		res[i] = model.ActionUsedItemState{
+			Id: item.Id,
+		}
+	}
+
+	return res
+}
+
+func usedItemStateFromDTO(dto usedItemState) model.ActionUsedItemState {
+	return model.ActionUsedItemState{
+		Id: dto.Id,
 	}
 }
 

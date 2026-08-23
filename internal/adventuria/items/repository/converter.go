@@ -10,6 +10,7 @@ import (
 func RecordToItem(record *core.Record) *model.Item {
 	return model.RestoreItem(model.ItemData{
 		Id:                record.Id,
+		Disabled:          record.GetBool(schema.ItemSchema.Disabled),
 		Name:              record.GetString(schema.ItemSchema.Name),
 		Icon:              record.GetString(schema.ItemSchema.Icon),
 		Effects:           record.GetStringSlice(schema.ItemSchema.Effects),

@@ -81,6 +81,10 @@ func (c *CoinsForAll) Subscribe(
 					ProgressId: p.ID(),
 					Amount:     effectValue.CoinsForOther,
 				})
+				if err != nil {
+					return err
+				}
+
 				outbox, err := model.NewOutbox(model.OutBoxCreate{
 					Type:    change_balance.Type,
 					Payload: string(payload),

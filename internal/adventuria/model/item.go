@@ -2,6 +2,7 @@ package model
 
 type ItemData struct {
 	Id                string
+	Disabled          bool
 	Name              string
 	Icon              string
 	Effects           []string
@@ -24,6 +25,10 @@ func RestoreItem(data ItemData) *Item {
 
 func (i *Item) ID() string {
 	return i.data.Id
+}
+
+func (i *Item) Disabled() bool {
+	return i.data.Disabled
 }
 
 func (i *Item) Name() string {

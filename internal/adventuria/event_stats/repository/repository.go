@@ -4,7 +4,6 @@ import (
 	"adventuria/internal/adventuria/event_stats"
 	"adventuria/internal/adventuria/model"
 	"adventuria/internal/adventuria/schema"
-	"adventuria/pkg/pbhelper"
 	"adventuria/pkg/pbtransaction"
 	"context"
 	"fmt"
@@ -127,14 +126,14 @@ func (r *Repository) ComputeStats(ctx context.Context, seasonId string) (*event_
 		})
 	}
 
-	cellsVisitsStats, err := r.getCellsVisitsStats(ctx, season.SeasonDateStart())
+	cellsVisitsStats, err := r.getCellsVisitsStats(ctx, season.SeasonDateStart(), season.SeasonDateEnd())
 	if err != nil {
 		return nil, err
 	}
 
 	stats.MostVisitedCells = cellsVisitsStats
 
-	usedItemsStats, err := r.getUsedItemsStats(ctx, season.SeasonDateStart())
+	usedItemsStats, err := r.getUsedItemsStats(ctx, season.SeasonDateStart(), season.SeasonDateEnd())
 	if err != nil {
 		return nil, err
 	}
@@ -190,10 +189,14 @@ func getReversedStatsTail(stats []event_stats.EventStatEntry, limit int) []event
 	return res
 }
 
-func (r *Repository) getUsedItemsStats(ctx context.Context, timeFrom time.Time) ([]event_stats.EventStatEntry, error) {
+func (r *Repository) getUsedItemsStats(ctx context.Context, timeFrom, timeTo time.Time) ([]event_stats.EventStatEntry, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 
 	dateFrom, err := types.ParseDateTime(timeFrom)
+	if err != nil {
+		return nil, err
+	}
+	dateTo, err := types.ParseDateTime(timeTo)
 	if err != nil {
 		return nil, err
 	}
@@ -204,21 +207,21 @@ func (r *Repository) getUsedItemsStats(ctx context.Context, timeFrom time.Time) 
 	}
 
 	var itemsStats []itemStatEntry
-	err = pb.DB().NewQuery(fmt.Sprintf(`
-		SELECT items.value as "item_id", COUNT(*) as "count"
-		FROM %[1]s as actions
-		CROSS JOIN json_each(actions.%[2]s) as items
-		WHERE actions.%[2]s IS NOT NULL
-			AND actions.%[2]s != '[]'
-			AND actions.%[2]s != 'null'
-			AND actions.created > {:date}
-		GROUP BY items.value
-		`,
-		schema.CollectionActions,
-		schema.ActionSchema.UsedItems,
-	)).Bind(dbx.Params{
-		"date": dateFrom,
-	}).WithContext(ctx).All(&itemsStats)
+	err = pb.DB().
+		Select(
+			"json_extract(item.value, '$.id') as item_id",
+			"COUNT(*) as count",
+		).
+		From(
+			schema.CollectionActions,
+			fmt.Sprintf("json_each(%s, '$.used_items') as item", schema.ActionSchema.State),
+		).
+		Where(
+			dbx.Between("created", dateFrom, dateTo),
+		).
+		GroupBy("item_id").
+		WithContext(ctx).
+		All(&itemsStats)
 	if err != nil {
 		return nil, err
 	}
@@ -252,10 +255,14 @@ func (r *Repository) getUsedItemsStats(ctx context.Context, timeFrom time.Time) 
 	return res, nil
 }
 
-func (r *Repository) getCellsVisitsStats(ctx context.Context, timeFrom time.Time) ([]event_stats.EventStatEntry, error) {
+func (r *Repository) getCellsVisitsStats(ctx context.Context, timeFrom, timeTo time.Time) ([]event_stats.EventStatEntry, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 
 	dateFrom, err := types.ParseDateTime(timeFrom)
+	if err != nil {
+		return nil, err
+	}
+	dateTo, err := types.ParseDateTime(timeTo)
 	if err != nil {
 		return nil, err
 	}
@@ -266,28 +273,27 @@ func (r *Repository) getCellsVisitsStats(ctx context.Context, timeFrom time.Time
 	}
 
 	var cellVisitsStats []cellVisitStatEntry
-	err = pb.DB().NewQuery(fmt.Sprintf(`
-		SELECT actions.%[2]s as "cell_id", COUNT(*) as "count"
-		FROM %[1]s as actions
-		WHERE actions.%[3]s IN (%[4]s)
-			AND actions.created > {:date}
-		GROUP BY actions.%[2]s
-		`,
-		schema.CollectionActions,
-		schema.ActionSchema.Cell,
-		schema.ActionSchema.Status,
-		pbhelper.SliceToSqlString([]model.ActionStatus{
-			model.ActionStatusDone,
-			model.ActionStatusDrop,
-			model.ActionStatusRollDice,
-			model.ActionStatusRollWheel,
-			model.ActionStatusMove,
-			model.ActionStatusRollItemOnCell,
-			// TODO return model.ActionStatusTeleport?
-		}),
-	)).Bind(dbx.Params{
-		"date": dateFrom,
-	}).WithContext(ctx).All(&cellVisitsStats)
+	err = pb.DB().
+		Select(
+			schema.ActionSchema.Cell+" as cell_id",
+			"COUNT(*) as count",
+		).
+		From(schema.CollectionActions).
+		Where(dbx.And(
+			dbx.Between("created", dateFrom, dateTo),
+			dbx.In(schema.ActionSchema.Status, []any{
+				model.ActionStatusDone,
+				model.ActionStatusDrop,
+				model.ActionStatusRollDice,
+				model.ActionStatusRollWheel,
+				model.ActionStatusMove,
+				model.ActionStatusRollItemOnCell,
+				// TODO return model.ActionStatusTeleport?
+			}...),
+		)).
+		GroupBy(schema.ActionSchema.Cell).
+		WithContext(ctx).
+		All(&cellVisitsStats)
 	if err != nil {
 		return nil, err
 	}

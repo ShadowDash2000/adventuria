@@ -201,6 +201,10 @@ var (
 		Code:    "no_active_activity_filter",
 		Message: "No active activity filter",
 	}
+	ErrNoActiveItems = &AppError{
+		Code:    "no_active_items",
+		Message: "No active items",
+	}
 	ErrNoActiveShop = &AppError{
 		Code:    "no_active_shop",
 		Message: "No active shop",

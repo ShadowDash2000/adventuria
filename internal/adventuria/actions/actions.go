@@ -11,7 +11,7 @@ import (
 type repository interface {
 	Create(ctx context.Context, action *model.ActionInfo) (*model.ActionInfo, error)
 	Update(ctx context.Context, action *model.ActionInfo) (*model.ActionInfo, error)
-	GetLastActionByPlayerId(ctx context.Context, playerId string, timeFrom time.Time) (*model.ActionInfo, error)
+	GetLastActionByPlayerId(ctx context.Context, playerId string, timeFrom, timeTo time.Time) (*model.ActionInfo, error)
 	GetByID(ctx context.Context, id string) (*model.ActionInfo, error)
 }
 
@@ -51,8 +51,8 @@ func (a *Actions) Save(ctx context.Context, action *model.ActionInfo) (*model.Ac
 	return a.repository.Update(ctx, action)
 }
 
-func (a *Actions) GetLastOrDefault(ctx context.Context, playerId string, timeFrom time.Time) (*model.ActionInfo, error) {
-	action, err := a.repository.GetLastActionByPlayerId(ctx, playerId, timeFrom)
+func (a *Actions) GetLastOrDefault(ctx context.Context, playerId string, timeFrom, timeTo time.Time) (*model.ActionInfo, error) {
+	action, err := a.repository.GetLastActionByPlayerId(ctx, playerId, timeFrom, timeTo)
 	if err == nil {
 		return action, nil
 	} else if !errors.Is(err, errs.ErrActionNotFound) {

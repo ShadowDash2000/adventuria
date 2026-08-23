@@ -17,6 +17,7 @@ const (
 	CollectionsOutbox            = "outbox"
 	CollectionActionEvents       = "action_events"
 	CollectionCellEventsSchedule = "cell_events_schedule"
+	CollectionPlayerEvents       = "player_events"
 
 	CollectionActivities     = "activities"
 	CollectionCompanies      = "companies"
@@ -118,7 +119,6 @@ var ActionSchema = struct {
 	Review      string
 	CellsPassed string
 	State       string
-	UsedItems   string
 }{
 	Id:          "id",
 	Player:      "player",
@@ -129,7 +129,6 @@ var ActionSchema = struct {
 	Review:      "review",
 	CellsPassed: "cells_passed",
 	State:       "state",
-	UsedItems:   "used_items",
 }
 
 var ActivitySchema = struct {
@@ -208,6 +207,7 @@ var InventorySchema = struct {
 
 var ItemSchema = struct {
 	Id                string
+	Disabled          string
 	Name              string
 	Icon              string
 	Effects           string
@@ -221,6 +221,7 @@ var ItemSchema = struct {
 	Price             string
 }{
 	Id:                "id",
+	Disabled:          "disabled",
 	Name:              "name",
 	Icon:              "icon",
 	Effects:           "effects",
@@ -652,4 +653,20 @@ var ReviewsFilesSchema = struct {
 }{
 	Id:   "id",
 	File: "file",
+}
+
+var PlayerEventsSchema = struct {
+	Id      string
+	Player  string
+	Season  string
+	Type    string
+	Action  string
+	Payload string
+}{
+	Id:      "id",
+	Player:  "player",
+	Season:  "season",
+	Type:    "type",
+	Action:  "action",
+	Payload: "payload",
 }
