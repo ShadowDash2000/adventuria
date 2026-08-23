@@ -6,7 +6,7 @@ import (
 	"adventuria/pkg/levenshtein"
 	"adventuria/pkg/mathhelper"
 	"context"
-	"errors"
+	"fmt"
 	"math"
 	"sort"
 	"strings"
@@ -87,7 +87,7 @@ func (h *HowLongToBeat) GetByNameAndYear(ctx context.Context, name string, year 
 	normalizedName := activities.NormalizeTitle(name)
 	parts := strings.Fields(normalizedName)
 	if len(parts) == 0 {
-		return nil, errors.New("game name is empty")
+		return nil, fmt.Errorf("game name is empty after normalization: %s", normalizedName)
 	}
 
 	hltbs, err := h.repository.GetByNamePartsAndYear(ctx, parts, year)
