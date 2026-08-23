@@ -7,12 +7,12 @@ import (
 )
 
 var (
-	regParens = regexp.MustCompile(`\s*[(\[{].*?[)\]}]\s*`)
+	regParens = regexp.MustCompile(`\s*(\(.*?\)|\[.*?]|{.*?})\s*`)
 	regSpaces = regexp.MustCompile(`\s+`)
 )
 
-func NormalizeTitle(s string) string {
-	s = strings.TrimSpace(s)
+func NormalizeTitle(title string) string {
+	s := strings.TrimSpace(title)
 	if s == "" {
 		return s
 	}
@@ -33,5 +33,12 @@ func NormalizeTitle(s string) string {
 	}, s)
 
 	s = regSpaces.ReplaceAllString(s, " ")
-	return strings.TrimSpace(s)
+
+	s = strings.TrimSpace(s)
+
+	if s == "" {
+		return strings.ToLower(title)
+	}
+
+	return s
 }

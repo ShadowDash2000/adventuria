@@ -87,7 +87,7 @@ func (h *HowLongToBeat) GetByNameAndYear(ctx context.Context, name string, year 
 	normalizedName := activities.NormalizeTitle(name)
 	parts := strings.Fields(normalizedName)
 	if len(parts) == 0 {
-		return nil, fmt.Errorf("game name is empty after normalization: %s", normalizedName)
+		return nil, fmt.Errorf("game name is empty after normalization, before: %s, after: %s", name, normalizedName)
 	}
 
 	hltbs, err := h.repository.GetByNamePartsAndYear(ctx, parts, year)
