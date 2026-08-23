@@ -68,7 +68,7 @@ func (s *Settings) IsNew() bool {
 	return s.isNew
 }
 
-func (s *Settings) Id() string {
+func (s *Settings) ID() string {
 	return s.data.Id
 }
 

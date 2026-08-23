@@ -6,7 +6,7 @@ require (
 	git.nite07.com/shadod/go-igdb v1.0.3
 	github.com/ShadowDash2000/howlongtobeat v1.1.13
 	github.com/ShadowDash2000/is-stream-live v0.4.1
-	github.com/ShadowDash2000/steam-store-go v1.0.1
+	github.com/ShadowDash2000/steam-store-go v1.0.2
 	github.com/google/go-querystring v1.2.0
 	github.com/joho/godotenv v1.5.1
 	github.com/pocketbase/dbx v1.12.0

@@ -13,7 +13,7 @@ type repository interface {
 	IsActionsBlocked(ctx context.Context) (bool, error)
 	CurrentSeason(ctx context.Context) (string, error)
 	IsEventEnded(ctx context.Context) (bool, error)
-	UpdateIGDBGamesParsedByID(ctx context.Context, id string, amount int) error
+	ChangeIGDBGamesParsedByID(ctx context.Context, id string, amount int) error
 }
 
 type seasons interface {
@@ -88,6 +88,6 @@ func (s *Settings) IsEventEnded(ctx context.Context) (bool, error) {
 	return s.repository.IsEventEnded(ctx)
 }
 
-func (s *Settings) UpdateIGDBGamesParsedByID(ctx context.Context, id string, amount int) error {
-	return s.repository.UpdateIGDBGamesParsedByID(ctx, id, amount)
+func (s *Settings) ChangeIGDBGamesParsedByID(ctx context.Context, id string, amount int) error {
+	return s.repository.ChangeIGDBGamesParsedByID(ctx, id, amount)
 }

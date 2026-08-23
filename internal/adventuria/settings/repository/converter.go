@@ -8,7 +8,7 @@ import (
 )
 
 func SettingsToRecord(settings *model.Settings, record *core.Record) {
-	record.Id = settings.Id()
+	record.Id = settings.ID()
 	record.Set(schema.SettingsSchema.EventEnded, settings.EventEnded())
 	record.Set(schema.SettingsSchema.CurrentSeason, settings.CurrentSeason())
 	record.Set(schema.SettingsSchema.CurrentWeek, settings.CurrentWeek())

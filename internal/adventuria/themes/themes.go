@@ -11,7 +11,6 @@ type repository interface {
 	Create(ctx context.Context, theme *model.Theme) (*model.Theme, error)
 	Update(ctx context.Context, theme *model.Theme) (*model.Theme, error)
 	GetByIdDb(ctx context.Context, idDb string) (*model.Theme, error)
-	GetChecksumsByIDs(ctx context.Context, ids []string) (map[string]string, error)
 }
 
 type Themes struct {
@@ -34,10 +33,6 @@ func (t *Themes) GetOrCreate(ctx context.Context, data model.ThemeCreate) (*mode
 	}
 
 	return theme, nil
-}
-
-func (t *Themes) GetChecksumsByIDs(ctx context.Context, ids []string) (map[string]string, error) {
-	return t.repository.GetChecksumsByIDs(ctx, ids)
 }
 
 func (t *Themes) Save(ctx context.Context, theme *model.Theme) (*model.Theme, error) {

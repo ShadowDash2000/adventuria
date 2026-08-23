@@ -11,7 +11,6 @@ type repository interface {
 	Create(ctx context.Context, company *model.Company) (*model.Company, error)
 	Update(ctx context.Context, company *model.Company) (*model.Company, error)
 	GetByIdDb(ctx context.Context, idDb string) (*model.Company, error)
-	GetChecksumsByIDs(ctx context.Context, ids []string) (map[string]string, error)
 }
 
 type Companies struct {
@@ -34,10 +33,6 @@ func (c *Companies) GetOrCreate(ctx context.Context, data model.CompanyCreate) (
 	}
 
 	return company, nil
-}
-
-func (c *Companies) GetChecksumsByIDs(ctx context.Context, ids []string) (map[string]string, error) {
-	return c.repository.GetChecksumsByIDs(ctx, ids)
 }
 
 func (c *Companies) Save(ctx context.Context, company *model.Company) (*model.Company, error) {

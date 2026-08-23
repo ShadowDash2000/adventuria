@@ -632,7 +632,7 @@ func (r *Registry) HLTB() *how_long_to_beat.HowLongToBeat {
 
 func (r *Registry) SteamSpy() *steam_spy.SteamSpy {
 	if r.steamSpy == nil {
-		r.steamSpy = steam_spy.NewSteamSpy(r.SteamSpyRepo(), r.SteamSpyRemoteRepo())
+		r.steamSpy = steam_spy.NewSteamSpy(r.logger, r.SteamSpyRepo(), r.SteamSpyRemoteRepo())
 	}
 	return r.steamSpy
 }

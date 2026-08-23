@@ -12,7 +12,6 @@ type repository interface {
 	Update(ctx context.Context, genre *model.Genre) (*model.Genre, error)
 	Exists(ctx context.Context, id string) (bool, error)
 	GetByIdDb(ctx context.Context, idDb string) (*model.Genre, error)
-	GetChecksumsByIDs(ctx context.Context, ids []string) (map[string]string, error)
 }
 
 type Genres struct {
@@ -37,10 +36,6 @@ func (g *Genres) GetOrCreate(ctx context.Context, data model.GenreCreate) (*mode
 	}
 
 	return genre, nil
-}
-
-func (g *Genres) GetChecksumsByIDs(ctx context.Context, ids []string) (map[string]string, error) {
-	return g.repository.GetChecksumsByIDs(ctx, ids)
 }
 
 func (g *Genres) Save(ctx context.Context, genre *model.Genre) (*model.Genre, error) {

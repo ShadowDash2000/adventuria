@@ -11,7 +11,6 @@ type repository interface {
 	Create(ctx context.Context, gameType *model.GameType) (*model.GameType, error)
 	Update(ctx context.Context, gameType *model.GameType) (*model.GameType, error)
 	GetByIdDb(ctx context.Context, idDb string) (*model.GameType, error)
-	GetChecksumsByIDs(ctx context.Context, ids []string) (map[string]string, error)
 }
 
 type GameTypes struct {
@@ -34,10 +33,6 @@ func (t *GameTypes) GetOrCreate(ctx context.Context, data model.GameTypeCreate) 
 	}
 
 	return gameType, nil
-}
-
-func (t *GameTypes) GetChecksumsByIDs(ctx context.Context, ids []string) (map[string]string, error) {
-	return t.repository.GetChecksumsByIDs(ctx, ids)
 }
 
 func (t *GameTypes) Save(ctx context.Context, gameType *model.GameType) (*model.GameType, error) {

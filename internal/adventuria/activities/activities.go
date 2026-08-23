@@ -21,7 +21,6 @@ type repository interface {
 	GetAverageCampaignTimeByFilter(ctx context.Context, filter model.ActivityFilter) (float64, error)
 	GetByID(ctx context.Context, id string) (*model.Activity, error)
 	GetByIDs(ctx context.Context, ids []string) ([]*model.Activity, error)
-	GetChecksumsByIDs(ctx context.Context, ids []string) (map[string]string, error)
 	GetByName(ctx context.Context, name string) (*model.Activity, error)
 	GetByNameParts(ctx context.Context, nameParts []string) ([]*model.Activity, error)
 }
@@ -102,10 +101,6 @@ func (a *Activities) GetByID(ctx context.Context, id string) (*model.Activity, e
 
 func (a *Activities) GetByIDs(ctx context.Context, ids []string) ([]*model.Activity, error) {
 	return a.repository.GetByIDs(ctx, ids)
-}
-
-func (a *Activities) GetChecksumsByIDs(ctx context.Context, ids []string) (map[string]string, error) {
-	return a.repository.GetChecksumsByIDs(ctx, ids)
 }
 
 func (a *Activities) GetAverageCampaignTimeByFilter(ctx context.Context, filter model.ActivityFilter) (float64, error) {

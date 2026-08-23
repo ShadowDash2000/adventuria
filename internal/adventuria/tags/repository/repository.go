@@ -4,7 +4,6 @@ import (
 	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
 	"adventuria/internal/adventuria/schema"
-	"adventuria/pkg/pbhelper"
 	"adventuria/pkg/pbtransaction"
 	"context"
 	"database/sql"
@@ -41,33 +40,6 @@ func (r *Repository) GetByIdDb(ctx context.Context, idDb string) (*model.Tag, er
 	}
 
 	return RecordToTag(&record), nil
-}
-
-func (r *Repository) GetChecksumsByIDs(ctx context.Context, ids []string) (map[string]string, error) {
-	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
-
-	var records []*core.Record
-	err := pb.RecordQuery(schema.CollectionTags).
-		WithContext(ctx).
-		Select(
-			schema.TagSchema.Id,
-			schema.TagSchema.Checksum,
-		).
-		Where(dbx.In(
-			schema.TagSchema.Id,
-			pbhelper.SliceToAny(ids)...,
-		)).
-		All(&records)
-	if err != nil {
-		return nil, err
-	}
-
-	checksums := make(map[string]string, len(records))
-	for _, record := range records {
-		checksums[record.Id] = record.GetString(schema.TagSchema.Checksum)
-	}
-
-	return checksums, nil
 }
 
 func (r *Repository) Create(ctx context.Context, tag *model.Tag) (*model.Tag, error) {

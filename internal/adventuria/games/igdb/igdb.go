@@ -27,43 +27,36 @@ type remoteRepository interface {
 
 type activities interface {
 	GetOrCreate(ctx context.Context, data model.ActivityCreate) (*model.Activity, error)
-	GetChecksumsByIDs(ctx context.Context, ids []string) (map[string]string, error)
 	Save(ctx context.Context, activity *model.Activity) (*model.Activity, error)
 }
 
 type platforms interface {
 	GetOrCreate(ctx context.Context, data model.PlatformCreate) (*model.Platform, error)
-	GetChecksumsByIDs(ctx context.Context, ids []string) (map[string]string, error)
 	Save(ctx context.Context, platform *model.Platform) (*model.Platform, error)
 }
 
 type companies interface {
 	GetOrCreate(ctx context.Context, data model.CompanyCreate) (*model.Company, error)
-	GetChecksumsByIDs(ctx context.Context, ids []string) (map[string]string, error)
 	Save(ctx context.Context, company *model.Company) (*model.Company, error)
 }
 
 type tags interface {
 	GetOrCreate(ctx context.Context, data model.TagCreate) (*model.Tag, error)
-	GetChecksumsByIDs(ctx context.Context, ids []string) (map[string]string, error)
 	Save(ctx context.Context, tag *model.Tag) (*model.Tag, error)
 }
 
 type themes interface {
 	GetOrCreate(ctx context.Context, data model.ThemeCreate) (*model.Theme, error)
-	GetChecksumsByIDs(ctx context.Context, ids []string) (map[string]string, error)
 	Save(ctx context.Context, theme *model.Theme) (*model.Theme, error)
 }
 
 type genres interface {
 	GetOrCreate(ctx context.Context, data model.GenreCreate) (*model.Genre, error)
-	GetChecksumsByIDs(ctx context.Context, ids []string) (map[string]string, error)
 	Save(ctx context.Context, genre *model.Genre) (*model.Genre, error)
 }
 
 type gameTypes interface {
 	GetOrCreate(ctx context.Context, data model.GameTypeCreate) (*model.GameType, error)
-	GetChecksumsByIDs(ctx context.Context, ids []string) (map[string]string, error)
 	Save(ctx context.Context, gameType *model.GameType) (*model.GameType, error)
 }
 
@@ -81,7 +74,7 @@ type cheapShark interface {
 
 type settings interface {
 	GetFirst(ctx context.Context) (*model.Settings, error)
-	UpdateIGDBGamesParsedByID(ctx context.Context, id string, amount int) error
+	ChangeIGDBGamesParsedByID(ctx context.Context, id string, amount int) error
 }
 
 type IGDB struct {
@@ -172,9 +165,8 @@ func (i *IGDB) ParseGames(ctx context.Context, filter string, limit uint64) erro
 			return err
 		}
 
-		res := make([]*model.Activity, len(msg.Games))
-		idsToCheck := make([]string, 0, len(msg.Games))
-		for j, game := range msg.Games {
+		res := make([]*model.Activity, 0, len(msg.Games))
+		for _, game := range msg.Games {
 			activity, err := i.activities.GetOrCreate(ctx, model.ActivityCreate{
 				IdDb:     game.Id,
 				Type:     model.ActivityTypeGame,
@@ -183,6 +175,10 @@ func (i *IGDB) ParseGames(ctx context.Context, filter string, limit uint64) erro
 			})
 			if err != nil {
 				return err
+			}
+
+			if !activity.IsNew() && activity.Checksum() == game.Checksum {
+				continue
 			}
 
 			gameTypeLocalId, err := i.repository.TableReferenceToID(ctx, TableReferenceSingle{
@@ -289,28 +285,19 @@ func (i *IGDB) ParseGames(ctx context.Context, filter string, limit uint64) erro
 			activity.SetTags(tagLocalIds)
 			activity.SetThemes(themeLocalIds)
 
-			res[j] = activity
-
-			if !activity.IsNew() {
-				idsToCheck = append(idsToCheck, activity.ID())
-			}
-		}
-
-		checksums, err := i.activities.GetChecksumsByIDs(ctx, idsToCheck)
-		if err != nil {
-			return err
+			res = append(res, activity)
 		}
 
 		for _, activity := range res {
-			checksum, ok := checksums[activity.ID()]
-			if ok && activity.Checksum() == checksum {
-				continue
-			}
-
 			_, err = i.activities.Save(ctx, activity)
 			if err != nil {
 				return err
 			}
+		}
+
+		err = i.settings.ChangeIGDBGamesParsedByID(ctx, settings.ID(), len(msg.Games))
+		if err != nil {
+			return err
 		}
 	}
 
@@ -358,9 +345,8 @@ func (i *IGDB) saveCompaniesFromGames(ctx context.Context, games []*Game) error 
 		return err
 	}
 
-	res := make([]*model.Company, len(companies))
-	idsToCheck := make([]string, 0, len(companies))
-	for j, company := range companies {
+	res := make([]*model.Company, 0, len(companies))
+	for _, company := range companies {
 		c, err := i.companies.GetOrCreate(ctx, model.CompanyCreate{
 			IdDb:     company.Id,
 			Name:     company.Name,
@@ -370,27 +356,17 @@ func (i *IGDB) saveCompaniesFromGames(ctx context.Context, games []*Game) error 
 			return err
 		}
 
-		c.SetName(company.Name)
-		c.SetChecksum(company.Checksum)
-
-		res[j] = c
-
-		if !c.IsNew() {
-			idsToCheck = append(idsToCheck, c.ID())
-		}
-	}
-
-	checksums, err := i.companies.GetChecksumsByIDs(ctx, idsToCheck)
-	if err != nil {
-		return err
-	}
-
-	for _, company := range res {
-		checksum, ok := checksums[company.ID()]
-		if ok && company.Checksum() == checksum {
+		if !c.IsNew() && c.Checksum() == company.Checksum {
 			continue
 		}
 
+		c.SetName(company.Name)
+		c.SetChecksum(company.Checksum)
+
+		res = append(res, c)
+	}
+
+	for _, company := range res {
 		_, err = i.companies.Save(ctx, company)
 		if err != nil {
 			return err
@@ -420,9 +396,8 @@ func (i *IGDB) saveTagsFromGames(ctx context.Context, games []*Game) error {
 		return err
 	}
 
-	res := make([]*model.Tag, len(tags))
-	idsToCheck := make([]string, 0, len(tags))
-	for j, tag := range tags {
+	res := make([]*model.Tag, 0, len(tags))
+	for _, tag := range tags {
 		t, err := i.tags.GetOrCreate(ctx, model.TagCreate{
 			IdDb:     tag.Id,
 			Name:     tag.Name,
@@ -432,27 +407,17 @@ func (i *IGDB) saveTagsFromGames(ctx context.Context, games []*Game) error {
 			return err
 		}
 
-		t.SetName(tag.Name)
-		t.SetChecksum(tag.Checksum)
-
-		res[j] = t
-
-		if !t.IsNew() {
-			idsToCheck = append(idsToCheck, t.ID())
-		}
-	}
-
-	checksums, err := i.tags.GetChecksumsByIDs(ctx, idsToCheck)
-	if err != nil {
-		return err
-	}
-
-	for _, tag := range res {
-		checksum, ok := checksums[tag.ID()]
-		if ok && tag.Checksum() == checksum {
+		if !t.IsNew() && t.Checksum() == tag.Checksum {
 			continue
 		}
 
+		t.SetName(tag.Name)
+		t.SetChecksum(tag.Checksum)
+
+		res = append(res, t)
+	}
+
+	for _, tag := range res {
 		_, err = i.tags.Save(ctx, tag)
 		if err != nil {
 			return err
@@ -482,9 +447,8 @@ func (i *IGDB) saveThemesFromGames(ctx context.Context, games []*Game) error {
 		return err
 	}
 
-	res := make([]*model.Theme, len(themes))
-	idsToCheck := make([]string, 0, len(themes))
-	for j, theme := range themes {
+	res := make([]*model.Theme, 0, len(themes))
+	for _, theme := range themes {
 		t, err := i.themes.GetOrCreate(ctx, model.ThemeCreate{
 			IdDb:     theme.Id,
 			Name:     theme.Name,
@@ -494,27 +458,17 @@ func (i *IGDB) saveThemesFromGames(ctx context.Context, games []*Game) error {
 			return err
 		}
 
-		t.SetName(theme.Name)
-		t.SetChecksum(theme.Checksum)
-
-		res[j] = t
-
-		if !t.IsNew() {
-			idsToCheck = append(idsToCheck, t.ID())
-		}
-	}
-
-	checksums, err := i.themes.GetChecksumsByIDs(ctx, idsToCheck)
-	if err != nil {
-		return err
-	}
-
-	for _, theme := range res {
-		checksum, ok := checksums[theme.ID()]
-		if ok && theme.Checksum() == checksum {
+		if !t.IsNew() && t.Checksum() == theme.Checksum {
 			continue
 		}
 
+		t.SetName(theme.Name)
+		t.SetChecksum(theme.Checksum)
+
+		res = append(res, t)
+	}
+
+	for _, theme := range res {
 		_, err = i.themes.Save(ctx, theme)
 		if err != nil {
 			return err
@@ -535,9 +489,8 @@ func (i *IGDB) ParsePlatforms(ctx context.Context, limit uint64) error {
 			return msg.Err
 		}
 
-		res := make([]*model.Platform, len(msg.Platforms))
-		idsToCheck := make([]string, 0, len(msg.Platforms))
-		for j, platform := range msg.Platforms {
+		res := make([]*model.Platform, 0, len(msg.Platforms))
+		for _, platform := range msg.Platforms {
 			p, err := i.platforms.GetOrCreate(ctx, model.PlatformCreate{
 				IdDb:     platform.Id,
 				Name:     platform.Name,
@@ -547,27 +500,17 @@ func (i *IGDB) ParsePlatforms(ctx context.Context, limit uint64) error {
 				return err
 			}
 
-			p.SetName(platform.Name)
-			p.SetChecksum(platform.Checksum)
-
-			res[j] = p
-
-			if !p.IsNew() {
-				idsToCheck = append(idsToCheck, p.ID())
-			}
-		}
-
-		checksums, err := i.platforms.GetChecksumsByIDs(ctx, idsToCheck)
-		if err != nil {
-			return err
-		}
-
-		for _, platform := range res {
-			checksum, ok := checksums[platform.ID()]
-			if ok && platform.Checksum() == checksum {
+			if !p.IsNew() && p.Checksum() == platform.Checksum {
 				continue
 			}
 
+			p.SetName(platform.Name)
+			p.SetChecksum(platform.Checksum)
+
+			res = append(res, p)
+		}
+
+		for _, platform := range res {
 			_, err = i.platforms.Save(ctx, platform)
 			if err != nil {
 				return err
@@ -589,9 +532,8 @@ func (i *IGDB) ParseGenres(ctx context.Context, limit uint64) error {
 			return msg.Err
 		}
 
-		res := make([]*model.Genre, len(msg.Genres))
-		idsToCheck := make([]string, 0, len(msg.Genres))
-		for j, genre := range msg.Genres {
+		res := make([]*model.Genre, 0, len(msg.Genres))
+		for _, genre := range msg.Genres {
 			g, err := i.genres.GetOrCreate(ctx, model.GenreCreate{
 				IdDb:     genre.Id,
 				Name:     genre.Name,
@@ -601,27 +543,17 @@ func (i *IGDB) ParseGenres(ctx context.Context, limit uint64) error {
 				return err
 			}
 
-			g.SetName(genre.Name)
-			g.SetChecksum(genre.Checksum)
-
-			res[j] = g
-
-			if !g.IsNew() {
-				idsToCheck = append(idsToCheck, g.ID())
-			}
-		}
-
-		checksums, err := i.genres.GetChecksumsByIDs(ctx, idsToCheck)
-		if err != nil {
-			return err
-		}
-
-		for _, genre := range res {
-			checksum, ok := checksums[genre.ID()]
-			if ok && genre.Checksum() == checksum {
+			if !g.IsNew() && g.Checksum() == genre.Checksum {
 				continue
 			}
 
+			g.SetName(genre.Name)
+			g.SetChecksum(genre.Checksum)
+
+			res = append(res, g)
+		}
+
+		for _, genre := range res {
 			_, err = i.genres.Save(ctx, genre)
 			if err != nil {
 				return err
@@ -643,9 +575,8 @@ func (i *IGDB) ParseGameTypes(ctx context.Context, limit uint64) error {
 			return msg.Err
 		}
 
-		res := make([]*model.GameType, len(msg.GameTypes))
-		idsToCheck := make([]string, 0, len(msg.GameTypes))
-		for j, gameType := range msg.GameTypes {
+		res := make([]*model.GameType, 0, len(msg.GameTypes))
+		for _, gameType := range msg.GameTypes {
 			t, err := i.gameTypes.GetOrCreate(ctx, model.GameTypeCreate{
 				IdDb:     gameType.Id,
 				Name:     gameType.Name,
@@ -655,27 +586,17 @@ func (i *IGDB) ParseGameTypes(ctx context.Context, limit uint64) error {
 				return err
 			}
 
-			t.SetName(gameType.Name)
-			t.SetChecksum(gameType.Checksum)
-
-			res[j] = t
-
-			if !t.IsNew() {
-				idsToCheck = append(idsToCheck, t.ID())
-			}
-		}
-
-		checksums, err := i.gameTypes.GetChecksumsByIDs(ctx, idsToCheck)
-		if err != nil {
-			return err
-		}
-
-		for _, gameType := range res {
-			checksum, ok := checksums[gameType.ID()]
-			if ok && gameType.Checksum() == checksum {
+			if !t.IsNew() && t.Checksum() == gameType.Checksum {
 				continue
 			}
 
+			t.SetName(gameType.Name)
+			t.SetChecksum(gameType.Checksum)
+
+			res = append(res, t)
+		}
+
+		for _, gameType := range res {
 			_, err = i.gameTypes.Save(ctx, gameType)
 			if err != nil {
 				return err

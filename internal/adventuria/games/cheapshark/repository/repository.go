@@ -85,7 +85,7 @@ func (r *Repository) ExistsByIdDb(ctx context.Context, idDb int) (bool, error) {
 func (r *Repository) GetByAppID(ctx context.Context, id int) (*model.CheapShark, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 
-	var record *core.Record
+	var record core.Record
 	err := pb.RecordQuery(schema.CollectionCheapshark).
 		WithContext(ctx).
 		Where(dbx.HashExp{
@@ -100,5 +100,5 @@ func (r *Repository) GetByAppID(ctx context.Context, id int) (*model.CheapShark,
 		return nil, err
 	}
 
-	return RecordToCheapShark(record), nil
+	return RecordToCheapShark(&record), nil
 }

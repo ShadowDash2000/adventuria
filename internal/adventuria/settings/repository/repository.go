@@ -136,14 +136,17 @@ func (r *Repository) IsEventEnded(ctx context.Context) (bool, error) {
 	return eventEnded, nil
 }
 
-func (r *Repository) UpdateIGDBGamesParsedByID(ctx context.Context, id string, amount int) error {
+func (r *Repository) ChangeIGDBGamesParsedByID(ctx context.Context, id string, amount int) error {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 
 	res, err := pb.DB().
 		Update(
 			schema.CollectionSettings,
 			dbx.Params{
-				schema.SettingsSchema.IgdbGamesParsed: amount,
+				schema.SettingsSchema.IgdbGamesParsed: dbx.NewExp(
+					schema.SettingsSchema.IgdbGamesParsed+" + {:amount}",
+					dbx.Params{"amount": amount},
+				),
 			},
 			dbx.HashExp{
 				schema.SettingsSchema.Id: id,

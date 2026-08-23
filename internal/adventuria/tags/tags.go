@@ -11,7 +11,6 @@ type repository interface {
 	Create(ctx context.Context, tag *model.Tag) (*model.Tag, error)
 	Update(ctx context.Context, tag *model.Tag) (*model.Tag, error)
 	GetByIdDb(ctx context.Context, idDb string) (*model.Tag, error)
-	GetChecksumsByIDs(ctx context.Context, ids []string) (map[string]string, error)
 }
 
 type Tags struct {
@@ -34,10 +33,6 @@ func (t *Tags) GetOrCreate(ctx context.Context, data model.TagCreate) (*model.Ta
 	}
 
 	return tag, nil
-}
-
-func (t *Tags) GetChecksumsByIDs(ctx context.Context, ids []string) (map[string]string, error) {
-	return t.repository.GetChecksumsByIDs(ctx, ids)
 }
 
 func (t *Tags) Save(ctx context.Context, tag *model.Tag) (*model.Tag, error) {

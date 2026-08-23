@@ -74,8 +74,11 @@ func (g *Game) registerCrons(ctx context.Context, pb core.App, registry *Registr
 			if !settings.DisableIgdbGamesParser() {
 				err = registry.IGDB().ParseGames(ctx, settings.IgdbFilter().Build(), 500)
 				if err != nil {
+					pb.Logger().Error("IGDB games parser failed", "error", err)
 					return
 				}
+
+				pb.Logger().Info("Finished IGDB games parser")
 			}
 		}
 	})

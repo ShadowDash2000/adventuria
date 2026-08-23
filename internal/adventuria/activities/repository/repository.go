@@ -45,7 +45,14 @@ func (r *Repository) Create(ctx context.Context, activity *model.Activity) (*mod
 func (r *Repository) Update(ctx context.Context, activity *model.Activity) (*model.Activity, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 
-	record, err := pb.FindRecordById(schema.CollectionActivities, activity.ID())
+	var record core.Record
+	err := pb.RecordQuery(schema.CollectionActivities).
+		WithContext(ctx).
+		Where(dbx.HashExp{
+			schema.ActivitySchema.Id: activity.ID(),
+		}).
+		Limit(1).
+		One(&record)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, errs.ErrActivityNotFound
@@ -53,13 +60,13 @@ func (r *Repository) Update(ctx context.Context, activity *model.Activity) (*mod
 		return nil, err
 	}
 
-	ActivityToRecord(activity, record)
-	err = pb.SaveWithContext(ctx, record)
+	ActivityToRecord(activity, &record)
+	err = pb.SaveWithContext(ctx, &record)
 	if err != nil {
 		return nil, err
 	}
 
-	return RecordToActivity(record), nil
+	return RecordToActivity(&record), nil
 }
 
 func (r *Repository) GetByIdDb(ctx context.Context, idDb string) (*model.Activity, error) {
@@ -361,33 +368,6 @@ func (r *Repository) GetByIDs(ctx context.Context, ids []string) ([]*model.Activ
 	}
 
 	return RecordsToActivities(records), nil
-}
-
-func (r *Repository) GetChecksumsByIDs(ctx context.Context, ids []string) (map[string]string, error) {
-	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
-
-	var records []*core.Record
-	err := pb.RecordQuery(schema.CollectionActivities).
-		WithContext(ctx).
-		Select(
-			schema.ActivitySchema.Id,
-			schema.ActivitySchema.Checksum,
-		).
-		Where(dbx.In(
-			schema.ActivitySchema.Id,
-			pbhelper.SliceToAny(ids)...,
-		)).
-		All(&records)
-	if err != nil {
-		return nil, err
-	}
-
-	checksums := make(map[string]string, len(records))
-	for _, record := range records {
-		checksums[record.Id] = record.GetString(schema.ActivitySchema.Checksum)
-	}
-
-	return checksums, nil
 }
 
 func (r *Repository) GetByName(ctx context.Context, name string) (*model.Activity, error) {

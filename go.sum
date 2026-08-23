@@ -6,8 +6,8 @@ github.com/ShadowDash2000/howlongtobeat v1.1.13 h1:vS4i55oyMFF4ZNcMeaaUVDP7f6HZT
 github.com/ShadowDash2000/howlongtobeat v1.1.13/go.mod h1:Z/CJ/TemSQuVIb7jz80bJvyyzwnTydb5Lmw1sqcGNF8=
 github.com/ShadowDash2000/is-stream-live v0.4.1 h1:1x+srAncIfHGPOfeorUTl94hQ3MkZ5+Z7t2E3+uRqrk=
 github.com/ShadowDash2000/is-stream-live v0.4.1/go.mod h1:21U/xZW4v1se5NERmWqdL3YiSZu5GZc++eU6J6I5Owo=
-github.com/ShadowDash2000/steam-store-go v1.0.1 h1:Wx9Z0LL/V3IFn3fJbb1J4Em+2UpJv1tzJ0oS49xpq/8=
-github.com/ShadowDash2000/steam-store-go v1.0.1/go.mod h1:IwpL7xOOl6acTp9R3451uZeM4u9HqJ/sn3gzKgsrlnM=
+github.com/ShadowDash2000/steam-store-go v1.0.2 h1:1jznGMTJLKWdgP98vmGpckZ2ygKjV5g1LY285RVNyp4=
+github.com/ShadowDash2000/steam-store-go v1.0.2/go.mod h1:IwpL7xOOl6acTp9R3451uZeM4u9HqJ/sn3gzKgsrlnM=
 github.com/asaskevich/govalidator v0.0.0-20200108200545-475eaeb16496/go.mod h1:oGkLhpf+kjZl6xBf758TQhh5XrAeiJv/7FRz/2spLIg=
 github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 h1:DklsrG3dyBCFEj5IhUbnKptjxatkF07cF2ak3yi77so=
 github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2/go.mod h1:WaHUgvxTVq04UNunO+XhnAqY/wQc+bxr74GqbsZ/Jqw=

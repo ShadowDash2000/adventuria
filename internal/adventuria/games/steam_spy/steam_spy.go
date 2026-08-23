@@ -3,6 +3,7 @@ package steam_spy
 import (
 	"adventuria/internal/adventuria/model"
 	"context"
+	"log/slog"
 )
 
 type repository interface {
@@ -17,12 +18,14 @@ type remoteRepository interface {
 }
 
 type SteamSpy struct {
+	logger           *slog.Logger
 	repository       repository
 	remoteRepository remoteRepository
 }
 
-func NewSteamSpy(repository repository, remoteRepository remoteRepository) *SteamSpy {
+func NewSteamSpy(logger *slog.Logger, repository repository, remoteRepository remoteRepository) *SteamSpy {
 	return &SteamSpy{
+		logger:           logger,
 		repository:       repository,
 		remoteRepository: remoteRepository,
 	}
@@ -55,7 +58,8 @@ func (s *SteamSpy) Parse(ctx context.Context) error {
 			Price: app.Price,
 		})
 		if err != nil {
-			return err
+			s.logger.Error("Failed to create SteamSpy", "error", err, "data", app)
+			continue
 		}
 
 		_, err = s.Save(ctx, steamSpy)

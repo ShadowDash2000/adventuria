@@ -85,7 +85,7 @@ func (r *Repository) ExistsByIdDb(ctx context.Context, idDb int) (bool, error) {
 func (r *Repository) GetByAppID(ctx context.Context, id int) (*model.SteamSpy, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 
-	var record *core.Record
+	var record core.Record
 	err := pb.RecordQuery(schema.CollectionSteamSpy).
 		WithContext(ctx).
 		Where(dbx.HashExp{
@@ -100,5 +100,5 @@ func (r *Repository) GetByAppID(ctx context.Context, id int) (*model.SteamSpy, e
 		return nil, err
 	}
 
-	return RecordToSteamSpy(record), nil
+	return RecordToSteamSpy(&record), nil
 }
