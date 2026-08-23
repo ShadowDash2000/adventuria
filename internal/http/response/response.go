@@ -10,7 +10,7 @@ import (
 
 type result struct {
 	Success bool   `json:"success"`
-	Data    any    `json:"data,omitempty"`
+	Data    any    `json:"data,omitzero"`
 	Error   string `json:"error,omitempty"`
 	Message string `json:"message,omitempty"`
 }
