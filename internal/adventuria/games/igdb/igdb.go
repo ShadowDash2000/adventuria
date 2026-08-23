@@ -140,7 +140,8 @@ func (i *IGDB) ParseGames(ctx context.Context, filter string, limit uint64) erro
 		return nil
 	}
 
-	ch, err := i.remoteRepository.ParseGames(ctx, filter, gamesCount, 0, limit)
+	offset := uint64(settings.IgdbGamesParsed())
+	ch, err := i.remoteRepository.ParseGames(ctx, filter, gamesCount, offset, limit)
 	if err != nil {
 		return err
 	}
