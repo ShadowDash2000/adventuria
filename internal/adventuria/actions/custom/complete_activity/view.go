@@ -13,12 +13,15 @@ func (c *CompleteActivity) GetView(ctx context.Context, events *model.Events, pl
 		return nil, err
 	}
 
-	event := model.OnCompleteActivityView{
-		CellPoints:        currentCell.Points(),
-		CellEnergyConsume: currentCell.EnergyConsume(),
-		CellCoins:         currentCell.Coins(),
+	onDone := &model.OnDoneEvent{
+		Mode: model.EffectRunModePreview,
+		Result: model.NewDoneResult(model.DoneResultData{
+			Points:        currentCell.Points(),
+			EnergyConsume: currentCell.EnergyConsume(),
+			Coins:         currentCell.Coins(),
+		}),
 	}
-	err = events.OnCompleteActivityView().Trigger(ctx, &event)
+	err = events.OnDone().Trigger(ctx, onDone)
 	if err != nil {
 		return nil, err
 	}
@@ -28,8 +31,8 @@ func (c *CompleteActivity) GetView(ctx context.Context, events *model.Events, pl
 		DoneEnergyConsume int `json:"done_energy_consume"`
 		DoneCoins         int `json:"done_coins"`
 	}{
-		DonePoints:        event.CellPoints,
-		DoneEnergyConsume: event.CellEnergyConsume,
-		DoneCoins:         event.CellCoins,
+		DonePoints:        onDone.Result.Points(),
+		DoneEnergyConsume: onDone.Result.EnergyConsume(),
+		DoneCoins:         onDone.Result.Coins(),
 	}, nil
 }

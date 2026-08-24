@@ -77,17 +77,12 @@ func (b *Buy) Do(ctx context.Context, events *model.Events, player *model.Player
 		return nil, err
 	}
 
-	basePrice, err := b.calculatePrice(item.Price(), shopState)
+	buyResult, err := calculatePrice(ctx, events, item, shopState, model.EffectRunModeApply)
 	if err != nil {
 		return nil, err
 	}
 
-	onBeforeItemBuy, err := b.triggerOnBeforeItemBuy(ctx, events, item, basePrice)
-	if err != nil {
-		return nil, err
-	}
-
-	if player.Progress().Balance() < onBeforeItemBuy.Price {
+	if player.Progress().Balance() < buyResult.Price() {
 		return nil, errs.ErrNotEnoughMoney
 	}
 
@@ -99,7 +94,7 @@ func (b *Buy) Do(ctx context.Context, events *model.Events, player *model.Player
 	actionState.Shop.Ids = itemIds
 	player.LastAction().SetState(actionState)
 
-	err = player.Progress().BalanceChange(-onBeforeItemBuy.Price)
+	err = player.Progress().BalanceChange(-buyResult.Price())
 	if err != nil {
 		return nil, err
 	}

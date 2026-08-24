@@ -64,13 +64,17 @@ func (n *Nothing) Subscribe(
 		}, nil
 	case useBeforeGameDone:
 		return []event.Unsubscribe{
-			events.OnBeforeDone().BindFuncWithPriority(func(ctx context.Context, e *model.OnBeforeDoneEvent) error {
+			events.OnDone().BindFuncWithPriority(func(ctx context.Context, e *model.OnDoneEvent) error {
 				currentCell, err := n.cells.GetByPlayerWrapped(ctx, player)
 				if err != nil {
 					return err
 				}
 
-				if currentCell.InCategories([]string{"activity", "game"}) {
+				if !currentCell.InCategories([]string{"activity", "game"}) {
+					return e.Next()
+				}
+
+				if e.Mode == model.EffectRunModeApply {
 					callback(ctx)
 				}
 

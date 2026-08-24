@@ -38,24 +38,17 @@ func (c *CellPointsDivide) Subscribe(
 	callback model.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		events.OnCompleteActivityView().BindFuncWithPriority(func(ctx context.Context, e *model.OnCompleteActivityView) error {
+		events.OnDone().BindFuncWithPriority(func(ctx context.Context, e *model.OnDoneEvent) error {
 			divider, err := c.decodeValue(c.Value())
 			if err != nil {
 				return err
 			}
 
-			e.CellPoints /= divider
+			e.Result.SetPoints(e.Result.Points() / divider)
 
-			return e.Next()
-		}, effectCtx.Priority),
-		events.OnBeforeDone().BindFuncWithPriority(func(ctx context.Context, e *model.OnBeforeDoneEvent) error {
-			divider, err := c.decodeValue(c.Value())
-			if err != nil {
-				return err
+			if e.Mode == model.EffectRunModeApply {
+				callback(ctx)
 			}
-
-			e.CellPoints /= divider
-			callback(ctx)
 
 			return e.Next()
 		}, effectCtx.Priority),

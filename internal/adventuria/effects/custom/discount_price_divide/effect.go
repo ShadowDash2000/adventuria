@@ -38,21 +38,18 @@ func (d *DiscountPriceDivide) Subscribe(
 	callback model.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		events.OnBeforeItemBuy().BindFuncWithPriority(func(ctx context.Context, e *model.OnBeforeItemBuyEvent) error {
+		events.OnItemBuy().BindFuncWithPriority(func(ctx context.Context, e *model.OnItemBuyEvent) error {
 			divider, err := d.decodeValue(d.Value())
 			if err != nil {
 				return err
 			}
-			e.Price /= divider
-			callback(ctx)
-			return e.Next()
-		}, effectCtx.Priority),
-		events.OnBuyGetView().BindFuncWithPriority(func(ctx context.Context, e *model.OnBuyGetViewEvent) error {
-			divider, err := d.decodeValue(d.Value())
-			if err != nil {
-				return err
+
+			e.Result.SetPrice(e.Result.Price() / divider)
+
+			if e.Mode == model.EffectRunModeApply {
+				callback(ctx)
 			}
-			e.Price /= divider
+
 			return e.Next()
 		}, effectCtx.Priority),
 	}, nil

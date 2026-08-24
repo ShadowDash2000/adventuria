@@ -15,7 +15,6 @@ type actionsService interface {
 
 type cells interface {
 	GetByPlayer(ctx context.Context, player *model.Player) (*model.CellInfo, error)
-	GetByPlayerWrapped(ctx context.Context, player *model.Player) (model.Cell, error)
 }
 
 type reviewsService interface {
@@ -57,7 +56,12 @@ func (d *Done) CanDo(ctx context.Context, events *model.Events, player *model.Pl
 		return false
 	}
 
-	return currentCell.EnergyConsume() <= player.Progress().Energy()
+	doneResult, err := calculateDoneResult(ctx, events, currentCell, model.EffectRunModePreview)
+	if err != nil {
+		return false
+	}
+
+	return doneResult.EnergyConsume() <= player.Progress().Energy()
 }
 
 type Request struct {
@@ -79,23 +83,18 @@ func (d *Done) Do(ctx context.Context, events *model.Events, player *model.Playe
 		return nil, err
 	}
 
-	currentCell, err := d.cells.GetByPlayerWrapped(ctx, player)
+	currentCell, err := d.cells.GetByPlayer(ctx, player)
 	if err != nil {
 		return nil, err
 	}
 
-	if currentCell.Data().EnergyConsume() > player.Progress().Energy() {
+	doneResult, err := calculateDoneResult(ctx, events, currentCell, model.EffectRunModeApply)
+	if err != nil {
+		return nil, err
+	}
+
+	if currentCell.EnergyConsume() > player.Progress().Energy() {
 		return nil, errs.ErrNotEnoughEnergy
-	}
-
-	onBeforeDoneEvent := &model.OnBeforeDoneEvent{
-		CellPoints:        currentCell.Data().Points(),
-		CellEnergyConsume: currentCell.Data().EnergyConsume(),
-		CellCoins:         currentCell.Data().Coins(),
-	}
-	err = events.OnBeforeDone().Trigger(ctx, onBeforeDoneEvent)
-	if err != nil {
-		return nil, err
 	}
 
 	lastAction := player.LastAction()
@@ -106,20 +105,42 @@ func (d *Done) Do(ctx context.Context, events *model.Events, player *model.Playe
 	progress.SetCanMove(true)
 	progress.SetDropsInARow(0)
 	progress.SetIsInJail(false)
-	err = progress.PointsChange(onBeforeDoneEvent.CellPoints)
+	err = progress.PointsChange(doneResult.Points())
 	if err != nil {
 		return nil, err
 	}
-	err = progress.EnergyChange(-onBeforeDoneEvent.CellEnergyConsume)
+	err = progress.EnergyChange(-doneResult.EnergyConsume())
 	if err != nil {
 		return nil, err
 	}
-	err = progress.BalanceChange(onBeforeDoneEvent.CellCoins)
+	err = progress.BalanceChange(doneResult.Coins())
 	if err != nil {
 		return nil, err
 	}
 
 	return nil, events.OnAfterDone().Trigger(ctx, &model.OnAfterDoneEvent{
-		CurrentCell: currentCell.Data(),
+		CurrentCell: currentCell,
 	})
+}
+
+func calculateDoneResult(
+	ctx context.Context,
+	events *model.Events,
+	cell *model.CellInfo,
+	mode model.EffectRunMode,
+) (*model.DoneResult, error) {
+	onDone := &model.OnDoneEvent{
+		Mode: mode,
+		Result: model.NewDoneResult(model.DoneResultData{
+			Points:        cell.Points(),
+			EnergyConsume: cell.EnergyConsume(),
+			Coins:         cell.Coins(),
+		}),
+	}
+	err := events.OnDone().Trigger(ctx, onDone)
+	if err != nil {
+		return nil, err
+	}
+
+	return onDone.Result, nil
 }

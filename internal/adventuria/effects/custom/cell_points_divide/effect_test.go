@@ -49,7 +49,7 @@ func TestCellPointsDivide_Subscribe(t *testing.T) {
 		Priority: 10,
 	}
 
-	t.Run("on before done - divide points", func(t *testing.T) {
+	t.Run("on done - divide points", func(t *testing.T) {
 		events, player, called, callback := setup()
 		eff := &CellPointsDivide{
 			EffectBase: effects.NewEffectBase(
@@ -66,10 +66,13 @@ func TestCellPointsDivide_Subscribe(t *testing.T) {
 			t.Fatalf("Subscribe failed: %v", err)
 		}
 
-		e := &model.OnBeforeDoneEvent{
-			CellPoints: 100,
+		e := &model.OnDoneEvent{
+			Mode: model.EffectRunModeApply,
+			Result: model.NewDoneResult(model.DoneResultData{
+				Points: 100,
+			}),
 		}
-		err = events.OnBeforeDone().Trigger(ctx, e)
+		err = events.OnDone().Trigger(ctx, e)
 		if err != nil {
 			t.Errorf("Trigger failed: %v", err)
 		}
@@ -78,8 +81,8 @@ func TestCellPointsDivide_Subscribe(t *testing.T) {
 			t.Error("Callback was not called")
 		}
 
-		if e.CellPoints != 50 {
-			t.Errorf("Expected CellPoints 50, got %d", e.CellPoints)
+		if e.Result.Points() != 50 {
+			t.Errorf("Expected CellPoints 50, got %d", e.Result.Points())
 		}
 	})
 

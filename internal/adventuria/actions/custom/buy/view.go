@@ -31,18 +31,13 @@ func (b *Buy) GetView(ctx context.Context, events *model.Events, player *model.P
 
 	itemsViewMap := make(map[string]*itemView, len(items))
 	for _, item := range items {
-		basePrice, err := b.calculatePrice(item.Price(), shopState)
-		if err != nil {
-			return nil, err
-		}
-
-		onBuyGetVariants, err := b.triggerOnBuyGetView(ctx, events, item, basePrice)
+		buyResult, err := calculatePrice(ctx, events, item, shopState, model.EffectRunModePreview)
 		if err != nil {
 			return nil, err
 		}
 
 		itemView := itemToItemView(item)
-		itemView.Price = onBuyGetVariants.Price
+		itemView.Price = buyResult.Price()
 		itemsViewMap[item.ID()] = itemView
 	}
 

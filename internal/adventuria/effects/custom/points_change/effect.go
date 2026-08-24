@@ -38,24 +38,17 @@ func (p *PointsChange) Subscribe(
 	callback model.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		events.OnCompleteActivityView().BindFuncWithPriority(func(ctx context.Context, e *model.OnCompleteActivityView) error {
+		events.OnDone().BindFuncWithPriority(func(ctx context.Context, e *model.OnDoneEvent) error {
 			amount, err := p.decodeValue(p.Value())
 			if err != nil {
 				return err
 			}
 
-			e.CellPoints += amount
+			e.Result.SetPoints(e.Result.Points() + amount)
 
-			return e.Next()
-		}, effectCtx.Priority),
-		events.OnBeforeDone().BindFuncWithPriority(func(ctx context.Context, e *model.OnBeforeDoneEvent) error {
-			amount, err := p.decodeValue(p.Value())
-			if err != nil {
-				return err
+			if e.Mode == model.EffectRunModeApply {
+				callback(ctx)
 			}
-
-			e.CellPoints += amount
-			callback(ctx)
 
 			return e.Next()
 		}, effectCtx.Priority),

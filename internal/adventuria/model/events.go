@@ -11,8 +11,7 @@ type Events struct {
 	onBeforeDropCheck      *event.Hook[*OnBeforeDropCheckEvent]
 	onAfterDrop            *event.Hook[*OnAfterDropEvent]
 	onAfterGoToJail        *event.Hook[*OnAfterGoToJailEvent]
-	onBeforeDone           *event.Hook[*OnBeforeDoneEvent]
-	onCompleteActivityView *event.Hook[*OnCompleteActivityView]
+	onDone                 *event.Hook[*OnDoneEvent]
 	onAfterDone            *event.Hook[*OnAfterDoneEvent]
 	onBeforeRerollCheck    *event.Hook[*OnBeforeRerollCheckEvent]
 	onBeforeRoll           *event.Hook[*OnBeforeRollEvent]
@@ -28,8 +27,7 @@ type Events struct {
 	onBeforeCurrentCell    *event.Hook[*OnBeforeCurrentCellEvent]
 	onBeforeItemAdd        *event.Hook[*OnBeforeItemAddEvent]
 	onAfterItemAdd         *event.Hook[*OnAfterItemAddEvent]
-	onBeforeItemBuy        *event.Hook[*OnBeforeItemBuyEvent]
-	onBuyGetVariants       *event.Hook[*OnBuyGetViewEvent]
+	onItemBuy              *event.Hook[*OnItemBuyEvent]
 	onBeforeTeleportOnCell *event.Hook[*OnBeforeTeleportOnCellEvent]
 	onWorldChanged         *event.Hook[*OnWorldChangedEvent]
 }
@@ -42,8 +40,7 @@ func NewEvents() *Events {
 		onBeforeDropCheck:      &event.Hook[*OnBeforeDropCheckEvent]{},
 		onAfterDrop:            &event.Hook[*OnAfterDropEvent]{},
 		onAfterGoToJail:        &event.Hook[*OnAfterGoToJailEvent]{},
-		onBeforeDone:           &event.Hook[*OnBeforeDoneEvent]{},
-		onCompleteActivityView: &event.Hook[*OnCompleteActivityView]{},
+		onDone:                 &event.Hook[*OnDoneEvent]{},
 		onAfterDone:            &event.Hook[*OnAfterDoneEvent]{},
 		onBeforeRerollCheck:    &event.Hook[*OnBeforeRerollCheckEvent]{},
 		onBeforeRoll:           &event.Hook[*OnBeforeRollEvent]{},
@@ -59,8 +56,7 @@ func NewEvents() *Events {
 		onBeforeCurrentCell:    &event.Hook[*OnBeforeCurrentCellEvent]{},
 		onBeforeItemAdd:        &event.Hook[*OnBeforeItemAddEvent]{},
 		onAfterItemAdd:         &event.Hook[*OnAfterItemAddEvent]{},
-		onBeforeItemBuy:        &event.Hook[*OnBeforeItemBuyEvent]{},
-		onBuyGetVariants:       &event.Hook[*OnBuyGetViewEvent]{},
+		onItemBuy:              &event.Hook[*OnItemBuyEvent]{},
 		onBeforeTeleportOnCell: &event.Hook[*OnBeforeTeleportOnCellEvent]{},
 		onWorldChanged:         &event.Hook[*OnWorldChangedEvent]{},
 	}
@@ -115,12 +111,8 @@ func (e *Events) OnAfterGoToJail() *event.Hook[*OnAfterGoToJailEvent] {
 	return e.onAfterGoToJail
 }
 
-func (e *Events) OnBeforeDone() *event.Hook[*OnBeforeDoneEvent] {
-	return e.onBeforeDone
-}
-
-func (e *Events) OnCompleteActivityView() *event.Hook[*OnCompleteActivityView] {
-	return e.onCompleteActivityView
+func (e *Events) OnDone() *event.Hook[*OnDoneEvent] {
+	return e.onDone
 }
 
 func (e *Events) OnAfterDone() *event.Hook[*OnAfterDoneEvent] {
@@ -183,12 +175,8 @@ func (e *Events) OnAfterItemAdd() *event.Hook[*OnAfterItemAddEvent] {
 	return e.onAfterItemAdd
 }
 
-func (e *Events) OnBeforeItemBuy() *event.Hook[*OnBeforeItemBuyEvent] {
-	return e.onBeforeItemBuy
-}
-
-func (e *Events) OnBuyGetView() *event.Hook[*OnBuyGetViewEvent] {
-	return e.onBuyGetVariants
+func (e *Events) OnItemBuy() *event.Hook[*OnItemBuyEvent] {
+	return e.onItemBuy
 }
 
 func (e *Events) OnBeforeTeleportOnCell() *event.Hook[*OnBeforeTeleportOnCellEvent] {
@@ -225,17 +213,10 @@ type OnAfterDropEvent struct {
 type OnAfterGoToJailEvent struct {
 	event.Event
 }
-type OnBeforeDoneEvent struct {
+type OnDoneEvent struct {
 	event.Event
-	CellPoints        int
-	CellEnergyConsume int
-	CellCoins         int
-}
-type OnCompleteActivityView struct {
-	event.Event
-	CellPoints        int
-	CellEnergyConsume int
-	CellCoins         int
+	Mode   EffectRunMode
+	Result *DoneResult
 }
 type OnAfterDoneEvent struct {
 	event.Event
@@ -302,15 +283,11 @@ type OnBeforeCurrentCellEvent struct {
 	event.Event
 	CurrentCell *CellInfo
 }
-type OnBeforeItemBuyEvent struct {
+type OnItemBuyEvent struct {
 	event.Event
-	Item  *Item
-	Price int
-}
-type OnBuyGetViewEvent struct {
-	event.Event
-	Item  *Item
-	Price int
+	Mode   EffectRunMode
+	Item   *Item
+	Result *BuyResult
 }
 type OnBeforeTeleportOnCellEvent struct {
 	event.Event
