@@ -11,22 +11,28 @@ type cells interface {
 	GetByPlayer(ctx context.Context, player *model.Player) (*model.CellInfo, error)
 }
 
+type activityResultCalculator interface {
+	Calculate(ctx context.Context, events *model.Events, cell *model.CellInfo, mode model.EffectRunMode) (*model.ActivityCompletionResult, error)
+}
+
 var _ model.Action = (*CompleteActivity)(nil)
 
 const Type model.ActionType = "complete_activity"
 
 type CompleteActivity struct {
 	actions.ActionBase
-	cells cells
+	cells                    cells
+	activityResultCalculator activityResultCalculator
 }
 
-func NewDef(cells cells) actions.ActionDef {
+func NewDef(cells cells, activityResultCalculator activityResultCalculator) actions.ActionDef {
 	return actions.NewAction(
 		Type,
 		func() model.Action {
 			return &CompleteActivity{
-				ActionBase: actions.NewActionBase(Type),
-				cells:      cells,
+				ActionBase:               actions.NewActionBase(Type),
+				cells:                    cells,
+				activityResultCalculator: activityResultCalculator,
 			}
 		},
 	)

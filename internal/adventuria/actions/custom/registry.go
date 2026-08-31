@@ -37,11 +37,12 @@ func RegisterActions(
 	inventories *inventories.Inventories,
 	rollWheelRepo *rollWheelRepo.Repository,
 	activities *activities.Activities,
+	activityResultCalculator *activities.CompletionResultCalculator,
 ) {
 	actions.Register(
 		start.NewDef(),
-		complete_activity.NewDef(cells),
-		done.NewDef(actionsService, cells, reviews),
+		complete_activity.NewDef(cells, activityResultCalculator),
+		done.NewDef(actionsService, cells, activityResultCalculator, reviews),
 		drop.NewDef(actionsService, cells, reviews, players, settings, board),
 		reroll.NewDef(cells, reviews, actionsService, activities),
 		buy.NewDef(items, inventories),

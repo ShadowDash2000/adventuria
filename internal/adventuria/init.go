@@ -72,6 +72,7 @@ func (g *Game) init(ctx context.Context, pb core.App) (*Registry, error) {
 		registry.Inventories(),
 		registry.RollWheelRepo(),
 		registry.Activities(),
+		registry.CellResultCalculator(),
 	)
 
 	customOutboxes.RegisterOutboxes(

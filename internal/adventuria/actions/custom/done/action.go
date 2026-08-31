@@ -17,6 +17,10 @@ type cells interface {
 	GetByPlayer(ctx context.Context, player *model.Player) (*model.CellInfo, error)
 }
 
+type activityResultCalculator interface {
+	Calculate(ctx context.Context, events *model.Events, cell *model.CellInfo, mode model.EffectRunMode) (*model.ActivityCompletionResult, error)
+}
+
 type reviewsService interface {
 	Create(ctx context.Context, input reviews.CreateInput) (*model.Review, error)
 }
@@ -27,20 +31,27 @@ const Type model.ActionType = "done"
 
 type Done struct {
 	actions.ActionBase
-	actions actionsService
-	cells   cells
-	reviews reviewsService
+	actions                  actionsService
+	cells                    cells
+	activityResultCalculator activityResultCalculator
+	reviews                  reviewsService
 }
 
-func NewDef(actionsService actionsService, cells cells, reviews reviewsService) actions.ActionDef {
+func NewDef(
+	actionsService actionsService,
+	cells cells,
+	activityResultCalculator activityResultCalculator,
+	reviews reviewsService,
+) actions.ActionDef {
 	return actions.NewAction(
 		Type,
 		func() model.Action {
 			return &Done{
-				ActionBase: actions.NewActionBase(Type),
-				actions:    actionsService,
-				cells:      cells,
-				reviews:    reviews,
+				ActionBase:               actions.NewActionBase(Type),
+				actions:                  actionsService,
+				cells:                    cells,
+				activityResultCalculator: activityResultCalculator,
+				reviews:                  reviews,
 			}
 		},
 	)
@@ -56,12 +67,12 @@ func (d *Done) CanDo(ctx context.Context, events *model.Events, player *model.Pl
 		return false
 	}
 
-	doneResult, err := calculateDoneResult(ctx, events, currentCell, model.EffectRunModePreview)
+	activityResult, err := d.activityResultCalculator.Calculate(ctx, events, currentCell, model.EffectRunModePreview)
 	if err != nil {
 		return false
 	}
 
-	return doneResult.EnergyConsume() <= player.Progress().Energy()
+	return activityResult.EnergyConsume() <= player.Progress().Energy()
 }
 
 type Request struct {
@@ -88,12 +99,12 @@ func (d *Done) Do(ctx context.Context, events *model.Events, player *model.Playe
 		return nil, err
 	}
 
-	doneResult, err := calculateDoneResult(ctx, events, currentCell, model.EffectRunModeApply)
+	activityResult, err := d.activityResultCalculator.Calculate(ctx, events, currentCell, model.EffectRunModeApply)
 	if err != nil {
 		return nil, err
 	}
 
-	if doneResult.EnergyConsume() > player.Progress().Energy() {
+	if activityResult.EnergyConsume() > player.Progress().Energy() {
 		return nil, errs.ErrNotEnoughEnergy
 	}
 
@@ -105,15 +116,15 @@ func (d *Done) Do(ctx context.Context, events *model.Events, player *model.Playe
 	progress.SetCanMove(true)
 	progress.SetDropsInARow(0)
 	progress.SetIsInJail(false)
-	err = progress.PointsChange(doneResult.Points())
+	err = progress.PointsChange(activityResult.Points())
 	if err != nil {
 		return nil, err
 	}
-	err = progress.EnergyChange(-doneResult.EnergyConsume())
+	err = progress.EnergyChange(-activityResult.EnergyConsume())
 	if err != nil {
 		return nil, err
 	}
-	err = progress.BalanceChange(doneResult.Coins())
+	err = progress.BalanceChange(activityResult.Coins())
 	if err != nil {
 		return nil, err
 	}
@@ -121,26 +132,4 @@ func (d *Done) Do(ctx context.Context, events *model.Events, player *model.Playe
 	return nil, events.OnAfterDone().Trigger(ctx, &model.OnAfterDoneEvent{
 		CurrentCell: currentCell,
 	})
-}
-
-func calculateDoneResult(
-	ctx context.Context,
-	events *model.Events,
-	cell *model.CellInfo,
-	mode model.EffectRunMode,
-) (*model.DoneResult, error) {
-	onDone := &model.OnDoneEvent{
-		Mode: mode,
-		Result: model.NewDoneResult(model.DoneResultData{
-			Points:        cell.Points(),
-			EnergyConsume: cell.EnergyConsume(),
-			Coins:         cell.Coins(),
-		}),
-	}
-	err := events.OnDone().Trigger(ctx, onDone)
-	if err != nil {
-		return nil, err
-	}
-
-	return onDone.Result, nil
 }

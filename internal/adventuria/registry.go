@@ -119,39 +119,40 @@ type Registry struct {
 	completedActivitiesRepo *completedActivitiesRepo.Repository
 
 	// services
-	seasons             *seasons.Seasons
-	settings            *settings.Settings
-	worlds              *worlds.Worlds
-	cells               *cells.Cells
-	actions             *actions.Actions
-	progress            *player_progress.PlayerProgress
-	players             *players.Players
-	playerStats         *player_stats.PlayerStats
-	effects             *effects.Effects
-	inventories         *inventories.Inventories
-	activities          *activities.Activities
-	activityFilters     *activity_filters.ActivityFilters
-	items               *items.Items
-	board               *board.Board
-	genres              *genres.Genres
-	reviews             *reviews.Reviews
-	reviewsFiles        *reviews_files.ReviewsFiles
-	outboxes            *outboxes.Outboxes
-	eventStats          *event_stats.EventStats
-	streamTracker       *stream_tracker.StreamTracker
-	platforms           *platforms.Platforms
-	companies           *companies.Companies
-	tags                *tags.Tags
-	themes              *themes.Themes
-	gameTypes           *game_types.GameTypes
-	hltb                *how_long_to_beat.HowLongToBeat
-	steamSpy            *steam_spy.SteamSpy
-	cheapShark          *cheapshark.CheapShark
-	github              *github.Github
-	igdb                *igdb.IGDB
-	actionEvents        *action_events.ActionEvents
-	cellEventsSchedules *cell_events_schedules.CellEventsSchedules
-	completedActivities *completed_activities.Query
+	seasons                  *seasons.Seasons
+	settings                 *settings.Settings
+	worlds                   *worlds.Worlds
+	cells                    *cells.Cells
+	actions                  *actions.Actions
+	progress                 *player_progress.PlayerProgress
+	players                  *players.Players
+	playerStats              *player_stats.PlayerStats
+	effects                  *effects.Effects
+	inventories              *inventories.Inventories
+	activities               *activities.Activities
+	activityFilters          *activity_filters.ActivityFilters
+	items                    *items.Items
+	board                    *board.Board
+	genres                   *genres.Genres
+	reviews                  *reviews.Reviews
+	reviewsFiles             *reviews_files.ReviewsFiles
+	outboxes                 *outboxes.Outboxes
+	eventStats               *event_stats.EventStats
+	streamTracker            *stream_tracker.StreamTracker
+	platforms                *platforms.Platforms
+	companies                *companies.Companies
+	tags                     *tags.Tags
+	themes                   *themes.Themes
+	gameTypes                *game_types.GameTypes
+	hltb                     *how_long_to_beat.HowLongToBeat
+	steamSpy                 *steam_spy.SteamSpy
+	cheapShark               *cheapshark.CheapShark
+	github                   *github.Github
+	igdb                     *igdb.IGDB
+	actionEvents             *action_events.ActionEvents
+	cellEventsSchedules      *cell_events_schedules.CellEventsSchedules
+	completedActivities      *completed_activities.Query
+	activityResultCalculator *activities.CompletionResultCalculator
 }
 
 func NewRegistry(pb core.App, logger *slog.Logger) *Registry {
@@ -699,4 +700,11 @@ func (r *Registry) CompletedActivities() *completed_activities.Query {
 		r.completedActivities = completed_activities.NewQuery(r.CompletedActivitiesRepo())
 	}
 	return r.completedActivities
+}
+
+func (r *Registry) CellResultCalculator() *activities.CompletionResultCalculator {
+	if r.activityResultCalculator == nil {
+		r.activityResultCalculator = activities.NewCompletionResultCalculator()
+	}
+	return r.activityResultCalculator
 }

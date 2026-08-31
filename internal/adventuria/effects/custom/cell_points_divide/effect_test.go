@@ -66,13 +66,13 @@ func TestCellPointsDivide_Subscribe(t *testing.T) {
 			t.Fatalf("Subscribe failed: %v", err)
 		}
 
-		e := &model.OnDoneEvent{
+		e := &model.OnActivityCompleteEvent{
 			Mode: model.EffectRunModeApply,
-			Result: model.NewDoneResult(model.DoneResultData{
+			Result: model.NewActivityCompletionResult(model.ActivityCompletionResultData{
 				Points: 100,
 			}),
 		}
-		err = events.OnDone().Trigger(ctx, e)
+		err = events.OnActivityComplete().Trigger(ctx, e)
 		if err != nil {
 			t.Errorf("Trigger failed: %v", err)
 		}

@@ -11,7 +11,7 @@ type Events struct {
 	onBeforeDropCheck      *event.Hook[*OnBeforeDropCheckEvent]
 	onAfterDrop            *event.Hook[*OnAfterDropEvent]
 	onAfterGoToJail        *event.Hook[*OnAfterGoToJailEvent]
-	onDone                 *event.Hook[*OnDoneEvent]
+	onActivityComplete     *event.Hook[*OnActivityCompleteEvent]
 	onAfterDone            *event.Hook[*OnAfterDoneEvent]
 	onBeforeRerollCheck    *event.Hook[*OnBeforeRerollCheckEvent]
 	onBeforeRoll           *event.Hook[*OnBeforeRollEvent]
@@ -40,7 +40,7 @@ func NewEvents() *Events {
 		onBeforeDropCheck:      &event.Hook[*OnBeforeDropCheckEvent]{},
 		onAfterDrop:            &event.Hook[*OnAfterDropEvent]{},
 		onAfterGoToJail:        &event.Hook[*OnAfterGoToJailEvent]{},
-		onDone:                 &event.Hook[*OnDoneEvent]{},
+		onActivityComplete:     &event.Hook[*OnActivityCompleteEvent]{},
 		onAfterDone:            &event.Hook[*OnAfterDoneEvent]{},
 		onBeforeRerollCheck:    &event.Hook[*OnBeforeRerollCheckEvent]{},
 		onBeforeRoll:           &event.Hook[*OnBeforeRollEvent]{},
@@ -111,8 +111,8 @@ func (e *Events) OnAfterGoToJail() *event.Hook[*OnAfterGoToJailEvent] {
 	return e.onAfterGoToJail
 }
 
-func (e *Events) OnDone() *event.Hook[*OnDoneEvent] {
-	return e.onDone
+func (e *Events) OnActivityComplete() *event.Hook[*OnActivityCompleteEvent] {
+	return e.onActivityComplete
 }
 
 func (e *Events) OnAfterDone() *event.Hook[*OnAfterDoneEvent] {
@@ -213,10 +213,10 @@ type OnAfterDropEvent struct {
 type OnAfterGoToJailEvent struct {
 	event.Event
 }
-type OnDoneEvent struct {
+type OnActivityCompleteEvent struct {
 	event.Event
 	Mode   EffectRunMode
-	Result *DoneResult
+	Result *ActivityCompletionResult
 }
 type OnAfterDoneEvent struct {
 	event.Event

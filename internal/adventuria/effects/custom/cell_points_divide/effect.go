@@ -38,7 +38,7 @@ func (c *CellPointsDivide) Subscribe(
 	callback model.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		events.OnDone().BindFuncWithPriority(func(ctx context.Context, e *model.OnDoneEvent) error {
+		events.OnActivityComplete().BindFuncWithPriority(func(ctx context.Context, e *model.OnActivityCompleteEvent) error {
 			divider, err := c.decodeValue(c.Value())
 			if err != nil {
 				return err

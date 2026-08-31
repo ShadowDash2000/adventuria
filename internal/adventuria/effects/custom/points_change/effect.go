@@ -38,7 +38,7 @@ func (p *PointsChange) Subscribe(
 	callback model.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		events.OnDone().BindFuncWithPriority(func(ctx context.Context, e *model.OnDoneEvent) error {
+		events.OnActivityComplete().BindFuncWithPriority(func(ctx context.Context, e *model.OnActivityCompleteEvent) error {
 			amount, err := p.decodeValue(p.Value())
 			if err != nil {
 				return err

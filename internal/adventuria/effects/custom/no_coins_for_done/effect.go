@@ -38,7 +38,7 @@ func (n *NoCoinsForDone) Subscribe(
 	callback model.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		events.OnDone().BindFuncWithPriority(func(ctx context.Context, e *model.OnDoneEvent) error {
+		events.OnActivityComplete().BindFuncWithPriority(func(ctx context.Context, e *model.OnActivityCompleteEvent) error {
 			e.Result.SetCoins(0)
 
 			if e.Mode == model.EffectRunModeApply {
