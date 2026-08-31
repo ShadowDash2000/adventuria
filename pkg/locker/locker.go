@@ -28,3 +28,9 @@ func (l *Locker[K]) Unlock(key K) {
 	defer l.mu.Unlock()
 	delete(l.m, key)
 }
+
+func (l *Locker[K]) HasAny() bool {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	return len(l.m) > 0
+}

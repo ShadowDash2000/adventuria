@@ -67,6 +67,7 @@ import (
 	themesRepo "adventuria/internal/adventuria/themes/repository"
 	"adventuria/internal/adventuria/worlds"
 	worldsRepo "adventuria/internal/adventuria/worlds/repository"
+	"adventuria/pkg/locker"
 	"log/slog"
 	"os"
 
@@ -74,8 +75,9 @@ import (
 )
 
 type Registry struct {
-	pb     core.App
-	logger *slog.Logger
+	pb            core.App
+	logger        *slog.Logger
+	playersLocker *locker.Locker[string]
 
 	// repos
 	seasonsRepo             *seasonsRepo.Repository
@@ -157,9 +159,14 @@ type Registry struct {
 
 func NewRegistry(pb core.App, logger *slog.Logger) *Registry {
 	return &Registry{
-		pb:     pb,
-		logger: logger,
+		pb:            pb,
+		logger:        logger,
+		playersLocker: locker.New[string](),
 	}
+}
+
+func (r *Registry) PlayersLocker() *locker.Locker[string] {
+	return r.playersLocker
 }
 
 func (r *Registry) SeasonsRepo() *seasonsRepo.Repository {
@@ -683,6 +690,7 @@ func (r *Registry) ActionEvents() *action_events.ActionEvents {
 func (r *Registry) CellEventsSchedules() *cell_events_schedules.CellEventsSchedules {
 	if r.cellEventsSchedules == nil {
 		r.cellEventsSchedules = cell_events_schedules.NewCellEventsSchedules(
+			r.PlayersLocker(),
 			r.CellEventsSchedulesRepo(),
 			r.CellEventsSchedulesRepo(),
 			r.Cells(),

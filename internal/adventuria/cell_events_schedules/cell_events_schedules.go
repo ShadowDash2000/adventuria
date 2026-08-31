@@ -4,6 +4,7 @@ import (
 	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
 	"adventuria/pkg/helper"
+	"adventuria/pkg/locker"
 	"context"
 	"errors"
 	"maps"
@@ -47,6 +48,7 @@ type settings interface {
 
 type CellEventsSchedules struct {
 	running          atomic.Bool
+	playersLocker    *locker.Locker[string]
 	repository       repository
 	notifyRepository notifyRepository
 	cells            cells
@@ -57,6 +59,7 @@ type CellEventsSchedules struct {
 }
 
 func NewCellEventsSchedules(
+	playersLocker *locker.Locker[string],
 	repository repository,
 	notifyRepository notifyRepository,
 	cells cells,
@@ -66,6 +69,7 @@ func NewCellEventsSchedules(
 	settings settings,
 ) *CellEventsSchedules {
 	return &CellEventsSchedules{
+		playersLocker:    playersLocker,
 		repository:       repository,
 		notifyRepository: notifyRepository,
 		cells:            cells,
@@ -86,6 +90,11 @@ func (c *CellEventsSchedules) CheckEventsSchedules(ctx context.Context) error {
 		return errs.ErrCellEventSchedulerAlreadyRunning
 	}
 	defer c.running.Store(false)
+
+	err := c.waitForPlayersUnlock(ctx)
+	if err != nil {
+		return err
+	}
 
 	events, err := c.repository.GetAll(ctx)
 	if err != nil {
@@ -126,6 +135,26 @@ func (c *CellEventsSchedules) CheckEventsSchedules(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func (c *CellEventsSchedules) waitForPlayersUnlock(ctx context.Context) error {
+	if !c.playersLocker.HasAny() {
+		return nil
+	}
+
+	ticker := time.NewTicker(1 * time.Second)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-ticker.C:
+			if !c.playersLocker.HasAny() {
+				return nil
+			}
+		}
+	}
 }
 
 func (c *CellEventsSchedules) pickCellsForEvents(ctx context.Context, events []*model.CellEventSchedule) error {

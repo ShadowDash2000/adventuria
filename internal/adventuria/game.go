@@ -43,8 +43,7 @@ func Start(fn func(game *Game, registry *Registry, se *core.ServeEvent) error) (
 	defer cancel()
 
 	g := &Game{
-		pb:            pocketbase.New(),
-		playersLocker: locker.New[string](),
+		pb: pocketbase.New(),
 
 		onKillParserEvent: &event.Hook[*onKillParserEvent]{},
 	}
