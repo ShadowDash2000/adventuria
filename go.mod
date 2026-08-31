@@ -4,15 +4,15 @@ go 1.27.0
 
 require (
 	git.nite07.com/shadod/go-igdb v1.0.3
-	github.com/ShadowDash2000/howlongtobeat v1.1.13
+	github.com/ShadowDash2000/howlongtobeat v1.1.14
 	github.com/ShadowDash2000/is-stream-live v0.4.1
 	github.com/ShadowDash2000/steam-store-go v1.0.2
 	github.com/google/go-querystring v1.2.0
 	github.com/joho/godotenv v1.5.1
 	github.com/pocketbase/dbx v1.12.0
-	github.com/pocketbase/pocketbase v0.40.0
+	github.com/pocketbase/pocketbase v0.40.1
 	github.com/spf13/cobra v1.10.2
-	golang.org/x/exp v0.0.0-20260820142414-ca536658362e
+	golang.org/x/exp v0.0.0-20260824195058-e88cd73687aa
 	golang.org/x/net v0.58.0
 	google.golang.org/protobuf v1.36.12
 )
@@ -47,7 +47,7 @@ require (
 	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/text v0.41.0 // indirect
 	golang.org/x/time v0.15.0 // indirect
-	modernc.org/libc v1.75.4 // indirect
+	modernc.org/libc v1.75.6 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.12.1 // indirect
 	modernc.org/sqlite v1.57.0 // indirect
