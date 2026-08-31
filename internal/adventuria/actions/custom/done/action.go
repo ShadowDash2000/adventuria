@@ -93,7 +93,7 @@ func (d *Done) Do(ctx context.Context, events *model.Events, player *model.Playe
 		return nil, err
 	}
 
-	if currentCell.EnergyConsume() > player.Progress().Energy() {
+	if doneResult.EnergyConsume() > player.Progress().Energy() {
 		return nil, errs.ErrNotEnoughEnergy
 	}
 
