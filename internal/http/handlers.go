@@ -151,7 +151,6 @@ func (h *Handlers) BuyItemHandler(e *core.RequestEvent) error {
 
 	res, err := h.game.DoAction(e.Request.Context(), e.App, e.Auth.Id, actions.ActionTypeBuy, req)
 	if err != nil {
-		e.App.Logger().Error("Failed to buy item", "err", err)
 		return response.Error(e, err)
 	}
 
