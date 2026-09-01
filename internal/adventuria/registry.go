@@ -494,7 +494,6 @@ func (r *Registry) Players() *players.Players {
 			r.Actions(),
 			r.PlayerProgress(),
 			r.PlayerStats(),
-			r.Seasons(),
 		)
 	}
 	return r.players

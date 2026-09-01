@@ -66,6 +66,7 @@ var PlayerProgressSchema = struct {
 	Player            string
 	Season            string
 	CurrentWorld      string
+	LastAction        string
 	CanMove           string
 	Points            string
 	Balance           string
@@ -82,6 +83,7 @@ var PlayerProgressSchema = struct {
 	Player:            "player",
 	Season:            "season",
 	CurrentWorld:      "current_world",
+	LastAction:        "last_action",
 	CanMove:           "can_move",
 	Points:            "points",
 	Balance:           "balance",

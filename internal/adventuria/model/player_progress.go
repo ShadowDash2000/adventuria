@@ -9,6 +9,7 @@ type PlayerProgressData struct {
 	Player            string
 	Season            string
 	CurrentWorld      string
+	LastAction        string
 	CanMove           bool
 	Points            int
 	Balance           int
@@ -86,6 +87,14 @@ func (p *PlayerProgress) CurrentWorld() string {
 
 func (p *PlayerProgress) SetCurrentWorld(world string) {
 	p.data.CurrentWorld = world
+}
+
+func (p *PlayerProgress) LastAction() string {
+	return p.data.LastAction
+}
+
+func (p *PlayerProgress) SetLastAction(action string) {
+	p.data.LastAction = action
 }
 
 func (p *PlayerProgress) CanMove() bool {

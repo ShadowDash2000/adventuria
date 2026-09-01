@@ -40,7 +40,7 @@ func RegisterActions(
 	activityResultCalculator *activities.CompletionResultCalculator,
 ) {
 	actions.Register(
-		start.NewDef(),
+		start.NewDef(actionsService),
 		complete_activity.NewDef(cells, activityResultCalculator),
 		done.NewDef(actionsService, cells, activityResultCalculator, reviews),
 		drop.NewDef(actionsService, cells, reviews, players, settings, board),

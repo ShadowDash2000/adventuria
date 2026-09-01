@@ -4,7 +4,6 @@ import (
 	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
 	"context"
-	"time"
 )
 
 type repository interface {
@@ -14,7 +13,7 @@ type repository interface {
 
 type actions interface {
 	Save(ctx context.Context, action *model.ActionInfo) (*model.ActionInfo, error)
-	GetLastOrDefault(ctx context.Context, playerId string, timeFrom, timeTo time.Time) (*model.ActionInfo, error)
+	GetLastOrDefault(ctx context.Context, playerId, seasonId string) (*model.ActionInfo, error)
 }
 
 type playerProgress interface {
@@ -28,16 +27,11 @@ type playerStats interface {
 	GetOrCreate(ctx context.Context, playerId, seasonId string) (*model.PlayerStats, error)
 }
 
-type seasons interface {
-	GetByID(ctx context.Context, id string) (*model.Season, error)
-}
-
 type Players struct {
 	repository repository
 	actions    actions
 	progress   playerProgress
 	stats      playerStats
-	seasons    seasons
 }
 
 func NewPlayers(
@@ -45,14 +39,12 @@ func NewPlayers(
 	actions actions,
 	progress playerProgress,
 	stats playerStats,
-	seasons seasons,
 ) *Players {
 	return &Players{
 		repository: repository,
 		actions:    actions,
 		progress:   progress,
 		stats:      stats,
-		seasons:    seasons,
 	}
 }
 
@@ -70,12 +62,7 @@ func (p *Players) GetByID(ctx context.Context, playerId, seasonId string) (*mode
 		return nil, err
 	}
 
-	season, err := p.seasons.GetByID(ctx, seasonId)
-	if err != nil {
-		return nil, err
-	}
-
-	action, err := p.actions.GetLastOrDefault(ctx, playerId, season.SeasonDateStart(), season.SeasonDateEnd())
+	action, err := p.actions.GetLastOrDefault(ctx, playerId, seasonId)
 	if err != nil {
 		return nil, err
 	}
@@ -96,11 +83,6 @@ func (p *Players) GetByID(ctx context.Context, playerId, seasonId string) (*mode
 }
 
 func (p *Players) GetAllBySeasonID(ctx context.Context, seasonId string) ([]*model.Player, error) {
-	season, err := p.seasons.GetByID(ctx, seasonId)
-	if err != nil {
-		return nil, err
-	}
-
 	progresses, err := p.progress.GetAllBySeasonID(ctx, seasonId)
 	if err != nil {
 		return nil, err
@@ -110,7 +92,7 @@ func (p *Players) GetAllBySeasonID(ctx context.Context, seasonId string) ([]*mod
 	for i, progress := range progresses {
 		playerId := progress.Player()
 
-		action, err := p.actions.GetLastOrDefault(ctx, playerId, season.SeasonDateStart(), season.SeasonDateEnd())
+		action, err := p.actions.GetLastOrDefault(ctx, playerId, seasonId)
 		if err != nil {
 			return nil, err
 		}

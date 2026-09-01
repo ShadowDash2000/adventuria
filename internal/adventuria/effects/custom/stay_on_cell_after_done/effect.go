@@ -10,6 +10,7 @@ import (
 
 type actionsService interface {
 	Save(ctx context.Context, action *model.ActionInfo) (*model.ActionInfo, error)
+	CreateAndSetLastAction(ctx context.Context, player *model.Player, action *model.ActionInfo) (*model.ActionInfo, error)
 }
 
 type activities interface {
@@ -76,6 +77,11 @@ func (s *StayOnCellAfterDone) Subscribe(
 				return err
 			}
 
+			newAction, err = s.actions.CreateAndSetLastAction(ctx, player, newAction)
+			if err != nil {
+				return err
+			}
+
 			ids, err := s.activities.GetRandomIDsByFilter(ctx, *actionState.ActivityFilter)
 			if err != nil {
 				return err
@@ -85,7 +91,6 @@ func (s *StayOnCellAfterDone) Subscribe(
 				Ids: ids,
 			}
 			newAction.SetState(actionState)
-			player.SetLastAction(newAction)
 
 			callback(ctx)
 

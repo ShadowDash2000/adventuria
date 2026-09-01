@@ -20,6 +20,7 @@ type reviewsService interface {
 type actionsService interface {
 	CanDo(ctx context.Context, events *model.Events, player *model.Player, t model.ActionType) bool
 	Save(ctx context.Context, action *model.ActionInfo) (*model.ActionInfo, error)
+	CreateAndSetLastAction(ctx context.Context, player *model.Player, action *model.ActionInfo) (*model.ActionInfo, error)
 }
 
 type activities interface {
@@ -123,6 +124,11 @@ func (r *Reroll) Do(ctx context.Context, events *model.Events, player *model.Pla
 		return nil, err
 	}
 
+	newAction, err = r.actions.CreateAndSetLastAction(ctx, player, newAction)
+	if err != nil {
+		return nil, err
+	}
+
 	ids, err := r.activities.GetRandomIDsByFilter(ctx, *actionState.ActivityFilter)
 	if err != nil {
 		return nil, err
@@ -138,8 +144,6 @@ func (r *Reroll) Do(ctx context.Context, events *model.Events, player *model.Pla
 		rootActionId = lastAction.ID()
 	}
 	newAction.SetRootAction(rootActionId)
-
-	player.SetLastAction(newAction)
 
 	return nil, events.OnAfterReroll().Trigger(ctx, &model.OnAfterRerollEvent{})
 }

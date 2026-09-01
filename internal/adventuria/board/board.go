@@ -9,6 +9,7 @@ import (
 
 type actionsService interface {
 	Save(ctx context.Context, action *model.ActionInfo) (*model.ActionInfo, error)
+	CreateAndSetLastAction(ctx context.Context, player *model.Player, action *model.ActionInfo) (*model.ActionInfo, error)
 }
 
 type playerProgress interface {
@@ -122,19 +123,19 @@ func (b *Board) Move(
 
 	newAction.SetCellsPassed(steps)
 
-	progress := player.Progress()
-	progress.SetCanMove(false)
-
-	newAction, err = b.actions.Save(ctx, newAction)
+	_, err = b.actions.CreateAndSetLastAction(ctx, player, newAction)
 	if err != nil {
 		return nil, err
 	}
+
+	progress := player.Progress()
+	progress.SetCanMove(false)
+
 	newProgress, err := b.progress.Save(ctx, progress)
 	if err != nil {
 		return nil, err
 	}
 
-	player.SetLastAction(newAction)
 	player.SetProgress(newProgress)
 
 	onAfterMoveEvent := model.OnAfterMoveEvent{

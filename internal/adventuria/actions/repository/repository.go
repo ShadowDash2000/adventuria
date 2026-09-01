@@ -4,15 +4,14 @@ import (
 	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
 	"adventuria/internal/adventuria/schema"
+	"adventuria/pkg/pbhelper"
 	"adventuria/pkg/pbtransaction"
 	"context"
 	"database/sql"
 	"errors"
-	"time"
 
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
-	"github.com/pocketbase/pocketbase/tools/types"
 )
 
 type Repository struct {
@@ -76,26 +75,24 @@ func (r *Repository) Update(ctx context.Context, action *model.ActionInfo) (*mod
 	return RecordToAction(&record)
 }
 
-func (r *Repository) GetLastActionByPlayerId(ctx context.Context, playerId string, timeFrom, timeTo time.Time) (*model.ActionInfo, error) {
+func (r *Repository) GetLastPlayerActionBySeasonID(ctx context.Context, playerId, seasonId string) (*model.ActionInfo, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 
-	dateFrom, err := types.ParseDateTime(timeFrom)
-	if err != nil {
-		return nil, err
-	}
-	dateTo, err := types.ParseDateTime(timeTo)
-	if err != nil {
-		return nil, err
-	}
-
 	var record core.Record
-	err = pb.RecordQuery(schema.CollectionActions).
+	err := pb.RecordQuery(schema.CollectionActions).
 		WithContext(ctx).
-		Where(dbx.And(
-			dbx.HashExp{schema.ActionSchema.Player: playerId},
-			dbx.Between("created", dateFrom, dateTo),
-		)).
-		OrderBy("created DESC", "rowid DESC").
+		Select(pbhelper.DotExpand(schema.CollectionActions, "*")).
+		InnerJoin(
+			schema.CollectionPlayersProgress,
+			dbx.NewExp(pbhelper.Eq(
+				pbhelper.DotExpand(schema.CollectionActions, schema.ActionSchema.Id),
+				pbhelper.DotExpand(schema.CollectionPlayersProgress, schema.PlayerProgressSchema.LastAction),
+			)),
+		).
+		Where(dbx.HashExp{
+			pbhelper.DotExpand(schema.CollectionPlayersProgress, schema.PlayerProgressSchema.Player): playerId,
+			pbhelper.DotExpand(schema.CollectionPlayersProgress, schema.PlayerProgressSchema.Season): seasonId,
+		}).
 		Limit(1).
 		One(&record)
 	if err != nil {
