@@ -82,6 +82,26 @@ func (g *Game) bindHooks(ctx context.Context, pb core.App) {
 		return e.Next()
 	})
 
+	pb.OnRecordEnrich(schema.CollectionActions).BindFunc(func(e *core.RecordEnrichEvent) error {
+		var records []*core.Record
+		err := e.App.RecordQuery(schema.CollectionPlayerEvents).
+			WithContext(ctx).
+			Where(dbx.HashExp{
+				schema.PlayerEventsSchema.Action: e.Record.Id,
+			}).
+			OrderBy("created DESC").
+			Limit(20).
+			All(&records)
+		if err != nil {
+			return err
+		}
+
+		e.Record.WithCustomData(true)
+		e.Record.Set("player_events", records)
+
+		return e.Next()
+	})
+
 	pb.OnRecordAfterDeleteSuccess(schema.CollectionActions).BindFunc(func(e *core.RecordEvent) error {
 		reviewId := e.Record.GetString(schema.ActionSchema.Review)
 		if reviewId == "" {

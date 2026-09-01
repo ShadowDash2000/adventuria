@@ -2,7 +2,7 @@ package change_balance
 
 import "context"
 
-func (c *ChangeBalance) Verify(_ context.Context, value string) error {
-	_, err := c.decodeValue(value)
+func (c *ChangeBalance) Verify(_ context.Context, payload string) error {
+	_, err := c.decodePayload(payload)
 	return err
 }

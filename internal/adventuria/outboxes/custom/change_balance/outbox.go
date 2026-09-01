@@ -38,15 +38,15 @@ func NewDef(progress progress, notifyProgress notifyProgress) outboxes.OutboxDef
 }
 
 func (c *ChangeBalance) Process(ctx context.Context, outbox *model.OutboxInfo) error {
-	outboxValue, err := c.decodeValue(outbox.Payload())
+	payload, err := c.decodePayload(outbox.Payload())
 	if err != nil {
 		return err
 	}
 
-	err = c.progress.ChangeBalance(ctx, outboxValue.ProgressId, outboxValue.Amount)
+	err = c.progress.ChangeBalance(ctx, payload.ProgressId, payload.Amount)
 	if err != nil {
 		return err
 	}
 
-	return c.notifyProgress.NotifyChange(ctx, outboxValue.ProgressId)
+	return c.notifyProgress.NotifyChange(ctx, payload.ProgressId)
 }

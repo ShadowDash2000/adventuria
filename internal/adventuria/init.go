@@ -10,6 +10,7 @@ import (
 	"adventuria/internal/adventuria/effects"
 	customEffects "adventuria/internal/adventuria/effects/custom"
 	customOutboxes "adventuria/internal/adventuria/outboxes/custom"
+	customPlayerEvents "adventuria/internal/adventuria/player_events/custom"
 	"adventuria/internal/adventuria/stream_tracker"
 	"context"
 
@@ -79,6 +80,8 @@ func (g *Game) init(ctx context.Context, pb core.App) (*Registry, error) {
 	customOutboxes.RegisterOutboxes(
 		registry.PlayerProgress(),
 	)
+
+	customPlayerEvents.RegisterPlayerEvents()
 
 	// background tasks
 	registry.Outboxes().Start(ctx)

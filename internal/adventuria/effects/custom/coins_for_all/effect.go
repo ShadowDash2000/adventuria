@@ -77,7 +77,7 @@ func (c *CoinsForAll) Subscribe(
 					continue
 				}
 
-				payload, err := json.Marshal(change_balance.OutboxValue{
+				payload, err := json.Marshal(change_balance.Payload{
 					ProgressId: p.ID(),
 					Amount:     effectValue.CoinsForOther,
 				})

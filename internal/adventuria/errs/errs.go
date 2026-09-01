@@ -129,6 +129,10 @@ var (
 		Code:    "review_file_not_found",
 		Message: "Review file not found",
 	}
+	ErrPlayerEventNotFound = &AppError{
+		Code:    "player_event_not_found",
+		Message: "Player event not found",
+	}
 
 	ErrReviewCommentTooLong = &AppError{
 		Code:    "review_comment_max_size",

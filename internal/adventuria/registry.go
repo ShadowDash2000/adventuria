@@ -45,6 +45,8 @@ import (
 	outboxesRepo "adventuria/internal/adventuria/outboxes/repository"
 	"adventuria/internal/adventuria/platforms"
 	platformsRepo "adventuria/internal/adventuria/platforms/repository"
+	"adventuria/internal/adventuria/player_events"
+	playerEventsRepo "adventuria/internal/adventuria/player_events/repository"
 	"adventuria/internal/adventuria/player_progress"
 	progressRepo "adventuria/internal/adventuria/player_progress/repository"
 	"adventuria/internal/adventuria/player_stats"
@@ -119,6 +121,7 @@ type Registry struct {
 	actionEventsRepo        *actionEventsRepo.Repository
 	cellEventsSchedulesRepo *cellEventsSchedulesRepo.Repository
 	completedActivitiesRepo *completedActivitiesRepo.Repository
+	playerEventsRepo        *playerEventsRepo.Repository
 
 	// services
 	seasons                  *seasons.Seasons
@@ -155,6 +158,7 @@ type Registry struct {
 	cellEventsSchedules      *cell_events_schedules.CellEventsSchedules
 	completedActivities      *completed_activities.Query
 	activityResultCalculator *activities.CompletionResultCalculator
+	playerEvents             *player_events.PlayerEvents
 }
 
 func NewRegistry(pb core.App, logger *slog.Logger) *Registry {
@@ -445,6 +449,13 @@ func (r *Registry) CompletedActivitiesRepo() *completedActivitiesRepo.Repository
 	return r.completedActivitiesRepo
 }
 
+func (r *Registry) PlayerEventsRepo() *playerEventsRepo.Repository {
+	if r.playerEventsRepo == nil {
+		r.playerEventsRepo = playerEventsRepo.NewRepository(r.pb)
+	}
+	return r.playerEventsRepo
+}
+
 func (r *Registry) Seasons() *seasons.Seasons {
 	if r.seasons == nil {
 		r.seasons = seasons.NewSeasons(r.SeasonsRepo())
@@ -515,7 +526,7 @@ func (r *Registry) Effects() *effects.Effects {
 
 func (r *Registry) Inventories() *inventories.Inventories {
 	if r.inventories == nil {
-		r.inventories = inventories.NewInventories(r.InventoriesRepo(), r.Effects(), r.ItemsRepo())
+		r.inventories = inventories.NewInventories(r.InventoriesRepo(), r.Effects(), r.ItemsRepo(), r.PlayerEvents())
 	}
 	return r.inventories
 }
@@ -714,4 +725,11 @@ func (r *Registry) CellResultCalculator() *activities.CompletionResultCalculator
 		r.activityResultCalculator = activities.NewCompletionResultCalculator()
 	}
 	return r.activityResultCalculator
+}
+
+func (r *Registry) PlayerEvents() *player_events.PlayerEvents {
+	if r.playerEvents == nil {
+		r.playerEvents = player_events.NewPlayerEvents(r.PlayerEventsRepo())
+	}
+	return r.playerEvents
 }

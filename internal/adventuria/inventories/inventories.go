@@ -3,8 +3,10 @@ package inventories
 import (
 	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
+	"adventuria/internal/adventuria/player_events/custom/item_received"
 	"adventuria/pkg/helper"
 	"context"
+	"encoding/json"
 )
 
 type repository interface {
@@ -29,17 +31,23 @@ type items interface {
 	GetByID(ctx context.Context, id string) (*model.Item, error)
 }
 
-type Inventories struct {
-	repository repository
-	effects    effectsService
-	items      items
+type playerEvents interface {
+	Save(ctx context.Context, playerEvent *model.PlayerEventInfo) (*model.PlayerEventInfo, error)
 }
 
-func NewInventories(repository repository, effects effectsService, items items) *Inventories {
+type Inventories struct {
+	repository   repository
+	effects      effectsService
+	items        items
+	playerEvents playerEvents
+}
+
+func NewInventories(repository repository, effects effectsService, items items, playerEvents playerEvents) *Inventories {
 	return &Inventories{
-		repository: repository,
-		effects:    effects,
-		items:      items,
+		repository:   repository,
+		effects:      effects,
+		items:        items,
+		playerEvents: playerEvents,
 	}
 }
 
@@ -96,6 +104,31 @@ func (i *Inventories) AddItem(
 	}
 
 	inventory, err = i.Save(ctx, inventory)
+	if err != nil {
+		return nil, err
+	}
+
+	itemReceivedPayload, err := json.Marshal(item_received.Payload{
+		ItemId:   item.ID(),
+		ItemName: item.Name(),
+		ItemType: item.Type(),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	itemReceivedEvent, err := model.NewPlayerEvent(model.PlayerEventCreate{
+		Player:  player.ID(),
+		Season:  player.Progress().Season(),
+		Type:    item_received.Type,
+		Action:  player.LastAction().ID(),
+		Payload: string(itemReceivedPayload),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = i.playerEvents.Save(ctx, itemReceivedEvent)
 	if err != nil {
 		return nil, err
 	}
