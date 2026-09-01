@@ -2,6 +2,7 @@ package roll_item
 
 import (
 	"adventuria/internal/adventuria/actions"
+	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
 	"adventuria/pkg/helper"
 	"context"
@@ -14,6 +15,7 @@ type actionsService interface {
 
 type inventories interface {
 	AddItemByID(ctx context.Context, events *model.Events, player *model.Player, itemId string) (*model.InventoryItem, error)
+	HasEmptySlots(ctx context.Context, player *model.Player) (bool, error)
 }
 
 type items interface {
@@ -58,6 +60,14 @@ func (r *RollItem) CanDo(ctx context.Context, events *model.Events, player *mode
 }
 
 func (r *RollItem) Do(ctx context.Context, events *model.Events, player *model.Player, _ model.ActionRequest) (any, error) {
+	hasEmptySlots, err := r.inventories.HasEmptySlots(ctx, player)
+	if err != nil {
+		return nil, err
+	}
+	if !hasEmptySlots {
+		return nil, errs.ErrNotEnoughInventorySlots
+	}
+
 	res := model.WheelRollResult{}
 
 	items, err := r.items.GetAllRollable(ctx)
@@ -70,6 +80,7 @@ func (r *RollItem) Do(ctx context.Context, events *model.Events, player *model.P
 	}
 
 	res.WinnerId = helper.RandomItemFromSlice(items).ID()
+
 	_, err = r.inventories.AddItemByID(ctx, events, player, res.WinnerId)
 	if err != nil {
 		return nil, err

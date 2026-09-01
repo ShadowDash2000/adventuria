@@ -151,6 +151,11 @@ var (
 		Message: "Not enough energy",
 		Status:  http.StatusBadRequest,
 	}
+	ErrNotEnoughInventorySlots = &AppError{
+		Code:    "not_enough_inventory_slots",
+		Message: "Not enough inventory slots",
+		Status:  http.StatusBadRequest,
+	}
 
 	ErrUnknownAction = &AppError{
 		Code:    "unknown_action",

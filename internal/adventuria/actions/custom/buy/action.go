@@ -16,7 +16,7 @@ type items interface {
 }
 
 type inventories interface {
-	AddItem(ctx context.Context, events *model.Events, player *model.Player, item *model.Item) (*model.InventoryItem, error)
+	TryAddItem(ctx context.Context, events *model.Events, player *model.Player, item *model.Item) (*model.InventoryItem, error)
 }
 
 var _ model.Action = (*Buy)(nil)
@@ -86,7 +86,7 @@ func (b *Buy) Do(ctx context.Context, events *model.Events, player *model.Player
 		return nil, errs.ErrNotEnoughMoney
 	}
 
-	_, err = b.inventories.AddItem(ctx, events, player, item)
+	_, err = b.inventories.TryAddItem(ctx, events, player, item)
 	if err != nil {
 		return nil, err
 	}

@@ -1,6 +1,7 @@
 package inventories
 
 import (
+	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
 	"adventuria/pkg/helper"
 	"context"
@@ -116,6 +117,26 @@ func (i *Inventories) AddItem(
 	return inventoryItem, nil
 }
 
+func (i *Inventories) TryAddItem(
+	ctx context.Context,
+	events *model.Events,
+	player *model.Player,
+	item *model.Item,
+) (*model.InventoryItem, error) {
+	if item.IsUsingSlot() {
+		hasEmptySlots, err := i.HasEmptySlots(ctx, player)
+		if err != nil {
+			return nil, err
+		}
+
+		if !hasEmptySlots {
+			return nil, errs.ErrNotEnoughInventorySlots
+		}
+	}
+
+	return i.AddItem(ctx, events, player, item)
+}
+
 func (i *Inventories) GetPlayerUsedSlots(ctx context.Context, playerId string) (int, error) {
 	return i.repository.GetPlayerUsedSlots(ctx, playerId)
 }
@@ -138,6 +159,7 @@ func (i *Inventories) AddItemByID(
 	if err != nil {
 		return nil, err
 	}
+
 	return i.AddItem(ctx, events, player, item)
 }
 
