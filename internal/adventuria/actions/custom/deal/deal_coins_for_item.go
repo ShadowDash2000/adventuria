@@ -16,7 +16,7 @@ func (d *Deal) doCoinsForItemDeal(ctx context.Context, events *model.Events, pla
 		return err
 	}
 
-	err = player.Progress().BalanceChange(-coinsForItemDeal.Coins)
+	err = player.Progress().BalanceChange(coinsForItemDeal.Coins)
 	if err != nil {
 		return err
 	}
