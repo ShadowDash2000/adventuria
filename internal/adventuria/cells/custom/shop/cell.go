@@ -58,8 +58,6 @@ func (c *CellShop) OnCellReached(ctx context.Context, _ *model.Events, player *m
 		return err
 	}
 
-	player.LastAction().SetState(actionState)
-
 	return nil
 }
 

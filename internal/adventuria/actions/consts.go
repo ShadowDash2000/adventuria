@@ -17,5 +17,5 @@ const (
 	ActionTypeRollItemOnCell   model.ActionType = "roll_item_on_cell"
 	ActionTypeBuy              model.ActionType = "buy"
 	ActionTypeRefreshShop      model.ActionType = "refresh_shop"
-	ActionTypeUpdateReview     model.ActionType = "update_review"
+	ActionTypeCoinsForItem     model.ActionType = "coins_for_item"
 )

@@ -6,14 +6,14 @@ import (
 	"context"
 )
 
-func (r *RefreshShop) doBuffetRefresh(ctx context.Context, player *model.Player, state model.ActionState) error {
-	ids, err := r.items.GetAllBuyableIDsByType(ctx, state.ShopFilter.ItemType)
+func (r *RefreshShop) doBuffetRefresh(ctx context.Context, player *model.Player) error {
+	actionState := player.LastAction().State()
+	ids, err := r.items.GetAllBuyableIDsByType(ctx, actionState.ShopFilter.ItemType)
 	if err != nil {
 		return err
 	}
 
-	state.Shop.Ids = shop.PickRandomIDs(ids)
-	player.LastAction().SetState(state)
+	actionState.Shop.Ids = shop.PickRandomIDs(ids)
 
 	return nil
 }

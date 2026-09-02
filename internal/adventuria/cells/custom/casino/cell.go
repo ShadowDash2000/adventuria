@@ -59,8 +59,6 @@ func (c *CellCasino) OnCellReached(_ context.Context, _ *model.Events, player *m
 		return err
 	}
 
-	player.LastAction().SetState(actionState)
-
 	return nil
 }
 

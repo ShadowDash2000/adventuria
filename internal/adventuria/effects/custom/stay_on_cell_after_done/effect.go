@@ -82,7 +82,7 @@ func (s *StayOnCellAfterDone) Subscribe(
 				return err
 			}
 
-			ids, err := s.activities.GetRandomIDsByFilter(ctx, *actionState.ActivityFilter)
+			ids, err := s.activities.GetRandomIDsByFilter(ctx, actionState.ActivityFilter.Clone())
 			if err != nil {
 				return err
 			}
@@ -90,7 +90,6 @@ func (s *StayOnCellAfterDone) Subscribe(
 			actionState.Activities = &model.ActionActivitiesState{
 				Ids: ids,
 			}
-			newAction.SetState(actionState)
 
 			callback(ctx)
 

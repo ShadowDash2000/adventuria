@@ -4,7 +4,7 @@ import (
 	"adventuria/internal/adventuria/model"
 )
 
-func (r *RefreshShop) doCasinoRefresh(player *model.Player, state model.ActionState) {
-	state.Shop.Ids = state.ShopFilter.Ids
-	player.LastAction().SetState(state)
+func (r *RefreshShop) doCasinoRefresh(player *model.Player) {
+	actionState := player.LastAction().State()
+	actionState.Shop.Ids = actionState.ShopFilter.Ids
 }

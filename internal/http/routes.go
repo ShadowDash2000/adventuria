@@ -66,6 +66,7 @@ func Route(game *adventuria.Game, registry *adventuria.Registry, router *router.
 
 	gab.POST("/buy-item", handlers.BuyItemHandler)
 	gab.POST("/refresh-shop", handlers.RefreshShopHandler)
+	gab.POST("/coins-for-item", handlers.CoinsForItemHandler)
 
 	gab.POST("/use-item", handlers.UseItemHandler)
 	gab.POST("/drop-item", handlers.DropItemHandler)

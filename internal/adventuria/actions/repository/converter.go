@@ -8,7 +8,7 @@ import (
 )
 
 func ActionToRecord(action *model.ActionInfo, record *core.Record) error {
-	state, err := actionStateToDTO(action.State())
+	state, err := actionStateToDTO(action.State().Clone())
 	if err != nil {
 		return err
 	}

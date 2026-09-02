@@ -50,7 +50,5 @@ func (c *Casino) Init(_ context.Context, player *model.Player) error {
 		return err
 	}
 
-	player.LastAction().SetState(actionState)
-
 	return nil
 }

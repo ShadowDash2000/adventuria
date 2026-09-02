@@ -37,14 +37,10 @@ func (c *CoinsForItemDealer) Init(_ context.Context, player *model.Player) error
 		return err
 	}
 
-	actionState := player.LastAction().State()
-	dealerState := model.NewCoinsForItemDeal(
-		decodedValue.Description,
+	player.LastAction().State().Dealer = model.NewCoinsForItemDeal(
 		decodedValue.Coins,
 		decodedValue.ItemId,
 	)
-	actionState.Dealer = dealerState
-	player.LastAction().SetState(actionState)
 
 	return nil
 }

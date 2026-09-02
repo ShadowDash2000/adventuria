@@ -237,10 +237,7 @@ func (a *actionsMigrator) saveAction(ctx context.Context, action action) error {
 	if err != nil {
 		return err
 	}
-
-	newActionState := newAction.State()
-	newActionState.UsedItems = usedItemsState
-	newAction.SetState(newActionState)
+	newAction.State().UsedItems = usedItemsState
 
 	newAction.SetActivity(action.Activity)
 	newAction.SetCellsPassed(action.DiceRoll)

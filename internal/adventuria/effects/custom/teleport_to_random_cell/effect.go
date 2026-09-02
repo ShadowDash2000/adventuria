@@ -78,7 +78,7 @@ func (t *TeleportToRandomCell) CanUse(ctx context.Context, events *model.Events,
 }
 
 func (t *TeleportToRandomCell) Subscribe(
-	ctx context.Context,
+	_ context.Context,
 	events *model.Events,
 	player *model.Player,
 	effectCtx model.EffectContext,

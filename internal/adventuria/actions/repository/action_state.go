@@ -64,7 +64,6 @@ type shopFilterState struct {
 
 type dealerState struct {
 	Type         string            `json:"type"`
-	Description  string            `json:"description"`
 	CoinsForItem *dealCoinsForItem `json:"coins_for_item"`
 }
 
@@ -134,9 +133,7 @@ func usedItemsStateToDTO(state model.ActionUsedItemsState) usedItemsState {
 
 	res := make([]usedItemState, len(state))
 	for i, item := range state {
-		res[i] = usedItemState{
-			Id: item.Id,
-		}
+		res[i] = usedItemStateToDTO(item)
 	}
 
 	return res
@@ -155,9 +152,7 @@ func usedItemsStateFromDTO(dto usedItemsState) model.ActionUsedItemsState {
 
 	res := make([]model.ActionUsedItemState, len(dto))
 	for i, item := range dto {
-		res[i] = model.ActionUsedItemState{
-			Id: item.Id,
-		}
+		res[i] = usedItemStateFromDTO(item)
 	}
 
 	return res
@@ -293,8 +288,7 @@ func dealerStateToDTO(state *model.ActionDealerState) (*dealerState, error) {
 	}
 
 	dto := &dealerState{
-		Type:        string(state.Type),
-		Description: state.Description,
+		Type: string(state.Type),
 	}
 	switch state.Type {
 	case model.DealTypeCoinsForItem:
@@ -319,8 +313,7 @@ func dealerStateFromDTO(dto *dealerState) (*model.ActionDealerState, error) {
 	}
 
 	state := &model.ActionDealerState{
-		Type:        model.DealType(dto.Type),
-		Description: dto.Description,
+		Type: model.DealType(dto.Type),
 	}
 	switch state.Type {
 	case model.DealTypeCoinsForItem:

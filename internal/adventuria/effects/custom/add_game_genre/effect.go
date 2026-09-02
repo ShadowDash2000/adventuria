@@ -120,7 +120,6 @@ func (a *AddGameGenre) Subscribe(
 			actionState.Activities = &model.ActionActivitiesState{
 				Ids: ids,
 			}
-			player.LastAction().SetState(actionState)
 
 			callback(ctx)
 			return e.Next()

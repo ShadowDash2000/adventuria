@@ -17,10 +17,6 @@ type Action interface {
 	Do(ctx context.Context, events *Events, player *Player, actionReq ActionRequest) (any, error)
 }
 
-type ActionEventCompatible interface {
-	CanDoOnEvent(ctx context.Context, events *Events, player *Player) bool
-}
-
 type ActionData struct {
 	Id          string
 	Player      string
@@ -128,8 +124,8 @@ func (a *ActionInfo) SetCellsPassed(count int) {
 	a.data.CellsPassed = count
 }
 
-func (a *ActionInfo) State() ActionState {
-	return a.data.State.Clone()
+func (a *ActionInfo) State() *ActionState {
+	return &a.data.State
 }
 
 func (a *ActionInfo) SetState(state ActionState) {

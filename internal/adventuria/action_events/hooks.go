@@ -31,6 +31,11 @@ func verify(ctx context.Context, actionEventInfo *model.ActionEventInfo) error {
 		return fmt.Errorf("%w: %s", errs.ErrUnknownActionEventType, actionEventInfo.Type())
 	}
 
+	_, ok = actions.Get(actionEventInfo.ActionType())
+	if !ok {
+		return fmt.Errorf("%w: %s", errs.ErrUnknownAction, actionEventInfo.ActionType())
+	}
+
 	actionEvent := actionEventDef.new(*actionEventInfo)
 	verifiable, ok := actionEvent.(model.Verifiable)
 	if !ok {
@@ -44,16 +49,6 @@ func verify(ctx context.Context, actionEventInfo *model.ActionEventInfo) error {
 	err := verifiable.Verify(ctx, actionEventValue)
 	if err != nil {
 		return err
-	}
-
-	actionDef, ok := actions.Get(actionEventInfo.ActionType())
-	if !ok {
-		return fmt.Errorf("%w: %s", errs.ErrUnknownAction, actionEventInfo.ActionType())
-	}
-
-	_, ok = actionDef.New().(model.ActionEventCompatible)
-	if !ok {
-		return fmt.Errorf("%w: %s", errs.ErrActionIsNotEventCompatible, actionEventInfo.ActionType())
 	}
 
 	return nil

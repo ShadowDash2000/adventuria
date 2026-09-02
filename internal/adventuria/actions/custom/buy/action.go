@@ -59,8 +59,7 @@ func (b *Buy) Do(ctx context.Context, events *model.Events, player *model.Player
 		return nil, errors.New("item id is required")
 	}
 
-	actionState := player.LastAction().State()
-	shopState := actionState.Shop
+	shopState := player.LastAction().State().Shop
 	if shopState == nil {
 		return nil, errs.ErrNoActiveShop
 	}
@@ -91,8 +90,7 @@ func (b *Buy) Do(ctx context.Context, events *model.Events, player *model.Player
 		return nil, err
 	}
 
-	actionState.Shop.Ids = itemIds
-	player.LastAction().SetState(actionState)
+	shopState.Ids = itemIds
 
 	err = player.Progress().BalanceChange(-buyResult.Price())
 	if err != nil {

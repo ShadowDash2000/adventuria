@@ -59,26 +59,7 @@ func (c *CellActivity) OnCellReached(ctx context.Context, _ *model.Events, playe
 		return err
 	}
 
-	actionState := player.LastAction().State()
-	actionState.ActivityFilter = &model.ActivityFilter{
-		Type:            filter.Type(),
-		Platforms:       filter.Platforms(),
-		PlatformsStrict: filter.PlatformsStrict(),
-		GameTypes:       filter.GameTypes(),
-		Developers:      filter.Developers(),
-		Publishers:      filter.Publishers(),
-		Genres:          filter.Genres(),
-		Tags:            filter.Tags(),
-		Themes:          filter.Themes(),
-		MinPrice:        filter.MinPrice(),
-		MaxPrice:        filter.MaxPrice(),
-		ReleaseDateFrom: filter.ReleaseDateFrom(),
-		ReleaseDateTo:   filter.ReleaseDateTo(),
-		MinCampaignTime: filter.MinCampaignTime(),
-		MaxCampaignTime: filter.MaxCampaignTime(),
-		Activities:      filter.Activities(),
-	}
-	player.LastAction().SetState(actionState)
+	player.LastAction().State().ActivityFilter = new(filter.Filter())
 
 	return nil
 }

@@ -90,7 +90,6 @@ func (e *Effects) effectCallback(
 	actionState.UsedItems = append(actionState.UsedItems, model.ActionUsedItemState{
 		Id: item.Item().ID(),
 	})
-	player.LastAction().SetState(actionState)
 
 	for _, effectId := range item.Item().Effects() {
 		events.Unsubscribe(item.Inventory().ID() + ":" + effectId)

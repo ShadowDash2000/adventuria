@@ -55,6 +55,10 @@ func NewDef(cells cells, reviews reviewsService, actionsService actionsService, 
 }
 
 func (r *Reroll) CanDo(ctx context.Context, events *model.Events, player *model.Player) bool {
+	if player.LastAction().State().ActivityFilter == nil {
+		return false
+	}
+
 	if !r.actions.CanDo(ctx, events, player, actions.ActionTypeCompleteActivity) {
 		return false
 	}
@@ -94,8 +98,8 @@ func (r *Reroll) Do(ctx context.Context, events *model.Events, player *model.Pla
 		return nil, errors.New("invalid request")
 	}
 
-	actionState := player.LastAction().State()
-	if actionState.ActivityFilter == nil {
+	activityFilter := player.LastAction().State().ActivityFilter
+	if activityFilter == nil {
 		return nil, errs.ErrNoActiveActivityFilter
 	}
 
@@ -129,15 +133,16 @@ func (r *Reroll) Do(ctx context.Context, events *model.Events, player *model.Pla
 		return nil, err
 	}
 
-	ids, err := r.activities.GetRandomIDsByFilter(ctx, *actionState.ActivityFilter)
+	ids, err := r.activities.GetRandomIDsByFilter(ctx, activityFilter.Clone())
 	if err != nil {
 		return nil, err
 	}
 
-	actionState.Activities = &model.ActionActivitiesState{
+	newActionState := lastAction.State().Clone()
+	newActionState.Activities = &model.ActionActivitiesState{
 		Ids: ids,
 	}
-	newAction.SetState(actionState)
+	newAction.SetState(newActionState)
 
 	rootActionId := lastAction.RootAction()
 	if rootActionId == "" {

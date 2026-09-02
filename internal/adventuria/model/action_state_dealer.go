@@ -1,6 +1,7 @@
 package model
 
 import (
+	"adventuria/internal/adventuria/errs"
 	"errors"
 	"fmt"
 )
@@ -13,7 +14,6 @@ const (
 
 type ActionDealerState struct {
 	Type         DealType
-	Description  string
 	CoinsForItem *DealCoinsForItem
 }
 
@@ -24,14 +24,13 @@ func (s *ActionDealerState) Clone() *ActionDealerState {
 
 	return &ActionDealerState{
 		Type:         s.Type,
-		Description:  s.Description,
-		CoinsForItem: s.CoinsForItem,
+		CoinsForItem: s.CoinsForItem.Clone(),
 	}
 }
 
 func (s *ActionDealerState) AsCoinsForItemDeal() (DealCoinsForItem, error) {
 	if s == nil {
-		return DealCoinsForItem{}, errors.New("action dealer state is nil")
+		return DealCoinsForItem{}, errs.ErrNoActiveDeals
 	}
 	if s.Type != DealTypeCoinsForItem {
 		return DealCoinsForItem{}, fmt.Errorf("deal type is %q, expected %q", s.Type, DealTypeCoinsForItem)
@@ -48,10 +47,20 @@ type DealCoinsForItem struct {
 	ItemId string
 }
 
-func NewCoinsForItemDeal(description string, coins int, itemId string) *ActionDealerState {
+func (d *DealCoinsForItem) Clone() *DealCoinsForItem {
+	if d == nil {
+		return nil
+	}
+
+	return &DealCoinsForItem{
+		Coins:  d.Coins,
+		ItemId: d.ItemId,
+	}
+}
+
+func NewCoinsForItemDeal(coins int, itemId string) *ActionDealerState {
 	return &ActionDealerState{
-		Type:        DealTypeCoinsForItem,
-		Description: description,
+		Type: DealTypeCoinsForItem,
 		CoinsForItem: &DealCoinsForItem{
 			Coins:  coins,
 			ItemId: itemId,

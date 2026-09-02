@@ -157,6 +157,15 @@ func (h *Handlers) BuyItemHandler(e *core.RequestEvent) error {
 	return response.Success(e, res)
 }
 
+func (h *Handlers) CoinsForItemHandler(e *core.RequestEvent) error {
+	res, err := h.game.DoAction(e.Request.Context(), e.App, e.Auth.Id, actions.ActionTypeCoinsForItem, nil)
+	if err != nil {
+		return response.Error(e, err)
+	}
+
+	return response.Success(e, res)
+}
+
 func (h *Handlers) UseItemHandler(e *core.RequestEvent) error {
 	data := struct {
 		ItemId string         `json:"item_id"`

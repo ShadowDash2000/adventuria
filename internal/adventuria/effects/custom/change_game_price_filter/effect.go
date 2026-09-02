@@ -171,7 +171,6 @@ func (c *ChangeGamePriceFilter) tryToApplyEffect(ctx context.Context, player *mo
 	actionState.Activities = &model.ActionActivitiesState{
 		Ids: ids,
 	}
-	player.LastAction().SetState(actionState)
 
 	return nil
 }

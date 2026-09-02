@@ -51,7 +51,7 @@ func (g *GenerateWheel) Do(ctx context.Context, _ *model.Events, player *model.P
 		return nil, errs.ErrNoActiveActivityFilter
 	}
 
-	ids, err := g.activities.GetRandomIDsByFilter(ctx, *actionState.ActivityFilter)
+	ids, err := g.activities.GetRandomIDsByFilter(ctx, actionState.ActivityFilter.Clone())
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +59,7 @@ func (g *GenerateWheel) Do(ctx context.Context, _ *model.Events, player *model.P
 	actionState.Activities = &model.ActionActivitiesState{
 		Ids: ids,
 	}
-	player.LastAction().SetState(actionState)
+
 	player.LastAction().SetStatus(model.ActionStatusNeedToRollWheel)
 
 	return nil, nil

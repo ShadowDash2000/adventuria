@@ -121,10 +121,6 @@ var (
 		Code:    "cell_event_schedule_not_found",
 		Message: "Cell event schedule not found",
 	}
-	ErrActionDataNotFound = &AppError{
-		Code:    "action_data_not_found",
-		Message: "Action data not found",
-	}
 	ErrReviewFileNotFound = &AppError{
 		Code:    "review_file_not_found",
 		Message: "Review file not found",
@@ -195,11 +191,6 @@ var (
 		Code:    "dont_do_that",
 		Message: "Don't do that",
 		Status:  http.StatusNotImplemented,
-	}
-
-	ErrActionIsNotEventCompatible = &AppError{
-		Code:    "action_is_not_event_compatible",
-		Message: "Action is not event compatible",
 	}
 
 	ErrNoActiveActivity = &AppError{

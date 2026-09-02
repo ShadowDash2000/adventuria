@@ -73,11 +73,9 @@ func (c *CellRollItem) refreshItems(ctx context.Context, player *model.Player) e
 		ids[i] = item.ID()
 	}
 
-	actionState := player.LastAction().State()
-	actionState.Items = &model.ActionItemsState{
+	player.LastAction().State().Items = &model.ActionItemsState{
 		Ids: ids,
 	}
-	player.LastAction().SetState(actionState)
 
 	return nil
 }

@@ -109,7 +109,7 @@ func (n *NoTimeLimit) tryToApplyEffect(ctx context.Context, player *model.Player
 	actionState.ActivityFilter.MinCampaignTime = -1
 	actionState.ActivityFilter.MaxCampaignTime = -1
 
-	ids, err := n.activities.GetRandomIDsByFilter(ctx, *actionState.ActivityFilter)
+	ids, err := n.activities.GetRandomIDsByFilter(ctx, actionState.ActivityFilter.Clone())
 	if err != nil {
 		return err
 	}
@@ -117,7 +117,6 @@ func (n *NoTimeLimit) tryToApplyEffect(ctx context.Context, player *model.Player
 	actionState.Activities = &model.ActionActivitiesState{
 		Ids: ids,
 	}
-	player.LastAction().SetState(actionState)
 
 	return nil
 }

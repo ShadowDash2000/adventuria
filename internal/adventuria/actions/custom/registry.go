@@ -4,7 +4,7 @@ import (
 	"adventuria/internal/adventuria/actions"
 	"adventuria/internal/adventuria/actions/custom/buy"
 	"adventuria/internal/adventuria/actions/custom/complete_activity"
-	"adventuria/internal/adventuria/actions/custom/deal"
+	"adventuria/internal/adventuria/actions/custom/deal/coins_for_item"
 	"adventuria/internal/adventuria/actions/custom/done"
 	"adventuria/internal/adventuria/actions/custom/drop"
 	"adventuria/internal/adventuria/actions/custom/generate_wheel"
@@ -52,6 +52,6 @@ func RegisterActions(
 		roll_item_on_cell.NewDef(cells, inventories, items),
 		roll_wheel.NewDef(cells, rollWheelRepo),
 		generate_wheel.NewDef(activities),
-		deal.NewDef(inventories),
+		coins_for_item.NewDef(inventories, items),
 	)
 }

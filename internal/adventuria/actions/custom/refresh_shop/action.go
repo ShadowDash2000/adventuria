@@ -60,12 +60,12 @@ func (r *RefreshShop) Do(ctx context.Context, _ *model.Events, player *model.Pla
 
 	switch actionState.Shop.Type {
 	case model.ShopTypeBuffet:
-		err := r.doBuffetRefresh(ctx, player, actionState)
+		err := r.doBuffetRefresh(ctx, player)
 		if err != nil {
 			return nil, err
 		}
 	case model.ShopTypeCasino:
-		r.doCasinoRefresh(player, actionState)
+		r.doCasinoRefresh(player)
 	default:
 		return nil, errors.New("unknown shop type")
 	}

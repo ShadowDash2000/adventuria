@@ -486,7 +486,7 @@ func (r *Registry) Cells() *cells.Cells {
 
 func (r *Registry) Actions() *actions.Actions {
 	if r.actions == nil {
-		r.actions = actions.NewActions(r.ActionsRepo(), r.Worlds(), r.Cells(), r.ActionEvents())
+		r.actions = actions.NewActions(r.ActionsRepo(), r.Worlds(), r.Cells())
 	}
 	return r.actions
 }
