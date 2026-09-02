@@ -29,21 +29,21 @@ type usedItemState struct {
 
 type activityFilterState struct {
 	Type            model.ActivityType `json:"type"`
-	Platforms       []string           `json:"platforms"`
+	Platforms       []string           `json:"platforms,omitempty"`
 	PlatformsStrict bool               `json:"platforms_strict"`
-	GameTypes       []string           `json:"game_types"`
-	Developers      []string           `json:"developers"`
-	Publishers      []string           `json:"publishers"`
-	Genres          []string           `json:"genres"`
-	Tags            []string           `json:"tags"`
-	Themes          []string           `json:"themes"`
+	GameTypes       []string           `json:"game_types,omitempty"`
+	Developers      []string           `json:"developers,omitempty"`
+	Publishers      []string           `json:"publishers,omitempty"`
+	Genres          []string           `json:"genres,omitempty"`
+	Tags            []string           `json:"tags,omitempty"`
+	Themes          []string           `json:"themes,omitempty"`
 	MinPrice        int                `json:"min_price"`
 	MaxPrice        int                `json:"max_price"`
-	ReleaseDateFrom time.Time          `json:"release_date_from"`
-	ReleaseDateTo   time.Time          `json:"release_date_to"`
+	ReleaseDateFrom time.Time          `json:"release_date_from,omitzero"`
+	ReleaseDateTo   time.Time          `json:"release_date_to,omitzero"`
 	MinCampaignTime float64            `json:"min_campaign_time"`
 	MaxCampaignTime float64            `json:"max_campaign_time"`
-	Activities      []string           `json:"activities"`
+	Activities      []string           `json:"activities,omitempty"`
 }
 
 type itemsState struct {

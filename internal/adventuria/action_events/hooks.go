@@ -2,7 +2,6 @@ package action_events
 
 import (
 	repo "adventuria/internal/adventuria/action_events/repository"
-	"adventuria/internal/adventuria/actions"
 	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
 	"adventuria/internal/adventuria/schema"
@@ -29,11 +28,6 @@ func verify(ctx context.Context, actionEventInfo *model.ActionEventInfo) error {
 	actionEventDef, ok := Get(actionEventInfo.Type())
 	if !ok {
 		return fmt.Errorf("%w: %s", errs.ErrUnknownActionEventType, actionEventInfo.Type())
-	}
-
-	_, ok = actions.Get(actionEventInfo.ActionType())
-	if !ok {
-		return fmt.Errorf("%w: %s", errs.ErrUnknownAction, actionEventInfo.ActionType())
 	}
 
 	actionEvent := actionEventDef.new(*actionEventInfo)

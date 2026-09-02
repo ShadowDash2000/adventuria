@@ -12,11 +12,10 @@ type ActionEvent interface {
 }
 
 type ActionEventData struct {
-	Id         string
-	Name       string
-	Type       ActionEventType
-	ActionType ActionType
-	Value      string
+	Id    string
+	Name  string
+	Type  ActionEventType
+	Value string
 }
 
 type ActionEventInfo struct {
@@ -37,10 +36,6 @@ func (c *ActionEventInfo) Name() string {
 
 func (c *ActionEventInfo) Type() ActionEventType {
 	return c.data.Type
-}
-
-func (c *ActionEventInfo) ActionType() ActionType {
-	return c.data.ActionType
 }
 
 func (c *ActionEventInfo) Value() string {

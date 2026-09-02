@@ -9,10 +9,9 @@ import (
 
 func RecordToActionEvent(record *core.Record) *model.ActionEventInfo {
 	return model.RestoreActionEvent(model.ActionEventData{
-		Id:         record.Id,
-		Name:       record.GetString(schema.ActionEventsSchema.Name),
-		Type:       model.ActionEventType(record.GetString(schema.ActionEventsSchema.Type)),
-		ActionType: model.ActionType(record.GetString(schema.ActionEventsSchema.ActionType)),
-		Value:      record.GetString(schema.ActionEventsSchema.Value),
+		Id:    record.Id,
+		Name:  record.GetString(schema.ActionEventsSchema.Name),
+		Type:  model.ActionEventType(record.GetString(schema.ActionEventsSchema.Type)),
+		Value: record.GetString(schema.ActionEventsSchema.Value),
 	})
 }
