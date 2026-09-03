@@ -232,6 +232,10 @@ var (
 		Code:    "player_is_disabled",
 		Message: "Player is disabled",
 	}
+	ErrPlayerNotInDebugMode = &AppError{
+		Code:    "player_not_in_debug_mode",
+		Message: "Player not in debug mode",
+	}
 	ErrCellEventSchedulerRunning = &AppError{
 		Code:    "cell_event_scheduler_running",
 		Message: "Cell event scheduler is running",
@@ -240,6 +244,10 @@ var (
 	ErrCellEventSchedulerAlreadyRunning = &AppError{
 		Code:    "cell_event_scheduler_already_running",
 		Message: "Cell event scheduler is already running",
+	}
+	ErrCellIsDisabled = &AppError{
+		Code:    "cell_is_disabled",
+		Message: "Cell is disabled",
 	}
 
 	ErrNothingToUpdate = &AppError{

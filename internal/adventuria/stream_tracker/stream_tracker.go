@@ -14,30 +14,30 @@ type repository interface {
 	UpdateStreamStatusOrSkip(ctx context.Context, playerId string, status bool) (bool, error)
 }
 
-type playersRepository interface {
+type playerInfo interface {
 	GetAll(ctx context.Context) ([]*model.PlayerInfo, error)
 }
 
-type notifyPlayersRepository interface {
+type playerInfoNotify interface {
 	NotifyChange(ctx context.Context, id string) error
 }
 
 type StreamTracker struct {
-	logger            *slog.Logger
-	repository        repository
-	playersRepository playersRepository
-	notifyPlayers     notifyPlayersRepository
-	client            *streamlive.StreamLive
-	started           bool
-	twitchPlayers     map[string]string // twitch_login -> player_id
-	youtubePlayers    map[string]string // youtube_channel_id -> player_id
+	logger           *slog.Logger
+	repository       repository
+	playerInfo       playerInfo
+	playerInfoNotify playerInfoNotify
+	client           *streamlive.StreamLive
+	started          bool
+	twitchPlayers    map[string]string // twitch_login -> player_id
+	youtubePlayers   map[string]string // youtube_channel_id -> player_id
 }
 
 func NewStreamTracker(
 	logger *slog.Logger,
 	repository repository,
-	playersRepository playersRepository,
-	notifyPlayers notifyPlayersRepository,
+	playersRepository playerInfo,
+	notifyPlayers playerInfoNotify,
 ) *StreamTracker {
 	var clients []streamlive.Client
 
@@ -53,11 +53,11 @@ func NewStreamTracker(
 	}
 
 	return &StreamTracker{
-		logger:            logger,
-		repository:        repository,
-		playersRepository: playersRepository,
-		notifyPlayers:     notifyPlayers,
-		client:            streamlive.New(clients...),
+		logger:           logger,
+		repository:       repository,
+		playerInfo:       playersRepository,
+		playerInfoNotify: notifyPlayers,
+		client:           streamlive.New(clients...),
 	}
 }
 
@@ -66,7 +66,7 @@ func (s *StreamTracker) Start(ctx context.Context) error {
 		panic("stream_tracker: already started")
 	}
 
-	players, err := s.playersRepository.GetAll(ctx)
+	players, err := s.playerInfo.GetAll(ctx)
 	if err != nil {
 		return err
 	}
@@ -122,7 +122,7 @@ func (s *StreamTracker) onStreamChange(e *streamlive.StreamChangeEvent) error {
 	}
 
 	if ok {
-		err = s.notifyPlayers.NotifyChange(context.Background(), playerId)
+		err = s.playerInfoNotify.NotifyChange(context.Background(), playerId)
 		if err != nil {
 			return err
 		}

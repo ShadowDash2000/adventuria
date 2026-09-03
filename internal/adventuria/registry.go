@@ -47,6 +47,8 @@ import (
 	platformsRepo "adventuria/internal/adventuria/platforms/repository"
 	"adventuria/internal/adventuria/player_events"
 	playerEventsRepo "adventuria/internal/adventuria/player_events/repository"
+	"adventuria/internal/adventuria/player_info"
+	playerInfoRepo "adventuria/internal/adventuria/player_info/repository"
 	"adventuria/internal/adventuria/player_progress"
 	progressRepo "adventuria/internal/adventuria/player_progress/repository"
 	"adventuria/internal/adventuria/player_stats"
@@ -122,6 +124,7 @@ type Registry struct {
 	cellEventsSchedulesRepo *cellEventsSchedulesRepo.Repository
 	completedActivitiesRepo *completedActivitiesRepo.Repository
 	playerEventsRepo        *playerEventsRepo.Repository
+	playerInfoRepo          *playerInfoRepo.Repository
 
 	// services
 	seasons                  *seasons.Seasons
@@ -159,6 +162,7 @@ type Registry struct {
 	completedActivities      *completed_activities.Query
 	activityResultCalculator *activities.CompletionResultCalculator
 	playerEvents             *player_events.PlayerEvents
+	playerInfo               *player_info.PlayerInfo
 }
 
 func NewRegistry(pb core.App, logger *slog.Logger) *Registry {
@@ -456,6 +460,13 @@ func (r *Registry) PlayerEventsRepo() *playerEventsRepo.Repository {
 	return r.playerEventsRepo
 }
 
+func (r *Registry) PlayerInfoRepo() *playerInfoRepo.Repository {
+	if r.playerInfoRepo == nil {
+		r.playerInfoRepo = playerInfoRepo.NewRepository(r.pb)
+	}
+	return r.playerInfoRepo
+}
+
 func (r *Registry) Seasons() *seasons.Seasons {
 	if r.seasons == nil {
 		r.seasons = seasons.NewSeasons(r.SeasonsRepo())
@@ -599,8 +610,8 @@ func (r *Registry) StreamTracker() *stream_tracker.StreamTracker {
 		r.streamTracker = stream_tracker.NewStreamTracker(
 			r.logger,
 			r.StreamTrackerRepo(),
-			r.PlayersRepo(),
-			r.PlayersRepo(),
+			r.PlayerInfo(),
+			r.PlayerInfo(),
 		)
 	}
 	return r.streamTracker
@@ -732,4 +743,11 @@ func (r *Registry) PlayerEvents() *player_events.PlayerEvents {
 		r.playerEvents = player_events.NewPlayerEvents(r.PlayerEventsRepo())
 	}
 	return r.playerEvents
+}
+
+func (r *Registry) PlayerInfo() *player_info.PlayerInfo {
+	if r.playerInfo == nil {
+		r.playerInfo = player_info.NewPlayerInfo(r.PlayerInfoRepo())
+	}
+	return r.playerInfo
 }

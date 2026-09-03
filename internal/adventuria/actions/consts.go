@@ -18,4 +18,6 @@ const (
 	ActionTypeBuy              model.ActionType = "buy"
 	ActionTypeRefreshShop      model.ActionType = "refresh_shop"
 	ActionTypeCoinsForItem     model.ActionType = "coins_for_item"
+
+	ActionTypeMoveToCellId model.ActionType = "move_to_cell_id"
 )

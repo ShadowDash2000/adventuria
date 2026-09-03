@@ -10,6 +10,8 @@ import (
 func RecordToPlayerInfo(record *core.Record) *model.PlayerInfo {
 	return model.RestorePlayerInfo(model.PlayerInfoData{
 		Id:               record.Id,
+		Disabled:         record.GetBool(schema.PlayerSchema.Disabled),
+		Debug:            record.GetBool(schema.PlayerSchema.Debug),
 		Name:             record.GetString(schema.PlayerSchema.Name),
 		Avatar:           record.GetString(schema.PlayerSchema.Avatar),
 		Color:            record.GetString(schema.PlayerSchema.Color),

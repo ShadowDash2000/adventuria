@@ -2,6 +2,8 @@ package model
 
 type PlayerInfoData struct {
 	Id               string
+	Disabled         bool
+	Debug            bool
 	Name             string
 	Avatar           string
 	Color            string
@@ -23,6 +25,14 @@ func RestorePlayerInfo(data PlayerInfoData) *PlayerInfo {
 
 func (p *PlayerInfo) ID() string {
 	return p.data.Id
+}
+
+func (p *PlayerInfo) Disabled() bool {
+	return p.data.Disabled
+}
+
+func (p *PlayerInfo) Debug() bool {
+	return p.data.Debug
 }
 
 func (p *PlayerInfo) Name() string {

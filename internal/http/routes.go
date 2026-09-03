@@ -4,7 +4,9 @@ import (
 	"adventuria/internal/adventuria"
 	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/http/completed_activities"
+	"adventuria/internal/http/debug"
 	"adventuria/internal/http/event_stats"
+	"adventuria/internal/http/game_state"
 	"adventuria/internal/http/response"
 	"adventuria/internal/http/update_review"
 
@@ -18,6 +20,8 @@ func Route(game *adventuria.Game, registry *adventuria.Registry, router *router.
 	completedActivities := completed_activities.NewHandler(registry.CompletedActivities())
 	eventStats := event_stats.NewHandler(registry.EventStats())
 	updateReview := update_review.NewHandler(registry.Reviews())
+	gameState := game_state.NewHandler(registry.Settings(), registry.PlayerInfo(), registry.PlayerProgress())
+	debug := debug.NewHandler(game)
 
 	g := router.Group("/api")
 
@@ -25,6 +29,7 @@ func Route(game *adventuria.Game, registry *adventuria.Registry, router *router.
 	g.GET("/current-season", handlers.CurrentSeason)
 	g.GET("/event-ended", handlers.IsEventEnded)
 	g.GET("/completed-activities", completedActivities.GetCompletedActivitiesByCellID)
+	g.GET("/game-state", gameState.GetGameState)
 
 	ga := g.Group("")
 	ga.Bind(apis.RequireAuth())
@@ -36,7 +41,7 @@ func Route(game *adventuria.Game, registry *adventuria.Registry, router *router.
 			return response.Error(e, err)
 		}
 
-		isDisabled, err := registry.Players().IsDisabled(e.Request.Context(), e.Auth.Id)
+		isDisabled, err := registry.PlayerInfo().IsDisabled(e.Request.Context(), e.Auth.Id)
 		if err != nil {
 			return response.Error(e, err)
 		}
@@ -71,4 +76,19 @@ func Route(game *adventuria.Game, registry *adventuria.Registry, router *router.
 	gab.POST("/use-item", handlers.UseItemHandler)
 	gab.POST("/drop-item", handlers.DropItemHandler)
 	gab.POST("/effect-view", handlers.GetEffectView)
+
+	debugGroup := gab.Group("/debug")
+	debugGroup.BindFunc(func(e *core.RequestEvent) error {
+		enabled, err := registry.PlayerInfo().IsDebugEnabled(e.Request.Context(), e.Auth.Id)
+		if err != nil {
+			return response.Error(e, err)
+		}
+		if !enabled {
+			return response.Error(e, errs.ErrPlayerNotInDebugMode)
+		}
+
+		return e.Next()
+	})
+
+	debugGroup.POST("/move-to-cell-id", debug.MoveToCellID)
 }

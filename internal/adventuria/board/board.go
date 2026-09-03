@@ -1,6 +1,7 @@
 package board
 
 import (
+	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
 	"adventuria/pkg/mathhelper"
 	"context"
@@ -186,6 +187,10 @@ func (b *Board) MoveToCellId(ctx context.Context, events *model.Events, player *
 	cell, err := b.cells.GetByID(ctx, cellId)
 	if err != nil {
 		return nil, err
+	}
+
+	if cell.Disabled() {
+		return nil, errs.ErrCellIsDisabled
 	}
 
 	cellWorldId := cell.World()

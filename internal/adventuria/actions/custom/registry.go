@@ -8,6 +8,7 @@ import (
 	"adventuria/internal/adventuria/actions/custom/done"
 	"adventuria/internal/adventuria/actions/custom/drop"
 	"adventuria/internal/adventuria/actions/custom/generate_wheel"
+	"adventuria/internal/adventuria/actions/custom/move_to_cell_id"
 	"adventuria/internal/adventuria/actions/custom/refresh_shop"
 	"adventuria/internal/adventuria/actions/custom/reroll"
 	"adventuria/internal/adventuria/actions/custom/roll_dice"
@@ -53,5 +54,6 @@ func RegisterActions(
 		roll_wheel.NewDef(cells, rollWheelRepo),
 		generate_wheel.NewDef(activities),
 		coins_for_item.NewDef(inventories, items),
+		move_to_cell_id.NewDef(board),
 	)
 }
