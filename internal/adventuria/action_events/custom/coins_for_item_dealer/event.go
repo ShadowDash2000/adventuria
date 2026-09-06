@@ -32,15 +32,31 @@ func NewDef(items items) action_events.ActionEventDef {
 }
 
 func (c *CoinsForItemDealer) Init(_ context.Context, player *model.Player) error {
+	actionState := player.LastAction().State()
+	if actionState.Dealer != nil {
+		return nil
+	}
+
 	decodedValue, err := c.decodeValue(c.Data().Value())
 	if err != nil {
 		return err
 	}
 
-	player.LastAction().State().Dealer = model.NewCoinsForItemDeal(
+	actionState.Dealer = model.NewCoinsForItemDeal(
 		decodedValue.Coins,
 		decodedValue.ItemId,
 	)
+
+	return nil
+}
+
+func (c *CoinsForItemDealer) Dispose(_ context.Context, player *model.Player) error {
+	actionState := player.LastAction().State()
+	if actionState.Dealer == nil {
+		return nil
+	}
+
+	actionState.Dealer = nil
 
 	return nil
 }

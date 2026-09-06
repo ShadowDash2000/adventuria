@@ -102,9 +102,12 @@ func (c *CellEventsSchedules) CheckEventsSchedules(ctx context.Context) error {
 	}
 
 	var eventsToUpdate []*model.CellEventSchedule
+	var excludedCellIds []string
 	for _, event := range events {
 		if event.NextShiftChangeAt().Before(time.Now()) {
 			eventsToUpdate = append(eventsToUpdate, event)
+		} else {
+			excludedCellIds = append(excludedCellIds, event.ActiveCell())
 		}
 	}
 
@@ -112,7 +115,28 @@ func (c *CellEventsSchedules) CheckEventsSchedules(ctx context.Context) error {
 		return nil
 	}
 
-	err = c.pickCellsForEvents(ctx, eventsToUpdate)
+	currentSeason, err := c.settings.CurrentSeason(ctx)
+	if err != nil {
+		return err
+	}
+
+	players, err := c.players.GetAllBySeasonID(ctx, currentSeason)
+	if err != nil {
+		return err
+	}
+
+	playersByCellId := make(map[string][]*model.Player)
+	for _, player := range players {
+		cellId := player.LastAction().Cell()
+		playersByCellId[cellId] = append(playersByCellId[cellId], player)
+	}
+
+	err = c.disposeActionEvents(ctx, eventsToUpdate, playersByCellId)
+	if err != nil {
+		return err
+	}
+
+	err = c.pickCellsForEvents(ctx, eventsToUpdate, excludedCellIds)
 	if err != nil {
 		return err
 	}
@@ -129,7 +153,7 @@ func (c *CellEventsSchedules) CheckEventsSchedules(ctx context.Context) error {
 		}
 	}
 
-	err = c.initActionEvents(ctx, eventsToUpdate)
+	err = c.initActionEvents(ctx, eventsToUpdate, playersByCellId)
 	if err != nil {
 		return err
 	}
@@ -157,7 +181,7 @@ func (c *CellEventsSchedules) waitForPlayersUnlock(ctx context.Context) error {
 	}
 }
 
-func (c *CellEventsSchedules) pickCellsForEvents(ctx context.Context, events []*model.CellEventSchedule) error {
+func (c *CellEventsSchedules) pickCellsForEvents(ctx context.Context, events []*model.CellEventSchedule, excludedCellIds []string) error {
 	cellsByWorldId := make(map[string]map[model.CellType][]*model.CellInfo)
 	for _, event := range events {
 		for _, worldId := range event.Worlds() {
@@ -174,6 +198,10 @@ func (c *CellEventsSchedules) pickCellsForEvents(ctx context.Context, events []*
 
 		cellsByTypes := make(map[model.CellType][]*model.CellInfo)
 		for _, cell := range cells {
+			if slices.Contains(excludedCellIds, cell.ID()) {
+				continue
+			}
+
 			cellsByTypes[cell.Type()] = append(cellsByTypes[cell.Type()], cell)
 		}
 
@@ -203,7 +231,13 @@ func (c *CellEventsSchedules) pickCellsForEvents(ctx context.Context, events []*
 		if len(eventCellTypes) == 0 {
 			eventCellType = helper.RandomItemFromSlice(availableCellTypes)
 		} else {
-			eventCellType = helper.RandomItemFromSlice(helper.SlicesIntersection(availableCellTypes, eventCellTypes))
+			intersectedCellTypes := helper.SlicesIntersection(availableCellTypes, eventCellTypes)
+			if len(intersectedCellTypes) == 0 {
+				event.SetActiveCell("")
+				continue
+			}
+
+			eventCellType = helper.RandomItemFromSlice(intersectedCellTypes)
 		}
 
 		availableCells := cellsForEvent[eventCellType]
@@ -308,33 +342,56 @@ func (c *CellEventsSchedules) subscribeCellEventEffects(ctx context.Context, eve
 	return unsubKeys, nil
 }
 
-func (c *CellEventsSchedules) initActionEvents(ctx context.Context, events []*model.CellEventSchedule) error {
-	currentSeason, err := c.settings.CurrentSeason(ctx)
-	if err != nil {
-		return err
-	}
-
-	players, err := c.players.GetAllBySeasonID(ctx, currentSeason)
-	if err != nil {
-		return err
-	}
-
-	if len(players) == 0 {
-		return nil
-	}
-
+func (c *CellEventsSchedules) initActionEvents(
+	ctx context.Context,
+	events []*model.CellEventSchedule,
+	playersByCellId map[string][]*model.Player,
+) error {
 	for _, event := range events {
+		players, ok := playersByCellId[event.ActiveCell()]
+		if !ok {
+			continue
+		}
+
 		actionEvent, err := c.actionEvents.GetByIDWrapped(ctx, event.ActionEvent())
 		if err != nil {
 			return err
 		}
 
 		for _, player := range players {
-			if event.ActiveCell() != player.LastAction().Cell() {
-				continue
+			err = actionEvent.Init(ctx, player)
+			if err != nil {
+				return err
 			}
 
-			err = actionEvent.Init(ctx, player)
+			err = c.players.Save(ctx, player)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func (c *CellEventsSchedules) disposeActionEvents(
+	ctx context.Context,
+	events []*model.CellEventSchedule,
+	playersByCellId map[string][]*model.Player,
+) error {
+	for _, event := range events {
+		players, ok := playersByCellId[event.ActiveCell()]
+		if !ok {
+			continue
+		}
+
+		actionEvent, err := c.actionEvents.GetByIDWrapped(ctx, event.ActionEvent())
+		if err != nil {
+			return err
+		}
+
+		for _, player := range players {
+			err = actionEvent.Dispose(ctx, player)
 			if err != nil {
 				return err
 			}

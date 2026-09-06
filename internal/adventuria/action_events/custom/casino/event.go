@@ -52,3 +52,7 @@ func (c *Casino) Init(_ context.Context, player *model.Player) error {
 
 	return nil
 }
+
+func (c *Casino) Dispose(_ context.Context, _ *model.Player) error {
+	return nil
+}
