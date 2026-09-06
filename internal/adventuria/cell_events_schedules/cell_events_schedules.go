@@ -3,6 +3,7 @@ package cell_events_schedules
 import (
 	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
+	"adventuria/pkg/event"
 	"adventuria/pkg/helper"
 	"adventuria/pkg/locker"
 	"context"
@@ -56,6 +57,9 @@ type CellEventsSchedules struct {
 	actionEvents     actionEvents
 	players          players
 	settings         settings
+
+	onUpdateStart *event.Hook[*UpdateStartEvent]
+	onUpdateEnd   *event.Hook[*UpdateEndEvent]
 }
 
 func NewCellEventsSchedules(
@@ -77,6 +81,9 @@ func NewCellEventsSchedules(
 		actionEvents:     actionEvents,
 		players:          players,
 		settings:         settings,
+
+		onUpdateStart: &event.Hook[*UpdateStartEvent]{},
+		onUpdateEnd:   &event.Hook[*UpdateEndEvent]{},
 	}
 }
 
@@ -84,14 +91,30 @@ func (c *CellEventsSchedules) IsRunning() bool {
 	return c.running.Load()
 }
 
-func (c *CellEventsSchedules) CheckEventsSchedules(ctx context.Context) error {
+func (c *CellEventsSchedules) CheckEventsSchedules(ctx context.Context) (err error) {
 	isNotRunning := c.running.CompareAndSwap(false, true)
 	if !isNotRunning {
 		return errs.ErrCellEventSchedulerAlreadyRunning
 	}
-	defer c.running.Store(false)
+	defer func() {
+		c.running.Store(false)
 
-	err := c.waitForPlayersUnlock(ctx)
+		eventErr := c.OnUpdateEnd().Trigger(ctx, &UpdateEndEvent{})
+		if eventErr != nil {
+			err = eventErr
+		}
+
+		if eventErr != nil && err == nil {
+			err = eventErr
+		}
+	}()
+
+	err = c.waitForPlayersUnlock(ctx)
+	if err != nil {
+		return err
+	}
+
+	err = c.OnUpdateStart().Trigger(ctx, &UpdateStartEvent{})
 	if err != nil {
 		return err
 	}

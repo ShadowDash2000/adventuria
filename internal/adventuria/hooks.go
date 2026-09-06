@@ -1,9 +1,11 @@
 package adventuria
 
 import (
+	"adventuria/internal/adventuria/cell_events_schedules"
 	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/schema"
 	"adventuria/pkg/pbhelper"
+	"adventuria/pkg/pbrealtime"
 	"context"
 	"errors"
 
@@ -151,6 +153,24 @@ func (g *Game) bindHooks(ctx context.Context, pb core.App) {
 			if err != nil {
 				return err
 			}
+		}
+
+		return e.Next()
+	})
+
+	g.cellEvents.OnUpdateStart().BindFunc(func(ctx context.Context, e *cell_events_schedules.UpdateStartEvent) error {
+		err := pbrealtime.Notify(ctx, pb, "cell_events_scheduler_start", nil)
+		if err != nil {
+			pb.Logger().Error("Failed to notify cell events scheduler start", "error", err)
+		}
+
+		return e.Next()
+	})
+
+	g.cellEvents.OnUpdateEnd().BindFunc(func(ctx context.Context, e *cell_events_schedules.UpdateEndEvent) error {
+		err := pbrealtime.Notify(ctx, pb, "cell_events_scheduler_end", nil)
+		if err != nil {
+			pb.Logger().Error("Failed to notify cell events scheduler end", "error", err)
 		}
 
 		return e.Next()
