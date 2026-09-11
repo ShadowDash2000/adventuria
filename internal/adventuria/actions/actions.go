@@ -44,22 +44,6 @@ func (a *Actions) Save(ctx context.Context, action *model.ActionInfo) (*model.Ac
 	return a.repository.Update(ctx, action)
 }
 
-func (a *Actions) CreateAndSetLastAction(ctx context.Context, player *model.Player, action *model.ActionInfo) (*model.ActionInfo, error) {
-	if !action.IsNew() {
-		return nil, errors.New("action must be new")
-	}
-
-	action, err := a.Save(ctx, action)
-	if err != nil {
-		return nil, err
-	}
-
-	player.SetLastAction(action)
-	player.Progress().SetLastAction(action.ID())
-
-	return action, nil
-}
-
 func (a *Actions) GetLastOrDefault(ctx context.Context, playerId, seasonId string) (*model.ActionInfo, error) {
 	action, err := a.repository.GetLastPlayerActionBySeasonID(ctx, playerId, seasonId)
 	if err == nil {

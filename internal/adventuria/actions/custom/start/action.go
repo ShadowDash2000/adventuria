@@ -7,7 +7,7 @@ import (
 )
 
 type actionsService interface {
-	CreateAndSetLastAction(ctx context.Context, player *model.Player, action *model.ActionInfo) (*model.ActionInfo, error)
+	Save(ctx context.Context, action *model.ActionInfo) (*model.ActionInfo, error)
 }
 
 var _ model.Action = (*Start)(nil)
@@ -38,10 +38,13 @@ func (s *Start) CanDo(_ context.Context, _ *model.Events, player *model.Player) 
 func (s *Start) Do(ctx context.Context, _ *model.Events, player *model.Player, _ model.ActionRequest) (any, error) {
 	lastAction := player.LastAction()
 	lastAction.SetStatus(model.ActionStatusStart)
-	_, err := s.actions.CreateAndSetLastAction(ctx, player, lastAction)
+
+	lastAction, err := s.actions.Save(ctx, lastAction)
 	if err != nil {
 		return nil, err
 	}
+
+	player.SetLastAction(lastAction)
 
 	return nil, nil
 }

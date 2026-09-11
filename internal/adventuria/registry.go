@@ -565,7 +565,7 @@ func (r *Registry) Items() *items.Items {
 
 func (r *Registry) Board() *board.Board {
 	if r.board == nil {
-		r.board = board.NewBoard(r.Actions(), r.PlayerProgress(), r.Cells(), r.Worlds())
+		r.board = board.NewBoard(r.Actions(), r.Cells(), r.Worlds())
 	}
 	return r.board
 }

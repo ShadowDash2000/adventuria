@@ -10,11 +10,6 @@ import (
 
 type actionsService interface {
 	Save(ctx context.Context, action *model.ActionInfo) (*model.ActionInfo, error)
-	CreateAndSetLastAction(ctx context.Context, player *model.Player, action *model.ActionInfo) (*model.ActionInfo, error)
-}
-
-type activities interface {
-	GetRandomIDsByFilter(ctx context.Context, filter model.ActivityFilter) ([]string, error)
 }
 
 var _ model.Effect = (*StayOnCellAfterDone)(nil)
@@ -23,18 +18,16 @@ const Type model.EffectType = "stay_on_cell_after_done"
 
 type StayOnCellAfterDone struct {
 	effects.EffectBase
-	actions    actionsService
-	activities activities
+	actions actionsService
 }
 
-func NewDef(actions actionsService, activities activities) effects.EffectDef {
+func NewDef(actions actionsService) effects.EffectDef {
 	return effects.NewEffectDef(
 		Type,
 		func(effect model.EffectInfo) model.Effect {
 			return &StayOnCellAfterDone{
 				EffectBase: effects.NewEffectBase(effect),
 				actions:    actions,
-				activities: activities,
 			}
 		},
 	)
@@ -58,8 +51,7 @@ func (s *StayOnCellAfterDone) Subscribe(
 				return e.Next()
 			}
 
-			actionState := player.LastAction().State()
-			if actionState.ActivityFilter == nil {
+			if player.LastAction().State().ActivityFilter == nil {
 				return errs.ErrNoActiveActivityFilter
 			}
 
@@ -77,19 +69,17 @@ func (s *StayOnCellAfterDone) Subscribe(
 				return err
 			}
 
-			newAction, err = s.actions.CreateAndSetLastAction(ctx, player, newAction)
+			newActionState := player.LastAction().State().Clone()
+			newActionState.UsedItems = nil
+			newAction.SetState(newActionState)
+
+			newAction, err = s.actions.Save(ctx, newAction)
 			if err != nil {
 				return err
 			}
 
-			ids, err := s.activities.GetRandomIDsByFilter(ctx, actionState.ActivityFilter.Clone())
-			if err != nil {
-				return err
-			}
-
-			actionState.Activities = &model.ActionActivitiesState{
-				Ids: ids,
-			}
+			player.SetLastAction(newAction)
+			player.Progress().SetCanMove(false)
 
 			callback(ctx)
 

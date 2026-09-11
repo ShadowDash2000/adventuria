@@ -38,6 +38,7 @@ func (p *Player) LastAction() *ActionInfo {
 
 func (p *Player) SetLastAction(action *ActionInfo) {
 	p.lastAction = action
+	p.progress.SetLastAction(action.ID())
 }
 
 func (p *Player) Stats() *PlayerStats {

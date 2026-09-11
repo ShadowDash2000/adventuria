@@ -118,18 +118,20 @@ func (p *Players) Save(ctx context.Context, player *model.Player) error {
 		return err
 	}
 
+	player.SetLastAction(action)
+
 	progress, err := p.progress.Save(ctx, player.Progress())
 	if err != nil {
 		return err
 	}
+
+	player.SetProgress(progress)
 
 	stats, err := p.stats.Save(ctx, player.Stats())
 	if err != nil {
 		return err
 	}
 
-	player.SetLastAction(action)
-	player.SetProgress(progress)
 	player.SetStats(stats)
 
 	return nil

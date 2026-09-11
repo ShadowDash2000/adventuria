@@ -10,11 +10,6 @@ import (
 
 type actionsService interface {
 	Save(ctx context.Context, action *model.ActionInfo) (*model.ActionInfo, error)
-	CreateAndSetLastAction(ctx context.Context, player *model.Player, action *model.ActionInfo) (*model.ActionInfo, error)
-}
-
-type playerProgress interface {
-	Save(ctx context.Context, progress *model.PlayerProgress) (*model.PlayerProgress, error)
 }
 
 type cellsService interface {
@@ -32,18 +27,16 @@ type worlds interface {
 }
 
 type Board struct {
-	actions  actionsService
-	progress playerProgress
-	cells    cellsService
-	worlds   worlds
+	actions actionsService
+	cells   cellsService
+	worlds  worlds
 }
 
-func NewBoard(actions actionsService, progress playerProgress, cells cellsService, worlds worlds) *Board {
+func NewBoard(actions actionsService, cells cellsService, worlds worlds) *Board {
 	return &Board{
-		actions:  actions,
-		progress: progress,
-		cells:    cells,
-		worlds:   worlds,
+		actions: actions,
+		cells:   cells,
+		worlds:  worlds,
 	}
 }
 
@@ -124,20 +117,13 @@ func (b *Board) Move(
 
 	newAction.SetCellsPassed(steps)
 
-	_, err = b.actions.CreateAndSetLastAction(ctx, player, newAction)
+	newAction, err = b.actions.Save(ctx, newAction)
 	if err != nil {
 		return nil, err
 	}
 
-	progress := player.Progress()
-	progress.SetCanMove(false)
-
-	newProgress, err := b.progress.Save(ctx, progress)
-	if err != nil {
-		return nil, err
-	}
-
-	player.SetProgress(newProgress)
+	player.SetLastAction(newAction)
+	player.Progress().SetCanMove(false)
 
 	onAfterMoveEvent := model.OnAfterMoveEvent{
 		Steps:          steps,
