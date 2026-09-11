@@ -51,7 +51,7 @@ func (s *StayOnCellAfterDone) Subscribe(
 				return e.Next()
 			}
 
-			if player.LastAction().State().ActivityFilter == nil {
+			if lastAction.State().ActivityFilter == nil {
 				return errs.ErrNoActiveActivityFilter
 			}
 
@@ -69,9 +69,15 @@ func (s *StayOnCellAfterDone) Subscribe(
 				return err
 			}
 
-			newActionState := player.LastAction().State().Clone()
+			newActionState := lastAction.State().Clone()
 			newActionState.UsedItems = nil
 			newAction.SetState(newActionState)
+
+			rootActionId := lastAction.RootAction()
+			if rootActionId == "" {
+				rootActionId = lastAction.ID()
+			}
+			newAction.SetRootAction(rootActionId)
 
 			newAction, err = s.actions.Save(ctx, newAction)
 			if err != nil {
