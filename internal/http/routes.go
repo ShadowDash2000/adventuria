@@ -91,4 +91,5 @@ func Route(game *adventuria.Game, registry *adventuria.Registry, router *router.
 	})
 
 	debugGroup.POST("/move-to-cell-id", debug.MoveToCellID)
+	debugGroup.POST("/add-item", debug.AddItemByID)
 }

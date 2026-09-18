@@ -154,6 +154,42 @@ func (g *Game) DoAction(
 	return res, err
 }
 
+func (g *Game) AddItemByID(ctx context.Context, pb core.App, playerId, itemId string) error {
+	currentSeason, err := g.settings.CurrentSeason(ctx)
+	if err != nil {
+		return err
+	}
+
+	player, err := g.players.GetByID(ctx, playerId, currentSeason)
+	if err != nil {
+		return err
+	}
+
+	if ok := g.playersLocker.TryLock(playerId); !ok {
+		return errs.ErrPlayerIsBusy
+	}
+	defer g.playersLocker.Unlock(playerId)
+
+	s, err := g.initScope(ctx, player)
+	if err != nil {
+		return err
+	}
+
+	return pbtransaction.RunInTransaction(ctx, pb, func(ctx context.Context, txApp core.App) error {
+		_, err = g.inventories.AddItemByID(ctx, s.Events(), s.Player(), itemId)
+		if err != nil {
+			return err
+		}
+
+		err = g.players.Save(ctx, player)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+}
+
 func (g *Game) UseItem(
 	ctx context.Context,
 	pb core.App,

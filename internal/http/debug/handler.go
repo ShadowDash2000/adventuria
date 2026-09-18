@@ -12,6 +12,7 @@ import (
 
 type game interface {
 	DoAction(ctx context.Context, pb core.App, playerId string, actionType model.ActionType, req model.ActionRequest) (any, error)
+	AddItemByID(ctx context.Context, pb core.App, playerId, itemId string) error
 }
 
 type Handler struct {
@@ -37,4 +38,25 @@ func (h *Handler) MoveToCellID(e *core.RequestEvent) error {
 	}
 
 	return response.Success(e, res)
+}
+
+type addItemByIDRequest struct {
+	PlayerId string `json:"player_id"`
+	ItemId   string `json:"item_id"`
+}
+
+func (h *Handler) AddItemByID(e *core.RequestEvent) error {
+	req := addItemByIDRequest{}
+
+	err := e.BindBody(&req)
+	if err != nil {
+		return response.Error(e, err)
+	}
+
+	err = h.game.AddItemByID(e.Request.Context(), e.App, req.PlayerId, req.ItemId)
+	if err != nil {
+		return response.Error(e, err)
+	}
+
+	return response.Success(e, nil)
 }
