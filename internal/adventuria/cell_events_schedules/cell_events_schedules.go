@@ -237,7 +237,7 @@ func (c *CellEventsSchedules) pickCellsForEvents(ctx context.Context, events []*
 
 	for _, event := range events {
 		event.SetNextShiftChangeAt(
-			event.NextShiftChangeAt().Add(time.Duration(event.ShiftInterval()) * time.Second),
+			time.Now().Add(time.Duration(event.ShiftInterval()) * time.Second),
 		)
 
 		worldId := helper.RandomItemFromSlice(event.Worlds())
