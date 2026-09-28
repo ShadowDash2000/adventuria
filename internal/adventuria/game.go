@@ -2,6 +2,7 @@ package adventuria
 
 import (
 	"adventuria/internal/adventuria/actions"
+	"adventuria/internal/adventuria/board"
 	"adventuria/internal/adventuria/cell_events_schedules"
 	"adventuria/internal/adventuria/cells"
 	"adventuria/internal/adventuria/effects"
@@ -33,6 +34,7 @@ type Game struct {
 	inventories   *inventories.Inventories
 	effects       *effects.Effects
 	worlds        *worlds.Worlds
+	board         *board.Board
 	playersLocker *locker.Locker[string]
 
 	onKillParserEvent *event.Hook[*onKillParserEvent]
@@ -284,6 +286,42 @@ func (g *Game) DropItem(ctx context.Context, pb core.App, playerId, itemId strin
 
 	return pbtransaction.RunInTransaction(ctx, pb, func(ctx context.Context, txApp core.App) error {
 		err = g.inventories.DropItem(ctx, s.Events(), s.Player(), item)
+		if err != nil {
+			return err
+		}
+
+		err = g.players.Save(ctx, player)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+}
+
+func (g *Game) MoveToCellID(ctx context.Context, pb core.App, playerId, cellId string) error {
+	currentSeason, err := g.settings.CurrentSeason(ctx)
+	if err != nil {
+		return err
+	}
+
+	player, err := g.players.GetByID(ctx, playerId, currentSeason)
+	if err != nil {
+		return err
+	}
+
+	if ok := g.playersLocker.TryLock(playerId); !ok {
+		return errs.ErrPlayerIsBusy
+	}
+	defer g.playersLocker.Unlock(playerId)
+
+	s, err := g.initScope(ctx, player)
+	if err != nil {
+		return err
+	}
+
+	return pbtransaction.RunInTransaction(ctx, pb, func(ctx context.Context, txApp core.App) error {
+		_, err = g.board.MoveToCellId(ctx, s.Events(), s.Player(), cellId)
 		if err != nil {
 			return err
 		}

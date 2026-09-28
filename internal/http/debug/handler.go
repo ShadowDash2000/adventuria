@@ -1,9 +1,6 @@
 package debug
 
 import (
-	"adventuria/internal/adventuria/actions"
-	"adventuria/internal/adventuria/actions/custom/move_to_cell_id"
-	"adventuria/internal/adventuria/model"
 	"adventuria/internal/http/response"
 	"context"
 
@@ -11,7 +8,7 @@ import (
 )
 
 type game interface {
-	DoAction(ctx context.Context, pb core.App, playerId string, actionType model.ActionType, req model.ActionRequest) (any, error)
+	MoveToCellID(ctx context.Context, pb core.App, playerId, cellId string) error
 	AddItemByID(ctx context.Context, pb core.App, playerId, itemId string) error
 }
 
@@ -24,20 +21,26 @@ func NewHandler(game game) *Handler {
 		game: game,
 	}
 }
+
+type moveToCellIDRequest struct {
+	PlayerId string `json:"player_id"`
+	CellId   string `json:"cell_id"`
+}
+
 func (h *Handler) MoveToCellID(e *core.RequestEvent) error {
-	req := move_to_cell_id.Request{}
+	req := moveToCellIDRequest{}
 
 	err := e.BindBody(&req)
 	if err != nil {
 		return response.Error(e, err)
 	}
 
-	res, err := h.game.DoAction(e.Request.Context(), e.App, e.Auth.Id, actions.ActionTypeMoveToCellId, req)
+	err = h.game.MoveToCellID(e.Request.Context(), e.App, req.PlayerId, req.CellId)
 	if err != nil {
 		return response.Error(e, err)
 	}
 
-	return response.Success(e, res)
+	return response.Success(e, nil)
 }
 
 type addItemByIDRequest struct {
