@@ -3,8 +3,10 @@ package settings
 import (
 	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
+	"adventuria/pkg/event"
 	"context"
 	"errors"
+	"time"
 )
 
 type repository interface {
@@ -14,15 +16,20 @@ type repository interface {
 	CurrentSeason(ctx context.Context) (string, error)
 	IsEventEnded(ctx context.Context) (bool, error)
 	ChangeIGDBGamesParsedByID(ctx context.Context, id string, amount int) error
+	EnergyDefault(ctx context.Context) (int, error)
+	UpdateCurrentDayByID(ctx context.Context, id string, day int) error
 }
 
 type seasons interface {
 	InitDefault(ctx context.Context) (*model.Season, error)
+	GetByID(ctx context.Context, id string) (*model.Season, error)
 }
 
 type Settings struct {
 	repository repository
 	seasons    seasons
+
+	onNewDay *event.Hook[*OnNewDayEvent]
 }
 
 func defaultSettings(season string) (*model.Settings, error) {
@@ -43,6 +50,8 @@ func NewSettings(repo repository, seasons seasons) *Settings {
 	return &Settings{
 		repository: repo,
 		seasons:    seasons,
+
+		onNewDay: &event.Hook[*OnNewDayEvent]{},
 	}
 }
 
@@ -72,6 +81,50 @@ func (s *Settings) InitDefault(ctx context.Context) (*model.Settings, error) {
 	return settings, nil
 }
 
+func (s *Settings) UpdateCurrentDay(ctx context.Context) error {
+	settings, err := s.GetFirst(ctx)
+	if err != nil {
+		return err
+	}
+
+	season, err := s.seasons.GetByID(ctx, settings.CurrentSeason())
+	if err != nil {
+		return err
+	}
+
+	if season.IsEnded(time.Now()) {
+		return nil
+	}
+
+	newCurrentDay := max(
+		int(time.Now().Sub(season.SeasonDateStart()).Hours()/24),
+		0,
+	)
+
+	if newCurrentDay == settings.CurrentDay() {
+		return nil
+	}
+
+	err = s.repository.UpdateCurrentDayByID(ctx, settings.ID(), newCurrentDay)
+	if err != nil {
+		return err
+	}
+
+	if newCurrentDay > settings.CurrentDay() {
+		err = s.OnNewDay().Trigger(ctx, &OnNewDayEvent{
+			Settings:   settings,
+			Season:     season,
+			CurrentDay: newCurrentDay,
+			DaysPassed: newCurrentDay - settings.CurrentDay(),
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (s *Settings) GetFirst(ctx context.Context) (*model.Settings, error) {
 	return s.repository.GetFirst(ctx)
 }
@@ -90,4 +143,8 @@ func (s *Settings) IsEventEnded(ctx context.Context) (bool, error) {
 
 func (s *Settings) ChangeIGDBGamesParsedByID(ctx context.Context, id string, amount int) error {
 	return s.repository.ChangeIGDBGamesParsedByID(ctx, id, amount)
+}
+
+func (s *Settings) EnergyDefault(ctx context.Context) (int, error) {
+	return s.repository.EnergyDefault(ctx)
 }

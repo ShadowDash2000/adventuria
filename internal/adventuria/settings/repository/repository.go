@@ -165,3 +165,50 @@ func (r *Repository) ChangeIGDBGamesParsedByID(ctx context.Context, id string, a
 
 	return nil
 }
+
+func (r *Repository) EnergyDefault(ctx context.Context) (int, error) {
+	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
+
+	var energyDefault int
+	err := pb.RecordQuery(schema.CollectionSettings).
+		WithContext(ctx).
+		Select(schema.SettingsSchema.EnergyDefault).
+		OrderBy("updated DESC").
+		Limit(1).
+		Row(&energyDefault)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return 0, errs.ErrSettingsNotFound
+		}
+		return 0, err
+	}
+
+	return energyDefault, nil
+}
+
+func (r *Repository) UpdateCurrentDayByID(ctx context.Context, id string, day int) error {
+	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
+
+	res, err := pb.DB().
+		Update(
+			schema.CollectionSettings,
+			dbx.Params{
+				schema.SettingsSchema.CurrentDay: day,
+			},
+			dbx.HashExp{
+				schema.SettingsSchema.Id: id,
+			},
+		).
+		WithContext(ctx).
+		Execute()
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, _ := res.RowsAffected()
+	if rowsAffected == 0 {
+		return errs.ErrSettingsNotFound
+	}
+
+	return nil
+}

@@ -11,9 +11,10 @@ func SettingsToRecord(settings *model.Settings, record *core.Record) {
 	record.Id = settings.ID()
 	record.Set(schema.SettingsSchema.EventEnded, settings.EventEnded())
 	record.Set(schema.SettingsSchema.CurrentSeason, settings.CurrentSeason())
-	record.Set(schema.SettingsSchema.CurrentWeek, settings.CurrentWeek())
+	record.Set(schema.SettingsSchema.CurrentDay, settings.CurrentDay())
 	record.Set(schema.SettingsSchema.BlockAllActions, settings.BlockAllActions())
 	record.Set(schema.SettingsSchema.EnergyDefault, settings.EnergyDefault())
+	record.Set(schema.SettingsSchema.EnergyPerDay, settings.EnergyPerDay())
 	record.Set(schema.SettingsSchema.MaxInventorySlots, settings.MaxInventorySlots())
 	record.Set(schema.SettingsSchema.PointsForDrop, settings.PointsForDrop())
 	record.Set(schema.SettingsSchema.DropsToJail, settings.DropsToJail())
@@ -61,9 +62,10 @@ func RecordToSettings(record *core.Record) *model.Settings {
 		Id:                record.Id,
 		EventEnded:        record.GetBool(schema.SettingsSchema.EventEnded),
 		CurrentSeason:     record.GetString(schema.SettingsSchema.CurrentSeason),
-		CurrentWeek:       record.GetInt(schema.SettingsSchema.CurrentWeek),
+		CurrentDay:        record.GetInt(schema.SettingsSchema.CurrentDay),
 		BlockAllActions:   record.GetBool(schema.SettingsSchema.BlockAllActions),
 		EnergyDefault:     record.GetInt(schema.SettingsSchema.EnergyDefault),
+		EnergyPerDay:      record.GetInt(schema.SettingsSchema.EnergyPerDay),
 		MaxInventorySlots: record.GetInt(schema.SettingsSchema.MaxInventorySlots),
 		PointsForDrop:     record.GetInt(schema.SettingsSchema.PointsForDrop),
 		DropsToJail:       record.GetInt(schema.SettingsSchema.DropsToJail),

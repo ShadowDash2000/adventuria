@@ -3,19 +3,19 @@ package player_events
 import "adventuria/internal/adventuria/model"
 
 type PlayerEventDef struct {
-	t   model.PlayerEventType
-	new PlayerEventCreator
+	t           model.PlayerEventType
+	newFromJSON PlayerEventCreator
 }
 
-func (p *PlayerEventDef) New() model.PlayerEvent {
-	return p.new()
+func (p *PlayerEventDef) NewFromJSON(payload string) (model.PlayerEvent, error) {
+	return p.newFromJSON(payload)
 }
 
 func (p *PlayerEventDef) Type() model.PlayerEventType {
 	return p.t
 }
 
-type PlayerEventCreator func() model.PlayerEvent
+type PlayerEventCreator func(string) (model.PlayerEvent, error)
 
 var registry = &Registry{playerEvents: map[model.PlayerEventType]PlayerEventDef{}}
 
@@ -34,10 +34,10 @@ func (r *Registry) Get(t model.PlayerEventType) (PlayerEventDef, bool) {
 	return e, ok
 }
 
-func NewPlayerEvent(t model.PlayerEventType, new PlayerEventCreator) PlayerEventDef {
+func NewPlayerEvent(t model.PlayerEventType, newFromJSON PlayerEventCreator) PlayerEventDef {
 	return PlayerEventDef{
-		t:   t,
-		new: new,
+		t:           t,
+		newFromJSON: newFromJSON,
 	}
 }
 

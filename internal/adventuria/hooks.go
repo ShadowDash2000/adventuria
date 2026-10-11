@@ -4,6 +4,7 @@ import (
 	"adventuria/internal/adventuria/cell_events_schedules"
 	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/schema"
+	"adventuria/internal/adventuria/settings"
 	"adventuria/pkg/pbhelper"
 	"adventuria/pkg/pbrealtime"
 	"context"
@@ -171,6 +172,23 @@ func (g *Game) bindHooks(ctx context.Context, pb core.App) {
 		err := pbrealtime.Notify(ctx, pb, "cell_events_scheduler_end", nil)
 		if err != nil {
 			pb.Logger().Error("Failed to notify cell events scheduler end", "error", err)
+		}
+
+		return e.Next()
+	})
+
+	g.settings.OnNewDay().BindFunc(func(ctx context.Context, e *settings.OnNewDayEvent) error {
+		progresses, err := g.playerProgress.GetAllBySeasonID(ctx, e.Season.ID())
+		if err != nil {
+			return err
+		}
+
+		energyAmount := e.Settings.EnergyPerDay() * e.DaysPassed
+		for _, p := range progresses {
+			_, err = g.playerProgress.ChangeEnergyOutbox(ctx, p.ID(), energyAmount)
+			if err != nil {
+				return err
+			}
 		}
 
 		return e.Next()

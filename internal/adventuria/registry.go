@@ -90,6 +90,7 @@ type Registry struct {
 	worldsRepo              *worldsRepo.Repository
 	actionsRepo             *actionsRepo.Repository
 	progressRepo            *progressRepo.Repository
+	progressNotifyRepo      *progressRepo.Notify
 	playersRepo             *playersRepo.Repository
 	playerStatsRepo         *playerStatsRepo.Repository
 	inventoriesRepo         *inventoriesRepo.Repository
@@ -133,6 +134,7 @@ type Registry struct {
 	cells                    *cells.Cells
 	actions                  *actions.Actions
 	progress                 *player_progress.PlayerProgress
+	progressNotify           *player_progress.PlayerProgressNotify
 	players                  *players.Players
 	playerStats              *player_stats.PlayerStats
 	effects                  *effects.Effects
@@ -217,6 +219,13 @@ func (r *Registry) PlayerProgressRepo() *progressRepo.Repository {
 		r.progressRepo = progressRepo.NewRepository(r.pb)
 	}
 	return r.progressRepo
+}
+
+func (r *Registry) PlayerProgressNotifyRepo() *progressRepo.Notify {
+	if r.progressNotifyRepo == nil {
+		r.progressNotifyRepo = progressRepo.NewRepositoryNotify(r.pb)
+	}
+	return r.progressNotifyRepo
 }
 
 func (r *Registry) PlayersRepo() *playersRepo.Repository {
@@ -504,9 +513,22 @@ func (r *Registry) Actions() *actions.Actions {
 
 func (r *Registry) PlayerProgress() *player_progress.PlayerProgress {
 	if r.progress == nil {
-		r.progress = player_progress.NewPlayerProgress(r.PlayerProgressRepo(), r.PlayerProgressRepo(), r.Worlds())
+		r.progress = player_progress.NewPlayerProgress(
+			r.PlayerProgressRepo(),
+			r.PlayerProgressNotify(),
+			r.Worlds(),
+			r.Settings(),
+			r.Outboxes(),
+		)
 	}
 	return r.progress
+}
+
+func (r *Registry) PlayerProgressNotify() *player_progress.PlayerProgressNotify {
+	if r.progressNotify == nil {
+		r.progressNotify = player_progress.NewPlayerProgressNotify(r.PlayerProgressNotifyRepo())
+	}
+	return r.progressNotify
 }
 
 func (r *Registry) Players() *players.Players {
@@ -713,12 +735,12 @@ func (r *Registry) CellEventsSchedules() *cell_events_schedules.CellEventsSchedu
 		r.cellEventsSchedules = cell_events_schedules.NewCellEventsSchedules(
 			r.PlayersLocker(),
 			r.CellEventsSchedulesRepo(),
-			r.CellEventsSchedulesRepo(),
 			r.Cells(),
 			r.Effects(),
 			r.ActionEvents(),
 			r.Players(),
 			r.Settings(),
+			r.Seasons(),
 		)
 	}
 	return r.cellEventsSchedules

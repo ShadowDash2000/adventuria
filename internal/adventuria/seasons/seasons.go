@@ -12,6 +12,7 @@ type repository interface {
 	Create(ctx context.Context, season *model.Season) (*model.Season, error)
 	GetFirst(ctx context.Context) (*model.Season, error)
 	GetByID(ctx context.Context, id string) (*model.Season, error)
+	GetDateEndByID(ctx context.Context, id string) (time.Time, error)
 }
 
 type Seasons struct {
@@ -56,4 +57,13 @@ func (s *Seasons) GetFirst(ctx context.Context) (*model.Season, error) {
 
 func (s *Seasons) GetByID(ctx context.Context, id string) (*model.Season, error) {
 	return s.repository.GetByID(ctx, id)
+}
+
+func (s *Seasons) IsSeasonEnded(ctx context.Context, id string) (bool, error) {
+	dateEnd, err := s.repository.GetDateEndByID(ctx, id)
+	if err != nil {
+		return false, err
+	}
+
+	return model.IsSeasonEnded(dateEnd, time.Now()), nil
 }

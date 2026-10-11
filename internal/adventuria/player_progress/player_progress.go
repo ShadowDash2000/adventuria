@@ -3,7 +3,9 @@ package player_progress
 import (
 	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
+	"adventuria/internal/adventuria/outboxes/custom/change_energy"
 	"context"
+	"encoding/json"
 	"errors"
 )
 
@@ -16,25 +18,44 @@ type repository interface {
 	ChangeEnergy(ctx context.Context, id string, amount int) error
 }
 
-type notifyRepository interface {
-	NotifyChange(ctx context.Context, id string) error
+type notify interface {
+	BalanceChangeNotify(ctx context.Context, id string, balance int) error
+	EnergyChangeNotify(ctx context.Context, id string, energy int) error
 }
 
 type worlds interface {
 	GetDefault(ctx context.Context) (*model.World, error)
 }
 
-type PlayerProgress struct {
-	repository       repository
-	notifyRepository notifyRepository
-	worlds           worlds
+type settings interface {
+	EnergyDefault(ctx context.Context) (int, error)
 }
 
-func NewPlayerProgress(repository repository, notifyRepository notifyRepository, worlds worlds) *PlayerProgress {
+type outboxes interface {
+	Save(ctx context.Context, outbox *model.OutboxInfo) (*model.OutboxInfo, error)
+}
+
+type PlayerProgress struct {
+	repository repository
+	notify     notify
+	worlds     worlds
+	settings   settings
+	outboxes   outboxes
+}
+
+func NewPlayerProgress(
+	repository repository,
+	notify notify,
+	worlds worlds,
+	settings settings,
+	outboxes outboxes,
+) *PlayerProgress {
 	return &PlayerProgress{
-		repository:       repository,
-		notifyRepository: notifyRepository,
-		worlds:           worlds,
+		repository: repository,
+		notify:     notify,
+		worlds:     worlds,
+		settings:   settings,
+		outboxes:   outboxes,
 	}
 }
 
@@ -51,10 +72,16 @@ func (p *PlayerProgress) GetFirstOrDefault(ctx context.Context, playerId, season
 		return nil, err
 	}
 
+	energyDefault, err := p.settings.EnergyDefault(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	progress, err = model.NewPlayerProgress(model.PlayerProgressCreate{
 		Player:            playerId,
 		Season:            seasonId,
 		CurrentWorld:      world.ID(),
+		Energy:            energyDefault,
 		MaxInventorySlots: 6,
 	})
 	if err != nil {
@@ -79,13 +106,47 @@ func (p *PlayerProgress) Save(ctx context.Context, progress *model.PlayerProgres
 }
 
 func (p *PlayerProgress) ChangeBalance(ctx context.Context, id string, amount int) error {
-	return p.repository.ChangeBalance(ctx, id, amount)
+	err := p.repository.ChangeBalance(ctx, id, amount)
+	if err != nil {
+		return err
+	}
+
+	go func() {
+		_ = p.notify.BalanceChangeNotify(ctx, id, amount)
+	}()
+
+	return nil
 }
 
 func (p *PlayerProgress) ChangeEnergy(ctx context.Context, id string, amount int) error {
-	return p.repository.ChangeEnergy(ctx, id, amount)
+	err := p.repository.ChangeEnergy(ctx, id, amount)
+	if err != nil {
+		return err
+	}
+
+	go func() {
+		_ = p.notify.EnergyChangeNotify(ctx, id, amount)
+	}()
+
+	return nil
 }
 
-func (p *PlayerProgress) NotifyChange(ctx context.Context, id string) error {
-	return p.notifyRepository.NotifyChange(ctx, id)
+func (p *PlayerProgress) ChangeEnergyOutbox(ctx context.Context, id string, amount int) (*model.OutboxInfo, error) {
+	payload, err := json.Marshal(change_energy.Payload{
+		ProgressId: id,
+		Amount:     amount,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	outbox, err := model.NewOutbox(model.OutBoxCreate{
+		Type:    change_energy.Type,
+		Payload: string(payload),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return p.outboxes.Save(ctx, outbox)
 }

@@ -30,6 +30,7 @@ type PlayerProgressCreate struct {
 	Player            string
 	Season            string
 	CurrentWorld      string
+	Energy            int
 	MaxInventorySlots int
 }
 
@@ -52,6 +53,7 @@ func NewPlayerProgress(data PlayerProgressCreate) (*PlayerProgress, error) {
 			Player:            data.Player,
 			Season:            data.Season,
 			CurrentWorld:      data.CurrentWorld,
+			Energy:            data.Energy,
 			MaxInventorySlots: data.MaxInventorySlots,
 		},
 		isNew: true,

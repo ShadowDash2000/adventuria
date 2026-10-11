@@ -6,7 +6,6 @@ import (
 	"adventuria/internal/adventuria/player_events/custom/item_received"
 	"adventuria/pkg/helper"
 	"context"
-	"encoding/json"
 )
 
 type repository interface {
@@ -76,6 +75,7 @@ func (i *Inventories) AddItem(
 	events *model.Events,
 	player *model.Player,
 	item *model.Item,
+	source item_received.Source,
 ) (*model.InventoryItem, error) {
 	onBeforeItemAddEvent := model.OnBeforeItemAddEvent{
 		ItemRecord:    item,
@@ -108,21 +108,21 @@ func (i *Inventories) AddItem(
 		return nil, err
 	}
 
-	itemReceivedPayload, err := json.Marshal(item_received.Payload{
+	itemReceived, err := item_received.New(item_received.Payload{
 		ItemId:   item.ID(),
 		ItemName: item.Name(),
 		ItemType: item.Type(),
+		Source:   source,
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	itemReceivedEvent, err := model.NewPlayerEvent(model.PlayerEventCreate{
-		Player:  player.ID(),
-		Season:  player.Progress().Season(),
-		Type:    item_received.Type,
-		Action:  player.LastAction().ID(),
-		Payload: string(itemReceivedPayload),
+		Player: player.ID(),
+		Season: player.Progress().Season(),
+		Action: player.LastAction().ID(),
+		Event:  itemReceived,
 	})
 	if err != nil {
 		return nil, err
@@ -155,6 +155,7 @@ func (i *Inventories) TryAddItem(
 	events *model.Events,
 	player *model.Player,
 	item *model.Item,
+	source item_received.Source,
 ) (*model.InventoryItem, error) {
 	if item.IsUsingSlot() {
 		hasEmptySlots, err := i.HasEmptySlots(ctx, player)
@@ -167,7 +168,7 @@ func (i *Inventories) TryAddItem(
 		}
 	}
 
-	return i.AddItem(ctx, events, player, item)
+	return i.AddItem(ctx, events, player, item, source)
 }
 
 func (i *Inventories) GetPlayerUsedSlots(ctx context.Context, playerId string) (int, error) {
@@ -187,13 +188,14 @@ func (i *Inventories) AddItemByID(
 	events *model.Events,
 	player *model.Player,
 	itemId string,
+	source item_received.Source,
 ) (*model.InventoryItem, error) {
 	item, err := i.items.GetByID(ctx, itemId)
 	if err != nil {
 		return nil, err
 	}
 
-	return i.AddItem(ctx, events, player, item)
+	return i.AddItem(ctx, events, player, item, source)
 }
 
 func (i *Inventories) CanUseItem(ctx context.Context, events *model.Events, player *model.Player, itemId string) (bool, error) {

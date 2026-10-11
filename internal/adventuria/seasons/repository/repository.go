@@ -8,9 +8,11 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"time"
 
 	"github.com/pocketbase/dbx"
 	"github.com/pocketbase/pocketbase/core"
+	"github.com/pocketbase/pocketbase/tools/types"
 )
 
 type Repository struct {
@@ -79,4 +81,24 @@ func (r *Repository) GetByID(ctx context.Context, id string) (*model.Season, err
 	}
 
 	return RecordToSeason(&record), nil
+}
+
+func (r *Repository) GetDateEndByID(ctx context.Context, id string) (time.Time, error) {
+	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
+
+	var dateEnd types.DateTime
+	err := pb.RecordQuery(schema.CollectionSeasons).
+		WithContext(ctx).
+		Select(schema.SeasonSchema.SeasonDateEnd).
+		Where(dbx.HashExp{schema.SeasonSchema.Id: id}).
+		Limit(1).
+		Row(&dateEnd)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return time.Time{}, errs.ErrSeasonNotFound
+		}
+		return time.Time{}, err
+	}
+
+	return dateEnd.Time(), nil
 }

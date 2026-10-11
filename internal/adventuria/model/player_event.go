@@ -5,7 +5,8 @@ import "errors"
 type PlayerEventType string
 
 type PlayerEvent interface {
-	Verifiable
+	Type() PlayerEventType
+	Payload() string
 }
 
 type PlayerEventData struct {
@@ -23,11 +24,10 @@ type PlayerEventInfo struct {
 }
 
 type PlayerEventCreate struct {
-	Player  string
-	Season  string
-	Type    PlayerEventType
-	Action  string
-	Payload string
+	Player string
+	Season string
+	Action string
+	Event  PlayerEvent
 }
 
 func NewPlayerEvent(data PlayerEventCreate) (*PlayerEventInfo, error) {
@@ -37,17 +37,25 @@ func NewPlayerEvent(data PlayerEventCreate) (*PlayerEventInfo, error) {
 	if data.Season == "" {
 		return nil, errors.New("player_event: season is empty")
 	}
-	if data.Type == "" {
+	if data.Event == nil {
+		return nil, errors.New("player_event: event is empty")
+	}
+	eventType := data.Event.Type()
+	if eventType == "" {
 		return nil, errors.New("player_event: type is empty")
+	}
+	payload := data.Event.Payload()
+	if payload == "" {
+		return nil, errors.New("player_event: payload is empty")
 	}
 
 	return &PlayerEventInfo{
 		data: PlayerEventData{
 			Player:  data.Player,
 			Season:  data.Season,
-			Type:    data.Type,
+			Type:    eventType,
 			Action:  data.Action,
-			Payload: data.Payload,
+			Payload: payload,
 		},
 		isNew: true,
 	}, nil

@@ -9,6 +9,8 @@ import (
 	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/inventories"
 	"adventuria/internal/adventuria/model"
+	"adventuria/internal/adventuria/player_events/custom/item_received"
+	"adventuria/internal/adventuria/player_progress"
 	"adventuria/internal/adventuria/players"
 	"adventuria/internal/adventuria/scope"
 	"adventuria/internal/adventuria/settings"
@@ -25,17 +27,18 @@ import (
 )
 
 type Game struct {
-	pb            *pocketbase.PocketBase
-	settings      *settings.Settings
-	players       *players.Players
-	cells         *cells.Cells
-	cellEvents    *cell_events_schedules.CellEventsSchedules
-	actions       *actions.Actions
-	inventories   *inventories.Inventories
-	effects       *effects.Effects
-	worlds        *worlds.Worlds
-	board         *board.Board
-	playersLocker *locker.Locker[string]
+	pb             *pocketbase.PocketBase
+	settings       *settings.Settings
+	players        *players.Players
+	playerProgress *player_progress.PlayerProgress
+	cells          *cells.Cells
+	cellEvents     *cell_events_schedules.CellEventsSchedules
+	actions        *actions.Actions
+	inventories    *inventories.Inventories
+	effects        *effects.Effects
+	worlds         *worlds.Worlds
+	board          *board.Board
+	playersLocker  *locker.Locker[string]
 
 	onKillParserEvent *event.Hook[*onKillParserEvent]
 }
@@ -156,7 +159,7 @@ func (g *Game) DoAction(
 	return res, err
 }
 
-func (g *Game) AddItemByID(ctx context.Context, pb core.App, playerId, itemId string) error {
+func (g *Game) AddItemByID(ctx context.Context, pb core.App, playerId, itemId string, source item_received.Source) error {
 	currentSeason, err := g.settings.CurrentSeason(ctx)
 	if err != nil {
 		return err
@@ -178,7 +181,7 @@ func (g *Game) AddItemByID(ctx context.Context, pb core.App, playerId, itemId st
 	}
 
 	return pbtransaction.RunInTransaction(ctx, pb, func(ctx context.Context, txApp core.App) error {
-		_, err = g.inventories.AddItemByID(ctx, s.Events(), s.Player(), itemId)
+		_, err = g.inventories.AddItemByID(ctx, s.Events(), s.Player(), itemId, source)
 		if err != nil {
 			return err
 		}

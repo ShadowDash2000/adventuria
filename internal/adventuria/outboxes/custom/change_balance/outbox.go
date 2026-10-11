@@ -10,28 +10,22 @@ type progress interface {
 	ChangeBalance(ctx context.Context, id string, amount int) error
 }
 
-type notifyProgress interface {
-	NotifyChange(ctx context.Context, id string) error
-}
-
 var _ model.Outbox = (*ChangeBalance)(nil)
 
 const Type model.OutboxType = "change_balance"
 
 type ChangeBalance struct {
 	outboxes.OutboxBase
-	progress       progress
-	notifyProgress notifyProgress
+	progress progress
 }
 
-func NewDef(progress progress, notifyProgress notifyProgress) outboxes.OutboxDef {
+func NewDef(progress progress) outboxes.OutboxDef {
 	return outboxes.NewOutbox(
 		Type,
 		func() model.Outbox {
 			return &ChangeBalance{
-				OutboxBase:     outboxes.NewOutboxBase(Type),
-				progress:       progress,
-				notifyProgress: notifyProgress,
+				OutboxBase: outboxes.NewOutboxBase(Type),
+				progress:   progress,
 			}
 		},
 	)
@@ -43,10 +37,5 @@ func (c *ChangeBalance) Process(ctx context.Context, outbox *model.OutboxInfo) e
 		return err
 	}
 
-	err = c.progress.ChangeBalance(ctx, payload.ProgressId, payload.Amount)
-	if err != nil {
-		return err
-	}
-
-	return c.notifyProgress.NotifyChange(ctx, payload.ProgressId)
+	return c.progress.ChangeBalance(ctx, payload.ProgressId, payload.Amount)
 }

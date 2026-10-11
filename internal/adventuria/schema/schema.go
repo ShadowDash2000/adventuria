@@ -303,9 +303,10 @@ var SettingsSchema = struct {
 	Id                string
 	EventEnded        string
 	CurrentSeason     string
-	CurrentWeek       string
+	CurrentDay        string
 	BlockAllActions   string
 	EnergyDefault     string
+	EnergyPerDay      string
 	MaxInventorySlots string
 	PointsForDrop     string
 	DropsToJail       string
@@ -328,9 +329,10 @@ var SettingsSchema = struct {
 	Id:                            "id",
 	EventEnded:                    "event_ended",
 	CurrentSeason:                 "current_season",
-	CurrentWeek:                   "current_week",
+	CurrentDay:                    "current_day",
 	BlockAllActions:               "block_all_actions",
 	EnergyDefault:                 "energy_default",
+	EnergyPerDay:                  "energy_per_day",
 	MaxInventorySlots:             "max_inventory_slots",
 	PointsForDrop:                 "points_for_drop",
 	DropsToJail:                   "drops_to_jail",

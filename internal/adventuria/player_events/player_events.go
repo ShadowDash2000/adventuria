@@ -3,7 +3,6 @@ package player_events
 import (
 	"adventuria/internal/adventuria/model"
 	"context"
-	"fmt"
 )
 
 type repository interface {
@@ -22,16 +21,6 @@ func NewPlayerEvents(repository repository) *PlayerEvents {
 }
 
 func (p *PlayerEvents) Save(ctx context.Context, playerEvent *model.PlayerEventInfo) (*model.PlayerEventInfo, error) {
-	playerEventDef, ok := Get(playerEvent.Type())
-	if !ok {
-		return nil, fmt.Errorf("unknown player_event type: %s", playerEvent.Type())
-	}
-
-	err := playerEventDef.New().Verify(ctx, playerEvent.Payload())
-	if err != nil {
-		return nil, err
-	}
-
 	if playerEvent.IsNew() {
 		return p.repository.Create(ctx, playerEvent)
 	}

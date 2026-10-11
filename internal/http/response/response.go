@@ -2,6 +2,7 @@ package response
 
 import (
 	"adventuria/internal/adventuria/errs"
+	"adventuria/pkg/ctxlanguage"
 	"errors"
 	"net/http"
 
@@ -15,16 +16,8 @@ type result struct {
 	Message string `json:"message,omitempty"`
 }
 
-func getLang(e *core.RequestEvent) string {
-	lang := e.Request.Header.Get("Accept-Language")
-	if lang == "" {
-		lang = "ru"
-	}
-	return lang
-}
-
 func Error(e *core.RequestEvent, err error) error {
-	lang := getLang(e)
+	lang := ctxlanguage.GetCtxLang(e.Request.Context())
 
 	if appErr, ok := errors.AsType[*errs.AppError](err); ok {
 		res := result{

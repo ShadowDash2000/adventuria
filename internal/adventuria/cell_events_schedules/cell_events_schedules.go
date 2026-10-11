@@ -21,10 +21,6 @@ type repository interface {
 	GetAll(ctx context.Context) ([]*model.CellEventSchedule, error)
 }
 
-type notifyRepository interface {
-	NotifyChange(ctx context.Context, id string) error
-}
-
 type cells interface {
 	GetAllByWorldID(ctx context.Context, worldId string) ([]*model.CellInfo, error)
 }
@@ -47,16 +43,20 @@ type settings interface {
 	CurrentSeason(ctx context.Context) (string, error)
 }
 
+type seasons interface {
+	IsSeasonEnded(ctx context.Context, id string) (bool, error)
+}
+
 type CellEventsSchedules struct {
-	running          atomic.Bool
-	playersLocker    *locker.Locker[string]
-	repository       repository
-	notifyRepository notifyRepository
-	cells            cells
-	effects          effects
-	actionEvents     actionEvents
-	players          players
-	settings         settings
+	running       atomic.Bool
+	playersLocker *locker.Locker[string]
+	repository    repository
+	cells         cells
+	effects       effects
+	actionEvents  actionEvents
+	players       players
+	settings      settings
+	seasons       seasons
 
 	onUpdateStart *event.Hook[*UpdateStartEvent]
 	onUpdateEnd   *event.Hook[*UpdateEndEvent]
@@ -65,22 +65,22 @@ type CellEventsSchedules struct {
 func NewCellEventsSchedules(
 	playersLocker *locker.Locker[string],
 	repository repository,
-	notifyRepository notifyRepository,
 	cells cells,
 	effects effects,
 	actionEvents actionEvents,
 	players players,
 	settings settings,
+	seasons seasons,
 ) *CellEventsSchedules {
 	return &CellEventsSchedules{
-		playersLocker:    playersLocker,
-		repository:       repository,
-		notifyRepository: notifyRepository,
-		cells:            cells,
-		effects:          effects,
-		actionEvents:     actionEvents,
-		players:          players,
-		settings:         settings,
+		playersLocker: playersLocker,
+		repository:    repository,
+		cells:         cells,
+		effects:       effects,
+		actionEvents:  actionEvents,
+		players:       players,
+		settings:      settings,
+		seasons:       seasons,
 
 		onUpdateStart: &event.Hook[*UpdateStartEvent]{},
 		onUpdateEnd:   &event.Hook[*UpdateEndEvent]{},
@@ -92,20 +92,34 @@ func (c *CellEventsSchedules) IsRunning() bool {
 }
 
 func (c *CellEventsSchedules) CheckEventsSchedules(ctx context.Context) (err error) {
+	currentSeason, err := c.settings.CurrentSeason(ctx)
+	if err != nil {
+		return err
+	}
+
+	isSeasonEnded, err := c.seasons.IsSeasonEnded(ctx, currentSeason)
+	if err != nil {
+		return err
+	}
+
+	if isSeasonEnded {
+		return
+	}
+
 	isNotRunning := c.running.CompareAndSwap(false, true)
 	if !isNotRunning {
 		return errs.ErrCellEventSchedulerAlreadyRunning
 	}
+
+	shouldTriggerUpdateEnd := false
 	defer func() {
 		c.running.Store(false)
 
-		eventErr := c.OnUpdateEnd().Trigger(ctx, &UpdateEndEvent{})
-		if eventErr != nil {
-			err = eventErr
-		}
-
-		if eventErr != nil && err == nil {
-			err = eventErr
+		if shouldTriggerUpdateEnd {
+			eventErr := c.OnUpdateEnd().Trigger(ctx, &UpdateEndEvent{})
+			if eventErr != nil {
+				//err = eventErr
+			}
 		}
 	}()
 
@@ -118,6 +132,8 @@ func (c *CellEventsSchedules) CheckEventsSchedules(ctx context.Context) (err err
 	if err != nil {
 		return err
 	}
+
+	shouldTriggerUpdateEnd = true
 
 	events, err := c.repository.GetAll(ctx)
 	if err != nil {
@@ -136,11 +152,6 @@ func (c *CellEventsSchedules) CheckEventsSchedules(ctx context.Context) (err err
 
 	if len(eventsToUpdate) == 0 {
 		return nil
-	}
-
-	currentSeason, err := c.settings.CurrentSeason(ctx)
-	if err != nil {
-		return err
 	}
 
 	players, err := c.players.GetAllBySeasonID(ctx, currentSeason)
@@ -166,11 +177,6 @@ func (c *CellEventsSchedules) CheckEventsSchedules(ctx context.Context) (err err
 
 	for _, event := range eventsToUpdate {
 		err = c.repository.UpdateActiveCellAndNextShiftByID(ctx, event.ID(), event.ActiveCell(), event.NextShiftChangeAt())
-		if err != nil {
-			return err
-		}
-
-		err = c.notifyRepository.NotifyChange(ctx, event.ID())
 		if err != nil {
 			return err
 		}

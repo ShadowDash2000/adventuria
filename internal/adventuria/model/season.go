@@ -80,3 +80,11 @@ func (s *Season) SeasonDateStart() time.Time {
 func (s *Season) SeasonDateEnd() time.Time {
 	return s.data.SeasonDateEnd
 }
+
+func IsSeasonEnded(dateEnd, now time.Time) bool {
+	return dateEnd.Before(now)
+}
+
+func (s *Season) IsEnded(now time.Time) bool {
+	return IsSeasonEnded(s.SeasonDateEnd(), now)
+}

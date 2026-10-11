@@ -5,6 +5,7 @@ import (
 	inventoriesMocks "adventuria/internal/adventuria/inventories/mocks"
 	itemsMocks "adventuria/internal/adventuria/items/mocks"
 	"adventuria/internal/adventuria/model"
+	"adventuria/internal/adventuria/player_events/custom/item_received"
 	"context"
 	"testing"
 )
@@ -96,7 +97,7 @@ func TestAddItemsToInventory_Subscribe(t *testing.T) {
 			t.Fatalf("Subscribe failed: %v", err)
 		}
 
-		mInventories.AddItemByIDFunc = func(ctx context.Context, events *model.Events, player *model.Player, itemId string) (*model.InventoryItem, error) {
+		mInventories.AddItemByIDFunc = func(ctx context.Context, events *model.Events, player *model.Player, itemId string, source item_received.Source) (*model.InventoryItem, error) {
 			addedItems = append(addedItems, itemId)
 			return &model.InventoryItem{}, nil
 		}
@@ -130,7 +131,7 @@ func TestAddItemsToInventory_Subscribe(t *testing.T) {
 			t.Fatalf("Subscribe failed: %v", err)
 		}
 
-		mInventories.AddItemByIDFunc = func(ctx context.Context, events *model.Events, player *model.Player, itemId string) (*model.InventoryItem, error) {
+		mInventories.AddItemByIDFunc = func(ctx context.Context, events *model.Events, player *model.Player, itemId string, source item_received.Source) (*model.InventoryItem, error) {
 			addedItemsCount++
 			return &model.InventoryItem{}, nil
 		}

@@ -9,6 +9,7 @@ import (
 	"adventuria/internal/http/game_state"
 	"adventuria/internal/http/response"
 	"adventuria/internal/http/update_review"
+	"adventuria/pkg/ctxlanguage"
 
 	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/core"
@@ -33,6 +34,16 @@ func Route(game *adventuria.Game, registry *adventuria.Registry, router *router.
 
 	ga := g.Group("")
 	ga.Bind(apis.RequireAuth())
+	ga.BindFunc(func(e *core.RequestEvent) error {
+		e.Request = e.Request.WithContext(
+			ctxlanguage.SetCtxLang(
+				e.Request.Context(),
+				e.Request.Header.Get("Accept-Language"),
+			),
+		)
+
+		return e.Next()
+	})
 
 	gab := ga.Group("")
 	gab.BindFunc(func(e *core.RequestEvent) error {

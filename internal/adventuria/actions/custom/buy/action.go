@@ -4,6 +4,7 @@ import (
 	"adventuria/internal/adventuria/actions"
 	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
+	"adventuria/internal/adventuria/player_events/custom/item_received"
 	"context"
 	"errors"
 	"fmt"
@@ -16,7 +17,7 @@ type items interface {
 }
 
 type inventories interface {
-	TryAddItem(ctx context.Context, events *model.Events, player *model.Player, item *model.Item) (*model.InventoryItem, error)
+	TryAddItem(ctx context.Context, events *model.Events, player *model.Player, item *model.Item, source item_received.Source) (*model.InventoryItem, error)
 }
 
 var _ model.Action = (*Buy)(nil)
@@ -85,7 +86,7 @@ func (b *Buy) Do(ctx context.Context, events *model.Events, player *model.Player
 		return nil, errs.ErrNotEnoughMoney
 	}
 
-	_, err = b.inventories.TryAddItem(ctx, events, player, item)
+	_, err = b.inventories.TryAddItem(ctx, events, player, item, item_received.SourceShop)
 	if err != nil {
 		return nil, err
 	}

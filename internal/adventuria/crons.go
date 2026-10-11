@@ -93,6 +93,15 @@ func (g *Game) registerCrons(ctx context.Context, pb core.App, registry *Registr
 		}
 	})
 
+	pb.Cron().MustAdd("update_current_day", "*/1 * * * *", func() {
+		err := pbtransaction.RunInTransaction(ctx, pb, func(ctx context.Context, txApp core.App) error {
+			return g.settings.UpdateCurrentDay(ctx)
+		})
+		if err != nil {
+			pb.Logger().Error("Failed to update current day", "error", err)
+		}
+	})
+
 	pb.Cron().MustAdd("update_cells_average_campaign_time", "0 4 * * *", func() {
 		ids, err := g.cells.GetAllIDs(ctx)
 		if err != nil {

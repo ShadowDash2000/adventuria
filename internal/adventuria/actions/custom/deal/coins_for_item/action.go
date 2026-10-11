@@ -3,11 +3,12 @@ package coins_for_item
 import (
 	"adventuria/internal/adventuria/actions"
 	"adventuria/internal/adventuria/model"
+	"adventuria/internal/adventuria/player_events/custom/item_received"
 	"context"
 )
 
 type inventories interface {
-	AddItemByID(ctx context.Context, events *model.Events, player *model.Player, itemId string) (*model.InventoryItem, error)
+	AddItemByID(ctx context.Context, events *model.Events, player *model.Player, itemId string, source item_received.Source) (*model.InventoryItem, error)
 }
 
 type items interface {
@@ -52,7 +53,7 @@ func (c *CoinsForItem) Do(ctx context.Context, events *model.Events, player *mod
 		return nil, err
 	}
 
-	_, err = c.inventories.AddItemByID(ctx, events, player, deal.ItemId)
+	_, err = c.inventories.AddItemByID(ctx, events, player, deal.ItemId, item_received.SourceDealer)
 	if err != nil {
 		return nil, err
 	}

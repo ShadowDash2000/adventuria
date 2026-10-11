@@ -27,6 +27,7 @@ func (g *Game) init(ctx context.Context, pb core.App) (*Registry, error) {
 
 	g.settings = registry.Settings()
 	g.players = registry.Players()
+	g.playerProgress = registry.PlayerProgress()
 	g.cells = registry.Cells()
 	g.cellEvents = registry.CellEventsSchedules()
 	g.actions = registry.Actions()

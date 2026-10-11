@@ -1,6 +1,7 @@
 package debug
 
 import (
+	"adventuria/internal/adventuria/player_events/custom/item_received"
 	"adventuria/internal/http/response"
 	"context"
 
@@ -9,7 +10,7 @@ import (
 
 type game interface {
 	MoveToCellID(ctx context.Context, pb core.App, playerId, cellId string) error
-	AddItemByID(ctx context.Context, pb core.App, playerId, itemId string) error
+	AddItemByID(ctx context.Context, pb core.App, playerId, itemId string, source item_received.Source) error
 }
 
 type Handler struct {
@@ -56,7 +57,7 @@ func (h *Handler) AddItemByID(e *core.RequestEvent) error {
 		return response.Error(e, err)
 	}
 
-	err = h.game.AddItemByID(e.Request.Context(), e.App, req.PlayerId, req.ItemId)
+	err = h.game.AddItemByID(e.Request.Context(), e.App, req.PlayerId, req.ItemId, item_received.SourceDebug)
 	if err != nil {
 		return response.Error(e, err)
 	}

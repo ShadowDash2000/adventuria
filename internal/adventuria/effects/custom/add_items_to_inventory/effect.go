@@ -3,12 +3,13 @@ package add_items_to_inventory
 import (
 	"adventuria/internal/adventuria/effects"
 	"adventuria/internal/adventuria/model"
+	"adventuria/internal/adventuria/player_events/custom/item_received"
 	"adventuria/pkg/event"
 	"context"
 )
 
 type inventories interface {
-	AddItemByID(ctx context.Context, events *model.Events, player *model.Player, itemId string) (*model.InventoryItem, error)
+	AddItemByID(ctx context.Context, events *model.Events, player *model.Player, itemId string, source item_received.Source) (*model.InventoryItem, error)
 }
 
 type items interface {
@@ -57,7 +58,7 @@ func (a *AddItemsToInventory) Subscribe(
 
 			ids := a.decodeValue(a.Value())
 			for _, id := range ids {
-				_, err := a.inventories.AddItemByID(ctx, events, player, id)
+				_, err := a.inventories.AddItemByID(ctx, events, player, id, item_received.SourceAnotherItem)
 				if err != nil {
 					return err
 				}

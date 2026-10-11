@@ -9,9 +9,10 @@ type SettingsData struct {
 	Id                string
 	EventEnded        bool
 	CurrentSeason     string
-	CurrentWeek       int
+	CurrentDay        int
 	BlockAllActions   bool
 	EnergyDefault     int
+	EnergyPerDay      int
 	MaxInventorySlots int
 	PointsForDrop     int
 	DropsToJail       int
@@ -88,12 +89,12 @@ func (s *Settings) SetCurrentSeason(season string) {
 	s.data.CurrentSeason = season
 }
 
-func (s *Settings) CurrentWeek() int {
-	return s.data.CurrentWeek
+func (s *Settings) CurrentDay() int {
+	return s.data.CurrentDay
 }
 
-func (s *Settings) SetCurrentWeek(week int) {
-	s.data.CurrentWeek = week
+func (s *Settings) SetCurrentDay(day int) {
+	s.data.CurrentDay = day
 }
 
 func (s *Settings) BlockAllActions() bool {
@@ -110,6 +111,14 @@ func (s *Settings) EnergyDefault() int {
 
 func (s *Settings) SetEnergyDefault(energy int) {
 	s.data.EnergyDefault = energy
+}
+
+func (s *Settings) EnergyPerDay() int {
+	return s.data.EnergyPerDay
+}
+
+func (s *Settings) SetEnergyPerDay(energy int) {
+	s.data.EnergyPerDay = energy
 }
 
 func (s *Settings) MaxInventorySlots() int {

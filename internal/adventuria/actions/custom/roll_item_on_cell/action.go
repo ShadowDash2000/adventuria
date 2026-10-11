@@ -4,6 +4,7 @@ import (
 	"adventuria/internal/adventuria/actions"
 	"adventuria/internal/adventuria/cells"
 	"adventuria/internal/adventuria/model"
+	"adventuria/internal/adventuria/player_events/custom/item_received"
 	"context"
 	"fmt"
 )
@@ -14,7 +15,7 @@ type cellsService interface {
 }
 
 type inventories interface {
-	AddItemByID(ctx context.Context, events *model.Events, player *model.Player, itemId string) (*model.InventoryItem, error)
+	AddItemByID(ctx context.Context, events *model.Events, player *model.Player, itemId string, source item_received.Source) (*model.InventoryItem, error)
 }
 
 type items interface {
@@ -75,7 +76,7 @@ func (r *RollItemOnCell) Do(ctx context.Context, events *model.Events, player *m
 		return nil, err
 	}
 
-	_, err = r.inventories.AddItemByID(ctx, events, player, res.WinnerId)
+	_, err = r.inventories.AddItemByID(ctx, events, player, res.WinnerId, item_received.SourceItemWheel)
 	if err != nil {
 		return nil, err
 	}

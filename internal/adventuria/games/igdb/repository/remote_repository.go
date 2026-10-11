@@ -7,9 +7,9 @@ import (
 	"strconv"
 	"strings"
 
-	"git.nite07.com/shadod/go-igdb"
-	"git.nite07.com/shadod/go-igdb/endpoint"
-	pb "git.nite07.com/shadod/go-igdb/proto"
+	"github.com/ShadowDash2000/go-igdb"
+	"github.com/ShadowDash2000/go-igdb/endpoint"
+	pb "github.com/ShadowDash2000/go-igdb/proto"
 	"google.golang.org/protobuf/proto"
 )
 
