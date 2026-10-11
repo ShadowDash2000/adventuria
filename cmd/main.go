@@ -3,6 +3,7 @@ package main
 import (
 	"adventuria/internal/adventuria"
 	"adventuria/internal/http"
+	"adventuria/pkg/ctxlanguage"
 	"log"
 
 	"github.com/joho/godotenv"
@@ -12,11 +13,17 @@ import (
 )
 
 func main() {
-	if err := godotenv.Load(); err != nil {
+	err := godotenv.Load()
+	if err != nil {
 		log.Printf("Failed to load .env file: %v", err)
 	}
 
-	_, err := adventuria.Start(func(game *adventuria.Game, registry *adventuria.Registry, se *core.ServeEvent) error {
+	err = ctxlanguage.SetDefaultLang("ru")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	_, err = adventuria.Start(func(game *adventuria.Game, registry *adventuria.Registry, se *core.ServeEvent) error {
 		http.Route(game, registry, se.Router)
 
 		return se.Next()

@@ -24,6 +24,9 @@ var (
 	ErrSettingsNotFound = &AppError{
 		Code:    "settings_not_found",
 		Message: "Settings not found",
+		Translates: map[string]string{
+			"ru": "Настройки не найдены",
+		},
 	}
 	ErrSeasonNotFound = &AppError{
 		Code:    "season_not_found",
@@ -134,27 +137,42 @@ var (
 		Code:    "review_comment_max_size",
 		Message: "Review comment is too long",
 		Status:  http.StatusBadRequest,
+		Translates: map[string]string{
+			"ru": "Комментарий к обзору слишком длинный",
+		},
 	}
 	ErrReviewScoreInvalid = &AppError{
 		Code:    "review_score_invalid",
 		Message: "Invalid review score",
 		Status:  http.StatusBadRequest,
+		Translates: map[string]string{
+			"ru": "Недопустимая оценка обзора",
+		},
 	}
 
 	ErrNotEnoughMoney = &AppError{
 		Code:    "not_enough_money",
 		Message: "Not enough money",
 		Status:  http.StatusBadRequest,
+		Translates: map[string]string{
+			"ru": "Недостаточно денег",
+		},
 	}
 	ErrNotEnoughEnergy = &AppError{
 		Code:    "not_enough_energy",
 		Message: "Not enough energy",
 		Status:  http.StatusBadRequest,
+		Translates: map[string]string{
+			"ru": "Недостаточно энергии",
+		},
 	}
 	ErrNotEnoughInventorySlots = &AppError{
 		Code:    "not_enough_inventory_slots",
 		Message: "Not enough inventory slots",
 		Status:  http.StatusBadRequest,
+		Translates: map[string]string{
+			"ru": "Недостаточно слотов в инвентаре",
+		},
 	}
 
 	ErrUnknownAction = &AppError{

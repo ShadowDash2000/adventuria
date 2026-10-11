@@ -25,6 +25,16 @@ func Route(game *adventuria.Game, registry *adventuria.Registry, router *router.
 	debug := debug.NewHandler(game)
 
 	g := router.Group("/api")
+	g.BindFunc(func(e *core.RequestEvent) error {
+		e.Request = e.Request.WithContext(
+			ctxlanguage.SetCtxLang(
+				e.Request.Context(),
+				resolveLanguage(e.Request.Header.Get("Accept-Language")),
+			),
+		)
+
+		return e.Next()
+	})
 
 	g.GET("/event-stats", eventStats.EventStats)
 	g.GET("/current-season", handlers.CurrentSeason)
@@ -34,16 +44,6 @@ func Route(game *adventuria.Game, registry *adventuria.Registry, router *router.
 
 	ga := g.Group("")
 	ga.Bind(apis.RequireAuth())
-	ga.BindFunc(func(e *core.RequestEvent) error {
-		e.Request = e.Request.WithContext(
-			ctxlanguage.SetCtxLang(
-				e.Request.Context(),
-				e.Request.Header.Get("Accept-Language"),
-			),
-		)
-
-		return e.Next()
-	})
 
 	gab := ga.Group("")
 	gab.BindFunc(func(e *core.RequestEvent) error {
