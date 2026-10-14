@@ -2,14 +2,22 @@ package outboxes
 
 import "adventuria/internal/adventuria/model"
 
-type OutboxBase struct {
-	t model.OutboxType
+type OutboxTaskBase struct {
+	t           model.OutboxType
+	payloadJSON string
 }
 
-func NewOutboxBase(t model.OutboxType) OutboxBase {
-	return OutboxBase{t: t}
+func NewOutboxTaskBase(t model.OutboxType, payload string) OutboxTaskBase {
+	return OutboxTaskBase{
+		t:           t,
+		payloadJSON: payload,
+	}
 }
 
-func (a OutboxBase) Type() model.OutboxType {
-	return a.t
+func (o OutboxTaskBase) Type() model.OutboxType {
+	return o.t
+}
+
+func (o OutboxTaskBase) Payload() string {
+	return o.payloadJSON
 }

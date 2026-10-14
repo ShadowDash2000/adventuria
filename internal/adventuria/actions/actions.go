@@ -71,6 +71,10 @@ func (a *Actions) GetLastOrDefault(ctx context.Context, playerId, seasonId strin
 	return action, nil
 }
 
+func (a *Actions) GetLast(ctx context.Context, playerId, seasonId string) (*model.ActionInfo, error) {
+	return a.repository.GetLastPlayerActionBySeasonID(ctx, playerId, seasonId)
+}
+
 func (a *Actions) canDoAction(ctx context.Context, events *model.Events, player *model.Player, actionDef ActionDef) bool {
 	action := actionDef.New()
 

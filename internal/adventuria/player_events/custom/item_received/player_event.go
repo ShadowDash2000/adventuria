@@ -26,7 +26,7 @@ func NewDef() player_events.PlayerEventDef {
 }
 
 func New(payload Payload) (*ItemReceived, error) {
-	err := validatePayload(payload)
+	err := payload.validate()
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +49,7 @@ func NewFromJSON(payload string) (*ItemReceived, error) {
 		return nil, fmt.Errorf("failed to unmarshal player_event payload: %w", err)
 	}
 
-	err = validatePayload(decoded)
+	err = decoded.validate()
 	if err != nil {
 		return nil, err
 	}

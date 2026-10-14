@@ -5,7 +5,6 @@ import (
 	"adventuria/internal/adventuria/model"
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
 	"time"
 )
@@ -68,7 +67,7 @@ func (o *Outboxes) process(ctx context.Context, outbox *model.OutboxInfo) error 
 		return o.repository.UpdateStatus(ctx, outbox.ID(), model.OutboxStatusFailed)
 	}
 
-	err := outboxDef.New().Process(ctx, outbox)
+	err := outboxDef.Process(ctx, outbox.Payload())
 	if err != nil {
 		return o.repository.UpdateStatus(ctx, outbox.ID(), model.OutboxStatusFailed)
 	}
@@ -77,16 +76,6 @@ func (o *Outboxes) process(ctx context.Context, outbox *model.OutboxInfo) error 
 }
 
 func (o *Outboxes) Save(ctx context.Context, outbox *model.OutboxInfo) (*model.OutboxInfo, error) {
-	outboxDef, ok := Get(outbox.Type())
-	if !ok {
-		return nil, fmt.Errorf("unknown outbox type: %s", outbox.Type())
-	}
-
-	err := outboxDef.New().Verify(ctx, outbox.Payload())
-	if err != nil {
-		return nil, err
-	}
-
 	if outbox.IsNew() {
 		return o.repository.Create(ctx, outbox)
 	}

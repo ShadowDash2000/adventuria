@@ -2,22 +2,23 @@ package outboxes
 
 import (
 	"adventuria/internal/adventuria/model"
+	"context"
 )
 
 type OutboxDef struct {
-	t   model.OutboxType
-	new OutboxCreator
-}
-
-func (o *OutboxDef) New() model.Outbox {
-	return o.new()
+	t       model.OutboxType
+	process ProcessFunc
 }
 
 func (o *OutboxDef) Type() model.OutboxType {
 	return o.t
 }
 
-type OutboxCreator func() model.Outbox
+func (o *OutboxDef) Process(ctx context.Context, payload string) error {
+	return o.process(ctx, payload)
+}
+
+type ProcessFunc func(ctx context.Context, payload string) error
 
 var registry = &Registry{outboxes: map[model.OutboxType]OutboxDef{}}
 
@@ -36,10 +37,10 @@ func (r *Registry) Get(t model.OutboxType) (OutboxDef, bool) {
 	return e, ok
 }
 
-func NewOutbox(t model.OutboxType, new OutboxCreator) OutboxDef {
+func NewOutbox(t model.OutboxType, process ProcessFunc) OutboxDef {
 	return OutboxDef{
-		t:   t,
-		new: new,
+		t:       t,
+		process: process,
 	}
 }
 

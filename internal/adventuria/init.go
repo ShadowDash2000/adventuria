@@ -81,6 +81,8 @@ func (g *Game) init(ctx context.Context, pb core.App) (*Registry, error) {
 
 	customOutboxes.RegisterOutboxes(
 		registry.PlayerProgress(),
+		registry.Actions(),
+		registry.PlayerEvents(),
 	)
 
 	customPlayerEvents.RegisterPlayerEvents()

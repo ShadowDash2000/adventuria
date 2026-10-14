@@ -62,6 +62,27 @@ func (r *Repository) Update(ctx context.Context, progress *model.PlayerProgress)
 	return RecordToPlayerProgress(record), nil
 }
 
+func (r *Repository) GetByID(ctx context.Context, id string) (*model.PlayerProgress, error) {
+	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
+
+	var record core.Record
+	err := pb.RecordQuery(schema.CollectionPlayersProgress).
+		WithContext(ctx).
+		Where(dbx.HashExp{
+			schema.PlayerProgressSchema.Id: id,
+		}).
+		Limit(1).
+		One(&record)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errs.ErrProgressNotFound
+		}
+		return nil, err
+	}
+
+	return RecordToPlayerProgress(&record), nil
+}
+
 func (r *Repository) GetByPlayerId(ctx context.Context, playerId, seasonId string) (*model.PlayerProgress, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 

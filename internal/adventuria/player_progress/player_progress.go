@@ -5,13 +5,14 @@ import (
 	"adventuria/internal/adventuria/model"
 	"adventuria/internal/adventuria/outboxes/custom/change_energy"
 	"context"
-	"encoding/json"
 	"errors"
+	"time"
 )
 
 type repository interface {
 	Create(ctx context.Context, progress *model.PlayerProgress) (*model.PlayerProgress, error)
 	Update(ctx context.Context, progress *model.PlayerProgress) (*model.PlayerProgress, error)
+	GetByID(ctx context.Context, id string) (*model.PlayerProgress, error)
 	GetByPlayerId(ctx context.Context, playerId, seasonId string) (*model.PlayerProgress, error)
 	GetAllBySeasonID(ctx context.Context, seasonId string) ([]*model.PlayerProgress, error)
 	ChangeBalance(ctx context.Context, id string, amount int) error
@@ -93,6 +94,10 @@ func (p *PlayerProgress) GetFirstOrDefault(ctx context.Context, playerId, season
 	return progress, nil
 }
 
+func (p *PlayerProgress) GetByID(ctx context.Context, id string) (*model.PlayerProgress, error) {
+	return p.repository.GetByID(ctx, id)
+}
+
 func (p *PlayerProgress) GetAllBySeasonID(ctx context.Context, seasonId string) ([]*model.PlayerProgress, error) {
 	return p.repository.GetAllBySeasonID(ctx, seasonId)
 }
@@ -112,6 +117,8 @@ func (p *PlayerProgress) ChangeBalance(ctx context.Context, id string, amount in
 	}
 
 	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
+		defer cancel()
 		_ = p.notify.BalanceChangeNotify(ctx, id, amount)
 	}()
 
@@ -125,6 +132,8 @@ func (p *PlayerProgress) ChangeEnergy(ctx context.Context, id string, amount int
 	}
 
 	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
+		defer cancel()
 		_ = p.notify.EnergyChangeNotify(ctx, id, amount)
 	}()
 
@@ -132,17 +141,16 @@ func (p *PlayerProgress) ChangeEnergy(ctx context.Context, id string, amount int
 }
 
 func (p *PlayerProgress) ChangeEnergyOutbox(ctx context.Context, id string, amount int) (*model.OutboxInfo, error) {
-	payload, err := json.Marshal(change_energy.Payload{
+	task, err := change_energy.New(change_energy.Payload{
 		ProgressId: id,
-		Amount:     amount,
+		Amount:     new(amount),
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	outbox, err := model.NewOutbox(model.OutBoxCreate{
-		Type:    change_energy.Type,
-		Payload: string(payload),
+	outbox, err := model.NewOutbox(model.OutboxCreate{
+		Task: task,
 	})
 	if err != nil {
 		return nil, err

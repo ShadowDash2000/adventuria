@@ -1,15 +1,14 @@
 package model
 
 import (
-	"context"
 	"errors"
 )
 
 type OutboxType string
 
-type Outbox interface {
-	Verifiable
-	Process(ctx context.Context, outbox *OutboxInfo) error
+type OutboxTask interface {
+	Type() OutboxType
+	Payload() string
 }
 
 type OutboxData struct {
@@ -24,20 +23,19 @@ type OutboxInfo struct {
 	isNew bool
 }
 
-type OutBoxCreate struct {
-	Type    OutboxType
-	Payload string
+type OutboxCreate struct {
+	Task OutboxTask
 }
 
-func NewOutbox(data OutBoxCreate) (*OutboxInfo, error) {
-	if data.Type == "" {
+func NewOutbox(data OutboxCreate) (*OutboxInfo, error) {
+	if data.Task.Type() == "" {
 		return nil, errors.New("outbox: type is empty")
 	}
 
 	return &OutboxInfo{
 		data: OutboxData{
-			Type:    data.Type,
-			Payload: data.Payload,
+			Type:    data.Task.Type(),
+			Payload: data.Task.Payload(),
 			Status:  OutboxStatusPending,
 		},
 		isNew: true,

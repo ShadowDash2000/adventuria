@@ -6,7 +6,6 @@ import (
 	"adventuria/internal/adventuria/outboxes/custom/change_balance"
 	"adventuria/pkg/event"
 	"context"
-	"encoding/json"
 )
 
 type progress interface {
@@ -77,17 +76,16 @@ func (c *CoinsForAll) Subscribe(
 					continue
 				}
 
-				payload, err := json.Marshal(change_balance.Payload{
+				task, err := change_balance.New(change_balance.Payload{
 					ProgressId: p.ID(),
-					Amount:     effectValue.CoinsForOther,
+					Amount:     &effectValue.CoinsForOther,
 				})
 				if err != nil {
 					return err
 				}
 
-				outbox, err := model.NewOutbox(model.OutBoxCreate{
-					Type:    change_balance.Type,
-					Payload: string(payload),
+				outbox, err := model.NewOutbox(model.OutboxCreate{
+					Task: task,
 				})
 				if err != nil {
 					return err
