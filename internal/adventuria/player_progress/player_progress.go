@@ -6,7 +6,6 @@ import (
 	"adventuria/internal/adventuria/outboxes/custom/change_energy"
 	"context"
 	"errors"
-	"time"
 )
 
 type repository interface {
@@ -116,13 +115,7 @@ func (p *PlayerProgress) ChangeBalance(ctx context.Context, id string, amount in
 		return err
 	}
 
-	go func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
-		defer cancel()
-		_ = p.notify.BalanceChangeNotify(ctx, id, amount)
-	}()
-
-	return nil
+	return p.notify.BalanceChangeNotify(ctx, id, amount)
 }
 
 func (p *PlayerProgress) ChangeEnergy(ctx context.Context, id string, amount int) error {
@@ -131,13 +124,7 @@ func (p *PlayerProgress) ChangeEnergy(ctx context.Context, id string, amount int
 		return err
 	}
 
-	go func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
-		defer cancel()
-		_ = p.notify.EnergyChangeNotify(ctx, id, amount)
-	}()
-
-	return nil
+	return p.notify.EnergyChangeNotify(ctx, id, amount)
 }
 
 func (p *PlayerProgress) ChangeEnergyOutbox(ctx context.Context, id string, amount int) (*model.OutboxInfo, error) {

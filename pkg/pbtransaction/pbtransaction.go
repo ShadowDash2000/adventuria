@@ -27,3 +27,19 @@ func GetCtxTransactionOrApp(ctx context.Context, pb core.App) core.App {
 func SetCtxTransaction(ctx context.Context, pb core.App) context.Context {
 	return context.WithValue(ctx, ctxKey{}, pb)
 }
+
+func AfterCommit(ctx context.Context, pb core.App, fn func()) {
+	app := GetCtxTransactionOrApp(ctx, pb)
+
+	if tx := app.TxInfo(); tx != nil {
+		tx.OnComplete(func(txErr error) error {
+			if txErr == nil {
+				fn()
+			}
+			return nil
+		})
+		return
+	}
+
+	fn()
+}
