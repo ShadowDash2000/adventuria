@@ -108,22 +108,19 @@ func (i *Inventories) AddItem(
 		return nil, err
 	}
 
-	itemReceived, err := item_received.New(item_received.Payload{
-		ItemId:   item.ID(),
-		ItemName: item.Name(),
-		ItemType: item.Type(),
-		Source:   source,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	itemReceivedEvent, err := model.NewPlayerEvent(model.PlayerEventCreate{
-		Player: player.ID(),
-		Season: player.Progress().Season(),
-		Action: player.LastAction().ID(),
-		Event:  itemReceived,
-	})
+	itemReceivedEvent, err := item_received.NewPlayerEvent(
+		model.PlayerEventCreate{
+			Player: player.ID(),
+			Season: player.Progress().Season(),
+			Action: player.LastAction().ID(),
+		},
+		item_received.Payload{
+			ItemId:   item.ID(),
+			ItemName: item.Name(),
+			ItemType: item.Type(),
+			Source:   source,
+		},
+	)
 	if err != nil {
 		return nil, err
 	}

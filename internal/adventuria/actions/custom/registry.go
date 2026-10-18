@@ -21,6 +21,8 @@ import (
 	"adventuria/internal/adventuria/cells"
 	"adventuria/internal/adventuria/inventories"
 	"adventuria/internal/adventuria/items"
+	"adventuria/internal/adventuria/player_events"
+	"adventuria/internal/adventuria/player_progress"
 	"adventuria/internal/adventuria/players"
 	"adventuria/internal/adventuria/reviews"
 	"adventuria/internal/adventuria/settings"
@@ -38,11 +40,13 @@ func RegisterActions(
 	rollWheelRepo *rollWheelRepo.Repository,
 	activities *activities.Activities,
 	activityResultCalculator *activities.CompletionResultCalculator,
+	progressNotify *player_progress.PlayerProgressNotify,
+	playerEvents *player_events.PlayerEvents,
 ) {
 	actions.Register(
 		start.NewDef(actionsService),
 		complete_activity.NewDef(cells, activityResultCalculator),
-		done.NewDef(actionsService, cells, activityResultCalculator, reviews),
+		done.NewDef(actionsService, cells, activityResultCalculator, reviews, progressNotify, playerEvents),
 		drop.NewDef(actionsService, cells, reviews, players, settings, board),
 		reroll.NewDef(cells, reviews, actionsService, activities),
 		buy.NewDef(items, inventories),

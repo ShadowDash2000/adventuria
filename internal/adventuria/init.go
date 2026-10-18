@@ -79,6 +79,8 @@ func (g *Game) init(ctx context.Context, pb core.App) (*Registry, error) {
 		registry.RollWheelRepo(),
 		registry.Activities(),
 		registry.CellResultCalculator(),
+		registry.PlayerProgressNotify(),
+		registry.PlayerEvents(),
 	)
 
 	customOutboxes.RegisterOutboxes(

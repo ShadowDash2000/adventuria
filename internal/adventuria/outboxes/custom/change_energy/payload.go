@@ -1,10 +1,14 @@
 package change_energy
 
-import "errors"
+import (
+	"adventuria/internal/adventuria/player_events/custom/energy_changed"
+	"errors"
+)
 
 type Payload struct {
-	ProgressId string `json:"progress_id"`
-	Amount     *int   `json:"amount"`
+	ProgressId string                `json:"progress_id"`
+	Amount     *int                  `json:"amount"`
+	Source     energy_changed.Source `json:"source,omitempty"`
 }
 
 func (p Payload) clone() Payload {
@@ -16,6 +20,7 @@ func (p Payload) clone() Payload {
 	return Payload{
 		ProgressId: p.ProgressId,
 		Amount:     amount,
+		Source:     p.Source,
 	}
 }
 

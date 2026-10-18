@@ -71,25 +71,22 @@ func (c *ChangeEnergyProcessor) Process(ctx context.Context, task *ChangeEnergy)
 		actionId = lastAction.ID()
 	}
 
-	energyChanged, err := energy_changed.New(energy_changed.Payload{
-		Amount: new(*task.payload.Amount),
-		Source: "",
-	})
+	energyChangedEvent, err := energy_changed.NewPlayerEvent(
+		model.PlayerEventCreate{
+			Player: progress.Player(),
+			Season: progress.Season(),
+			Action: actionId,
+		},
+		energy_changed.Payload{
+			Amount: new(*task.payload.Amount),
+			Source: task.payload.Source,
+		},
+	)
 	if err != nil {
 		return err
 	}
 
-	event, err := model.NewPlayerEvent(model.PlayerEventCreate{
-		Player: progress.Player(),
-		Season: progress.Season(),
-		Action: actionId,
-		Event:  energyChanged,
-	})
-	if err != nil {
-		return err
-	}
-
-	_, err = c.playerEvents.Save(ctx, event)
+	_, err = c.playerEvents.Save(ctx, energyChangedEvent)
 	if err != nil {
 		return err
 	}

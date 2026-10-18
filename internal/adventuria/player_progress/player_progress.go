@@ -4,6 +4,7 @@ import (
 	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
 	"adventuria/internal/adventuria/outboxes/custom/change_energy"
+	"adventuria/internal/adventuria/player_events/custom/energy_changed"
 	"context"
 	"errors"
 )
@@ -127,10 +128,11 @@ func (p *PlayerProgress) ChangeEnergy(ctx context.Context, id string, amount int
 	return p.notify.EnergyChangeNotify(ctx, id, amount)
 }
 
-func (p *PlayerProgress) ChangeEnergyOutbox(ctx context.Context, id string, amount int) (*model.OutboxInfo, error) {
+func (p *PlayerProgress) ChangeEnergyOutbox(ctx context.Context, id string, amount int, source energy_changed.Source) (*model.OutboxInfo, error) {
 	task, err := change_energy.New(change_energy.Payload{
 		ProgressId: id,
 		Amount:     new(amount),
+		Source:     source,
 	})
 	if err != nil {
 		return nil, err

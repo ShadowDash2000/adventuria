@@ -59,3 +59,12 @@ func NewFromJSON(payload string) (*ItemReceived, error) {
 		payload:         decoded,
 	}, nil
 }
+
+func NewPlayerEvent(data model.PlayerEventCreate, payload Payload) (*model.PlayerEventInfo, error) {
+	event, err := New(payload)
+	if err != nil {
+		return nil, err
+	}
+
+	return model.NewPlayerEvent(data, event)
+}

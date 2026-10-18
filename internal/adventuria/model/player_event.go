@@ -27,24 +27,23 @@ type PlayerEventCreate struct {
 	Player string
 	Season string
 	Action string
-	Event  PlayerEvent
 }
 
-func NewPlayerEvent(data PlayerEventCreate) (*PlayerEventInfo, error) {
+func NewPlayerEvent(data PlayerEventCreate, event PlayerEvent) (*PlayerEventInfo, error) {
 	if data.Player == "" {
 		return nil, errors.New("player_event: player is empty")
 	}
 	if data.Season == "" {
 		return nil, errors.New("player_event: season is empty")
 	}
-	if data.Event == nil {
+	if event == nil {
 		return nil, errors.New("player_event: event is empty")
 	}
-	eventType := data.Event.Type()
+	eventType := event.Type()
 	if eventType == "" {
 		return nil, errors.New("player_event: type is empty")
 	}
-	payload := data.Event.Payload()
+	payload := event.Payload()
 	if payload == "" {
 		return nil, errors.New("player_event: payload is empty")
 	}

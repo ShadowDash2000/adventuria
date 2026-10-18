@@ -4,6 +4,7 @@ import (
 	"adventuria/internal/adventuria/actions"
 	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
+	"adventuria/internal/adventuria/player_events/custom/energy_changed"
 	"adventuria/internal/adventuria/reviews"
 	"context"
 	"errors"
@@ -25,6 +26,14 @@ type reviewsService interface {
 	Create(ctx context.Context, input reviews.CreateInput) (*model.Review, error)
 }
 
+type notify interface {
+	BalanceChangeNotify(ctx context.Context, id string, amount int) error
+}
+
+type playerEvents interface {
+	Save(ctx context.Context, playerEvent *model.PlayerEventInfo) (*model.PlayerEventInfo, error)
+}
+
 var _ model.Action = (*Done)(nil)
 
 const Type model.ActionType = "done"
@@ -35,6 +44,8 @@ type Done struct {
 	cells                    cells
 	activityResultCalculator activityResultCalculator
 	reviews                  reviewsService
+	notify                   notify
+	playerEvents             playerEvents
 }
 
 func NewDef(
@@ -42,6 +53,8 @@ func NewDef(
 	cells cells,
 	activityResultCalculator activityResultCalculator,
 	reviews reviewsService,
+	notify notify,
+	playerEvents playerEvents,
 ) actions.ActionDef {
 	return actions.NewAction(
 		Type,
@@ -52,6 +65,8 @@ func NewDef(
 				cells:                    cells,
 				activityResultCalculator: activityResultCalculator,
 				reviews:                  reviews,
+				notify:                   notify,
+				playerEvents:             playerEvents,
 			}
 		},
 	)
@@ -116,15 +131,18 @@ func (d *Done) Do(ctx context.Context, events *model.Events, player *model.Playe
 	progress.SetCanMove(true)
 	progress.SetDropsInARow(0)
 	progress.SetIsInJail(false)
+
 	err = progress.PointsChange(activityResult.Points())
 	if err != nil {
 		return nil, err
 	}
-	err = progress.EnergyChange(-activityResult.EnergyConsume())
+
+	err = d.recordEnergyChange(ctx, player.ID(), progress, lastAction, -activityResult.EnergyConsume())
 	if err != nil {
 		return nil, err
 	}
-	err = progress.BalanceChange(activityResult.Coins())
+
+	err = d.recordBalanceChange(ctx, player.ID(), progress, lastAction, activityResult.Coins())
 	if err != nil {
 		return nil, err
 	}
@@ -132,4 +150,59 @@ func (d *Done) Do(ctx context.Context, events *model.Events, player *model.Playe
 	return nil, events.OnAfterDone().Trigger(ctx, &model.OnAfterDoneEvent{
 		CurrentCell: currentCell,
 	})
+}
+
+func (d *Done) recordEnergyChange(
+	ctx context.Context,
+	playerId string,
+	progress *model.PlayerProgress,
+	action *model.ActionInfo,
+	amount int,
+) error {
+	err := progress.EnergyChange(amount)
+	if err != nil {
+		return err
+	}
+
+	energyChangedEvent, err := energy_changed.NewPlayerEvent(
+		model.PlayerEventCreate{
+			Player: playerId,
+			Season: progress.Season(),
+			Action: action.ID(),
+		},
+		energy_changed.Payload{
+			Amount: new(amount),
+			Source: energy_changed.SourceActivityDone,
+		},
+	)
+	if err != nil {
+		return err
+	}
+
+	_, err = d.playerEvents.Save(ctx, energyChangedEvent)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (d *Done) recordBalanceChange(
+	ctx context.Context,
+	playerId string,
+	progress *model.PlayerProgress,
+	action *model.ActionInfo,
+	amount int,
+) error {
+	err := progress.BalanceChange(amount)
+	if err != nil {
+		return err
+	}
+
+	err = d.notify.BalanceChangeNotify(ctx, progress.ID(), amount)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
