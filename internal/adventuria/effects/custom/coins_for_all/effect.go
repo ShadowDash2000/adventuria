@@ -12,6 +12,10 @@ type progress interface {
 	GetAllBySeasonID(ctx context.Context, seasonId string) ([]*model.PlayerProgress, error)
 }
 
+type notify interface {
+	BalanceChangeNotify(ctx context.Context, id string, amount int) error
+}
+
 type outboxes interface {
 	Save(ctx context.Context, outbox *model.OutboxInfo) (*model.OutboxInfo, error)
 }
@@ -23,16 +27,18 @@ const Type model.EffectType = "coins_for_all"
 type CoinsForAll struct {
 	effects.EffectBase
 	progress progress
+	notify   notify
 	outboxes outboxes
 }
 
-func NewDef(progress progress, outboxes outboxes) effects.EffectDef {
+func NewDef(progress progress, notify notify, outboxes outboxes) effects.EffectDef {
 	return effects.NewEffectDef(
 		Type,
 		func(effect model.EffectInfo) model.Effect {
 			return &CoinsForAll{
 				EffectBase: effects.NewEffectBase(effect),
 				progress:   progress,
+				notify:     notify,
 				outboxes:   outboxes,
 			}
 		},
@@ -62,6 +68,11 @@ func (c *CoinsForAll) Subscribe(
 			}
 
 			err = player.Progress().BalanceChange(effectValue.CoinsForPlayer)
+			if err != nil {
+				return err
+			}
+
+			err = c.notify.BalanceChangeNotify(ctx, player.Progress().ID(), effectValue.CoinsForPlayer)
 			if err != nil {
 				return err
 			}

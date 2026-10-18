@@ -3,8 +3,9 @@ package player_progress
 import "context"
 
 type repositoryNotify interface {
-	BalanceChangeNotify(ctx context.Context, id string, balance int) error
-	EnergyChangeNotify(ctx context.Context, id string, energy int) error
+	BalanceChangeNotify(ctx context.Context, id string, amount int) error
+	EnergyChangeNotify(ctx context.Context, id string, amount int) error
+	ItemWheelsChangeNotify(ctx context.Context, id string, amount int) error
 }
 
 type PlayerProgressNotify struct {
@@ -17,10 +18,14 @@ func NewPlayerProgressNotify(repository repositoryNotify) *PlayerProgressNotify 
 	}
 }
 
-func (p *PlayerProgressNotify) BalanceChangeNotify(ctx context.Context, id string, balance int) error {
-	return p.repository.BalanceChangeNotify(ctx, id, balance)
+func (p *PlayerProgressNotify) BalanceChangeNotify(ctx context.Context, id string, amount int) error {
+	return p.repository.BalanceChangeNotify(ctx, id, amount)
 }
 
-func (p *PlayerProgressNotify) EnergyChangeNotify(ctx context.Context, id string, energy int) error {
-	return p.repository.EnergyChangeNotify(ctx, id, energy)
+func (p *PlayerProgressNotify) EnergyChangeNotify(ctx context.Context, id string, amount int) error {
+	return p.repository.EnergyChangeNotify(ctx, id, amount)
+}
+
+func (p *PlayerProgressNotify) ItemWheelsChangeNotify(ctx context.Context, id string, amount int) error {
+	return p.repository.ItemWheelsChangeNotify(ctx, id, amount)
 }

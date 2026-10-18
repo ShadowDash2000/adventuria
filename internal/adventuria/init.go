@@ -57,12 +57,14 @@ func (g *Game) init(ctx context.Context, pb core.App) (*Registry, error) {
 		registry.Items(),
 		registry.Activities(),
 		registry.PlayerProgress(),
+		registry.PlayerProgressNotify(),
 		registry.Outboxes(),
 		registry.Board(),
 	)
 
 	customEffects.RegisterPersistentEffects(
 		registry.ActivityFilters(),
+		registry.PlayerProgressNotify(),
 	)
 
 	customActions.RegisterActions(

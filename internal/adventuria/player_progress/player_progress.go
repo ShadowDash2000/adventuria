@@ -19,8 +19,8 @@ type repository interface {
 }
 
 type notify interface {
-	BalanceChangeNotify(ctx context.Context, id string, balance int) error
-	EnergyChangeNotify(ctx context.Context, id string, energy int) error
+	BalanceChangeNotify(ctx context.Context, id string, amount int) error
+	EnergyChangeNotify(ctx context.Context, id string, amount int) error
 }
 
 type worlds interface {

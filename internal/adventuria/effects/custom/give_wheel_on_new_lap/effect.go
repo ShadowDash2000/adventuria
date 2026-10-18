@@ -11,12 +11,20 @@ var _ model.EffectPersistent = (*GiveWheelOnNewLap)(nil)
 
 const Type model.EffectType = "give_wheel_on_new_lap"
 
-type GiveWheelOnNewLap struct{}
+type notify interface {
+	ItemWheelsChangeNotify(ctx context.Context, id string, amount int) error
+}
 
-func NewDef() effects.EffectPersistentDef {
+type GiveWheelOnNewLap struct {
+	notify notify
+}
+
+func NewDef(notify notify) effects.EffectPersistentDef {
 	return effects.NewEffectPersistentDef(
 		Type,
-		&GiveWheelOnNewLap{},
+		&GiveWheelOnNewLap{
+			notify: notify,
+		},
 	)
 }
 
@@ -27,6 +35,12 @@ func (g *GiveWheelOnNewLap) Subscribe(_ context.Context, events *model.Events, p
 			if err != nil {
 				return err
 			}
+
+			err = g.notify.ItemWheelsChangeNotify(ctx, player.Progress().ID(), e.Laps)
+			if err != nil {
+				return err
+			}
+
 			return e.Next()
 		}),
 	}, nil

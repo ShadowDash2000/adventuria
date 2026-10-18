@@ -55,6 +55,7 @@ func RegisterEffects(
 	items *items.Items,
 	activities *activities.Activities,
 	progress *player_progress.PlayerProgress,
+	progressNotify *player_progress.PlayerProgressNotify,
 	outboxes *outboxes.Outboxes,
 	board *board.Board,
 ) {
@@ -66,7 +67,7 @@ func RegisterEffects(
 		change_game_by_id.NewDef(cells, actions, activities),
 		change_game_price_filter.NewDef(actions, cells, activities),
 		choose_activity.NewDef(actions, activities),
-		coins_for_all.NewDef(progress, outboxes),
+		coins_for_all.NewDef(progress, progressNotify, outboxes),
 		balance_change.NewDef(),
 		debuff_block.NewDef(),
 		discount_price_divide.NewDef(),
@@ -94,10 +95,11 @@ func RegisterEffects(
 
 func RegisterPersistentEffects(
 	activityFilters *activity_filters.ActivityFilters,
+	progressNotify *player_progress.PlayerProgressNotify,
 ) {
 	effects.RegisterPersistent(
-		give_wheel_on_done.NewDef(),
-		give_wheel_on_new_lap.NewDef(),
+		give_wheel_on_done.NewDef(progressNotify),
+		give_wheel_on_new_lap.NewDef(progressNotify),
 		stats.NewDef(activityFilters),
 	)
 }
