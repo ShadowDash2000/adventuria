@@ -1,14 +1,12 @@
 package v2
 
 import (
-	actionsRepo "adventuria/internal/adventuria/actions/repository"
 	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
 	"adventuria/internal/adventuria/reviews"
-	"adventuria/internal/adventuria/schema"
-	"adventuria/pkg/pbtransaction"
+	"adventuria/internal/migrator"
+	migratorModel "adventuria/internal/migrator/model"
 	"context"
-	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -17,14 +15,18 @@ import (
 	"slices"
 
 	"github.com/google/go-querystring/query"
-	"github.com/pocketbase/dbx"
-	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/tools/types"
 	"github.com/spf13/cobra"
 )
 
-func migrateActionsCommand(pb core.App, reviews reviewsService, items itemsService) *cobra.Command {
-	migrator := newActionsMigrator(pb, reviews, items)
+func migrateActionsCommand(
+	transactionRunner migrator.TransactionRunner,
+	players playersRepository,
+	actions actionsRepository,
+	reviews reviewsService,
+	items itemsService,
+) *cobra.Command {
+	migrator := newActionsMigrator(transactionRunner, players, actions, reviews, items)
 
 	return &cobra.Command{
 		Use:          "actions <base-url>",
@@ -46,17 +48,27 @@ const (
 )
 
 type actionsMigrator struct {
-	pb       core.App
-	itemsMap map[string]item
-	reviews  reviewsService
-	items    itemsService
+	runInTransaction migrator.TransactionRunner
+	itemsMap         map[string]item
+	players          playersRepository
+	actions          actionsRepository
+	reviews          reviewsService
+	items            itemsService
 }
 
-func newActionsMigrator(pb core.App, reviews reviewsService, items itemsService) *actionsMigrator {
+func newActionsMigrator(
+	transactionRunner migrator.TransactionRunner,
+	players playersRepository,
+	actions actionsRepository,
+	reviews reviewsService,
+	items itemsService,
+) *actionsMigrator {
 	return &actionsMigrator{
-		pb:      pb,
-		reviews: reviews,
-		items:   items,
+		runInTransaction: transactionRunner,
+		players:          players,
+		actions:          actions,
+		reviews:          reviews,
+		items:            items,
 	}
 }
 
@@ -76,7 +88,7 @@ func (a *actionsMigrator) migrate(ctx context.Context, baseUrl string) error {
 		return err
 	}
 
-	err = a.saveActions(ctx, res.Items)
+	err = a.createActions(ctx, res.Items)
 	if err != nil {
 		return err
 	}
@@ -87,7 +99,7 @@ func (a *actionsMigrator) migrate(ctx context.Context, baseUrl string) error {
 			return err
 		}
 
-		err = a.saveActions(ctx, res.Items)
+		err = a.createActions(ctx, res.Items)
 		if err != nil {
 			return err
 		}
@@ -181,10 +193,10 @@ func getActions(ctx context.Context, baseUrl string, page, perPage int) (*getAct
 	return &actionsResponse, nil
 }
 
-func (a *actionsMigrator) saveActions(ctx context.Context, actions []action) error {
+func (a *actionsMigrator) createActions(ctx context.Context, actions []action) error {
 	for _, action := range actions {
-		err := pbtransaction.RunInTransaction(ctx, a.pb, func(ctx context.Context, txApp core.App) error {
-			return a.saveAction(ctx, action)
+		err := a.runInTransaction(ctx, func(ctx context.Context) error {
+			return a.createAction(ctx, action)
 		})
 		if err != nil {
 			return err
@@ -194,10 +206,8 @@ func (a *actionsMigrator) saveActions(ctx context.Context, actions []action) err
 	return nil
 }
 
-func (a *actionsMigrator) saveAction(ctx context.Context, action action) error {
-	pb := pbtransaction.GetCtxTransactionOrApp(ctx, a.pb)
-
-	playerId, err := getPlayerIdByName(pb, action.Expand.User.Name)
+func (a *actionsMigrator) createAction(ctx context.Context, action action) error {
+	playerId, err := a.players.GetIDByName(ctx, action.Expand.User.Name)
 	if err != nil {
 		if errors.Is(err, errs.ErrPlayerNotFound) {
 			return nil
@@ -242,21 +252,12 @@ func (a *actionsMigrator) saveAction(ctx context.Context, action action) error {
 	newAction.SetActivity(action.Activity)
 	newAction.SetCellsPassed(action.DiceRoll)
 
-	collection, err := pb.FindCollectionByNameOrId(schema.CollectionActions)
-	if err != nil {
-		return err
-	}
-
-	record := core.NewRecord(collection)
-	err = actionsRepo.ActionToRecord(newAction, record)
-	if err != nil {
-		return err
-	}
-
-	record.SetRaw("created", action.Created)
-	record.SetRaw("updated", action.Updated)
-
-	return pb.Save(record)
+	return a.actions.Create(ctx, migratorModel.ActionImport{
+		Action:  newAction,
+		ID:      action.Id,
+		Created: action.Created,
+		Updated: action.Updated,
+	})
 }
 
 func (a *actionsMigrator) oldItemsIDsToState(ctx context.Context, oldIDs []string) (model.ActionUsedItemsState, error) {
@@ -298,26 +299,6 @@ func actionTypeToStatus(actionType string) (model.ActionStatus, error) {
 	}
 
 	return status, nil
-}
-
-func getPlayerIdByName(pb core.App, name string) (string, error) {
-	var id string
-	err := pb.DB().
-		Select(schema.PlayerSchema.Id).
-		From(schema.CollectionPlayers).
-		Where(dbx.HashExp{
-			schema.PlayerSchema.Name: name,
-		}).
-		Limit(1).
-		Row(&id)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return "", errs.ErrPlayerNotFound
-		}
-		return "", err
-	}
-
-	return id, nil
 }
 
 type getItemsQuery struct {
