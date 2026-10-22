@@ -267,6 +267,10 @@ var (
 		Code:    "cell_is_disabled",
 		Message: "Cell is disabled",
 	}
+	ErrSeasonEnded = &AppError{
+		Code:    "season_ended",
+		Message: "Season ended",
+	}
 
 	ErrNothingToUpdate = &AppError{
 		Code:    "nothing_to_update",

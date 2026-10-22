@@ -3,21 +3,28 @@ package game_state
 import "adventuria/internal/adventuria/model"
 
 type view struct {
-	Id               string `json:"id"`
-	Disabled         bool   `json:"disabled"`
-	Debug            bool   `json:"debug"`
-	Season           string `json:"season"`
-	PlayerProgressId string `json:"player_progress_id"`
-	CurrentWorld     string `json:"current_world"`
-	Balance          int    `json:"balance"`
-	Energy           int    `json:"energy"`
-	DropsInARow      int    `json:"drops_in_a_row"`
-	ItemWheelsCount  int    `json:"item_wheels_count"`
+	Id                  string `json:"id"`
+	Disabled            bool   `json:"disabled"`
+	Debug               bool   `json:"debug"`
+	Season              string `json:"season"`
+	SecondsUntilNextDay int    `json:"seconds_until_next_day"`
+	PlayerProgressId    string `json:"player_progress_id"`
+	CurrentWorld        string `json:"current_world"`
+	Balance             int    `json:"balance"`
+	Energy              int    `json:"energy"`
+	DropsInARow         int    `json:"drops_in_a_row"`
+	ItemWheelsCount     int    `json:"item_wheels_count"`
 }
 
-func stateToView(currentSeason string, player *model.PlayerInfo, progress *model.PlayerProgress) *view {
+func stateToView(
+	currentSeason string,
+	secondsUntilNextDay int,
+	player *model.PlayerInfo,
+	progress *model.PlayerProgress,
+) *view {
 	v := &view{
-		Season: currentSeason,
+		Season:              currentSeason,
+		SecondsUntilNextDay: secondsUntilNextDay,
 	}
 
 	if player != nil {

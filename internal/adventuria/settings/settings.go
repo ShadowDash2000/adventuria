@@ -96,10 +96,7 @@ func (s *Settings) UpdateCurrentDay(ctx context.Context) error {
 		return nil
 	}
 
-	newCurrentDay := max(
-		int(time.Now().Sub(season.SeasonDateStart()).Hours()/24),
-		0,
-	)
+	newCurrentDay := season.CurrentDay(time.Now())
 
 	if newCurrentDay == settings.CurrentDay() {
 		return nil
@@ -123,6 +120,25 @@ func (s *Settings) UpdateCurrentDay(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func (s *Settings) GetSecondsUntilNextDayBySeasonID(ctx context.Context, seasonId string) (int, error) {
+	season, err := s.seasons.GetByID(ctx, seasonId)
+	if err != nil {
+		return 0, err
+	}
+
+	if season.IsEnded(time.Now()) {
+		return 0, errs.ErrSeasonEnded
+	}
+
+	return int(
+			season.SeasonDateStart().
+				Add(time.Duration(season.CurrentDay(time.Now())+1) * time.Hour * 24).
+				Sub(time.Now()).
+				Seconds(),
+		),
+		nil
 }
 
 func (s *Settings) GetFirst(ctx context.Context) (*model.Settings, error) {

@@ -88,3 +88,10 @@ func IsSeasonEnded(dateEnd, now time.Time) bool {
 func (s *Season) IsEnded(now time.Time) bool {
 	return IsSeasonEnded(s.SeasonDateEnd(), now)
 }
+
+func (s *Season) CurrentDay(now time.Time) int {
+	return max(
+		int(now.Sub(s.SeasonDateStart()).Hours()/24),
+		0,
+	)
+}
