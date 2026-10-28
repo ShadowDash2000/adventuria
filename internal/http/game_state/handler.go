@@ -6,13 +6,14 @@ import (
 	"adventuria/internal/http/response"
 	"context"
 	"errors"
+	"time"
 
 	"github.com/pocketbase/pocketbase/core"
 )
 
 type settings interface {
 	CurrentSeason(ctx context.Context) (string, error)
-	GetSecondsUntilNextDayBySeasonID(ctx context.Context, seasonId string) (int, error)
+	GetNextDayBySeasonID(ctx context.Context, seasonId string) (time.Time, error)
 }
 
 type playerInfo interface {
@@ -43,7 +44,7 @@ func (h *Handler) GetGameState(e *core.RequestEvent) error {
 		return response.Error(e, err)
 	}
 
-	secondsUntilNextDay, err := h.settings.GetSecondsUntilNextDayBySeasonID(e.Request.Context(), currentSeason)
+	nextDayAt, err := h.settings.GetNextDayBySeasonID(e.Request.Context(), currentSeason)
 	if err != nil && !errors.Is(err, errs.ErrSeasonEnded) {
 		return response.Error(e, err)
 	}
@@ -64,5 +65,5 @@ func (h *Handler) GetGameState(e *core.RequestEvent) error {
 		}
 	}
 
-	return response.Success(e, stateToView(currentSeason, secondsUntilNextDay, player, progress))
+	return response.Success(e, stateToView(currentSeason, nextDayAt, player, progress))
 }

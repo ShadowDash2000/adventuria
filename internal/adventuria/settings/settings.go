@@ -122,22 +122,18 @@ func (s *Settings) UpdateCurrentDay(ctx context.Context) error {
 	return nil
 }
 
-func (s *Settings) GetSecondsUntilNextDayBySeasonID(ctx context.Context, seasonId string) (int, error) {
+func (s *Settings) GetNextDayBySeasonID(ctx context.Context, seasonId string) (time.Time, error) {
 	season, err := s.seasons.GetByID(ctx, seasonId)
 	if err != nil {
-		return 0, err
+		return time.Time{}, err
 	}
 
 	if season.IsEnded(time.Now()) {
-		return 0, errs.ErrSeasonEnded
+		return time.Time{}, errs.ErrSeasonEnded
 	}
 
-	return int(
-			season.SeasonDateStart().
-				Add(time.Duration(season.CurrentDay(time.Now())+1) * time.Hour * 24).
-				Sub(time.Now()).
-				Seconds(),
-		),
+	return season.SeasonDateStart().
+			Add(time.Duration(season.CurrentDay(time.Now())+1) * time.Hour * 24),
 		nil
 }
 
