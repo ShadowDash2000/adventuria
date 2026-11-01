@@ -8,6 +8,10 @@ import (
 	"fmt"
 )
 
+type notify interface {
+	PlayerMovedNotify(ctx context.Context, player *model.Player, moves []*model.MoveResult) error
+}
+
 type actionsService interface {
 	Save(ctx context.Context, action *model.ActionInfo) (*model.ActionInfo, error)
 }
@@ -27,20 +31,58 @@ type worlds interface {
 }
 
 type Board struct {
+	notify  notify
 	actions actionsService
 	cells   cellsService
 	worlds  worlds
 }
 
-func NewBoard(actions actionsService, cells cellsService, worlds worlds) *Board {
+func NewBoard(notify notify, actions actionsService, cells cellsService, worlds worlds) *Board {
 	return &Board{
+		notify:  notify,
 		actions: actions,
 		cells:   cells,
 		worlds:  worlds,
 	}
 }
 
+type movementStartedCtxKey struct{}
+
+func withMovementStarted(ctx context.Context) context.Context {
+	return context.WithValue(ctx, movementStartedCtxKey{}, true)
+}
+
+func isMovementStarted(ctx context.Context) bool {
+	_, ok := ctx.Value(movementStartedCtxKey{}).(bool)
+	return ok
+}
+
 func (b *Board) Move(
+	ctx context.Context,
+	events *model.Events,
+	player *model.Player,
+	steps int,
+	moveType model.MoveType,
+) ([]*model.MoveResult, error) {
+	if isMovementStarted(ctx) {
+		return b.move(ctx, events, player, steps, moveType)
+	}
+
+	ctx = withMovementStarted(ctx)
+	moves, err := b.move(ctx, events, player, steps, moveType)
+	if err != nil {
+		return nil, err
+	}
+
+	err = b.notify.PlayerMovedNotify(ctx, player, moves)
+	if err != nil {
+		return nil, err
+	}
+
+	return moves, nil
+}
+
+func (b *Board) move(
 	ctx context.Context,
 	events *model.Events,
 	player *model.Player,

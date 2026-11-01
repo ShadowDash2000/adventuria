@@ -11,6 +11,7 @@ import (
 	"adventuria/internal/adventuria/activity_filters"
 	activityFiltersRepo "adventuria/internal/adventuria/activity_filters/repository"
 	"adventuria/internal/adventuria/board"
+	boardRepo "adventuria/internal/adventuria/board/repository"
 	"adventuria/internal/adventuria/cell_events_schedules"
 	cellEventsSchedulesRepo "adventuria/internal/adventuria/cell_events_schedules/repository"
 	"adventuria/internal/adventuria/cells"
@@ -126,6 +127,7 @@ type Registry struct {
 	completedActivitiesRepo *completedActivitiesRepo.Repository
 	playerEventsRepo        *playerEventsRepo.Repository
 	playerInfoRepo          *playerInfoRepo.Repository
+	boardNotifyRepo         *boardRepo.Notify
 
 	// services
 	seasons                  *seasons.Seasons
@@ -143,6 +145,7 @@ type Registry struct {
 	activityFilters          *activity_filters.ActivityFilters
 	items                    *items.Items
 	board                    *board.Board
+	boardNotify              *board.Notify
 	genres                   *genres.Genres
 	reviews                  *reviews.Reviews
 	reviewsFiles             *reviews_files.ReviewsFiles
@@ -476,6 +479,13 @@ func (r *Registry) PlayerInfoRepo() *playerInfoRepo.Repository {
 	return r.playerInfoRepo
 }
 
+func (r *Registry) BoardNotifyRepo() *boardRepo.Notify {
+	if r.boardNotifyRepo == nil {
+		r.boardNotifyRepo = boardRepo.NewRepositoryNotify(r.pb)
+	}
+	return r.boardNotifyRepo
+}
+
 func (r *Registry) Seasons() *seasons.Seasons {
 	if r.seasons == nil {
 		r.seasons = seasons.NewSeasons(r.SeasonsRepo())
@@ -587,9 +597,16 @@ func (r *Registry) Items() *items.Items {
 
 func (r *Registry) Board() *board.Board {
 	if r.board == nil {
-		r.board = board.NewBoard(r.Actions(), r.Cells(), r.Worlds())
+		r.board = board.NewBoard(r.BoardNotify(), r.Actions(), r.Cells(), r.Worlds())
 	}
 	return r.board
+}
+
+func (r *Registry) BoardNotify() *board.Notify {
+	if r.boardNotify == nil {
+		r.boardNotify = board.NewBoardNotify(r.BoardNotifyRepo())
+	}
+	return r.boardNotify
 }
 
 func (r *Registry) Genres() *genres.Genres {
