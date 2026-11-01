@@ -39,3 +39,11 @@ func SliceToSqlString[V any](slice []V) string {
 	}
 	return strings.Join(quotedValues, ", ")
 }
+
+func BuildFilePath(collection, id, filename string) string {
+	if filename == "" {
+		return ""
+	}
+
+	return "/api/files/" + collection + "/" + id + "/" + filename
+}

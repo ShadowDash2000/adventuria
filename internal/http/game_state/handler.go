@@ -3,6 +3,7 @@ package game_state
 import (
 	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
+	"adventuria/internal/adventuria/player_progress"
 	"adventuria/internal/http/response"
 	"context"
 	"errors"
@@ -22,6 +23,7 @@ type playerInfo interface {
 
 type playerProgress interface {
 	GetFirstOrDefault(ctx context.Context, playerId, seasonId string) (*model.PlayerProgress, error)
+	GetActivePlayersBySeasonID(ctx context.Context, seasonId string) ([]*player_progress.ActivePlayer, error)
 }
 
 type Handler struct {
@@ -65,5 +67,19 @@ func (h *Handler) GetGameState(e *core.RequestEvent) error {
 		}
 	}
 
-	return response.Success(e, stateToView(currentSeason, nextDayAt, player, progress))
+	return response.Success(e, gameStateToView(currentSeason, nextDayAt, player, progress))
+}
+
+func (h *Handler) GetActivePlayers(e *core.RequestEvent) error {
+	currentSeason, err := h.settings.CurrentSeason(e.Request.Context())
+	if err != nil {
+		return response.Error(e, err)
+	}
+
+	activePlayers, err := h.playerProgress.GetActivePlayersBySeasonID(e.Request.Context(), currentSeason)
+	if err != nil {
+		return response.Error(e, err)
+	}
+
+	return response.Success(e, activePlayersToView(activePlayers))
 }

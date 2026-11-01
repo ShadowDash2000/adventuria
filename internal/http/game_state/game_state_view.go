@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-type view struct {
+type gameStateView struct {
 	Id               string    `json:"id"`
 	Disabled         bool      `json:"disabled"`
 	Debug            bool      `json:"debug"`
@@ -19,13 +19,13 @@ type view struct {
 	ItemWheelsCount  int       `json:"item_wheels_count"`
 }
 
-func stateToView(
+func gameStateToView(
 	currentSeason string,
 	nextDayAt time.Time,
 	player *model.PlayerInfo,
 	progress *model.PlayerProgress,
-) *view {
-	v := &view{
+) *gameStateView {
+	v := &gameStateView{
 		Season:    currentSeason,
 		NextDayAt: nextDayAt,
 	}

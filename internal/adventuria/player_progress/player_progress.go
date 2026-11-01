@@ -17,6 +17,7 @@ type repository interface {
 	GetAllBySeasonID(ctx context.Context, seasonId string) ([]*model.PlayerProgress, error)
 	ChangeBalance(ctx context.Context, id string, amount int) error
 	ChangeEnergy(ctx context.Context, id string, amount int) error
+	GetActivePlayersBySeasonID(ctx context.Context, seasonId string) ([]*ActivePlayer, error)
 }
 
 type notify interface {
@@ -146,4 +147,8 @@ func (p *PlayerProgress) ChangeEnergyOutbox(ctx context.Context, id string, amou
 	}
 
 	return p.outboxes.Save(ctx, outbox)
+}
+
+func (p *PlayerProgress) GetActivePlayersBySeasonID(ctx context.Context, seasonId string) ([]*ActivePlayer, error) {
+	return p.repository.GetActivePlayersBySeasonID(ctx, seasonId)
 }

@@ -3,7 +3,9 @@ package repository
 import (
 	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
+	"adventuria/internal/adventuria/player_progress"
 	"adventuria/internal/adventuria/schema"
+	"adventuria/pkg/pbhelper"
 	"adventuria/pkg/pbtransaction"
 	"context"
 	"database/sql"
@@ -168,4 +170,56 @@ func (r *Repository) ChangeEnergy(ctx context.Context, id string, amount int) er
 	}
 
 	return nil
+}
+
+func (r *Repository) GetActivePlayersBySeasonID(ctx context.Context, seasonId string) ([]*player_progress.ActivePlayer, error) {
+	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
+
+	playersTable := schema.CollectionPlayers
+	progressTable := schema.CollectionPlayersProgress
+	playerId := pbhelper.DotExpand(playersTable, schema.PlayerSchema.Id)
+	playerName := pbhelper.DotExpand(playersTable, schema.PlayerSchema.Name)
+	playerAvatar := pbhelper.DotExpand(playersTable, schema.PlayerSchema.Avatar)
+	playerColor := pbhelper.DotExpand(playersTable, schema.PlayerSchema.Color)
+	playerIsStreamLive := pbhelper.DotExpand(playersTable, schema.PlayerSchema.IsStreamLive)
+	progressId := pbhelper.DotExpand(progressTable, schema.PlayerProgressSchema.Id)
+	progressUpdated := pbhelper.DotExpand(progressTable, "updated")
+	progressPlayer := pbhelper.DotExpand(progressTable, schema.PlayerProgressSchema.Player)
+	progressCurrentWorld := pbhelper.DotExpand(progressTable, schema.PlayerProgressSchema.CurrentWorld)
+	progressCellsPassed := pbhelper.DotExpand(progressTable, schema.PlayerProgressSchema.CellsPassed)
+	progressSeason := pbhelper.DotExpand(progressTable, schema.PlayerProgressSchema.Season)
+
+	var activePlayersRows []*activePlayerRow
+	err := pb.DB().
+		Select(
+			fmt.Sprintf("%s AS player_id", playerId),
+			fmt.Sprintf("%s AS name", playerName),
+			fmt.Sprintf("%s AS avatar", playerAvatar),
+			fmt.Sprintf("%s AS color", playerColor),
+			fmt.Sprintf("%s AS is_stream_live", playerIsStreamLive),
+			fmt.Sprintf("%s AS progress_id", progressId),
+			fmt.Sprintf("%s AS progress_updated", progressUpdated),
+			fmt.Sprintf("%s AS current_world", progressCurrentWorld),
+			fmt.Sprintf("%s AS cells_passed", progressCellsPassed),
+		).
+		From(progressTable).
+		InnerJoin(
+			playersTable,
+			dbx.NewExp(pbhelper.Eq(playerId, progressPlayer)),
+		).
+		Where(dbx.HashExp{
+			progressSeason: seasonId,
+		}).
+		WithContext(ctx).
+		All(&activePlayersRows)
+	if err != nil {
+		return nil, err
+	}
+
+	res := make([]*player_progress.ActivePlayer, len(activePlayersRows))
+	for i, row := range activePlayersRows {
+		res[i] = row.toActivePlayer()
+	}
+
+	return res, nil
 }

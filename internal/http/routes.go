@@ -41,6 +41,7 @@ func Route(game *adventuria.Game, registry *adventuria.Registry, router *router.
 	g.GET("/event-ended", handlers.IsEventEnded)
 	g.GET("/completed-activities", completedActivities.GetCompletedActivitiesByCellID)
 	g.GET("/game-state", gameState.GetGameState)
+	g.GET("/active-players", gameState.GetActivePlayers)
 
 	ga := g.Group("")
 	ga.Bind(apis.RequireAuth())
