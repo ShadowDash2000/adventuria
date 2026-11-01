@@ -51,9 +51,9 @@ type rollDiceResult struct {
 type move struct {
 	Type            model.MoveType `json:"type"`
 	WorldId         string         `json:"world_id"`
-	WorldSlug       string         `json:"world_slug"`
 	CellLocalOrder  int            `json:"cell_local_order"`
 	CellGlobalOrder int            `json:"cell_global_order"`
+	Steps           int            `json:"steps"`
 	TotalSteps      int            `json:"total_steps"`
 	PrevTotalSteps  int            `json:"prev_total_steps"`
 }
@@ -105,9 +105,9 @@ func (r *RollDice) Do(ctx context.Context, events *model.Events, player *model.P
 		movesRes[i] = move{
 			Type:            m.Type,
 			WorldId:         m.CurrentWorld.ID(),
-			WorldSlug:       m.CurrentWorld.Slug(),
 			CellLocalOrder:  m.CurrentCell.LocalOrder(),
 			CellGlobalOrder: m.CurrentCell.GlobalOrder(),
+			Steps:           m.Steps,
 			TotalSteps:      m.TotalSteps,
 			PrevTotalSteps:  m.PrevTotalSteps,
 		}
