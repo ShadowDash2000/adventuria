@@ -194,4 +194,20 @@ func (g *Game) bindHooks(ctx context.Context, pb core.App) {
 
 		return e.Next()
 	})
+
+	pb.OnRecordAfterCreateSuccess(schema.CollectionPlayersProgress).BindFunc(func(e *core.RecordEvent) error {
+		currentSeason, err := g.settings.CurrentSeason(ctx)
+		if err != nil {
+			return err
+		}
+
+		if e.Record.GetString(schema.PlayerProgressSchema.Season) == currentSeason {
+			err = pbrealtime.Notify(ctx, pb, "new_player", nil)
+			if err != nil {
+				pb.Logger().Error("Failed to notify new player", "error", err)
+			}
+		}
+
+		return e.Next()
+	})
 }
