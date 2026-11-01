@@ -6,12 +6,11 @@ import (
 )
 
 type completedActivityView struct {
-	CollectionName string              `json:"collectionName"`
-	Id             string              `json:"id"`
-	Name           string              `json:"name"`
-	Cover          string              `json:"cover"`
-	CoverAlt       string              `json:"cover_alt"`
-	Players        []*playerStatusView `json:"players"`
+	Id       string              `json:"id"`
+	Name     string              `json:"name"`
+	Cover    string              `json:"cover"`
+	CoverAlt string              `json:"cover_alt"`
+	Players  []*playerStatusView `json:"players"`
 }
 
 type playerStatusView struct {
@@ -21,9 +20,8 @@ type playerStatusView struct {
 }
 
 type playerView struct {
-	CollectionName string `json:"collectionName"`
-	Id             string `json:"id"`
-	Name           string `json:"name"`
-	Avatar         string `json:"avatar"`
-	Color          string `json:"color"`
+	Id     string `json:"id"`
+	Name   string `json:"name"`
+	Avatar string `json:"avatar"`
+	Color  string `json:"color"`
 }

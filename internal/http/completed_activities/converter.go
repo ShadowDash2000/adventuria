@@ -2,7 +2,6 @@ package completed_activities
 
 import (
 	"adventuria/internal/adventuria/completed_activities"
-	"adventuria/internal/adventuria/schema"
 )
 
 func completedActivityToView(activity *completed_activities.CompletedActivity) *completedActivityView {
@@ -12,12 +11,11 @@ func completedActivityToView(activity *completed_activities.CompletedActivity) *
 	}
 
 	return &completedActivityView{
-		CollectionName: schema.CollectionActivities,
-		Id:             activity.Id,
-		Name:           activity.Name,
-		Cover:          activity.Cover,
-		CoverAlt:       activity.CoverAlt,
-		Players:        playersView,
+		Id:       activity.Id,
+		Name:     activity.Name,
+		Cover:    activity.Cover,
+		CoverAlt: activity.CoverAlt,
+		Players:  playersView,
 	}
 }
 
@@ -39,10 +37,9 @@ func completedActivityPlayerStatusToView(activityPlayerStatus *completed_activit
 
 func completedActivityPlayerToView(activityPlayer *completed_activities.CompletedActivityPlayer) *playerView {
 	return &playerView{
-		CollectionName: schema.CollectionPlayers,
-		Id:             activityPlayer.Id,
-		Name:           activityPlayer.Name,
-		Avatar:         activityPlayer.Avatar,
-		Color:          activityPlayer.Color,
+		Id:     activityPlayer.Id,
+		Name:   activityPlayer.Name,
+		Avatar: activityPlayer.Avatar,
+		Color:  activityPlayer.Color,
 	}
 }

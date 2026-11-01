@@ -3,6 +3,8 @@ package repository
 import (
 	"adventuria/internal/adventuria/completed_activities"
 	"adventuria/internal/adventuria/model"
+	"adventuria/internal/adventuria/schema"
+	"adventuria/pkg/pbhelper"
 
 	"github.com/pocketbase/pocketbase/tools/types"
 )
@@ -25,7 +27,7 @@ func playerActivityRowToCompletedActivity(playerActivity *playerActivityRow) *co
 		Id:       playerActivity.ActivityId,
 		Name:     playerActivity.ActivityName,
 		Cover:    playerActivity.ActivityCover,
-		CoverAlt: playerActivity.ActivityCoverAlt,
+		CoverAlt: pbhelper.BuildFilePath(schema.CollectionActivities, playerActivity.ActivityId, playerActivity.ActivityCoverAlt),
 		Players:  nil,
 	}
 }
@@ -42,7 +44,7 @@ func playerActivityRowToCompletedActivityPlayer(playerActivity *playerActivityRo
 	return &completed_activities.CompletedActivityPlayer{
 		Id:     playerActivity.PlayerId,
 		Name:   playerActivity.PlayerName,
-		Avatar: playerActivity.PlayerAvatar,
+		Avatar: pbhelper.BuildFilePath(schema.CollectionPlayers, playerActivity.PlayerId, playerActivity.PlayerAvatar),
 		Color:  playerActivity.PlayerColor,
 	}
 }
