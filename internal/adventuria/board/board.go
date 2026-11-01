@@ -253,7 +253,7 @@ func (b *Board) MoveToClosestCellType(
 		}
 	}
 
-	return b.Move(ctx, events, player, closestCell.LocalOrder(), model.MoveTypeTeleport)
+	return b.Move(ctx, events, player, closestCell.LocalOrder()-currentCell.Data().LocalOrder(), model.MoveTypeTeleport)
 }
 
 func (b *Board) GetLocalDistanceBetweenCells(cell1, cell2 *model.CellInfo) (int, error) {
