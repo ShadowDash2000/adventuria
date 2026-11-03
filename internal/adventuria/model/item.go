@@ -4,6 +4,7 @@ type ItemData struct {
 	Id                string
 	Disabled          bool
 	Name              string
+	Slug              string
 	Icon              string
 	Effects           []string
 	IsUsingSlot       bool
@@ -33,6 +34,10 @@ func (i *Item) Disabled() bool {
 
 func (i *Item) Name() string {
 	return i.data.Name
+}
+
+func (i *Item) Slug() string {
+	return i.data.Slug
 }
 
 func (i *Item) Icon() string {

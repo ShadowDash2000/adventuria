@@ -213,6 +213,7 @@ var ItemSchema = struct {
 	Id                string
 	Disabled          string
 	Name              string
+	Slug              string
 	Icon              string
 	Effects           string
 	Order             string
@@ -227,6 +228,7 @@ var ItemSchema = struct {
 	Id:                "id",
 	Disabled:          "disabled",
 	Name:              "name",
+	Slug:              "slug",
 	Icon:              "icon",
 	Effects:           "effects",
 	Order:             "order",

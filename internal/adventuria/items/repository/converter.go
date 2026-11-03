@@ -12,6 +12,7 @@ func RecordToItem(record *core.Record) *model.Item {
 		Id:                record.Id,
 		Disabled:          record.GetBool(schema.ItemSchema.Disabled),
 		Name:              record.GetString(schema.ItemSchema.Name),
+		Slug:              record.GetString(schema.ItemSchema.Slug),
 		Icon:              record.GetString(schema.ItemSchema.Icon),
 		Effects:           record.GetStringSlice(schema.ItemSchema.Effects),
 		IsUsingSlot:       record.GetBool(schema.ItemSchema.IsUsingSlot),
