@@ -141,6 +141,14 @@ var (
 			"ru": "Комментарий к обзору слишком длинный",
 		},
 	}
+	ErrReviewTotalFilesSizeTooBig = &AppError{
+		Code:    "review_total_files_size_too_big",
+		Message: "Total files size in review is too big",
+		Status:  http.StatusBadRequest,
+		Translates: map[string]string{
+			"ru": "Общий размер файлов в обзоре слишком большой",
+		},
+	}
 	ErrReviewScoreInvalid = &AppError{
 		Code:    "review_score_invalid",
 		Message: "Invalid review score",

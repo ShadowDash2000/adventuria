@@ -34,7 +34,7 @@ type Reviews struct {
 	reviewsStorage reviewsStorage
 }
 
-const MaxTotalFilesSize = 5 * 1024 * 1024 // 5 mb
+const MaxTotalFilesSize = 10 * 1024 * 1024 // 10 mb
 
 func NewReviews(domain string, repository repository, reviewsStorage reviewsStorage) *Reviews {
 	return &Reviews{
@@ -194,7 +194,7 @@ func (r *Reviews) processComment(ctx context.Context, comment string, oldIds []s
 	}
 
 	if totalBytes > MaxTotalFilesSize {
-		return "", nil, errs.ErrReviewCommentTooLong
+		return "", nil, errs.ErrReviewTotalFilesSizeTooBig
 	}
 
 	resIds := helper.SlicesIntersection(existingIds, oldIds)
