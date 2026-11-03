@@ -28,6 +28,7 @@ type effectsService interface {
 
 type items interface {
 	GetByID(ctx context.Context, id string) (*model.Item, error)
+	GetBySlug(ctx context.Context, slug string) (*model.Item, error)
 }
 
 type playerEvents interface {
@@ -188,6 +189,21 @@ func (i *Inventories) AddItemByID(
 	source item_received.Source,
 ) (*model.InventoryItem, error) {
 	item, err := i.items.GetByID(ctx, itemId)
+	if err != nil {
+		return nil, err
+	}
+
+	return i.AddItem(ctx, events, player, item, source)
+}
+
+func (i *Inventories) AddItemBySlug(
+	ctx context.Context,
+	events *model.Events,
+	player *model.Player,
+	itemSlug string,
+	source item_received.Source,
+) (*model.InventoryItem, error) {
+	item, err := i.items.GetBySlug(ctx, itemSlug)
 	if err != nil {
 		return nil, err
 	}

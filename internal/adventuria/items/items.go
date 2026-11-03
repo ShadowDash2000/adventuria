@@ -11,6 +11,7 @@ type repository interface {
 	GetByFilter(ctx context.Context, filter Filter) ([]*model.Item, error)
 	GetIDsByFilter(ctx context.Context, filter Filter) ([]string, error)
 	GetByName(ctx context.Context, name string) (*model.Item, error)
+	GetBySlug(ctx context.Context, slug string) (*model.Item, error)
 }
 
 type Items struct {
@@ -39,6 +40,10 @@ func (i *Items) GetIDsByFilter(ctx context.Context, filter Filter) ([]string, er
 
 func (i *Items) GetByName(ctx context.Context, name string) (*model.Item, error) {
 	return i.repository.GetByName(ctx, name)
+}
+
+func (i *Items) GetBySlug(ctx context.Context, slug string) (*model.Item, error) {
+	return i.repository.GetBySlug(ctx, slug)
 }
 
 func (i *Items) GetAllBuyableIDsByType(ctx context.Context, t model.ItemType) ([]string, error) {

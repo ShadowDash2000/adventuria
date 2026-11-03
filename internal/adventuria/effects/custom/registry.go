@@ -21,6 +21,7 @@ import (
 	"adventuria/internal/adventuria/effects/custom/drop_block"
 	"adventuria/internal/adventuria/effects/custom/drop_inventory"
 	"adventuria/internal/adventuria/effects/custom/drop_points_divide"
+	"adventuria/internal/adventuria/effects/custom/give_soap_on_jail_completion"
 	"adventuria/internal/adventuria/effects/custom/give_wheel_on_done"
 	"adventuria/internal/adventuria/effects/custom/give_wheel_on_new_lap"
 	"adventuria/internal/adventuria/effects/custom/go_to_jail"
@@ -32,6 +33,7 @@ import (
 	"adventuria/internal/adventuria/effects/custom/points_change"
 	"adventuria/internal/adventuria/effects/custom/replace_dice_roll"
 	"adventuria/internal/adventuria/effects/custom/reroll_block"
+	"adventuria/internal/adventuria/effects/custom/reset_drops_counter"
 	"adventuria/internal/adventuria/effects/custom/return_to_prev_cell"
 	"adventuria/internal/adventuria/effects/custom/roll_reverse"
 	"adventuria/internal/adventuria/effects/custom/safe_drop"
@@ -90,16 +92,19 @@ func RegisterEffects(
 		teleport_to_random_cell.NewDef(actions, cells, board),
 		teleport_to_closest_cell_by_type.NewDef(actions, board),
 		drop_points_divide.NewDef(),
+		reset_drops_counter.NewDef(),
 	)
 }
 
 func RegisterPersistentEffects(
 	activityFilters *activity_filters.ActivityFilters,
 	progressNotify *player_progress.PlayerProgressNotify,
+	inventories *inventories.Inventories,
 ) {
 	effects.RegisterPersistent(
 		give_wheel_on_done.NewDef(progressNotify),
 		give_wheel_on_new_lap.NewDef(progressNotify),
 		stats.NewDef(activityFilters),
+		give_soap_on_jail_completion.NewDef(inventories),
 	)
 }

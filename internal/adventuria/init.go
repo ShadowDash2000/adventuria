@@ -65,6 +65,7 @@ func (g *Game) init(ctx context.Context, pb core.App) (*Registry, error) {
 	customEffects.RegisterPersistentEffects(
 		registry.ActivityFilters(),
 		registry.PlayerProgressNotify(),
+		registry.Inventories(),
 	)
 
 	customActions.RegisterActions(

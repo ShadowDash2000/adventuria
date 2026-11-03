@@ -8,4 +8,5 @@ const (
 	SourceAnotherItem Source = "another_item"
 	SourceDealer      Source = "dealer"
 	SourceDebug       Source = "debug"
+	SourceCell        Source = "cell"
 )

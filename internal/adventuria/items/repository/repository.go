@@ -112,6 +112,25 @@ func (r *Repository) GetByName(ctx context.Context, name string) (*model.Item, e
 	return RecordToItem(&record), nil
 }
 
+func (r *Repository) GetBySlug(ctx context.Context, slug string) (*model.Item, error) {
+	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
+
+	var record core.Record
+	err := pb.RecordQuery(schema.CollectionItems).
+		WithContext(ctx).
+		Where(dbx.HashExp{schema.ItemSchema.Slug: slug}).
+		Limit(1).
+		One(&record)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errs.ErrItemNotFound
+		}
+		return nil, err
+	}
+
+	return RecordToItem(&record), nil
+}
+
 func buildQueryFromFilter(filter items.Filter, q *dbx.SelectQuery) {
 	if len(filter.Ids) > 0 {
 		q.AndWhere(dbx.In(
