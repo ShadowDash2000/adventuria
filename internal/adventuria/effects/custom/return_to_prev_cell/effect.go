@@ -57,11 +57,7 @@ func (r *ReturnToPrevCell) Subscribe(
 	callback model.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		events.OnAfterItemUse().BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterItemUseEvent) error {
-			if e.InvItemId != effectCtx.InvItemID {
-				return e.Next()
-			}
-
+		events.OnAfterItemUse(effectCtx.InvItemID).BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterItemUseEvent) error {
 			lastAction := player.LastAction()
 			lastAction.SetStatus(model.ActionStatusEscape)
 			lastAction, err := r.actions.Save(ctx, lastAction)

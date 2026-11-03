@@ -74,11 +74,9 @@ func (c *ChangeGameById) Subscribe(
 	callback model.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		events.OnAfterItemUse().BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterItemUseEvent) error {
-			if e.InvItemId == effectCtx.InvItemID {
-				player.LastAction().SetActivity(c.Value())
-				callback(ctx)
-			}
+		events.OnAfterItemUse(effectCtx.InvItemID).BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterItemUseEvent) error {
+			player.LastAction().SetActivity(c.Value())
+			callback(ctx)
 
 			return e.Next()
 		}, effectCtx.Priority),

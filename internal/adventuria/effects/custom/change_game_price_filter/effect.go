@@ -91,11 +91,7 @@ func (c *ChangeGamePriceFilter) Subscribe(
 	switch effectValue.UseType {
 	case useTypeUsable:
 		return []event.Unsubscribe{
-			events.OnAfterItemUse().BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterItemUseEvent) error {
-				if e.InvItemId != effectCtx.InvItemID {
-					return e.Next()
-				}
-
+			events.OnAfterItemUse(effectCtx.InvItemID).BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterItemUseEvent) error {
 				err := c.tryToApplyEffect(ctx, player, effectValue)
 				if err != nil {
 					return err

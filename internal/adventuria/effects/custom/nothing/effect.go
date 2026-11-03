@@ -55,10 +55,8 @@ func (n *Nothing) Subscribe(
 		}, nil
 	case useAfterItemUse:
 		return []event.Unsubscribe{
-			events.OnAfterItemUse().BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterItemUseEvent) error {
-				if e.InvItemId == effectCtx.InvItemID {
-					callback(ctx)
-				}
+			events.OnAfterItemUse(effectCtx.InvItemID).BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterItemUseEvent) error {
+				callback(ctx)
 				return e.Next()
 			}, effectCtx.Priority),
 		}, nil

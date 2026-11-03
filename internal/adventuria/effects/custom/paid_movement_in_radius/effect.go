@@ -94,11 +94,7 @@ func (p *PaidMovementInRadius) Subscribe(
 	callback model.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		events.OnAfterItemUse().BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterItemUseEvent) error {
-			if e.InvItemId != effectCtx.InvItemID {
-				return e.Next()
-			}
-
+		events.OnAfterItemUse(effectCtx.InvItemID).BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterItemUseEvent) error {
 			cellId, ok := e.Data["cell_id"].(string)
 			if !ok {
 				return errors.New("invalid cell_id")

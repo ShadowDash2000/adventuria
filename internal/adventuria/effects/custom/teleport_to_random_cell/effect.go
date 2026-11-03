@@ -85,11 +85,7 @@ func (t *TeleportToRandomCell) Subscribe(
 	callback model.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		events.OnAfterItemUse().BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterItemUseEvent) error {
-			if e.InvItemId != effectCtx.InvItemID {
-				return e.Next()
-			}
-
+		events.OnAfterItemUse(effectCtx.InvItemID).BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterItemUseEvent) error {
 			currentCell, err := t.cells.GetByID(ctx, player.LastAction().Cell())
 			if err != nil {
 				return err

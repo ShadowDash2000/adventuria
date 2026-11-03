@@ -143,8 +143,8 @@ func (e *Events) OnAfterItemRoll() *event.Hook[*OnAfterItemRollEvent] {
 	return e.onAfterItemRoll
 }
 
-func (e *Events) OnAfterItemUse() *event.Hook[*OnAfterItemUseEvent] {
-	return e.onAfterItemUse
+func (e *Events) OnAfterItemUse(tags ...string) *event.TaggedHook[*OnAfterItemUseEvent] {
+	return event.NewTaggedHook(e.onAfterItemUse, tags...)
 }
 
 func (e *Events) OnNewLap() *event.Hook[*OnNewLapEvent] {
@@ -248,6 +248,15 @@ type OnAfterItemUseEvent struct {
 	InvItemId string
 	Data      map[string]any
 }
+
+func (e *OnAfterItemUseEvent) Tags() []string {
+	if e == nil {
+		return nil
+	}
+
+	return []string{e.InvItemId}
+}
+
 type OnBeforeItemAddEvent struct {
 	event.Event
 	ItemRecord    *Item

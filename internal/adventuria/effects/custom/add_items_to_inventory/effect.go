@@ -51,11 +51,7 @@ func (a *AddItemsToInventory) Subscribe(
 	callback model.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		events.OnAfterItemUse().BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterItemUseEvent) error {
-			if e.InvItemId != effectCtx.InvItemID {
-				return e.Next()
-			}
-
+		events.OnAfterItemUse(effectCtx.InvItemID).BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterItemUseEvent) error {
 			ids := a.decodeValue(a.Value())
 			for _, id := range ids {
 				_, err := a.inventories.AddItemByID(ctx, events, player, id, item_received.SourceAnotherItem)
