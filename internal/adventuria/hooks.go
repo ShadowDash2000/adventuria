@@ -9,6 +9,7 @@ import (
 	"adventuria/pkg/pbhelper"
 	"adventuria/pkg/pbrealtime"
 	"context"
+	"database/sql"
 	"errors"
 
 	"github.com/pocketbase/dbx"
@@ -124,12 +125,37 @@ func (g *Game) bindHooks(ctx context.Context, pb core.App) {
 			return err
 		}
 
-		err = pb.DeleteWithContext(ctx, &record)
+		err = e.App.DeleteWithContext(ctx, &record)
 		if err != nil {
 			return err
 		}
 
 		return e.Next()
+	})
+
+	pb.OnRecordDeleteExecute(schema.CollectionActions).BindFunc(func(e *core.RecordEvent) error {
+		return e.App.RunInTransaction(func(txApp core.App) error {
+			var records []*core.Record
+			err := txApp.RecordQuery(schema.CollectionPlayerEvents).
+				WithContext(ctx).
+				Where(dbx.HashExp{
+					schema.PlayerEventsSchema.Action: e.Record.Id,
+				}).
+				All(&records)
+			if err != nil {
+				return err
+			}
+
+			for _, record := range records {
+				err = txApp.DeleteWithContext(ctx, record)
+				if err != nil {
+					return err
+				}
+			}
+
+			e.App = txApp
+			return e.Next()
+		})
 	})
 
 	pb.OnRecordAfterDeleteSuccess(schema.CollectionReviews).BindFunc(func(e *core.RecordEvent) error {
@@ -151,10 +177,38 @@ func (g *Game) bindHooks(ctx context.Context, pb core.App) {
 		}
 
 		for _, record := range records {
-			err = pb.DeleteWithContext(ctx, record)
+			err = e.App.DeleteWithContext(ctx, record)
 			if err != nil {
 				return err
 			}
+		}
+
+		return e.Next()
+	})
+
+	pb.OnRecordAfterDeleteSuccess(schema.CollectionPlayersProgress).BindFunc(func(e *core.RecordEvent) error {
+		playerId := e.Record.GetString(schema.PlayerProgressSchema.Player)
+		seasonId := e.Record.GetString(schema.PlayerProgressSchema.Season)
+
+		var record core.Record
+		err := e.App.RecordQuery(schema.CollectionPlayerStats).
+			WithContext(ctx).
+			Where(dbx.HashExp{
+				schema.PlayerStatsSchema.Player: playerId,
+				schema.PlayerStatsSchema.Season: seasonId,
+			}).
+			Limit(1).
+			One(&record)
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				return e.Next()
+			}
+			return err
+		}
+
+		err = e.App.DeleteWithContext(ctx, &record)
+		if err != nil {
+			return err
 		}
 
 		return e.Next()
@@ -202,9 +256,9 @@ func (g *Game) bindHooks(ctx context.Context, pb core.App) {
 		}
 
 		if e.Record.GetString(schema.PlayerProgressSchema.Season) == currentSeason {
-			err = pbrealtime.Notify(ctx, pb, "new_player", nil)
+			err = pbrealtime.Notify(ctx, e.App, "new_player", nil)
 			if err != nil {
-				pb.Logger().Error("Failed to notify new player", "error", err)
+				e.App.Logger().Error("Failed to notify new player", "error", err)
 			}
 		}
 
