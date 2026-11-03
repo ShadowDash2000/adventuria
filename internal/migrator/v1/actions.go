@@ -1,14 +1,12 @@
 package v1
 
 import (
-	actionsRepo "adventuria/internal/adventuria/actions/repository"
 	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
 	"adventuria/internal/adventuria/reviews"
-	"adventuria/internal/adventuria/schema"
-	"adventuria/pkg/pbtransaction"
+	"adventuria/internal/migrator"
+	migratorModel "adventuria/internal/migrator/model"
 	"context"
-	"database/sql"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -19,8 +17,6 @@ import (
 	"net/url"
 
 	"github.com/google/go-querystring/query"
-	"github.com/pocketbase/dbx"
-	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/tools/types"
 	"github.com/spf13/cobra"
 )
@@ -30,8 +26,15 @@ const (
 	actionsPerPage = 500
 )
 
-func migrateActionsCommand(pb core.App, activities activities, cells cells, reviews reviewsService) *cobra.Command {
-	migrator := newActionsMigrator(pb, activities, cells, reviews)
+func migrateActionsCommand(
+	transactionRunner migrator.TransactionRunner,
+	players playersRepository,
+	actions actionsRepository,
+	cells cells,
+	activities activities,
+	reviews reviewsService,
+) *cobra.Command {
+	migrator := newActionsMigrator(transactionRunner, players, actions, cells, activities, reviews)
 
 	return &cobra.Command{
 		Use:          "actions <base-url>",
@@ -45,6 +48,58 @@ func migrateActionsCommand(pb core.App, activities activities, cells cells, revi
 	}
 }
 
+type actionsMigrator struct {
+	runInTransaction migrator.TransactionRunner
+	players          playersRepository
+	actions          actionsRepository
+	cells            cells
+	activities       activities
+	reviews          reviewsService
+}
+
+func newActionsMigrator(
+	transactionRunner migrator.TransactionRunner,
+	players playersRepository,
+	actions actionsRepository,
+	cells cells,
+	activities activities,
+	reviews reviewsService,
+) *actionsMigrator {
+	return &actionsMigrator{
+		runInTransaction: transactionRunner,
+		players:          players,
+		actions:          actions,
+		cells:            cells,
+		activities:       activities,
+		reviews:          reviews,
+	}
+}
+
+func (a *actionsMigrator) migrate(ctx context.Context, baseUrl string) error {
+	res, err := getActions(ctx, baseUrl, 1, actionsPerPage)
+	if err != nil {
+		return err
+	}
+
+	err = a.createActions(ctx, baseUrl, res.Items)
+	if err != nil {
+		return err
+	}
+
+	for page := 2; page <= res.TotalPages; page++ {
+		res, err := getActions(ctx, baseUrl, page, actionsPerPage)
+		if err != nil {
+			return err
+		}
+
+		err = a.createActions(ctx, baseUrl, res.Items)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 type getActionsQuery struct {
 	Page    int    `url:"page"`
 	PerPage int    `url:"perPage"`
@@ -55,8 +110,8 @@ type getActionsQuery struct {
 }
 
 type action struct {
-	CollectionID string         `json:"collectionId"`
-	ID           string         `json:"id"`
+	CollectionId string         `json:"collectionId"`
+	Id           string         `json:"id"`
 	Created      types.DateTime `json:"created"`
 	Updated      types.DateTime `json:"updated"`
 	User         string         `json:"user"`
@@ -84,127 +139,6 @@ type expandedActionCell struct {
 type getActionsResponse struct {
 	Items      []action `json:"items"`
 	TotalPages int      `json:"totalPages"`
-}
-
-type actionsMigrator struct {
-	pb         core.App
-	activities activities
-	cells      cells
-	reviews    reviewsService
-}
-
-func newActionsMigrator(pb core.App, activities activities, cells cells, reviews reviewsService) *actionsMigrator {
-	return &actionsMigrator{
-		pb:         pb,
-		activities: activities,
-		cells:      cells,
-		reviews:    reviews,
-	}
-}
-
-func (a *actionsMigrator) migrate(ctx context.Context, baseUrl string) error {
-	res, err := getActions(ctx, baseUrl, 1, actionsPerPage)
-	if err != nil {
-		return err
-	}
-
-	err = a.saveActions(ctx, baseUrl, res.Items)
-	if err != nil {
-		return err
-	}
-
-	for page := 2; page <= res.TotalPages; page++ {
-		res, err := getActions(ctx, baseUrl, page, actionsPerPage)
-		if err != nil {
-			return err
-		}
-
-		err = a.saveActions(ctx, baseUrl, res.Items)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (a *actionsMigrator) saveActions(ctx context.Context, baseUrl string, actions []action) error {
-	for _, oldAction := range actions {
-		err := pbtransaction.RunInTransaction(ctx, a.pb, func(ctx context.Context, txApp core.App) error {
-			return a.saveAction(ctx, baseUrl, oldAction)
-		})
-		if err != nil {
-			return fmt.Errorf("migrate action %s: %w", oldAction.ID, err)
-		}
-	}
-	return nil
-}
-
-func (a *actionsMigrator) saveAction(ctx context.Context, baseUrl string, oldAction action) error {
-	pb := pbtransaction.GetCtxTransactionOrApp(ctx, a.pb)
-
-	playerID, err := getPlayerIDByName(pb, oldAction.Expand.User.Name)
-	if err != nil {
-		if errors.Is(err, errs.ErrPlayerNotFound) {
-			return nil
-		}
-		return err
-	}
-
-	currentCellName, ok := cellAliases[oldAction.Expand.Cell.Name]
-	if !ok {
-		return nil
-	}
-	cell, err := a.cells.GetByName(ctx, currentCellName, true)
-	if err != nil {
-		return fmt.Errorf("find cell %q: %w", currentCellName, err)
-	}
-
-	status, err := actionTypeToStatus(oldAction.Type)
-	if err != nil {
-		return err
-	}
-	newAction, err := model.NewAction(model.ActionCreate{Player: playerID, Cell: cell.ID(), Status: status})
-	if err != nil {
-		return err
-	}
-
-	activity, err := a.activities.GetByName(ctx, oldAction.Value)
-	if err == nil {
-		newAction.SetActivity(activity.ID())
-	} else if !errors.Is(err, errs.ErrActivityNotFound) {
-		return fmt.Errorf("find activity %q: %w", oldAction.Value, err)
-	}
-
-	comment, err := buildComment(ctx, baseUrl, oldAction)
-	if err != nil {
-		return err
-	}
-
-	review, err := a.reviews.Create(ctx, reviews.CreateInput{
-		Comment: comment,
-		Score:   0,
-	})
-	if err != nil {
-		return err
-	}
-
-	newAction.SetReview(review.ID())
-
-	collection, err := pb.FindCollectionByNameOrId(schema.CollectionActions)
-	if err != nil {
-		return err
-	}
-
-	record := core.NewRecord(collection)
-	err = actionsRepo.ActionToRecord(newAction, record)
-	if err != nil {
-		return err
-	}
-
-	record.SetRaw("created", oldAction.Created)
-	record.SetRaw("updated", oldAction.Updated)
-
-	return pb.Save(record)
 }
 
 func getActions(ctx context.Context, baseUrl string, page, perPage int) (*getActionsResponse, error) {
@@ -259,6 +193,79 @@ func requestActions(ctx context.Context, baseUrl string, q url.Values) (*getActi
 	return &actionsResponse, nil
 }
 
+func (a *actionsMigrator) createActions(ctx context.Context, baseUrl string, actions []action) error {
+	for _, oldAction := range actions {
+		err := a.runInTransaction(ctx, func(ctx context.Context) error {
+			return a.createAction(ctx, baseUrl, oldAction)
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (a *actionsMigrator) createAction(ctx context.Context, baseUrl string, action action) error {
+	playerId, err := a.players.GetIDByName(ctx, action.Expand.User.Name)
+	if err != nil {
+		if errors.Is(err, errs.ErrPlayerNotFound) {
+			return nil
+		}
+		return err
+	}
+
+	currentCellName, ok := cellAliases[action.Expand.Cell.Name]
+	if !ok {
+		return nil
+	}
+	cellId, err := a.cells.GetIDByName(ctx, currentCellName)
+	if err != nil {
+		return fmt.Errorf("failed to find cell %q: %w", currentCellName, err)
+	}
+
+	status, err := actionTypeToStatus(action.Type)
+	if err != nil {
+		return err
+	}
+	newAction, err := model.NewAction(model.ActionCreate{
+		Player: playerId,
+		Cell:   cellId,
+		Status: status,
+	})
+	if err != nil {
+		return err
+	}
+
+	activity, err := a.activities.GetByName(ctx, action.Value)
+	if err == nil {
+		newAction.SetActivity(activity.ID())
+	} else if !errors.Is(err, errs.ErrActivityNotFound) {
+		return fmt.Errorf("failed to find activity %q: %w", action.Value, err)
+	}
+
+	comment, err := buildComment(ctx, baseUrl, action)
+	if err != nil {
+		return err
+	}
+
+	review, err := a.reviews.Create(ctx, reviews.CreateInput{
+		Comment: comment,
+		Score:   0,
+	})
+	if err != nil {
+		return err
+	}
+
+	newAction.SetReview(review.ID())
+
+	return a.actions.Create(ctx, migratorModel.ActionImport{
+		Action:  newAction,
+		ID:      action.Id,
+		Created: action.Created,
+		Updated: action.Updated,
+	})
+}
+
 var actionTypeToActionStatus = map[string]model.ActionStatus{
 	"chooseResult": model.ActionStatusDone,
 	"drop":         model.ActionStatusDrop,
@@ -278,7 +285,7 @@ func buildComment(ctx context.Context, baseUrl string, oldAction action) (string
 		return oldAction.Comment, nil
 	}
 
-	fileURL, err := url.JoinPath(baseUrl, "/api/files", oldAction.CollectionID, oldAction.ID, oldAction.Icon)
+	fileURL, err := url.JoinPath(baseUrl, "/api/files", oldAction.CollectionId, oldAction.Id, oldAction.Icon)
 	if err != nil {
 		return "", fmt.Errorf("build icon URL: %w", err)
 	}
@@ -324,24 +331,4 @@ func buildComment(ctx context.Context, baseUrl string, oldAction action) (string
 	}
 
 	return "<p>" + oldAction.Comment + "</p><p>" + image + "</p>", nil
-}
-
-func getPlayerIDByName(pb core.App, name string) (string, error) {
-	var id string
-	err := pb.DB().
-		Select(schema.PlayerSchema.Id).
-		From(schema.CollectionPlayers).
-		Where(dbx.HashExp{
-			schema.PlayerSchema.Name: name,
-		}).
-		Limit(1).
-		Row(&id)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return "", errs.ErrPlayerNotFound
-		}
-		return "", err
-	}
-
-	return id, nil
 }

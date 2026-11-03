@@ -25,6 +25,7 @@ func main() {
 	playersRepo := migratorRepo.NewPlayers(pb)
 	actionsRepo := migratorRepo.NewActions(pb)
 	seasonsRepo := migratorRepo.NewSeasons(pb)
+	cellsRepo := migratorRepo.NewCells(pb)
 
 	transactionRunner := func(ctx context.Context, fn func(ctx context.Context) error) error {
 		return pbtransaction.RunInTransaction(ctx, pb, func(ctx context.Context, txApp core.App) error {
@@ -32,7 +33,18 @@ func main() {
 		})
 	}
 
-	command.AddCommand(v1.NewV1MigratorCommand(pb, registry.Activities(), registry.Cells(), registry.Reviews()))
+	command.AddCommand(v1.NewV1MigratorCommand(
+		transactionRunner,
+		playersRepo,
+		actionsRepo,
+		seasonsRepo,
+		registry.PlayerProgress(),
+		registry.PlayerStats(),
+		registry.Worlds(),
+		cellsRepo,
+		registry.Activities(),
+		registry.Reviews(),
+	))
 	command.AddCommand(v2.NewV2MigratorCommand(
 		transactionRunner,
 		playersRepo,
