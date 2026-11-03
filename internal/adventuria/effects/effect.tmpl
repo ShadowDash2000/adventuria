@@ -3,7 +3,7 @@ package {{.RawName}}
 import (
 	"adventuria/internal/adventuria/effects"
 	"adventuria/internal/adventuria/model"
-	"adventuria/pkg/event_new"
+	"adventuria/pkg/event"
 	"context"
 )
 
@@ -37,7 +37,7 @@ func ({{.FirstLetter}} *{{.Name}}) Subscribe(
 	player *model.Player,
 	effectCtx model.EffectContext,
 	callback model.EffectCallback,
-) ([]event_new.Unsubscribe, error) {
+) ([]event.Unsubscribe, error) {
 	//TODO implement me
 	panic("implement me")
 }

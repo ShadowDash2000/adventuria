@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	effectOutputDir    = "././internal/adventuria_new/effects/custom/"
-	effectTemplatePath = "././internal/adventuria_new/effects/effect.tmpl"
+	effectOutputDir    = "././internal/adventuria/effects/custom/"
+	effectTemplatePath = "././internal/adventuria/effects/effect.tmpl"
 )
 
 type createEffectData struct {
@@ -31,7 +31,7 @@ func createEffect() error {
 		FirstLetter: os.Args[3][:1],
 	}
 
-	fileName := data.RawName + ".go"
+	fileName := "effect.go"
 	outputDir := effectOutputDir + data.RawName
 
 	err := os.MkdirAll(outputDir, os.ModePerm)
