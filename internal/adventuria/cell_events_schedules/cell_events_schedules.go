@@ -128,13 +128,6 @@ func (c *CellEventsSchedules) CheckEventsSchedules(ctx context.Context) (err err
 		return err
 	}
 
-	err = c.OnUpdateStart().Trigger(ctx, &UpdateStartEvent{})
-	if err != nil {
-		return err
-	}
-
-	shouldTriggerUpdateEnd = true
-
 	events, err := c.repository.GetAll(ctx)
 	if err != nil {
 		return err
@@ -153,6 +146,13 @@ func (c *CellEventsSchedules) CheckEventsSchedules(ctx context.Context) (err err
 	if len(eventsToUpdate) == 0 {
 		return nil
 	}
+
+	err = c.OnUpdateStart().Trigger(ctx, &UpdateStartEvent{})
+	if err != nil {
+		return err
+	}
+
+	shouldTriggerUpdateEnd = true
 
 	players, err := c.players.GetAllBySeasonID(ctx, currentSeason)
 	if err != nil {
