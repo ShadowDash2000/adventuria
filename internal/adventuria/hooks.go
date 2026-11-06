@@ -134,7 +134,9 @@ func (g *Game) bindHooks(ctx context.Context, pb core.App) {
 	})
 
 	pb.OnRecordDeleteExecute(schema.CollectionActions).BindFunc(func(e *core.RecordEvent) error {
-		return e.App.RunInTransaction(func(txApp core.App) error {
+		initialApp := e.App
+
+		err := e.App.RunInTransaction(func(txApp core.App) error {
 			var records []*core.Record
 			err := txApp.RecordQuery(schema.CollectionPlayerEvents).
 				WithContext(ctx).
@@ -156,6 +158,10 @@ func (g *Game) bindHooks(ctx context.Context, pb core.App) {
 			e.App = txApp
 			return e.Next()
 		})
+
+		e.App = initialApp
+
+		return err
 	})
 
 	pb.OnRecordAfterDeleteSuccess(schema.CollectionReviews).BindFunc(func(e *core.RecordEvent) error {
