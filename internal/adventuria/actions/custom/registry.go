@@ -44,7 +44,7 @@ func RegisterActions(
 	playerEvents *player_events.PlayerEvents,
 ) {
 	actions.Register(
-		start.NewDef(actionsService),
+		start.NewDef(),
 		complete_activity.NewDef(cells, activityResultCalculator),
 		done.NewDef(actionsService, cells, activityResultCalculator, reviews, progressNotify, playerEvents),
 		drop.NewDef(actionsService, cells, reviews, players, settings, board),
