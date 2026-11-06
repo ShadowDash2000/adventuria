@@ -19,7 +19,7 @@ type cells interface {
 }
 
 type activityResultCalculator interface {
-	Calculate(ctx context.Context, events *model.Events, cell *model.CellInfo, mode model.EffectRunMode) (*model.ActivityCompletionResult, error)
+	Calculate(ctx context.Context, events *model.Events, cell *model.CellInfo, mode model.EffectRunMode) (*model.ActivityDoneResult, error)
 }
 
 type reviewsService interface {

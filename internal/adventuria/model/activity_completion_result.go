@@ -1,41 +1,41 @@
 package model
 
-type ActivityCompletionResultData struct {
+type ActivityDoneResultData struct {
 	Points        int
 	EnergyConsume int
 	Coins         int
 }
 
-type ActivityCompletionResult struct {
-	data ActivityCompletionResultData
+type ActivityDoneResult struct {
+	data ActivityDoneResultData
 }
 
-func NewActivityCompletionResult(data ActivityCompletionResultData) *ActivityCompletionResult {
-	return &ActivityCompletionResult{
+func NewActivityDoneResult(data ActivityDoneResultData) *ActivityDoneResult {
+	return &ActivityDoneResult{
 		data: data,
 	}
 }
 
-func (c *ActivityCompletionResult) Points() int {
-	return c.data.Points
+func (d *ActivityDoneResult) Points() int {
+	return d.data.Points
 }
 
-func (c *ActivityCompletionResult) SetPoints(n int) {
-	c.data.Points = n
+func (d *ActivityDoneResult) SetPoints(n int) {
+	d.data.Points = n
 }
 
-func (c *ActivityCompletionResult) EnergyConsume() int {
-	return c.data.EnergyConsume
+func (d *ActivityDoneResult) EnergyConsume() int {
+	return d.data.EnergyConsume
 }
 
-func (c *ActivityCompletionResult) SetEnergyConsume(n int) {
-	c.data.EnergyConsume = n
+func (d *ActivityDoneResult) SetEnergyConsume(n int) {
+	d.data.EnergyConsume = n
 }
 
-func (c *ActivityCompletionResult) Coins() int {
-	return c.data.Coins
+func (d *ActivityDoneResult) Coins() int {
+	return d.data.Coins
 }
 
-func (c *ActivityCompletionResult) SetCoins(n int) {
-	c.data.Coins = n
+func (d *ActivityDoneResult) SetCoins(n int) {
+	d.data.Coins = n
 }

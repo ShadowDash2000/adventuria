@@ -62,7 +62,7 @@ func (n *Nothing) Subscribe(
 		}, nil
 	case useBeforeGameDone:
 		return []event.Unsubscribe{
-			events.OnActivityComplete().BindFuncWithPriority(func(ctx context.Context, e *model.OnActivityCompleteEvent) error {
+			events.OnActivityDone().BindFuncWithPriority(func(ctx context.Context, e *model.OnActivityDoneEvent) error {
 				currentCell, err := n.cells.GetByPlayerWrapped(ctx, player)
 				if err != nil {
 					return err

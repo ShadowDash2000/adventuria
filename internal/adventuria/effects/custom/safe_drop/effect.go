@@ -7,26 +7,20 @@ import (
 	"context"
 )
 
-type cellsService interface {
-	GetByID(ctx context.Context, id string) (*model.CellInfo, error)
-}
-
 var _ model.Effect = (*SafeDrop)(nil)
 
 const Type model.EffectType = "safe_drop"
 
 type SafeDrop struct {
 	effects.EffectBase
-	cells cellsService
 }
 
-func NewDef(cells cellsService) effects.EffectDef {
+func NewDef() effects.EffectDef {
 	return effects.NewEffectDef(
 		Type,
 		func(effect model.EffectInfo) model.Effect {
 			return &SafeDrop{
 				EffectBase: effects.NewEffectBase(effect),
-				cells:      cells,
 			}
 		},
 	)
@@ -39,20 +33,18 @@ func (s *SafeDrop) CanUse(_ context.Context, _ *model.Events, _ *model.Player) b
 func (s *SafeDrop) Subscribe(
 	_ context.Context,
 	events *model.Events,
-	player *model.Player,
+	_ *model.Player,
 	effectCtx model.EffectContext,
 	callback model.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		events.OnBeforeDrop().BindFuncWithPriority(func(ctx context.Context, e *model.OnBeforeDropEvent) error {
-			currentCell, err := s.cells.GetByID(ctx, player.LastAction().Cell())
-			if err != nil {
-				return err
-			}
+		events.OnActivityDrop().BindFuncWithPriority(func(ctx context.Context, e *model.OnActivityDropEvent) error {
+			if !e.Result.IsSafe() {
+				e.Result.SetIsSafe(true)
 
-			if !currentCell.IsSafeDrop() {
-				e.IsSafeDrop = true
-				callback(ctx)
+				if e.Mode == model.EffectRunModeApply {
+					callback(ctx)
+				}
 			}
 
 			return e.Next()

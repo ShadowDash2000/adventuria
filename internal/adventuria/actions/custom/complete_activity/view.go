@@ -13,18 +13,25 @@ func (c *CompleteActivity) GetView(ctx context.Context, events *model.Events, pl
 		return nil, err
 	}
 
-	activityResult, err := c.activityResultCalculator.Calculate(ctx, events, currentCell, model.EffectRunModePreview)
+	doneResult, err := c.doneResultCalculator.Calculate(ctx, events, currentCell, model.EffectRunModePreview)
+	if err != nil {
+		return nil, err
+	}
+
+	dropResult, err := c.dropResultCalculator.Calculate(ctx, events, currentCell, model.EffectRunModePreview)
 	if err != nil {
 		return nil, err
 	}
 
 	return struct {
-		DonePoints        int `json:"done_points"`
-		DoneEnergyConsume int `json:"done_energy_consume"`
-		DoneCoins         int `json:"done_coins"`
+		DonePoints        int  `json:"done_points"`
+		DoneEnergyConsume int  `json:"done_energy_consume"`
+		DoneCoins         int  `json:"done_coins"`
+		IsSafeDrop        bool `json:"is_safe_drop"`
 	}{
-		DonePoints:        activityResult.Points(),
-		DoneEnergyConsume: activityResult.EnergyConsume(),
-		DoneCoins:         activityResult.Coins(),
+		DonePoints:        doneResult.Points(),
+		DoneEnergyConsume: doneResult.EnergyConsume(),
+		DoneCoins:         doneResult.Coins(),
+		IsSafeDrop:        dropResult.IsSafe(),
 	}, nil
 }

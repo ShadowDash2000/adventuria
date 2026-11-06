@@ -38,8 +38,8 @@ func (d *DropBlock) Subscribe(
 	callback model.EffectCallback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		events.OnBeforeDropCheck().BindFuncWithPriority(func(ctx context.Context, e *model.OnBeforeDropCheckEvent) error {
-			e.IsDropBlocked = true
+		events.OnActivityDrop().BindFuncWithPriority(func(ctx context.Context, e *model.OnActivityDropEvent) error {
+			e.Result.SetIsBlocked(true)
 			return e.Next()
 		}, effectCtx.Priority),
 		events.OnAfterDone().BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterDoneEvent) error {

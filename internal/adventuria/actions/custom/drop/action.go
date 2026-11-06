@@ -8,6 +8,10 @@ import (
 	"errors"
 )
 
+type dropResultCalculator interface {
+	Calculate(ctx context.Context, events *model.Events, cell *model.CellInfo, mode model.EffectRunMode) (*model.ActivityDropResult, error)
+}
+
 type actionsService interface {
 	CanDo(ctx context.Context, events *model.Events, player *model.Player, t model.ActionType) bool
 }
@@ -38,15 +42,17 @@ const Type model.ActionType = "drop"
 
 type Drop struct {
 	actions.ActionBase
-	actions  actionsService
-	cells    cells
-	reviews  reviewsService
-	players  players
-	settings settings
-	board    board
+	dropResultCalculator dropResultCalculator
+	actions              actionsService
+	cells                cells
+	reviews              reviewsService
+	players              players
+	settings             settings
+	board                board
 }
 
 func NewDef(
+	dropResultCalculator dropResultCalculator,
 	actionsService actionsService,
 	cells cells,
 	reviews reviewsService,
@@ -58,13 +64,14 @@ func NewDef(
 		Type,
 		func() model.Action {
 			return &Drop{
-				ActionBase: actions.NewActionBase(Type),
-				actions:    actionsService,
-				cells:      cells,
-				reviews:    reviews,
-				players:    players,
-				settings:   settings,
-				board:      board,
+				ActionBase:           actions.NewActionBase(Type),
+				dropResultCalculator: dropResultCalculator,
+				actions:              actionsService,
+				cells:                cells,
+				reviews:              reviews,
+				players:              players,
+				settings:             settings,
+				board:                board,
 			}
 		},
 	)
@@ -80,23 +87,12 @@ func (d *Drop) CanDo(ctx context.Context, events *model.Events, player *model.Pl
 		return false
 	}
 
-	if currentCell.CantDrop() {
-		return false
-	}
-
-	if player.Progress().IsInJail() {
-		return false
-	}
-
-	onBeforeDropCheckEvent := &model.OnBeforeDropCheckEvent{
-		IsDropBlocked: false,
-	}
-	err = events.OnBeforeDropCheck().Trigger(ctx, onBeforeDropCheckEvent)
+	dropResult, err := d.dropResultCalculator.Calculate(ctx, events, currentCell, model.EffectRunModePreview)
 	if err != nil {
 		return false
 	}
 
-	if onBeforeDropCheckEvent.IsDropBlocked {
+	if dropResult.IsBlocked() {
 		return false
 	}
 
@@ -132,18 +128,9 @@ func (d *Drop) Do(ctx context.Context, events *model.Events, player *model.Playe
 		return nil, err
 	}
 
-	onBeforeDropEvent := &model.OnBeforeDropEvent{
-		IsSafeDrop:    false,
-		IsDropBlocked: false,
-		PointsForDrop: settings.PointsForDrop(),
-	}
-	err = events.OnBeforeDrop().Trigger(ctx, onBeforeDropEvent)
+	dropResult, err := d.dropResultCalculator.Calculate(ctx, events, currentCell, model.EffectRunModePreview)
 	if err != nil {
 		return nil, err
-	}
-
-	if onBeforeDropEvent.IsDropBlocked {
-		return nil, errors.New("drop is not allowed")
 	}
 
 	lastAction := player.LastAction()
@@ -157,11 +144,7 @@ func (d *Drop) Do(ctx context.Context, events *model.Events, player *model.Playe
 	progress := player.Progress()
 	progress.SetCanMove(true)
 
-	if !onBeforeDropEvent.IsSafeDrop && !currentCell.IsSafeDrop() {
-		err = progress.PointsChange(onBeforeDropEvent.PointsForDrop)
-		if err != nil {
-			return nil, err
-		}
+	if !dropResult.IsSafe() {
 		err = progress.DropsInARowChange(1)
 		if err != nil {
 			return nil, err
