@@ -1,6 +1,7 @@
 package give_soap_on_jail_completion
 
 import (
+	"adventuria/internal/adventuria/cells"
 	"adventuria/internal/adventuria/effects"
 	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
@@ -34,6 +35,10 @@ func NewDef(inventories inventories) effects.EffectPersistentDef {
 func (g *GiveSoapOnJailCompletion) Subscribe(_ context.Context, events *model.Events, player *model.Player) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
 		events.OnAfterDone().BindFunc(func(ctx context.Context, e *model.OnAfterDoneEvent) error {
+			if e.CurrentCell.Type() != cells.CellTypeJail {
+				return e.Next()
+			}
+
 			_, err := g.inventories.AddItemBySlug(
 				ctx,
 				events,
