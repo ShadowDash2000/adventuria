@@ -128,7 +128,7 @@ func (d *Drop) Do(ctx context.Context, events *model.Events, player *model.Playe
 		return nil, err
 	}
 
-	dropResult, err := d.dropResultCalculator.Calculate(ctx, events, currentCell, model.EffectRunModePreview)
+	dropResult, err := d.dropResultCalculator.Calculate(ctx, events, currentCell, model.EffectRunModeApply)
 	if err != nil {
 		return nil, err
 	}
