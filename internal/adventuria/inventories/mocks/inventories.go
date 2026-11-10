@@ -7,10 +7,10 @@ import (
 )
 
 type Inventories struct {
-	AddItemByIDFunc func(ctx context.Context, events *model.Events, player *model.Player, itemId string, source item_received.Source) (*model.InventoryItem, error)
+	AddItemByIDFunc func(ctx context.Context, events *model.Events, player *model.Player, itemId string, source item_received.Source) (*model.InventoryItemWithEffects, error)
 }
 
-func (m *Inventories) AddItemByID(ctx context.Context, events *model.Events, player *model.Player, itemId string, source item_received.Source) (*model.InventoryItem, error) {
+func (m *Inventories) AddItemByID(ctx context.Context, events *model.Events, player *model.Player, itemId string, source item_received.Source) (*model.InventoryItemWithEffects, error) {
 	if m.AddItemByIDFunc == nil {
 		return nil, nil
 	}

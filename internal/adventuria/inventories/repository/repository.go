@@ -1,7 +1,10 @@
 package repository
 
 import (
+	effectsRepo "adventuria/internal/adventuria/effects/repository"
 	"adventuria/internal/adventuria/errs"
+	inventoryModel "adventuria/internal/adventuria/inventories/model"
+	itemsRepo "adventuria/internal/adventuria/items/repository"
 	"adventuria/internal/adventuria/model"
 	"adventuria/internal/adventuria/schema"
 	"adventuria/pkg/pbhelper"
@@ -83,8 +86,50 @@ func (r *Repository) GetAllByPlayerID(ctx context.Context, playerId string) ([]*
 	items := make([]*model.InventoryItem, len(records))
 	for i, record := range records {
 		inventory := RecordToInventory(record)
-		item := RecordToItem(record.ExpandedOne(schema.InventorySchema.Item))
+		item := itemsRepo.RecordToItem(record.ExpandedOne(schema.InventorySchema.Item))
 		items[i] = model.RestoreInventoryItem(inventory, item)
+	}
+
+	return items, nil
+}
+
+func (r *Repository) GetAllDetailedByPlayerID(ctx context.Context, playerId string) ([]*inventoryModel.InventoryItemDetails, error) {
+	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
+
+	var records []*core.Record
+	err := pb.RecordQuery(schema.CollectionInventory).
+		WithContext(ctx).
+		Where(dbx.HashExp{schema.InventorySchema.Player: playerId}).
+		OrderBy(schema.InventorySchema.Activated + " ASC").
+		All(&records)
+	if err != nil {
+		return nil, err
+	}
+
+	errs := pb.ExpandRecords(records, []string{
+		schema.InventorySchema.Item,
+		pbhelper.DotExpand(schema.InventorySchema.Item, schema.ItemSchema.Effects),
+	}, nil)
+	if len(errs) > 0 {
+		return nil, fmt.Errorf("failed to expand records: %v", errs)
+	}
+
+	items := make([]*inventoryModel.InventoryItemDetails, len(records))
+	for i, inventoryRecord := range records {
+		inventory := RecordToInventory(inventoryRecord)
+
+		itemRecord := inventoryRecord.ExpandedOne(schema.InventorySchema.Item)
+		item := itemsRepo.RecordToItem(inventoryRecord.ExpandedOne(schema.InventorySchema.Item))
+
+		effects := effectsRepo.RecordsToEffects(itemRecord.ExpandedAll(schema.ItemSchema.Effects))
+
+		items[i] = &inventoryModel.InventoryItemDetails{
+			Created:   inventoryRecord.GetDateTime("created").Time(),
+			IconPath:  pbhelper.BuildFilePath(schema.CollectionItems, item.ID(), item.Icon()),
+			Inventory: inventory,
+			Item:      item,
+			Effects:   effects,
+		}
 	}
 
 	return items, nil
@@ -180,9 +225,52 @@ func (r *Repository) GetPlayerInventoryItemByID(ctx context.Context, playerId, i
 	}
 
 	inventory := RecordToInventory(&record)
-	item := RecordToItem(record.ExpandedOne(schema.InventorySchema.Item))
+	item := itemsRepo.RecordToItem(record.ExpandedOne(schema.InventorySchema.Item))
 
 	return model.RestoreInventoryItem(inventory, item), nil
+}
+
+func (r *Repository) GetPlayerInventoryItemWithEffectsByID(ctx context.Context, playerId, itemId string) (*inventoryModel.InventoryItemDetails, error) {
+	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
+
+	var inventoryRecord core.Record
+	err := pb.RecordQuery(schema.CollectionInventory).
+		WithContext(ctx).
+		Where(dbx.HashExp{
+			schema.InventorySchema.Id:     itemId,
+			schema.InventorySchema.Player: playerId,
+		}).
+		Limit(1).
+		One(&inventoryRecord)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errs.ErrInventoryNotFound
+		}
+		return nil, err
+	}
+
+	errs := pb.ExpandRecord(&inventoryRecord, []string{
+		schema.InventorySchema.Item,
+		pbhelper.DotExpand(schema.InventorySchema.Item, schema.ItemSchema.Effects),
+	}, nil)
+	if len(errs) > 0 {
+		return nil, fmt.Errorf("failed to expand record: %v", errs)
+	}
+
+	inventory := RecordToInventory(&inventoryRecord)
+
+	itemRecord := inventoryRecord.ExpandedOne(schema.InventorySchema.Item)
+	item := itemsRepo.RecordToItem(itemRecord)
+
+	effects := effectsRepo.RecordsToEffects(itemRecord.ExpandedAll(schema.ItemSchema.Effects))
+
+	return &inventoryModel.InventoryItemDetails{
+		Created:   inventoryRecord.GetDateTime("created").Time(),
+		IconPath:  pbhelper.BuildFilePath(schema.CollectionItems, item.ID(), item.Icon()),
+		Inventory: inventory,
+		Item:      item,
+		Effects:   effects,
+	}, nil
 }
 
 func (r *Repository) GetPlayerUsedSlots(ctx context.Context, playerId string) (int, error) {
@@ -247,7 +335,7 @@ func (r *Repository) GetAllDroppableUsingSlotByPlayerID(ctx context.Context, pla
 	items := make([]*model.InventoryItem, len(records))
 	for i, record := range records {
 		inventory := RecordToInventory(record)
-		item := RecordToItem(record.ExpandedOne(schema.InventorySchema.Item))
+		item := itemsRepo.RecordToItem(record.ExpandedOne(schema.InventorySchema.Item))
 		items[i] = model.RestoreInventoryItem(inventory, item)
 	}
 

@@ -36,3 +36,11 @@ func (i *InventoryItem) UnappliedEffects() []string {
 func (i *InventoryItem) CanDrop() bool {
 	return i.item.CanDrop() && !i.inventory.IsActive()
 }
+
+func (i *InventoryItem) DropPrice() int {
+	if price := i.Item().Price(); price > 0 {
+		return price / 2
+	}
+
+	return 0
+}

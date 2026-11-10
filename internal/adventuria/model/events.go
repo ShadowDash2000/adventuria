@@ -253,7 +253,7 @@ type OnBeforeItemAddEvent struct {
 }
 type OnAfterItemAddEvent struct {
 	event.Event
-	Item *InventoryItem
+	Item *InventoryItemWithEffects
 }
 type OnNewLapEvent struct {
 	event.Event

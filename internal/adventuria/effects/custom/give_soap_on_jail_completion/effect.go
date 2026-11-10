@@ -12,7 +12,7 @@ import (
 )
 
 type inventories interface {
-	AddItemBySlug(ctx context.Context, events *model.Events, player *model.Player, itemSlug string, source item_received.Source) (*model.InventoryItem, error)
+	AddItemBySlug(ctx context.Context, events *model.Events, player *model.Player, itemSlug string, source item_received.Source) (*model.InventoryItemWithEffects, error)
 }
 
 var _ model.EffectPersistent = (*GiveSoapOnJailCompletion)(nil)

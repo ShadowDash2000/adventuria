@@ -25,6 +25,7 @@ func (g *Game) init(ctx context.Context, pb core.App) (*Registry, error) {
 		return nil, err
 	}
 
+	g.eventsSubscriber = registry.EventsSubscriber()
 	g.settings = registry.Settings()
 	g.players = registry.Players()
 	g.playerProgress = registry.PlayerProgress()

@@ -8,6 +8,7 @@ import (
 type repository interface {
 	GetByID(ctx context.Context, id string) (*model.PlayerInfo, error)
 	GetAll(ctx context.Context) ([]*model.PlayerInfo, error)
+	GetNameByID(ctx context.Context, id string) (string, error)
 	IsDisabled(ctx context.Context, id string) (bool, error)
 	IsDebugEnabled(ctx context.Context, id string) (bool, error)
 	NotifyChange(ctx context.Context, id string) error
@@ -29,6 +30,10 @@ func (p *PlayerInfo) GetByID(ctx context.Context, id string) (*model.PlayerInfo,
 
 func (p *PlayerInfo) GetAll(ctx context.Context) ([]*model.PlayerInfo, error) {
 	return p.repository.GetAll(ctx)
+}
+
+func (p *PlayerInfo) GetNameByID(ctx context.Context, id string) (string, error) {
+	return p.repository.GetNameByID(ctx, id)
 }
 
 func (p *PlayerInfo) IsDisabled(ctx context.Context, id string) (bool, error) {

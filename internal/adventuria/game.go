@@ -27,18 +27,19 @@ import (
 )
 
 type Game struct {
-	pb             *pocketbase.PocketBase
-	settings       *settings.Settings
-	players        *players.Players
-	playerProgress *player_progress.PlayerProgress
-	cells          *cells.Cells
-	cellEvents     *cell_events_schedules.CellEventsSchedules
-	actions        *actions.Actions
-	inventories    *inventories.Inventories
-	effects        *effects.Effects
-	worlds         *worlds.Worlds
-	board          *board.Board
-	playersLocker  *locker.Locker[string]
+	pb               *pocketbase.PocketBase
+	eventsSubscriber *scope.EventsSubscriber
+	settings         *settings.Settings
+	players          *players.Players
+	playerProgress   *player_progress.PlayerProgress
+	cells            *cells.Cells
+	cellEvents       *cell_events_schedules.CellEventsSchedules
+	actions          *actions.Actions
+	inventories      *inventories.Inventories
+	effects          *effects.Effects
+	worlds           *worlds.Worlds
+	board            *board.Board
+	playersLocker    *locker.Locker[string]
 
 	onKillParserEvent *event.Hook[*onKillParserEvent]
 }
@@ -82,27 +83,12 @@ func Start(fn func(game *Game, registry *Registry, se *core.ServeEvent) error) (
 func (g *Game) initScope(ctx context.Context, player *model.Player) (*scope.Scope, error) {
 	s := scope.New(player)
 
-	invs, err := g.inventories.GetAllByPlayerID(ctx, player.ID())
+	inventory, err := g.inventories.GetAllWithEffectsByPlayerID(ctx, player.ID())
 	if err != nil {
 		return nil, err
 	}
 
-	err = g.effects.SubscribeActiveEffects(ctx, s.Events(), s.Player(), invs)
-	if err != nil {
-		return nil, err
-	}
-
-	err = g.effects.SubscribePersistentEffects(ctx, s.Events(), s.Player())
-	if err != nil {
-		return nil, err
-	}
-
-	err = g.cellEvents.ListenToCellEvents(ctx, s.Events(), s.Player())
-	if err != nil {
-		return nil, err
-	}
-
-	err = g.worlds.SubscribeEffects(ctx, s.Events(), s.Player(), s.Player().Progress().CurrentWorld())
+	err = g.eventsSubscriber.Subscribe(ctx, s.Events(), s.Player(), inventory)
 	if err != nil {
 		return nil, err
 	}
@@ -274,17 +260,13 @@ func (g *Game) DropItem(ctx context.Context, pb core.App, playerId, itemId strin
 		return err
 	}
 
-	canDrop, err := g.inventories.CanDropItem(ctx, playerId, itemId)
-	if err != nil {
-		return err
-	}
-	if !canDrop {
-		return errors.New("can't drop item")
-	}
-
 	item, err := g.inventories.GetPlayerInventoryItemByID(ctx, playerId, itemId)
 	if err != nil {
 		return err
+	}
+
+	if !item.CanDrop() {
+		return errors.New("can't drop item")
 	}
 
 	return pbtransaction.RunInTransaction(ctx, pb, func(ctx context.Context, txApp core.App) error {

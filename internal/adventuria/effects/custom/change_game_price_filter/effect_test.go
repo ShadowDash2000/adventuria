@@ -294,8 +294,9 @@ func TestChangeGamePriceFilter_Subscribe(t *testing.T) {
 
 		*called = false
 
-		item := model.RestoreInventoryItem(
+		item := model.RestoreInventoryItemWithEffects(
 			model.RestoreInventory(model.InventoryData{Id: "item1"}),
+			nil,
 			nil,
 		)
 

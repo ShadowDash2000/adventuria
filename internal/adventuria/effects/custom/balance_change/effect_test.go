@@ -72,7 +72,7 @@ func TestBalanceChange_Subscribe(t *testing.T) {
 
 		inv := model.RestoreInventory(model.InventoryData{Id: "trigger_item"})
 		item := model.RestoreItem(model.ItemData{Id: "item1"})
-		invItem := model.RestoreInventoryItem(inv, item)
+		invItem := model.RestoreInventoryItemWithEffects(inv, item, nil)
 
 		err = events.OnAfterItemAdd().Trigger(ctx, &model.OnAfterItemAddEvent{
 			Item: invItem,
@@ -108,7 +108,7 @@ func TestBalanceChange_Subscribe(t *testing.T) {
 		}
 
 		inv := model.RestoreInventory(model.InventoryData{Id: "trigger_item"})
-		invItem := model.RestoreInventoryItem(inv, nil)
+		invItem := model.RestoreInventoryItemWithEffects(inv, nil, nil)
 
 		err = events.OnAfterItemAdd().Trigger(ctx, &model.OnAfterItemAddEvent{
 			Item: invItem,
@@ -144,7 +144,7 @@ func TestBalanceChange_Subscribe(t *testing.T) {
 		}
 
 		inv := model.RestoreInventory(model.InventoryData{Id: "other_item"})
-		invItem := model.RestoreInventoryItem(inv, nil)
+		invItem := model.RestoreInventoryItemWithEffects(inv, nil, nil)
 
 		err = events.OnAfterItemAdd().Trigger(ctx, &model.OnAfterItemAddEvent{
 			Item: invItem,

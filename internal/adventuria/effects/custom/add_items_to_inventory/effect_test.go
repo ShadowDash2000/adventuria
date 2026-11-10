@@ -97,9 +97,9 @@ func TestAddItemsToInventory_Subscribe(t *testing.T) {
 			t.Fatalf("Subscribe failed: %v", err)
 		}
 
-		mInventories.AddItemByIDFunc = func(ctx context.Context, events *model.Events, player *model.Player, itemId string, source item_received.Source) (*model.InventoryItem, error) {
+		mInventories.AddItemByIDFunc = func(ctx context.Context, events *model.Events, player *model.Player, itemId string, source item_received.Source) (*model.InventoryItemWithEffects, error) {
 			addedItems = append(addedItems, itemId)
-			return &model.InventoryItem{}, nil
+			return &model.InventoryItemWithEffects{}, nil
 		}
 
 		err = events.OnAfterItemUse().Trigger(ctx, &model.OnAfterItemUseEvent{
@@ -131,9 +131,9 @@ func TestAddItemsToInventory_Subscribe(t *testing.T) {
 			t.Fatalf("Subscribe failed: %v", err)
 		}
 
-		mInventories.AddItemByIDFunc = func(ctx context.Context, events *model.Events, player *model.Player, itemId string, source item_received.Source) (*model.InventoryItem, error) {
+		mInventories.AddItemByIDFunc = func(ctx context.Context, events *model.Events, player *model.Player, itemId string, source item_received.Source) (*model.InventoryItemWithEffects, error) {
 			addedItemsCount++
-			return &model.InventoryItem{}, nil
+			return &model.InventoryItemWithEffects{}, nil
 		}
 
 		err = events.OnAfterItemUse().Trigger(ctx, &model.OnAfterItemUseEvent{

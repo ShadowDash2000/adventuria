@@ -7,6 +7,7 @@ import (
 	"adventuria/internal/http/debug"
 	"adventuria/internal/http/event_stats"
 	"adventuria/internal/http/game_state"
+	"adventuria/internal/http/inventory"
 	"adventuria/internal/http/response"
 	"adventuria/internal/http/update_review"
 	"adventuria/pkg/ctxlanguage"
@@ -23,6 +24,7 @@ func Route(game *adventuria.Game, registry *adventuria.Registry, router *router.
 	updateReview := update_review.NewHandler(registry.Reviews())
 	gameState := game_state.NewHandler(registry.Settings(), registry.PlayerInfo(), registry.PlayerProgress())
 	debug := debug.NewHandler(game)
+	inventory := inventory.NewHandler(registry.Settings(), registry.Inventories())
 
 	g := router.Group("/api")
 	g.BindFunc(func(e *core.RequestEvent) error {
@@ -42,6 +44,7 @@ func Route(game *adventuria.Game, registry *adventuria.Registry, router *router.
 	g.GET("/completed-activities", completedActivities.GetCompletedActivitiesByCellID)
 	g.GET("/game-state", gameState.GetGameState)
 	g.GET("/active-players", gameState.GetActivePlayers)
+	g.GET("/inventory", inventory.GetInventoryByPlayerID)
 
 	ga := g.Group("")
 	ga.Bind(apis.RequireAuth())

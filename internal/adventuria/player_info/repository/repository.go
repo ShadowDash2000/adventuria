@@ -54,6 +54,28 @@ func (r *Repository) GetAll(ctx context.Context) ([]*model.PlayerInfo, error) {
 	return RecordsToPlayerInfos(records), nil
 }
 
+func (r *Repository) GetNameByID(ctx context.Context, id string) (string, error) {
+	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
+
+	var name string
+	err := pb.DB().
+		Select(schema.PlayerSchema.Name).
+		From(schema.CollectionPlayers).
+		Where(dbx.HashExp{
+			schema.PlayerSchema.Id: id,
+		}).
+		WithContext(ctx).
+		Row(&name)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", errs.ErrPlayerNotFound
+		}
+		return "", err
+	}
+
+	return name, nil
+}
+
 func (r *Repository) IsDisabled(ctx context.Context, id string) (bool, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 

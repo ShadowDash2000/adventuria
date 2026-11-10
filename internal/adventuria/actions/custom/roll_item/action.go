@@ -15,7 +15,7 @@ type actionsService interface {
 }
 
 type inventories interface {
-	AddItemByID(ctx context.Context, events *model.Events, player *model.Player, itemId string, source item_received.Source) (*model.InventoryItem, error)
+	AddItemByID(ctx context.Context, events *model.Events, player *model.Player, itemId string, source item_received.Source) (*model.InventoryItemWithEffects, error)
 	HasEmptySlots(ctx context.Context, player *model.Player) (bool, error)
 }
 

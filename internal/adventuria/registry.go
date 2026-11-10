@@ -60,6 +60,7 @@ import (
 	reviewsRepo "adventuria/internal/adventuria/reviews/repository"
 	"adventuria/internal/adventuria/reviews_files"
 	reviewsStorageRepo "adventuria/internal/adventuria/reviews_files/repository"
+	"adventuria/internal/adventuria/scope"
 	"adventuria/internal/adventuria/seasons"
 	seasonsRepo "adventuria/internal/adventuria/seasons/repository"
 	"adventuria/internal/adventuria/settings"
@@ -169,6 +170,7 @@ type Registry struct {
 	dropResultCalculator *activities.DropResultCalculator
 	playerEvents         *player_events.PlayerEvents
 	playerInfo           *player_info.PlayerInfo
+	eventsSubscriber     *scope.EventsSubscriber
 }
 
 func NewRegistry(pb core.App, logger *slog.Logger) *Registry {
@@ -570,7 +572,15 @@ func (r *Registry) Effects() *effects.Effects {
 
 func (r *Registry) Inventories() *inventories.Inventories {
 	if r.inventories == nil {
-		r.inventories = inventories.NewInventories(r.InventoriesRepo(), r.Effects(), r.ItemsRepo(), r.PlayerEvents())
+		r.inventories = inventories.NewInventories(
+			r.InventoriesRepo(),
+			r.Effects(),
+			r.ItemsRepo(),
+			r.Players(),
+			r.PlayerInfo(),
+			r.PlayerEvents(),
+			r.EventsSubscriber(),
+		)
 	}
 	return r.inventories
 }
@@ -797,4 +807,11 @@ func (r *Registry) PlayerInfo() *player_info.PlayerInfo {
 		r.playerInfo = player_info.NewPlayerInfo(r.PlayerInfoRepo())
 	}
 	return r.playerInfo
+}
+
+func (r *Registry) EventsSubscriber() *scope.EventsSubscriber {
+	if r.eventsSubscriber == nil {
+		r.eventsSubscriber = scope.NewEventsSubscriber(r.Effects(), r.CellEventsSchedules(), r.Worlds())
+	}
+	return r.eventsSubscriber
 }

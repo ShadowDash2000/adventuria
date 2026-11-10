@@ -17,7 +17,7 @@ type items interface {
 }
 
 type inventories interface {
-	TryAddItem(ctx context.Context, events *model.Events, player *model.Player, item *model.Item, source item_received.Source) (*model.InventoryItem, error)
+	TryAddItem(ctx context.Context, events *model.Events, player *model.Player, item *model.Item, source item_received.Source) (*model.InventoryItemWithEffects, error)
 }
 
 var _ model.Action = (*Buy)(nil)
