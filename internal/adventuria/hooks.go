@@ -28,38 +28,6 @@ func (g *Game) bindHooks(ctx context.Context, pb core.App) {
 		return e.Next()
 	})
 
-	pb.OnRecordEnrich(schema.CollectionInventory).BindFunc(func(e *core.RecordEnrichEvent) error {
-		currentSeason, err := g.settings.CurrentSeason(ctx)
-		if err != nil {
-			return err
-		}
-
-		player, err := g.players.GetByID(ctx, e.Record.GetString(schema.InventorySchema.Player), currentSeason)
-		if err != nil {
-			return err
-		}
-
-		s, err := g.initScope(ctx, player)
-		if err != nil {
-			return err
-		}
-
-		canUse, err := g.inventories.CanUseItem(ctx, s.Events(), s.Player(), e.Record.Id)
-		if err != nil {
-			return err
-		}
-		canDrop, err := g.inventories.CanDropItem(ctx, player.ID(), e.Record.Id)
-		if err != nil {
-			return err
-		}
-
-		e.Record.WithCustomData(true)
-		e.Record.Set("can_use", canUse)
-		e.Record.Set("can_drop", canDrop)
-
-		return e.Next()
-	})
-
 	pb.OnRecordEnrich(schema.CollectionCells).BindFunc(func(e *core.RecordEnrichEvent) error {
 		cellEventId, err := g.cellEvents.GetIDByActiveCellID(ctx, e.Record.Id)
 		if err != nil {
