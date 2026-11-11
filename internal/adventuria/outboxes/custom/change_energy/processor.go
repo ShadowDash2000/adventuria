@@ -5,6 +5,7 @@ import (
 	"adventuria/internal/adventuria/model"
 	"adventuria/internal/adventuria/outboxes"
 	"adventuria/internal/adventuria/player_events/custom/energy_changed"
+	"adventuria/pkg/locker"
 	"context"
 	"errors"
 )
@@ -25,16 +26,18 @@ type playerEvents interface {
 const Type model.OutboxType = "change_energy"
 
 type ChangeEnergyProcessor struct {
-	progress     progress
-	actions      actions
-	playerEvents playerEvents
+	playersLocker *locker.Locker[string]
+	progress      progress
+	actions       actions
+	playerEvents  playerEvents
 }
 
-func NewDef(progress progress, actions actions, playerEvents playerEvents) outboxes.OutboxDef {
+func NewDef(playersLocker *locker.Locker[string], progress progress, actions actions, playerEvents playerEvents) outboxes.OutboxDef {
 	processor := ChangeEnergyProcessor{
-		progress:     progress,
-		actions:      actions,
-		playerEvents: playerEvents,
+		playersLocker: playersLocker,
+		progress:      progress,
+		actions:       actions,
+		playerEvents:  playerEvents,
 	}
 
 	return outboxes.NewOutbox(
@@ -51,12 +54,31 @@ func NewDef(progress progress, actions actions, playerEvents playerEvents) outbo
 }
 
 func (c *ChangeEnergyProcessor) Process(ctx context.Context, task *ChangeEnergy) error {
-	err := c.progress.ChangeEnergy(ctx, task.payload.ProgressId, *task.payload.Amount)
+	err := c.playersLocker.Lock(ctx, task.payload.PlayerId)
+	if err != nil {
+		return err
+	}
+	defer c.playersLocker.Unlock(task.payload.PlayerId)
+
+	progress, err := c.progress.GetByID(ctx, task.payload.ProgressId)
 	if err != nil {
 		return err
 	}
 
-	progress, err := c.progress.GetByID(ctx, task.payload.ProgressId)
+	if progress.Player() != task.payload.PlayerId {
+		return errors.New("change_energy: progress player mismatch")
+	}
+
+	changedAmount, err := progress.EnergyChange(*task.payload.Amount)
+	if err != nil {
+		if errors.Is(err, errs.ErrReachedEnergyLimit) {
+			return nil
+		}
+
+		return err
+	}
+
+	err = c.progress.ChangeEnergy(ctx, progress.ID(), changedAmount)
 	if err != nil {
 		return err
 	}
@@ -78,7 +100,7 @@ func (c *ChangeEnergyProcessor) Process(ctx context.Context, task *ChangeEnergy)
 			Action: actionId,
 		},
 		energy_changed.Payload{
-			Amount: new(*task.payload.Amount),
+			Amount: new(changedAmount),
 			Source: task.payload.Source,
 		},
 	)

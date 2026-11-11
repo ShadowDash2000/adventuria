@@ -30,7 +30,7 @@ type worlds interface {
 }
 
 type settings interface {
-	EnergyDefault(ctx context.Context) (int, error)
+	GetFirst(ctx context.Context) (*model.Settings, error)
 }
 
 type outboxes interface {
@@ -74,7 +74,7 @@ func (p *PlayerProgress) GetFirstOrDefault(ctx context.Context, playerId, season
 		return nil, err
 	}
 
-	energyDefault, err := p.settings.EnergyDefault(ctx)
+	settings, err := p.settings.GetFirst(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -83,8 +83,9 @@ func (p *PlayerProgress) GetFirstOrDefault(ctx context.Context, playerId, season
 		Player:            playerId,
 		Season:            seasonId,
 		CurrentWorld:      world.ID(),
-		Energy:            energyDefault,
-		MaxInventorySlots: 6,
+		Energy:            settings.EnergyDefault(),
+		MaxEnergyLimit:    settings.MaxEnergyLimitDefault(),
+		MaxInventorySlots: settings.MaxInventorySlots(),
 	})
 	if err != nil {
 		return nil, err
@@ -129,9 +130,10 @@ func (p *PlayerProgress) ChangeEnergy(ctx context.Context, id string, amount int
 	return p.notify.EnergyChangeNotify(ctx, id, amount)
 }
 
-func (p *PlayerProgress) ChangeEnergyOutbox(ctx context.Context, id string, amount int, source energy_changed.Source) (*model.OutboxInfo, error) {
+func (p *PlayerProgress) ChangeEnergyOutbox(ctx context.Context, playerId, progressId string, amount int, source energy_changed.Source) (*model.OutboxInfo, error) {
 	task, err := change_energy.New(change_energy.Payload{
-		ProgressId: id,
+		PlayerId:   playerId,
+		ProgressId: progressId,
 		Amount:     new(amount),
 		Source:     source,
 	})

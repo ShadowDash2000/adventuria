@@ -159,7 +159,7 @@ func (d *Done) recordEnergyChange(
 	action *model.ActionInfo,
 	amount int,
 ) error {
-	err := progress.EnergyChange(amount)
+	changedAmount, err := progress.EnergyChange(amount)
 	if err != nil {
 		return err
 	}
@@ -171,7 +171,7 @@ func (d *Done) recordEnergyChange(
 			Action: action.ID(),
 		},
 		energy_changed.Payload{
-			Amount: new(amount),
+			Amount: new(changedAmount),
 			Source: energy_changed.SourceActivityDone,
 		},
 	)

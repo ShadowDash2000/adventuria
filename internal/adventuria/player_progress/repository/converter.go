@@ -17,6 +17,7 @@ func PlayerProgressToRecord(playerProgress *model.PlayerProgress, record *core.R
 	record.Set(schema.PlayerProgressSchema.Points, playerProgress.Points())
 	record.Set(schema.PlayerProgressSchema.Balance, playerProgress.Balance())
 	record.Set(schema.PlayerProgressSchema.Energy, playerProgress.Energy())
+	record.Set(schema.PlayerProgressSchema.MaxEnergyLimit, playerProgress.MaxEnergyLimit())
 	record.Set(schema.PlayerProgressSchema.CellsPassed, playerProgress.CellsPassed())
 	record.Set(schema.PlayerProgressSchema.IsInJail, playerProgress.IsInJail())
 	record.Set(schema.PlayerProgressSchema.DropsInARow, playerProgress.DropsInARow())
@@ -35,6 +36,7 @@ func RecordToPlayerProgress(record *core.Record) *model.PlayerProgress {
 		Points:            record.GetInt(schema.PlayerProgressSchema.Points),
 		Balance:           record.GetInt(schema.PlayerProgressSchema.Balance),
 		Energy:            record.GetInt(schema.PlayerProgressSchema.Energy),
+		MaxEnergyLimit:    record.GetInt(schema.PlayerProgressSchema.MaxEnergyLimit),
 		CellsPassed:       record.GetInt(schema.PlayerProgressSchema.CellsPassed),
 		IsInJail:          record.GetBool(schema.PlayerProgressSchema.IsInJail),
 		DropsInARow:       record.GetInt(schema.PlayerProgressSchema.DropsInARow),

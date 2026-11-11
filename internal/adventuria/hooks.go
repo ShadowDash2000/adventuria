@@ -214,7 +214,7 @@ func (g *Game) bindHooks(ctx context.Context, pb core.App) {
 
 		energyAmount := e.Settings.EnergyPerDay() * e.DaysPassed
 		for _, p := range progresses {
-			_, err = g.playerProgress.ChangeEnergyOutbox(ctx, p.ID(), energyAmount, energy_changed.SourceDailyReward)
+			_, err = g.playerProgress.ChangeEnergyOutbox(ctx, p.Player(), p.ID(), energyAmount, energy_changed.SourceDailyReward)
 			if err != nil {
 				return err
 			}

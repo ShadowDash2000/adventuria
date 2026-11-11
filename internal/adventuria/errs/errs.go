@@ -285,4 +285,12 @@ var (
 		Message: "Nothing to update",
 		Status:  http.StatusBadRequest,
 	}
+
+	ErrReachedEnergyLimit = &AppError{
+		Code:    "reached_energy_limit",
+		Message: "Reached energy limit",
+		Translates: map[string]string{
+			"ru": "Достигнут лимит энергии",
+		},
+	}
 )

@@ -6,16 +6,16 @@ import (
 )
 
 type SettingsData struct {
-	Id                string
-	EventEnded        bool
-	CurrentSeason     string
-	CurrentDay        int
-	BlockAllActions   bool
-	EnergyDefault     int
-	EnergyPerDay      int
-	MaxInventorySlots int
-	PointsForDrop     int
-	DropsToJail       int
+	Id                    string
+	EventEnded            bool
+	CurrentSeason         string
+	CurrentDay            int
+	BlockAllActions       bool
+	EnergyDefault         int
+	MaxEnergyLimitDefault int
+	EnergyPerDay          int
+	MaxInventorySlots     int
+	DropsToJail           int
 
 	IgdbFilter IgdbFilter
 
@@ -113,6 +113,14 @@ func (s *Settings) SetEnergyDefault(energy int) {
 	s.data.EnergyDefault = energy
 }
 
+func (s *Settings) MaxEnergyLimitDefault() int {
+	return s.data.MaxEnergyLimitDefault
+}
+
+func (s *Settings) SetMaxEnergyLimitDefault(energy int) {
+	s.data.MaxEnergyLimitDefault = energy
+}
+
 func (s *Settings) EnergyPerDay() int {
 	return s.data.EnergyPerDay
 }
@@ -127,14 +135,6 @@ func (s *Settings) MaxInventorySlots() int {
 
 func (s *Settings) SetMaxInventorySlots(slots int) {
 	s.data.MaxInventorySlots = slots
-}
-
-func (s *Settings) PointsForDrop() int {
-	return s.data.PointsForDrop
-}
-
-func (s *Settings) SetPointsForDrop(points int) {
-	s.data.PointsForDrop = points
 }
 
 func (s *Settings) DropsToJail() int {

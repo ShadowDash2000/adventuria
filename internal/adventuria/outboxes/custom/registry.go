@@ -7,15 +7,17 @@ import (
 	"adventuria/internal/adventuria/outboxes/custom/change_energy"
 	"adventuria/internal/adventuria/player_events"
 	"adventuria/internal/adventuria/player_progress"
+	"adventuria/pkg/locker"
 )
 
 func RegisterOutboxes(
 	progress *player_progress.PlayerProgress,
 	actions *actions.Actions,
 	playerEvents *player_events.PlayerEvents,
+	playersLocker *locker.Locker[string],
 ) {
 	outboxes.Register(
 		change_balance.NewDef(progress),
-		change_energy.NewDef(progress, actions, playerEvents),
+		change_energy.NewDef(playersLocker, progress, actions, playerEvents),
 	)
 }

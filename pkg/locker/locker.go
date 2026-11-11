@@ -1,6 +1,10 @@
 package locker
 
-import "sync"
+import (
+	"context"
+	"sync"
+	"time"
+)
 
 type Locker[K comparable] struct {
 	m  map[K]struct{}
@@ -10,6 +14,27 @@ type Locker[K comparable] struct {
 func New[K comparable]() *Locker[K] {
 	return &Locker[K]{
 		m: make(map[K]struct{}),
+	}
+}
+
+func (l *Locker[K]) Lock(ctx context.Context, key K) error {
+	ticker := time.NewTicker(100 * time.Millisecond)
+	defer ticker.Stop()
+
+	for {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+
+		if l.TryLock(key) {
+			return nil
+		}
+
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-ticker.C:
+		}
 	}
 }
 

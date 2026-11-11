@@ -14,9 +14,9 @@ func SettingsToRecord(settings *model.Settings, record *core.Record) {
 	record.Set(schema.SettingsSchema.CurrentDay, settings.CurrentDay())
 	record.Set(schema.SettingsSchema.BlockAllActions, settings.BlockAllActions())
 	record.Set(schema.SettingsSchema.EnergyDefault, settings.EnergyDefault())
+	record.Set(schema.SettingsSchema.MaxEnergyLimitDefault, settings.MaxEnergyLimitDefault())
 	record.Set(schema.SettingsSchema.EnergyPerDay, settings.EnergyPerDay())
 	record.Set(schema.SettingsSchema.MaxInventorySlots, settings.MaxInventorySlots())
-	record.Set(schema.SettingsSchema.PointsForDrop, settings.PointsForDrop())
 	record.Set(schema.SettingsSchema.DropsToJail, settings.DropsToJail())
 	record.Set(schema.SettingsSchema.IgdbFilterGameTypes, settings.IgdbFilterGameTypes())
 	record.Set(schema.SettingsSchema.IgdbFilterPlatforms, settings.IgdbFilterPlatforms())
@@ -59,16 +59,16 @@ func recordsToGamePlatformIdsDb(records []*core.Record) []string {
 
 func RecordToSettings(record *core.Record) *model.Settings {
 	return model.RestoreSettings(model.SettingsData{
-		Id:                record.Id,
-		EventEnded:        record.GetBool(schema.SettingsSchema.EventEnded),
-		CurrentSeason:     record.GetString(schema.SettingsSchema.CurrentSeason),
-		CurrentDay:        record.GetInt(schema.SettingsSchema.CurrentDay),
-		BlockAllActions:   record.GetBool(schema.SettingsSchema.BlockAllActions),
-		EnergyDefault:     record.GetInt(schema.SettingsSchema.EnergyDefault),
-		EnergyPerDay:      record.GetInt(schema.SettingsSchema.EnergyPerDay),
-		MaxInventorySlots: record.GetInt(schema.SettingsSchema.MaxInventorySlots),
-		PointsForDrop:     record.GetInt(schema.SettingsSchema.PointsForDrop),
-		DropsToJail:       record.GetInt(schema.SettingsSchema.DropsToJail),
+		Id:                    record.Id,
+		EventEnded:            record.GetBool(schema.SettingsSchema.EventEnded),
+		CurrentSeason:         record.GetString(schema.SettingsSchema.CurrentSeason),
+		CurrentDay:            record.GetInt(schema.SettingsSchema.CurrentDay),
+		BlockAllActions:       record.GetBool(schema.SettingsSchema.BlockAllActions),
+		EnergyDefault:         record.GetInt(schema.SettingsSchema.EnergyDefault),
+		MaxEnergyLimitDefault: record.GetInt(schema.SettingsSchema.MaxEnergyLimitDefault),
+		EnergyPerDay:          record.GetInt(schema.SettingsSchema.EnergyPerDay),
+		MaxInventorySlots:     record.GetInt(schema.SettingsSchema.MaxInventorySlots),
+		DropsToJail:           record.GetInt(schema.SettingsSchema.DropsToJail),
 		IgdbFilter: model.IgdbFilter{
 			GameTypes:      recordsToGameTypeIdsDb(record.ExpandedAll(schema.SettingsSchema.IgdbFilterGameTypes)),
 			Platforms:      recordsToGamePlatformIdsDb(record.ExpandedAll(schema.SettingsSchema.IgdbFilterPlatforms)),

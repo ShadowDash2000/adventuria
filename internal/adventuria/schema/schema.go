@@ -73,6 +73,7 @@ var PlayerProgressSchema = struct {
 	Points            string
 	Balance           string
 	Energy            string
+	MaxEnergyLimit    string
 	CellsPassed       string
 	IsInJail          string
 	DropsInARow       string
@@ -90,6 +91,7 @@ var PlayerProgressSchema = struct {
 	Points:            "points",
 	Balance:           "balance",
 	Energy:            "energy",
+	MaxEnergyLimit:    "max_energy_limit",
 	CellsPassed:       "cells_passed",
 	IsInJail:          "is_in_jail",
 	DropsInARow:       "drops_in_a_row",
@@ -302,16 +304,16 @@ var CellSchema = struct {
 }
 
 var SettingsSchema = struct {
-	Id                string
-	EventEnded        string
-	CurrentSeason     string
-	CurrentDay        string
-	BlockAllActions   string
-	EnergyDefault     string
-	EnergyPerDay      string
-	MaxInventorySlots string
-	PointsForDrop     string
-	DropsToJail       string
+	Id                    string
+	EventEnded            string
+	CurrentSeason         string
+	CurrentDay            string
+	BlockAllActions       string
+	EnergyDefault         string
+	MaxEnergyLimitDefault string
+	EnergyPerDay          string
+	MaxInventorySlots     string
+	DropsToJail           string
 
 	IgdbFilterGameTypes           string
 	IgdbFilterPlatforms           string
@@ -334,9 +336,9 @@ var SettingsSchema = struct {
 	CurrentDay:                    "current_day",
 	BlockAllActions:               "block_all_actions",
 	EnergyDefault:                 "energy_default",
+	MaxEnergyLimitDefault:         "max_energy_limit_default",
 	EnergyPerDay:                  "energy_per_day",
 	MaxInventorySlots:             "max_inventory_slots",
-	PointsForDrop:                 "points_for_drop",
 	DropsToJail:                   "drops_to_jail",
 	IgdbFilterGameTypes:           "igdb_filter_game_types",
 	IgdbFilterPlatforms:           "igdb_filter_platforms",

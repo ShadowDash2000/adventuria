@@ -90,6 +90,7 @@ func (g *Game) init(ctx context.Context, pb core.App) (*Registry, error) {
 		registry.PlayerProgress(),
 		registry.Actions(),
 		registry.PlayerEvents(),
+		registry.PlayersLocker(),
 	)
 
 	customPlayerEvents.RegisterPlayerEvents()

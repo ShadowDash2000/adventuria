@@ -1,6 +1,7 @@
 package model
 
 import (
+	"adventuria/internal/adventuria/errs"
 	"errors"
 )
 
@@ -14,6 +15,7 @@ type PlayerProgressData struct {
 	Points            int
 	Balance           int
 	Energy            int
+	MaxEnergyLimit    int
 	CellsPassed       int
 	IsInJail          bool
 	DropsInARow       int
@@ -31,6 +33,7 @@ type PlayerProgressCreate struct {
 	Season            string
 	CurrentWorld      string
 	Energy            int
+	MaxEnergyLimit    int
 	MaxInventorySlots int
 }
 
@@ -44,6 +47,9 @@ func NewPlayerProgress(data PlayerProgressCreate) (*PlayerProgress, error) {
 	if data.CurrentWorld == "" {
 		return nil, errors.New("player_progress: current world is empty")
 	}
+	if data.MaxEnergyLimit < 0 {
+		return nil, errors.New("player_progress: max energy limit cannot be negative")
+	}
 	if data.MaxInventorySlots < 0 {
 		return nil, errors.New("player_progress: max inventory slots cannot be negative")
 	}
@@ -54,6 +60,7 @@ func NewPlayerProgress(data PlayerProgressCreate) (*PlayerProgress, error) {
 			Season:            data.Season,
 			CurrentWorld:      data.CurrentWorld,
 			Energy:            data.Energy,
+			MaxEnergyLimit:    data.MaxEnergyLimit,
 			MaxInventorySlots: data.MaxInventorySlots,
 		},
 		isNew: true,
@@ -139,14 +146,34 @@ func (p *PlayerProgress) Energy() int {
 	return p.data.Energy
 }
 
-func (p *PlayerProgress) EnergyChange(amount int) error {
+func (p *PlayerProgress) EnergyChange(amount int) (int, error) {
 	if amount == 0 {
-		return nil
+		return 0, nil
 	}
 
-	p.data.Energy += amount
+	if amount > 0 && p.data.Energy >= p.data.MaxEnergyLimit {
+		return 0, errs.ErrReachedEnergyLimit
+	}
 
-	return nil
+	oldEnergy := p.data.Energy
+	newEnergy := 0
+	if amount >= 0 {
+		newEnergy = min(p.data.Energy+amount, p.data.MaxEnergyLimit)
+	} else {
+		newEnergy = p.data.Energy + amount
+	}
+
+	p.data.Energy = max(newEnergy, 0)
+
+	return p.data.Energy - oldEnergy, nil
+}
+
+func (p *PlayerProgress) MaxEnergyLimit() int {
+	return p.data.MaxEnergyLimit
+}
+
+func (p *PlayerProgress) SetMaxEnergyLimit(n int) {
+	p.data.MaxEnergyLimit = n
 }
 
 func (p *PlayerProgress) CellsPassed() int {
