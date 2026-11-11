@@ -108,15 +108,15 @@ func (g *Game) DoAction(
 		return nil, err
 	}
 
-	player, err := g.players.GetByID(ctx, playerId, currentSeason)
-	if err != nil {
-		return nil, err
-	}
-
 	if ok := g.playersLocker.TryLock(playerId); !ok {
 		return nil, errs.ErrPlayerIsBusy
 	}
 	defer g.playersLocker.Unlock(playerId)
+
+	player, err := g.players.GetByID(ctx, playerId, currentSeason)
+	if err != nil {
+		return nil, err
+	}
 
 	s, err := g.initScope(ctx, player)
 	if err != nil {
@@ -151,15 +151,15 @@ func (g *Game) AddItemByID(ctx context.Context, pb core.App, playerId, itemId st
 		return err
 	}
 
-	player, err := g.players.GetByID(ctx, playerId, currentSeason)
-	if err != nil {
-		return err
-	}
-
 	if ok := g.playersLocker.TryLock(playerId); !ok {
 		return errs.ErrPlayerIsBusy
 	}
 	defer g.playersLocker.Unlock(playerId)
+
+	player, err := g.players.GetByID(ctx, playerId, currentSeason)
+	if err != nil {
+		return err
+	}
 
 	s, err := g.initScope(ctx, player)
 	if err != nil {
@@ -193,15 +193,15 @@ func (g *Game) UseItem(
 		return err
 	}
 
-	player, err := g.players.GetByID(ctx, playerId, currentSeason)
-	if err != nil {
-		return err
-	}
-
 	if ok := g.playersLocker.TryLock(playerId); !ok {
 		return errs.ErrPlayerIsBusy
 	}
 	defer g.playersLocker.Unlock(playerId)
+
+	player, err := g.players.GetByID(ctx, playerId, currentSeason)
+	if err != nil {
+		return err
+	}
 
 	s, err := g.initScope(ctx, player)
 	if err != nil {
@@ -245,15 +245,15 @@ func (g *Game) DropItem(ctx context.Context, pb core.App, playerId, itemId strin
 		return err
 	}
 
-	player, err := g.players.GetByID(ctx, playerId, currentSeason)
-	if err != nil {
-		return err
-	}
-
 	if ok := g.playersLocker.TryLock(playerId); !ok {
 		return errs.ErrPlayerIsBusy
 	}
 	defer g.playersLocker.Unlock(playerId)
+
+	player, err := g.players.GetByID(ctx, playerId, currentSeason)
+	if err != nil {
+		return err
+	}
 
 	s, err := g.initScope(ctx, player)
 	if err != nil {
@@ -290,15 +290,15 @@ func (g *Game) MoveToCellID(ctx context.Context, pb core.App, playerId, cellId s
 		return err
 	}
 
-	player, err := g.players.GetByID(ctx, playerId, currentSeason)
-	if err != nil {
-		return err
-	}
-
 	if ok := g.playersLocker.TryLock(playerId); !ok {
 		return errs.ErrPlayerIsBusy
 	}
 	defer g.playersLocker.Unlock(playerId)
+
+	player, err := g.players.GetByID(ctx, playerId, currentSeason)
+	if err != nil {
+		return err
+	}
 
 	s, err := g.initScope(ctx, player)
 	if err != nil {
