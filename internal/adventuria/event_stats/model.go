@@ -3,7 +3,7 @@ package event_stats
 import (
 	"time"
 
-	"github.com/pocketbase/pocketbase/core"
+	"ganigeorgiev.com/pocketbase/pocketbase/core"
 )
 
 type EventStatsData struct {

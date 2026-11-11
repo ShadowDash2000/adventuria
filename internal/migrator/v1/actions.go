@@ -16,8 +16,8 @@ import (
 	"net/http"
 	"net/url"
 
+	"ganigeorgiev.com/pocketbase/pocketbase/tools/types"
 	"github.com/google/go-querystring/query"
-	"github.com/pocketbase/pocketbase/tools/types"
 	"github.com/spf13/cobra"
 )
 

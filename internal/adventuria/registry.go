@@ -77,7 +77,7 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/pocketbase/pocketbase/core"
+	"ganigeorgiev.com/pocketbase/pocketbase/core"
 )
 
 type Registry struct {

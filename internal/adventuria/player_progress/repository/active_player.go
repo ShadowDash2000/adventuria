@@ -5,7 +5,7 @@ import (
 	"adventuria/internal/adventuria/schema"
 	"adventuria/pkg/pbhelper"
 
-	"github.com/pocketbase/pocketbase/tools/types"
+	"ganigeorgiev.com/pocketbase/pocketbase/tools/types"
 )
 
 type activePlayerRow struct {

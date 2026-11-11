@@ -9,7 +9,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/pocketbase/pocketbase/core"
+	"ganigeorgiev.com/pocketbase/pocketbase/core"
 )
 
 type settings interface {

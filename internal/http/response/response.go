@@ -6,7 +6,7 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/pocketbase/pocketbase/core"
+	"ganigeorgiev.com/pocketbase/pocketbase/core"
 )
 
 type result struct {

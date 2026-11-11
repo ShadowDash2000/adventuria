@@ -5,7 +5,7 @@ import (
 	"adventuria/internal/http/response"
 	"context"
 
-	"github.com/pocketbase/pocketbase/core"
+	"ganigeorgiev.com/pocketbase/pocketbase/core"
 )
 
 type game interface {

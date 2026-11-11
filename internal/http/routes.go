@@ -12,9 +12,9 @@ import (
 	"adventuria/internal/http/update_review"
 	"adventuria/pkg/ctxlanguage"
 
-	"github.com/pocketbase/pocketbase/apis"
-	"github.com/pocketbase/pocketbase/core"
-	"github.com/pocketbase/pocketbase/tools/router"
+	"ganigeorgiev.com/pocketbase/pocketbase/apis"
+	"ganigeorgiev.com/pocketbase/pocketbase/core"
+	"ganigeorgiev.com/pocketbase/pocketbase/tools/router"
 )
 
 func Route(game *adventuria.Game, registry *adventuria.Registry, router *router.Router[*core.RequestEvent]) {

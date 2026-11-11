@@ -14,7 +14,7 @@ import (
 	"adventuria/internal/adventuria/stream_tracker"
 	"context"
 
-	"github.com/pocketbase/pocketbase/core"
+	"ganigeorgiev.com/pocketbase/pocketbase/core"
 )
 
 func (g *Game) init(ctx context.Context, pb core.App) (*Registry, error) {

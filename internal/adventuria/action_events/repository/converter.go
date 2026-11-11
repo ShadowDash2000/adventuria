@@ -4,7 +4,7 @@ import (
 	"adventuria/internal/adventuria/model"
 	"adventuria/internal/adventuria/schema"
 
-	"github.com/pocketbase/pocketbase/core"
+	"ganigeorgiev.com/pocketbase/pocketbase/core"
 )
 
 func RecordToActionEvent(record *core.Record) *model.ActionEventInfo {

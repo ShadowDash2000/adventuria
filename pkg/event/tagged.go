@@ -3,7 +3,7 @@ package event
 import (
 	"context"
 
-	"github.com/pocketbase/pocketbase/tools/list"
+	"ganigeorgiev.com/pocketbase/pocketbase/tools/list"
 )
 
 type Tagger interface {

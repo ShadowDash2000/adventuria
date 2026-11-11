@@ -5,7 +5,7 @@ import (
 	"adventuria/internal/adventuria/schema"
 	"strings"
 
-	"github.com/pocketbase/pocketbase/core"
+	"ganigeorgiev.com/pocketbase/pocketbase/core"
 )
 
 func RecordToCellEventSchedule(record *core.Record) *model.CellEventSchedule {

@@ -9,7 +9,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/pocketbase/pocketbase/core"
+	"ganigeorgiev.com/pocketbase/pocketbase/core"
 )
 
 func BindHooks(pb core.App) {

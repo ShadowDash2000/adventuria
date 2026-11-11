@@ -4,7 +4,7 @@ import (
 	"adventuria/pkg/pbtransaction"
 	"context"
 
-	"github.com/pocketbase/pocketbase/core"
+	"ganigeorgiev.com/pocketbase/pocketbase/core"
 )
 
 func (g *Game) registerCrons(ctx context.Context, pb core.App, registry *Registry) {

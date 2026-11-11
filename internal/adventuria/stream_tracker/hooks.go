@@ -3,8 +3,8 @@ package stream_tracker
 import (
 	"adventuria/internal/adventuria/schema"
 
+	"ganigeorgiev.com/pocketbase/pocketbase/core"
 	streamlive "github.com/ShadowDash2000/is-stream-live"
-	"github.com/pocketbase/pocketbase/core"
 )
 
 func BindHooks(pb core.App, st *StreamTracker) {

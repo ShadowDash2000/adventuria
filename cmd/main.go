@@ -6,8 +6,8 @@ import (
 	"adventuria/pkg/ctxlanguage"
 	"log"
 
+	"ganigeorgiev.com/pocketbase/pocketbase/core"
 	"github.com/joho/godotenv"
-	"github.com/pocketbase/pocketbase/core"
 
 	_ "adventuria/migrations"
 )

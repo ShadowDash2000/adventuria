@@ -4,7 +4,7 @@ import (
 	"adventuria/internal/adventuria/model"
 	"adventuria/internal/adventuria/schema"
 
-	"github.com/pocketbase/pocketbase/core"
+	"ganigeorgiev.com/pocketbase/pocketbase/core"
 )
 
 func ActionToRecord(action *model.ActionInfo, record *core.Record) error {
