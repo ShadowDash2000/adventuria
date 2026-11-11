@@ -18,6 +18,7 @@ const (
 	CollectionActionEvents       = "action_events"
 	CollectionCellEventsSchedule = "cell_events_schedule"
 	CollectionPlayerEvents       = "player_events"
+	CollectionPlayerTasks        = "player_tasks"
 
 	CollectionActivities     = "activities"
 	CollectionCompanies      = "companies"
@@ -679,4 +680,20 @@ var PlayerEventsSchema = struct {
 	Type:    "type",
 	Action:  "action",
 	Payload: "payload",
+}
+
+var PlayerTasksSchema = struct {
+	Id        string
+	Completed string
+	Progress  string
+	Type      string
+	Trigger   string
+	Payload   string
+}{
+	Id:        "id",
+	Completed: "completed",
+	Progress:  "progress",
+	Type:      "type",
+	Trigger:   "trigger",
+	Payload:   "payload",
 }

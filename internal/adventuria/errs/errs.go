@@ -132,6 +132,10 @@ var (
 		Code:    "player_event_not_found",
 		Message: "Player event not found",
 	}
+	ErrPlayerTaskNotFound = &AppError{
+		Code:    "player_task_not_found",
+		Message: "Player task not found",
+	}
 
 	ErrReviewCommentTooLong = &AppError{
 		Code:    "review_comment_max_size",

@@ -28,6 +28,9 @@ type OutboxCreate struct {
 }
 
 func NewOutbox(data OutboxCreate) (*OutboxInfo, error) {
+	if data.Task == nil {
+		return nil, errors.New("outbox: task is empty")
+	}
 	if data.Task.Type() == "" {
 		return nil, errors.New("outbox: type is empty")
 	}

@@ -2849,7 +2849,7 @@ func init() {
 						"autogeneratePattern": "",
 						"help": "",
 						"hidden": false,
-						"id": "_clone_juBs",
+						"id": "_clone_Vsry",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -2863,7 +2863,7 @@ func init() {
 					{
 						"help": "",
 						"hidden": false,
-						"id": "_clone_GdKn",
+						"id": "_clone_sSly",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_id",
@@ -2876,7 +2876,7 @@ func init() {
 					{
 						"help": "",
 						"hidden": false,
-						"id": "_clone_rP3k",
+						"id": "_clone_B82S",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_price",
@@ -3112,7 +3112,7 @@ func init() {
 						"autogeneratePattern": "",
 						"help": "",
 						"hidden": false,
-						"id": "_clone_VEoS",
+						"id": "_clone_SPMZ",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -3126,7 +3126,7 @@ func init() {
 					{
 						"help": "",
 						"hidden": false,
-						"id": "_clone_uzRt",
+						"id": "_clone_yIDe",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_id",
@@ -3139,7 +3139,7 @@ func init() {
 					{
 						"help": "",
 						"hidden": false,
-						"id": "_clone_q08x",
+						"id": "_clone_mvGm",
 						"max": null,
 						"min": 0,
 						"name": "hltb_id",
@@ -3152,7 +3152,7 @@ func init() {
 					{
 						"help": "",
 						"hidden": false,
-						"id": "_clone_SuJp",
+						"id": "_clone_fjde",
 						"max": null,
 						"min": 0,
 						"name": "hltb_campaign_time",
@@ -3475,7 +3475,7 @@ func init() {
 						"autogeneratePattern": "",
 						"help": "",
 						"hidden": false,
-						"id": "_clone_DGLA",
+						"id": "_clone_Wsat",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -3489,7 +3489,7 @@ func init() {
 					{
 						"help": "",
 						"hidden": false,
-						"id": "_clone_wyoh",
+						"id": "_clone_mirl",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_id",
@@ -3502,7 +3502,7 @@ func init() {
 					{
 						"help": "",
 						"hidden": false,
-						"id": "_clone_XRg8",
+						"id": "_clone_C1Y8",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_price",
@@ -3546,7 +3546,7 @@ func init() {
 						"autogeneratePattern": "",
 						"help": "",
 						"hidden": false,
-						"id": "_clone_iF7R",
+						"id": "_clone_HxOZ",
 						"max": 0,
 						"min": 0,
 						"name": "name",
@@ -3560,7 +3560,7 @@ func init() {
 					{
 						"help": "",
 						"hidden": false,
-						"id": "_clone_YSL5",
+						"id": "_clone_INsP",
 						"max": null,
 						"min": 0,
 						"name": "steam_app_id",
@@ -3573,7 +3573,7 @@ func init() {
 					{
 						"help": "",
 						"hidden": false,
-						"id": "_clone_HJ2a",
+						"id": "_clone_wmTa",
 						"max": null,
 						"min": 0,
 						"name": "hltb_id",
@@ -3586,7 +3586,7 @@ func init() {
 					{
 						"help": "",
 						"hidden": false,
-						"id": "_clone_CRrh",
+						"id": "_clone_dv8X",
 						"max": null,
 						"min": 0,
 						"name": "hltb_campaign_time",
@@ -6016,6 +6016,122 @@ func init() {
 				"type": "base",
 				"updateRule": null,
 				"viewRule": ""
+			},
+			{
+				"createRule": null,
+				"deleteRule": null,
+				"fields": [
+					{
+						"autogeneratePattern": "[a-z0-9]{15}",
+						"help": "",
+						"hidden": false,
+						"id": "text3208210256",
+						"max": 15,
+						"min": 15,
+						"name": "id",
+						"pattern": "^[a-z0-9]+$",
+						"presentable": false,
+						"primaryKey": true,
+						"required": true,
+						"system": true,
+						"type": "text"
+					},
+					{
+						"hidden": false,
+						"id": "autodate2990389176",
+						"name": "created",
+						"onCreate": true,
+						"onUpdate": false,
+						"presentable": false,
+						"system": false,
+						"type": "autodate"
+					},
+					{
+						"hidden": false,
+						"id": "autodate3332085495",
+						"name": "updated",
+						"onCreate": true,
+						"onUpdate": true,
+						"presentable": false,
+						"system": false,
+						"type": "autodate"
+					},
+					{
+						"help": "",
+						"hidden": false,
+						"id": "date989355118",
+						"max": "",
+						"min": "",
+						"name": "completed",
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "date"
+					},
+					{
+						"cascadeDelete": false,
+						"collectionId": "pbc_3888373700",
+						"help": "",
+						"hidden": false,
+						"id": "relation570552902",
+						"maxSelect": 0,
+						"minSelect": 0,
+						"name": "progress",
+						"presentable": false,
+						"required": true,
+						"system": false,
+						"type": "relation"
+					},
+					{
+						"autogeneratePattern": "",
+						"help": "",
+						"hidden": false,
+						"id": "text2363381545",
+						"max": 0,
+						"min": 0,
+						"name": "type",
+						"pattern": "",
+						"presentable": false,
+						"primaryKey": false,
+						"required": true,
+						"system": false,
+						"type": "text"
+					},
+					{
+						"autogeneratePattern": "",
+						"help": "",
+						"hidden": false,
+						"id": "text443223901",
+						"max": 0,
+						"min": 0,
+						"name": "trigger",
+						"pattern": "",
+						"presentable": false,
+						"primaryKey": false,
+						"required": true,
+						"system": false,
+						"type": "text"
+					},
+					{
+						"help": "",
+						"hidden": false,
+						"id": "json1110206997",
+						"maxSize": 0,
+						"name": "payload",
+						"presentable": false,
+						"required": false,
+						"system": false,
+						"type": "json"
+					}
+				],
+				"id": "pbc_3098696407",
+				"indexes": [],
+				"listRule": null,
+				"name": "player_tasks",
+				"system": false,
+				"type": "base",
+				"updateRule": null,
+				"viewRule": null
 			}
 		]`
 
