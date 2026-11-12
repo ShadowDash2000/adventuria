@@ -6,7 +6,6 @@ import (
 	"adventuria/internal/adventuria/model"
 	"adventuria/internal/adventuria/schema"
 	"context"
-	"errors"
 	"fmt"
 
 	"ganigeorgiev.com/pocketbase/pocketbase/core"
@@ -23,22 +22,20 @@ func BindHooks(pb core.App) {
 }
 
 func verify(ctx context.Context, cellInfo *model.CellInfo) error {
-	cellValue := cellInfo.Value()
-
 	cellDef, ok := Get(cellInfo.Type())
 	if !ok {
 		return fmt.Errorf("%w: %s", errs.ErrUnknownCellType, cellInfo.Type())
 	}
 
-	cell := cellDef.new(*cellInfo)
-	cellVerifiable, ok := cell.(model.Verifiable)
-	if !ok {
-		// cellValue is JSON value so we need to check those empty values
-		if cellValue == "\"\"" || cellValue == "null" {
-			return nil
-		}
-		return errors.New("cell type is not verifiable")
+	cell, err := cellDef.new(*cellInfo)
+	if err != nil {
+		return err
 	}
 
-	return cellVerifiable.Verify(ctx, cellValue)
+	cellVerifiable, ok := cell.(model.Verifiable)
+	if ok {
+		return cellVerifiable.Verify(ctx, cellInfo.Value())
+	}
+
+	return nil
 }

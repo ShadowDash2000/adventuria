@@ -29,11 +29,11 @@ func NewDef(
 ) cells.CellDef {
 	return cells.NewCell(
 		model.CellType(activityType),
-		func(cell model.CellInfo) model.Cell {
+		func(cell model.CellInfo) (model.Cell, error) {
 			return &CellActivity{
 				CellBase: cells.NewCellBase(cell),
 				filters:  activityFilters,
-			}
+			}, nil
 		},
 		categories...,
 	)

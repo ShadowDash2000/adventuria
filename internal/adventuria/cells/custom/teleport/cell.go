@@ -26,6 +26,7 @@ const Type model.CellType = "teleport"
 
 type CellTeleport struct {
 	cells.CellBase
+	payload Payload
 	cells   cellsService
 	board   board
 	actions actionsService
@@ -39,29 +40,34 @@ func NewDef(
 ) cells.CellDef {
 	return cells.NewCell(
 		Type,
-		func(cell model.CellInfo) model.Cell {
-			return &CellTeleport{
-				CellBase: cells.NewCellBase(cell),
-				cells:    cellsService,
-				board:    boardService,
-				actions:  actions,
-			}
+		func(cell model.CellInfo) (model.Cell, error) {
+			return New(cellsService, boardService, actions, cell)
 		},
 		categories...,
 	)
 }
 
-func (c *CellTeleport) OnPlayerReached(ctx context.Context, actor *player.Actor, reached *model.ReachedContext) error {
-	decodedValue, err := c.decodeValue(c.Value())
+func New(cellsService cellsService, boardService board, actionsService actionsService, cell model.CellInfo) (*CellTeleport, error) {
+	payload, err := NewPayloadFromJSON([]byte(cell.Value()))
 	if err != nil {
-		return err
+		return nil, err
 	}
 
+	return &CellTeleport{
+		CellBase: cells.NewCellBase(cell),
+		payload:  payload,
+		cells:    cellsService,
+		board:    boardService,
+		actions:  actionsService,
+	}, nil
+}
+
+func (c *CellTeleport) OnPlayerReached(ctx context.Context, actor *player.Actor, reached *model.ReachedContext) error {
 	onBeforeTeleportOnCell := &model.OnBeforeTeleportOnCellEvent{
-		CellId:       decodedValue.CellId,
+		CellId:       c.payload.CellId,
 		SkipTeleport: false,
 	}
-	err = actor.Events().OnBeforeTeleportOnCell().Trigger(ctx, onBeforeTeleportOnCell)
+	err := actor.Events().OnBeforeTeleportOnCell().Trigger(ctx, onBeforeTeleportOnCell)
 	if err != nil {
 		return err
 	}
@@ -83,12 +89,7 @@ func (c *CellTeleport) OnPlayerReached(ctx context.Context, actor *player.Actor,
 }
 
 func (c *CellTeleport) OnActorReached(ctx context.Context, actor model.BoardActor, reached *model.ReachedContext) error {
-	decodedValue, err := c.decodeValue(c.Value())
-	if err != nil {
-		return err
-	}
-
-	moves, err := c.board.MoveToCellId(ctx, actor, decodedValue.CellId)
+	moves, err := c.board.MoveToCellId(ctx, actor, c.payload.CellId)
 	if err != nil {
 		return err
 	}

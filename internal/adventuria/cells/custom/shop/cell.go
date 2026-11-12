@@ -30,12 +30,12 @@ func NewDef(
 ) cells.CellDef {
 	return cells.NewCell(
 		cellType,
-		func(cell model.CellInfo) model.Cell {
+		func(cell model.CellInfo) (model.Cell, error) {
 			return &CellShop{
 				CellBase:  cells.NewCellBase(cell),
 				itemsType: itemsType,
 				items:     items,
-			}
+			}, nil
 		},
 		categories...,
 	)

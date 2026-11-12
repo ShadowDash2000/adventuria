@@ -48,7 +48,7 @@ func toCell(cell *model.CellInfo) (model.Cell, error) {
 	if !ok {
 		return nil, fmt.Errorf("%w: %s", errs.ErrUnknownCellType, cell.Type())
 	}
-	return cellDef.new(*cell), nil
+	return cellDef.new(*cell)
 }
 
 func (c *Cells) GetByPlayer(ctx context.Context, player *model.Player) (*model.CellInfo, error) {

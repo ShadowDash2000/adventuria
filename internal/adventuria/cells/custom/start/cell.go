@@ -19,10 +19,10 @@ type CellStart struct {
 func NewDef() cells.CellDef {
 	return cells.NewCell(
 		Type,
-		func(cell model.CellInfo) model.Cell {
+		func(cell model.CellInfo) (model.Cell, error) {
 			return &CellStart{
 				cells.NewCellBase(cell),
-			}
+			}, nil
 		},
 	)
 }

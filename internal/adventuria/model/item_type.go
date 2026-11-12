@@ -1,7 +1,5 @@
 package model
 
-import "fmt"
-
 type ItemType string
 
 var (
@@ -18,10 +16,7 @@ var itemTypes = map[ItemType]struct{}{
 	ItemTypeDev:     {},
 }
 
-func NewItemType(value string) (ItemType, error) {
-	it := ItemType(value)
-	if _, ok := itemTypes[it]; !ok {
-		return "", fmt.Errorf("unknown item type: %s", value)
-	}
-	return it, nil
+func ItemTypeExists(t ItemType) bool {
+	_, ok := itemTypes[t]
+	return ok
 }

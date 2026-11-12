@@ -31,12 +31,12 @@ func NewDef(
 ) cells.CellDef {
 	return cells.NewCell(
 		Type,
-		func(cell model.CellInfo) model.Cell {
+		func(cell model.CellInfo) (model.Cell, error) {
 			return &CellJail{
 				CellBase:     cells.NewCellBase(cell),
 				activityType: model.ActivityTypeGame,
 				filters:      activityFilters,
-			}
+			}, nil
 		},
 		categories...,
 	)

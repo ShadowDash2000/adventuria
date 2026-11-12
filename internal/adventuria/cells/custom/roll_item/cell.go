@@ -9,7 +9,7 @@ import (
 	"errors"
 )
 
-type items interface {
+type itemsService interface {
 	GetAllRollableByType(ctx context.Context, t model.ItemType) ([]*model.Item, error)
 }
 
@@ -20,23 +20,34 @@ const Type model.CellType = "roll_item"
 
 type CellRollItem struct {
 	cells.CellBase
-	items items
+	payload Payload
+	items   itemsService
 }
 
 func NewDef(
-	items items,
+	itemsService itemsService,
 	categories ...string,
 ) cells.CellDef {
 	return cells.NewCell(
 		Type,
-		func(cell model.CellInfo) model.Cell {
-			return &CellRollItem{
-				CellBase: cells.NewCellBase(cell),
-				items:    items,
-			}
+		func(cell model.CellInfo) (model.Cell, error) {
+			return New(itemsService, cell)
 		},
 		categories...,
 	)
+}
+
+func New(itemsService itemsService, cell model.CellInfo) (*CellRollItem, error) {
+	payload, err := NewPayloadFromJSON([]byte(cell.Value()))
+	if err != nil {
+		return nil, err
+	}
+
+	return &CellRollItem{
+		CellBase: cells.NewCellBase(cell),
+		payload:  payload,
+		items:    itemsService,
+	}, nil
 }
 
 func (c *CellRollItem) Roll(_ context.Context, _ *model.Events, player *model.Player) (*model.WheelRollResult, error) {
@@ -56,12 +67,7 @@ func (c *CellRollItem) OnPlayerReached(ctx context.Context, actor *player.Actor,
 }
 
 func (c *CellRollItem) refreshItems(ctx context.Context, player *model.Player) error {
-	decodedValue, err := c.decodeValue(c.Value())
-	if err != nil {
-		return err
-	}
-
-	items, err := c.items.GetAllRollableByType(ctx, model.ItemType(decodedValue.ItemType))
+	items, err := c.items.GetAllRollableByType(ctx, model.ItemType(c.payload.ItemsType))
 	if err != nil {
 		return err
 	}

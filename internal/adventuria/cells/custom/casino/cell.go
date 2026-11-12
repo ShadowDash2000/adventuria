@@ -7,7 +7,7 @@ import (
 	"context"
 )
 
-type items interface {
+type itemsService interface {
 	GetByIDs(ctx context.Context, ids []string) ([]*model.Item, error)
 }
 
@@ -17,23 +17,34 @@ const Type model.CellType = "casino"
 
 type CellCasino struct {
 	cells.CellBase
-	items items
+	payload Payload
+	items   itemsService
 }
 
 func NewDef(
-	items items,
+	itemsService itemsService,
 	categories ...string,
 ) cells.CellDef {
 	return cells.NewCell(
 		Type,
-		func(cell model.CellInfo) model.Cell {
-			return &CellCasino{
-				CellBase: cells.NewCellBase(cell),
-				items:    items,
-			}
+		func(cell model.CellInfo) (model.Cell, error) {
+			return New(itemsService, cell)
 		},
 		categories...,
 	)
+}
+
+func New(itemsService itemsService, cell model.CellInfo) (*CellCasino, error) {
+	payload, err := NewPayloadFromJSON([]byte(cell.Value()))
+	if err != nil {
+		return nil, err
+	}
+
+	return &CellCasino{
+		CellBase: cells.NewCellBase(cell),
+		payload:  payload,
+		items:    itemsService,
+	}, nil
 }
 
 func (c *CellCasino) OnPlayerReached(_ context.Context, actor *player.Actor, _ *model.ReachedContext) error {
@@ -44,19 +55,14 @@ func (c *CellCasino) OnPlayerReached(_ context.Context, actor *player.Actor, _ *
 
 	actor.Player().Progress().SetCanMove(true)
 
-	decodedValue, err := c.decodeValue(c.Value())
-	if err != nil {
-		return err
-	}
-
 	actionState := actor.Player().LastAction().State()
 	actionState.ShopFilter = &model.ActionShopFilterState{
-		Ids: decodedValue.ItemIds,
+		Ids: c.payload.ItemIds,
 	}
 	actionState.Shop, err = model.NewShopState(model.ActionShopStateCreate{
 		Type:            model.ShopTypeCasino,
-		Ids:             decodedValue.ItemIds,
-		PriceMultiplier: decodedValue.PriceMultiplier,
+		Ids:             c.payload.ItemIds,
+		PriceMultiplier: c.payload.PriceMultiplier,
 	})
 	if err != nil {
 		return err
