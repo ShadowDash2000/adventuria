@@ -27,7 +27,7 @@ func NewDef(
 ) cells.CellDef {
 	return cells.NewCell(
 		Type,
-		func(cell model.CellInfo) (model.Cell, error) {
+		func(cell model.CellInfo) (cells.Cell, error) {
 			return New(itemsService, cell)
 		},
 		categories...,
@@ -47,7 +47,7 @@ func New(itemsService itemsService, cell model.CellInfo) (*CellCasino, error) {
 	}, nil
 }
 
-func (c *CellCasino) OnPlayerReached(_ context.Context, actor *player.Actor, _ *model.ReachedContext) error {
+func (c *CellCasino) OnPlayerReached(_ context.Context, actor *player.Actor, _ *cells.ReachedContext) error {
 	err := actor.Player().Progress().ItemWheelsCountChange(1)
 	if err != nil {
 		return err

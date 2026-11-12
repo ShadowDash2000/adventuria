@@ -2,6 +2,7 @@ package teleport_to_closest_cell_by_type
 
 import (
 	"adventuria/internal/adventuria/actions"
+	"adventuria/internal/adventuria/board/actors"
 	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/effects"
 	"adventuria/internal/adventuria/model"
@@ -14,8 +15,8 @@ type actionsService interface {
 	HasActionsInCategories(ctx context.Context, actor *player.Actor, categories []string) bool
 }
 
-type board interface {
-	MoveToClosestCellType(ctx context.Context, actor model.BoardActor, cellType model.CellType) ([]*model.MoveResult, error)
+type boardService interface {
+	MoveToClosestCellType(ctx context.Context, actor actors.Actor, cellType model.CellType) ([]*model.MoveResult, error)
 }
 
 var _ effects.Effect = (*TeleportToClosestCellByType)(nil)
@@ -25,10 +26,10 @@ const Type model.EffectType = "teleport_to_closest_cell_by_type"
 type TeleportToClosestCellByType struct {
 	effects.EffectBase
 	actions actionsService
-	board   board
+	board   boardService
 }
 
-func NewDef(actions actionsService, board board) effects.EffectDef {
+func NewDef(actions actionsService, board boardService) effects.EffectDef {
 	return effects.NewEffectDef(
 		Type,
 		func(effect model.EffectInfo) effects.Effect {

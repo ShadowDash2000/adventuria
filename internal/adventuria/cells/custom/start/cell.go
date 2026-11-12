@@ -7,7 +7,7 @@ import (
 	"context"
 )
 
-var _ model.Cell = (*CellStart)(nil)
+var _ cells.Cell = (*CellStart)(nil)
 var _ player.CellReached = (*CellStart)(nil)
 
 const Type model.CellType = "start"
@@ -19,7 +19,7 @@ type CellStart struct {
 func NewDef() cells.CellDef {
 	return cells.NewCell(
 		Type,
-		func(cell model.CellInfo) (model.Cell, error) {
+		func(cell model.CellInfo) (cells.Cell, error) {
 			return &CellStart{
 				cells.NewCellBase(cell),
 			}, nil
@@ -27,7 +27,7 @@ func NewDef() cells.CellDef {
 	)
 }
 
-func (c *CellStart) OnPlayerReached(_ context.Context, actor *player.Actor, _ *model.ReachedContext) error {
+func (c *CellStart) OnPlayerReached(_ context.Context, actor *player.Actor, _ *cells.ReachedContext) error {
 	actor.Player().Progress().SetCanMove(true)
 	return nil
 }

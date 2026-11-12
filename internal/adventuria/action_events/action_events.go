@@ -21,7 +21,7 @@ func NewActionEvents(repository repository) *ActionEvents {
 	return &ActionEvents{repository: repository}
 }
 
-func toActionEvent(actionEventInfo *model.ActionEventInfo) (model.ActionEvent, error) {
+func toActionEvent(actionEventInfo *model.ActionEventInfo) (ActionEvent, error) {
 	return Create(*actionEventInfo)
 }
 
@@ -52,7 +52,7 @@ func (a *ActionEvents) GetByID(ctx context.Context, id string) (*model.ActionEve
 	return a.repository.GetByID(ctx, id)
 }
 
-func (a *ActionEvents) GetByIDWrapped(ctx context.Context, id string) (model.ActionEvent, error) {
+func (a *ActionEvents) GetByIDWrapped(ctx context.Context, id string) (ActionEvent, error) {
 	actionEventInfo, err := a.GetByID(ctx, id)
 	if err != nil {
 		return nil, err

@@ -3,14 +3,15 @@ package roll_wheel
 import (
 	"adventuria/internal/adventuria/actions"
 	"adventuria/internal/adventuria/board/actors/player"
+	"adventuria/internal/adventuria/cells"
 	"adventuria/internal/adventuria/model"
 	"context"
 	"errors"
 )
 
-type cells interface {
+type cellsService interface {
 	GetByPlayer(ctx context.Context, player *model.Player) (*model.CellInfo, error)
-	GetByPlayerWrapped(ctx context.Context, player *model.Player) (model.Cell, error)
+	GetByPlayerWrapped(ctx context.Context, player *model.Player) (cells.Cell, error)
 }
 
 type activities interface {
@@ -23,11 +24,11 @@ const Type model.ActionType = "roll_wheel"
 
 type RollWheel struct {
 	actions.ActionBase
-	cells      cells
+	cells      cellsService
 	activities activities
 }
 
-func NewDef(cells cells, activities activities) actions.ActionDef {
+func NewDef(cells cellsService, activities activities) actions.ActionDef {
 	return actions.NewAction(
 		Type,
 		func() actions.Action {
@@ -50,7 +51,7 @@ func (r *RollWheel) Do(ctx context.Context, actor *player.Actor, _ actions.Reque
 		return nil, err
 	}
 
-	cellRollable, ok := currentCell.(model.Rollable)
+	cellRollable, ok := currentCell.(cells.Rollable)
 	if !ok {
 		return nil, errors.New("current cell is not rollable")
 	}

@@ -2,6 +2,7 @@ package roll_dice
 
 import (
 	"adventuria/internal/adventuria/actions"
+	"adventuria/internal/adventuria/board/actors"
 	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/model"
 	"context"
@@ -12,8 +13,8 @@ type actionsService interface {
 	Save(ctx context.Context, action *model.ActionInfo) (*model.ActionInfo, error)
 }
 
-type board interface {
-	Move(ctx context.Context, actor model.BoardActor, steps int, moveType model.MoveType) ([]*model.MoveResult, error)
+type boardService interface {
+	Move(ctx context.Context, actor actors.Actor, steps int, moveType model.MoveType) ([]*model.MoveResult, error)
 }
 
 var _ actions.Action = (*RollDice)(nil)
@@ -23,10 +24,10 @@ const Type model.ActionType = "roll_dice"
 type RollDice struct {
 	actions.ActionBase
 	actions actionsService
-	board   board
+	board   boardService
 }
 
-func NewDef(actionsService actionsService, board board) actions.ActionDef {
+func NewDef(actionsService actionsService, board boardService) actions.ActionDef {
 	return actions.NewAction(
 		Type,
 		func() actions.Action {

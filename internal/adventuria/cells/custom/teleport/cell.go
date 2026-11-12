@@ -1,6 +1,7 @@
 package teleport
 
 import (
+	"adventuria/internal/adventuria/board/actors"
 	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/cells"
 	"adventuria/internal/adventuria/model"
@@ -11,15 +12,15 @@ type cellsService interface {
 	GetByID(ctx context.Context, id string) (*model.CellInfo, error)
 }
 
-type board interface {
-	MoveToCellId(ctx context.Context, actor model.BoardActor, cellId string) ([]*model.MoveResult, error)
+type boardService interface {
+	MoveToCellId(ctx context.Context, actor actors.Actor, cellId string) ([]*model.MoveResult, error)
 }
 
 type actionsService interface {
 	Save(ctx context.Context, action *model.ActionInfo) (*model.ActionInfo, error)
 }
 
-var _ model.ActorCellReached = (*CellTeleport)(nil)
+var _ actors.ActorCellReached = (*CellTeleport)(nil)
 var _ player.CellReached = (*CellTeleport)(nil)
 
 const Type model.CellType = "teleport"
@@ -28,26 +29,26 @@ type CellTeleport struct {
 	cells.CellBase
 	payload Payload
 	cells   cellsService
-	board   board
+	board   boardService
 	actions actionsService
 }
 
 func NewDef(
 	cellsService cellsService,
-	boardService board,
+	boardService boardService,
 	actions actionsService,
 	categories ...string,
 ) cells.CellDef {
 	return cells.NewCell(
 		Type,
-		func(cell model.CellInfo) (model.Cell, error) {
+		func(cell model.CellInfo) (cells.Cell, error) {
 			return New(cellsService, boardService, actions, cell)
 		},
 		categories...,
 	)
 }
 
-func New(cellsService cellsService, boardService board, actionsService actionsService, cell model.CellInfo) (*CellTeleport, error) {
+func New(cellsService cellsService, boardService boardService, actionsService actionsService, cell model.CellInfo) (*CellTeleport, error) {
 	payload, err := NewPayloadFromJSON([]byte(cell.Value()))
 	if err != nil {
 		return nil, err
@@ -62,7 +63,7 @@ func New(cellsService cellsService, boardService board, actionsService actionsSe
 	}, nil
 }
 
-func (c *CellTeleport) OnPlayerReached(ctx context.Context, actor *player.Actor, reached *model.ReachedContext) error {
+func (c *CellTeleport) OnPlayerReached(ctx context.Context, actor *player.Actor, reached *cells.ReachedContext) error {
 	onBeforeTeleportOnCell := &model.OnBeforeTeleportOnCellEvent{
 		CellId:       c.payload.CellId,
 		SkipTeleport: false,
@@ -88,7 +89,7 @@ func (c *CellTeleport) OnPlayerReached(ctx context.Context, actor *player.Actor,
 	return c.OnActorReached(ctx, actor, reached)
 }
 
-func (c *CellTeleport) OnActorReached(ctx context.Context, actor model.BoardActor, reached *model.ReachedContext) error {
+func (c *CellTeleport) OnActorReached(ctx context.Context, actor actors.Actor, reached *cells.ReachedContext) error {
 	moves, err := c.board.MoveToCellId(ctx, actor, c.payload.CellId)
 	if err != nil {
 		return err

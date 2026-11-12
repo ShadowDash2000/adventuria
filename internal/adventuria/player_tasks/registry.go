@@ -11,7 +11,7 @@ type PlayerTaskDef struct {
 
 type SubscribablePlayerTaskDef struct {
 	PlayerTaskDef
-	model.PlayerTaskSubscriber
+	PlayerTaskSubscriber
 }
 
 func (p *PlayerTaskDef) NewFromJSON(payload string) (model.PlayerTask, error) {
@@ -62,7 +62,7 @@ func NewPlayerTask(t model.PlayerTaskType, c PlayerTaskCreator) PlayerTaskDef {
 	}
 }
 
-func NewSubscribablePlayerTask(t model.PlayerTaskType, c PlayerTaskCreator, subscriber model.PlayerTaskSubscriber) SubscribablePlayerTaskDef {
+func NewSubscribablePlayerTask(t model.PlayerTaskType, c PlayerTaskCreator, subscriber PlayerTaskSubscriber) SubscribablePlayerTaskDef {
 	return SubscribablePlayerTaskDef{
 		PlayerTaskDef:        NewPlayerTask(t, c),
 		PlayerTaskSubscriber: subscriber,

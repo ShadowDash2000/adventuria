@@ -87,11 +87,6 @@ func (r *Reroll) CanDo(ctx context.Context, actor *player.Actor) bool {
 	return true
 }
 
-type Request struct {
-	Comment string  `json:"comment"`
-	Score   float64 `json:"score"`
-}
-
 func (r *Reroll) Do(ctx context.Context, actor *player.Actor, actionReq actions.Request) (any, error) {
 	req, ok := actionReq.(Request)
 	if !ok {

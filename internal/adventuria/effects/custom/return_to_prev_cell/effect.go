@@ -2,6 +2,7 @@ package return_to_prev_cell
 
 import (
 	"adventuria/internal/adventuria/actions"
+	"adventuria/internal/adventuria/board/actors"
 	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/effects"
 	"adventuria/internal/adventuria/model"
@@ -15,8 +16,8 @@ type actionsService interface {
 	GetByID(ctx context.Context, id string) (*model.ActionInfo, error)
 }
 
-type board interface {
-	Move(ctx context.Context, actor model.BoardActor, steps int, moveType model.MoveType) ([]*model.MoveResult, error)
+type boardService interface {
+	Move(ctx context.Context, actor actors.Actor, steps int, moveType model.MoveType) ([]*model.MoveResult, error)
 }
 
 var _ effects.Effect = (*ReturnToPrevCell)(nil)
@@ -26,10 +27,10 @@ const Type model.EffectType = "return_to_prev_cell"
 type ReturnToPrevCell struct {
 	effects.EffectBase
 	actions actionsService
-	board   board
+	board   boardService
 }
 
-func NewDef(actions actionsService, board board) effects.EffectDef {
+func NewDef(actions actionsService, board boardService) effects.EffectDef {
 	return effects.NewEffectDef(
 		Type,
 		func(effect model.EffectInfo) effects.Effect {

@@ -1,6 +1,7 @@
 package cell_events_schedules
 
 import (
+	"adventuria/internal/adventuria/action_events"
 	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/effects"
 	"adventuria/internal/adventuria/errs"
@@ -32,7 +33,7 @@ type effectsService interface {
 }
 
 type actionEvents interface {
-	GetByIDWrapped(ctx context.Context, id string) (model.ActionEvent, error)
+	GetByIDWrapped(ctx context.Context, id string) (action_events.ActionEvent, error)
 	ListenToActionEvents(actor *player.Actor) error
 }
 

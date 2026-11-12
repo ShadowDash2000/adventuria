@@ -1,12 +1,12 @@
 package player
 
 import (
-	"adventuria/internal/adventuria/model"
+	"adventuria/internal/adventuria/cells"
 	"context"
 )
 
 type CellReached interface {
-	OnPlayerReached(ctx context.Context, actor *Actor, reached *model.ReachedContext) error
+	OnPlayerReached(ctx context.Context, actor *Actor, reached *cells.ReachedContext) error
 }
 
 type CellLeft interface {

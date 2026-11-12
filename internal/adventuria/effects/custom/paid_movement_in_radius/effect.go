@@ -2,6 +2,7 @@ package paid_movement_in_radius
 
 import (
 	"adventuria/internal/adventuria/actions"
+	"adventuria/internal/adventuria/board/actors"
 	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/cells"
 	"adventuria/internal/adventuria/effects"
@@ -22,9 +23,9 @@ type cellsService interface {
 	CountLocal(ctx context.Context, worldId string) (int, error)
 }
 
-type board interface {
+type boardService interface {
 	GetLocalDistanceBetweenCells(cell1, cell2 *model.CellInfo) (int, error)
-	MoveToCellId(ctx context.Context, actor model.BoardActor, cellId string) ([]*model.MoveResult, error)
+	MoveToCellId(ctx context.Context, actor actors.Actor, cellId string) ([]*model.MoveResult, error)
 }
 
 var _ effects.Effect = (*PaidMovementInRadius)(nil)
@@ -35,10 +36,10 @@ type PaidMovementInRadius struct {
 	effects.EffectBase
 	actions actionsService
 	cells   cellsService
-	board   board
+	board   boardService
 }
 
-func NewDef(actions actionsService, cells cellsService, board board) effects.EffectDef {
+func NewDef(actions actionsService, cells cellsService, board boardService) effects.EffectDef {
 	return effects.NewEffectDef(
 		Type,
 		func(effect model.EffectInfo) effects.Effect {

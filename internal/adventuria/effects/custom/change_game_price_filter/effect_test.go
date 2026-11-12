@@ -219,7 +219,7 @@ func TestChangeGamePriceFilter_Subscribe(t *testing.T) {
 				CellInfo: model.RestoreCellInfo(model.CellData{Type: cells.CellTypeGame}),
 			},
 		}
-		mCells.GetByPlayerWrappedFunc = func(ctx context.Context, player *model.Player) (model.Cell, error) {
+		mCells.GetByPlayerWrappedFunc = func(ctx context.Context, player *model.Player) (cells.Cell, error) {
 			return mCell, nil
 		}
 
@@ -262,7 +262,7 @@ func TestChangeGamePriceFilter_Subscribe(t *testing.T) {
 				CellInfo: model.RestoreCellInfo(model.CellData{Type: cells.CellTypeGame}),
 			},
 		}
-		mCells.GetByPlayerWrappedFunc = func(ctx context.Context, player *model.Player) (model.Cell, error) {
+		mCells.GetByPlayerWrappedFunc = func(ctx context.Context, player *model.Player) (cells.Cell, error) {
 			return mCell, nil
 		}
 		mCells.GetByPlayerFunc = func(ctx context.Context, player *model.Player) (*model.CellInfo, error) {

@@ -30,7 +30,7 @@ func NewDef(
 ) cells.CellDef {
 	return cells.NewCell(
 		cellType,
-		func(cell model.CellInfo) (model.Cell, error) {
+		func(cell model.CellInfo) (cells.Cell, error) {
 			return &CellShop{
 				CellBase:  cells.NewCellBase(cell),
 				itemsType: itemsType,
@@ -41,7 +41,7 @@ func NewDef(
 	)
 }
 
-func (c *CellShop) OnPlayerReached(ctx context.Context, actor *player.Actor, _ *model.ReachedContext) error {
+func (c *CellShop) OnPlayerReached(ctx context.Context, actor *player.Actor, _ *cells.ReachedContext) error {
 	actor.Player().Progress().SetCanMove(true)
 
 	ids, err := c.items.GetAllBuyableIDsByType(ctx, c.itemsType)

@@ -2,6 +2,7 @@ package drop
 
 import (
 	"adventuria/internal/adventuria/actions"
+	"adventuria/internal/adventuria/board/actors"
 	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/model"
 	"adventuria/internal/adventuria/reviews"
@@ -33,8 +34,8 @@ type settings interface {
 	GetFirst(ctx context.Context) (*model.Settings, error)
 }
 
-type board interface {
-	MoveToClosestCellType(ctx context.Context, actor model.BoardActor, cellType model.CellType) ([]*model.MoveResult, error)
+type boardService interface {
+	MoveToClosestCellType(ctx context.Context, actor actors.Actor, cellType model.CellType) ([]*model.MoveResult, error)
 }
 
 var _ actions.Action = (*Drop)(nil)
@@ -49,7 +50,7 @@ type Drop struct {
 	reviews              reviewsService
 	players              players
 	settings             settings
-	board                board
+	board                boardService
 }
 
 func NewDef(
@@ -59,7 +60,7 @@ func NewDef(
 	reviews reviewsService,
 	players players,
 	settings settings,
-	board board,
+	board boardService,
 ) actions.ActionDef {
 	return actions.NewAction(
 		Type,
@@ -98,11 +99,6 @@ func (d *Drop) CanDo(ctx context.Context, actor *player.Actor) bool {
 	}
 
 	return true
-}
-
-type Request struct {
-	Comment string  `json:"comment"`
-	Score   float64 `json:"score"`
 }
 
 func (d *Drop) Do(ctx context.Context, actor *player.Actor, actionReq actions.Request) (any, error) {

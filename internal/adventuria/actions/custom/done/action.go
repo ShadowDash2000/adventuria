@@ -91,11 +91,6 @@ func (d *Done) CanDo(ctx context.Context, actor *player.Actor) bool {
 	return activityResult.EnergyConsume() <= actor.Player().Progress().Energy()
 }
 
-type Request struct {
-	Comment string  `json:"comment"`
-	Score   float64 `json:"score"`
-}
-
 func (d *Done) Do(ctx context.Context, actor *player.Actor, actionReq actions.Request) (any, error) {
 	req, ok := actionReq.(Request)
 	if !ok {

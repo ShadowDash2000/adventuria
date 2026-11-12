@@ -10,7 +10,7 @@ type ActionEventDef struct {
 	new ActionEventCreator
 }
 
-type ActionEventCreator func(actionEventInfo model.ActionEventInfo) model.ActionEvent
+type ActionEventCreator func(actionEventInfo model.ActionEventInfo) ActionEvent
 
 var registry = &Registry{actionEvents: map[model.ActionEventType]ActionEventDef{}}
 
@@ -44,7 +44,7 @@ func Get(t model.ActionEventType) (ActionEventDef, bool) {
 	return registry.Get(t)
 }
 
-func Create(actionEventInfo model.ActionEventInfo) (model.ActionEvent, error) {
+func Create(actionEventInfo model.ActionEventInfo) (ActionEvent, error) {
 	actionEventDef, ok := Get(actionEventInfo.Type())
 	if !ok {
 		return nil, fmt.Errorf("action event type %s not registered", actionEventInfo.Type())

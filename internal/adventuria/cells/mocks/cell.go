@@ -1,6 +1,7 @@
 package mocks
 
 import (
+	"adventuria/internal/adventuria/cells"
 	"adventuria/internal/adventuria/model"
 	"adventuria/pkg/helper"
 	"context"
@@ -28,7 +29,7 @@ func (c *Cell) InCategories(categories []string) bool {
 	return helper.SliceContainsAll(c.Categories(), categories)
 }
 
-func (c *Cell) OnCellReached(context.Context, *model.Events, *model.Player, *model.ReachedContext) error {
+func (c *Cell) OnCellReached(context.Context, *model.Events, *model.Player, *cells.ReachedContext) error {
 	return nil
 }
 

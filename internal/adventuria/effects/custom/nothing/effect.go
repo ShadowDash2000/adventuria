@@ -2,6 +2,7 @@ package nothing
 
 import (
 	"adventuria/internal/adventuria/board/actors/player"
+	"adventuria/internal/adventuria/cells"
 	"adventuria/internal/adventuria/effects"
 	"adventuria/internal/adventuria/model"
 	"adventuria/pkg/event"
@@ -9,7 +10,7 @@ import (
 )
 
 type cellsService interface {
-	GetByPlayerWrapped(ctx context.Context, player *model.Player) (model.Cell, error)
+	GetByPlayerWrapped(ctx context.Context, player *model.Player) (cells.Cell, error)
 }
 
 var _ effects.Effect = (*Nothing)(nil)

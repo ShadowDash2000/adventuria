@@ -14,7 +14,7 @@ type filters interface {
 	GetByID(ctx context.Context, id string) (*model.ActivityFilterInfo, error)
 }
 
-var _ model.Rollable = (*CellActivity)(nil)
+var _ cells.Rollable = (*CellActivity)(nil)
 var _ player.CellReached = (*CellActivity)(nil)
 
 type CellActivity struct {
@@ -29,7 +29,7 @@ func NewDef(
 ) cells.CellDef {
 	return cells.NewCell(
 		model.CellType(activityType),
-		func(cell model.CellInfo) (model.Cell, error) {
+		func(cell model.CellInfo) (cells.Cell, error) {
 			return &CellActivity{
 				CellBase: cells.NewCellBase(cell),
 				filters:  activityFilters,
@@ -55,7 +55,7 @@ func (c *CellActivity) Roll(_ context.Context, _ *model.Events, player *model.Pl
 	}, nil
 }
 
-func (c *CellActivity) OnPlayerReached(ctx context.Context, actor *player.Actor, _ *model.ReachedContext) error {
+func (c *CellActivity) OnPlayerReached(ctx context.Context, actor *player.Actor, _ *cells.ReachedContext) error {
 	filter, err := c.filters.GetByID(ctx, c.Filter())
 	if err != nil {
 		return err

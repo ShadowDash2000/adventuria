@@ -1,16 +1,6 @@
 package model
 
-import (
-	"context"
-)
-
 type ActionEventType string
-
-type ActionEvent interface {
-	Data() *ActionEventInfo
-	Init(ctx context.Context, player *Player) error
-	Dispose(ctx context.Context, player *Player) error
-}
 
 type ActionEventData struct {
 	Id    string

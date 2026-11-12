@@ -6,32 +6,8 @@ import (
 
 type CellType string
 
-type Cell interface {
-	Data() *CellInfo
-	Categories() []string
-	InCategory(category string) bool
-	InCategories(categories []string) bool
-}
-
-type ActorCellReached interface {
-	OnActorReached(ctx context.Context, actor BoardActor, reached *ReachedContext) error
-}
-
-type ActorCellLeft interface {
-	OnActorLeft(ctx context.Context, actor BoardActor) error
-}
-
-type ReachedContext struct {
-	Moves []*MoveResult
-}
-
 type Verifiable interface {
 	Verify(ctx context.Context, value string) error
-}
-
-type Rollable interface {
-	Cell
-	Roll(ctx context.Context, events *Events, player *Player) (*WheelRollResult, error)
 }
 
 type CellData struct {

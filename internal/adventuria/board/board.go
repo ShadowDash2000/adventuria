@@ -1,6 +1,8 @@
 package board
 
 import (
+	"adventuria/internal/adventuria/board/actors"
+	"adventuria/internal/adventuria/cells"
 	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
 	"adventuria/pkg/mathhelper"
@@ -10,8 +12,8 @@ import (
 
 type cellsService interface {
 	GetByID(ctx context.Context, id string) (*model.CellInfo, error)
-	GetByIDWrapped(ctx context.Context, id string) (model.Cell, error)
-	GetByLocalOrderWrapped(ctx context.Context, worldId string, order int) (model.Cell, error)
+	GetByIDWrapped(ctx context.Context, id string) (cells.Cell, error)
+	GetByLocalOrderWrapped(ctx context.Context, worldId string, order int) (cells.Cell, error)
 	GetByGlobalOrder(ctx context.Context, order int) (*model.CellInfo, error)
 	GetAllGlobalByType(ctx context.Context, t model.CellType) ([]*model.CellInfo, error)
 	CountLocal(ctx context.Context, worldId string) (int, error)
@@ -45,7 +47,7 @@ func isMovementStarted(ctx context.Context) bool {
 	return ok
 }
 
-func (b *Board) Move(ctx context.Context, actor model.BoardActor, steps int, moveType model.MoveType) ([]*model.MoveResult, error) {
+func (b *Board) Move(ctx context.Context, actor actors.Actor, steps int, moveType model.MoveType) ([]*model.MoveResult, error) {
 	if isMovementStarted(ctx) {
 		return b.move(ctx, actor, steps, moveType)
 	}
@@ -64,7 +66,7 @@ func (b *Board) Move(ctx context.Context, actor model.BoardActor, steps int, mov
 	return moves, nil
 }
 
-func (b *Board) move(ctx context.Context, actor model.BoardActor, steps int, moveType model.MoveType) ([]*model.MoveResult, error) {
+func (b *Board) move(ctx context.Context, actor actors.Actor, steps int, moveType model.MoveType) ([]*model.MoveResult, error) {
 	prevCell, err := b.cells.GetByIDWrapped(ctx, actor.Position().CellId)
 	if err != nil {
 		return nil, err
@@ -133,7 +135,7 @@ func (b *Board) move(ctx context.Context, actor model.BoardActor, steps int, mov
 		return nil, err
 	}
 
-	cellReachedCtx := model.ReachedContext{
+	cellReachedCtx := cells.ReachedContext{
 		Moves: []*model.MoveResult{move},
 	}
 	err = actor.ReachCell(ctx, currentCell, &cellReachedCtx)
@@ -149,7 +151,7 @@ func (b *Board) move(ctx context.Context, actor model.BoardActor, steps int, mov
 	return cellReachedCtx.Moves, nil
 }
 
-func (b *Board) MoveToCell(ctx context.Context, actor model.BoardActor, cell *model.CellInfo) ([]*model.MoveResult, error) {
+func (b *Board) MoveToCell(ctx context.Context, actor actors.Actor, cell *model.CellInfo) ([]*model.MoveResult, error) {
 	if cell.Disabled() {
 		return nil, errs.ErrCellIsDisabled
 	}
@@ -173,7 +175,7 @@ func (b *Board) MoveToCell(ctx context.Context, actor model.BoardActor, cell *mo
 	return b.Move(ctx, actor, cell.LocalOrder()-currentCellOrder, model.MoveTypeTeleport)
 }
 
-func (b *Board) MoveToCellId(ctx context.Context, actor model.BoardActor, cellId string) ([]*model.MoveResult, error) {
+func (b *Board) MoveToCellId(ctx context.Context, actor actors.Actor, cellId string) ([]*model.MoveResult, error) {
 	cell, err := b.cells.GetByID(ctx, cellId)
 	if err != nil {
 		return nil, err
@@ -182,7 +184,7 @@ func (b *Board) MoveToCellId(ctx context.Context, actor model.BoardActor, cellId
 	return b.MoveToCell(ctx, actor, cell)
 }
 
-func (b *Board) MoveToClosestCellType(ctx context.Context, actor model.BoardActor, cellType model.CellType) ([]*model.MoveResult, error) {
+func (b *Board) MoveToClosestCellType(ctx context.Context, actor actors.Actor, cellType model.CellType) ([]*model.MoveResult, error) {
 	currentCell, err := b.cells.GetByIDWrapped(ctx, actor.Position().CellId)
 	if err != nil {
 		return nil, err

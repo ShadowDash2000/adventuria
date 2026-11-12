@@ -1,6 +1,8 @@
 package player
 
 import (
+	"adventuria/internal/adventuria/board/actors"
+	"adventuria/internal/adventuria/cells"
 	"adventuria/internal/adventuria/model"
 	"context"
 )
@@ -13,7 +15,7 @@ type notifyService interface {
 	PlayerMovedNotify(ctx context.Context, player *model.Player, moves []*model.MoveResult) error
 }
 
-var _ model.BoardActor = (*Actor)(nil)
+var _ actors.Actor = (*Actor)(nil)
 
 type Actor struct {
 	actions actionsService
@@ -39,15 +41,15 @@ func (a *Actor) Events() *model.Events {
 	return a.events
 }
 
-func (a *Actor) Ref() model.ActorRef {
-	return model.ActorRef{
+func (a *Actor) Ref() actors.ActorRef {
+	return actors.ActorRef{
 		Id:   a.player.ID(),
-		Kind: model.ActorKindPlayer,
+		Kind: actors.ActorKindPlayer,
 	}
 }
 
-func (a *Actor) Position() model.BoardPosition {
-	return model.BoardPosition{
+func (a *Actor) Position() actors.Position {
+	return actors.Position{
 		WorldId:     a.player.Progress().CurrentWorld(),
 		CellId:      a.player.LastAction().Cell(),
 		CellsPassed: a.player.Progress().CellsPassed(),
@@ -100,24 +102,24 @@ func (a *Actor) ApplyMovement(ctx context.Context, move *model.MoveResult) error
 	})
 }
 
-func (a *Actor) LeaveCell(ctx context.Context, cell model.Cell) error {
+func (a *Actor) LeaveCell(ctx context.Context, cell cells.Cell) error {
 	if reaction, ok := cell.(CellLeft); ok {
 		return reaction.OnPlayerLeft(ctx, a)
 	}
 
-	if reaction, ok := cell.(model.ActorCellLeft); ok {
+	if reaction, ok := cell.(actors.ActorCellLeft); ok {
 		return reaction.OnActorLeft(ctx, a)
 	}
 
 	return nil
 }
 
-func (a *Actor) ReachCell(ctx context.Context, cell model.Cell, reached *model.ReachedContext) error {
+func (a *Actor) ReachCell(ctx context.Context, cell cells.Cell, reached *cells.ReachedContext) error {
 	if reaction, ok := cell.(CellReached); ok {
 		return reaction.OnPlayerReached(ctx, a, reached)
 	}
 
-	if reaction, ok := cell.(model.ActorCellReached); ok {
+	if reaction, ok := cell.(actors.ActorCellReached); ok {
 		return reaction.OnActorReached(ctx, a, reached)
 	}
 

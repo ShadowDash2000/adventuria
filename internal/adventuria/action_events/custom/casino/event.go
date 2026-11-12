@@ -10,7 +10,7 @@ type items interface {
 	GetByIDs(ctx context.Context, ids []string) ([]*model.Item, error)
 }
 
-var _ model.ActionEvent = (*Casino)(nil)
+var _ action_events.ActionEvent = (*Casino)(nil)
 
 const Type model.ActionEventType = "casino"
 
@@ -22,7 +22,7 @@ type Casino struct {
 func NewDef(items items) action_events.ActionEventDef {
 	return action_events.NewActionEventDef(
 		Type,
-		func(cellEventInfo model.ActionEventInfo) model.ActionEvent {
+		func(cellEventInfo model.ActionEventInfo) action_events.ActionEvent {
 			return &Casino{
 				ActionEventBase: action_events.NewActionEventBase(cellEventInfo),
 				items:           items,

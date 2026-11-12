@@ -1,13 +1,14 @@
 package mocks
 
 import (
+	"adventuria/internal/adventuria/cells"
 	"adventuria/internal/adventuria/model"
 	"context"
 )
 
 type Cells struct {
 	GetByPlayerFunc        func(ctx context.Context, player *model.Player) (*model.CellInfo, error)
-	GetByPlayerWrappedFunc func(ctx context.Context, player *model.Player) (model.Cell, error)
+	GetByPlayerWrappedFunc func(ctx context.Context, player *model.Player) (cells.Cell, error)
 }
 
 func (m *Cells) GetByPlayer(ctx context.Context, player *model.Player) (*model.CellInfo, error) {
@@ -18,7 +19,7 @@ func (m *Cells) GetByPlayer(ctx context.Context, player *model.Player) (*model.C
 	return m.GetByPlayerFunc(ctx, player)
 }
 
-func (m *Cells) GetByPlayerWrapped(ctx context.Context, player *model.Player) (model.Cell, error) {
+func (m *Cells) GetByPlayerWrapped(ctx context.Context, player *model.Player) (cells.Cell, error) {
 	if m.GetByPlayerWrappedFunc == nil {
 		return nil, nil
 	}

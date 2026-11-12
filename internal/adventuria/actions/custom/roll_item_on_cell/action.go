@@ -13,7 +13,7 @@ import (
 
 type cellsService interface {
 	GetByPlayer(ctx context.Context, player *model.Player) (*model.CellInfo, error)
-	GetByPlayerWrapped(ctx context.Context, player *model.Player) (model.Cell, error)
+	GetByPlayerWrapped(ctx context.Context, player *model.Player) (cells.Cell, error)
 }
 
 type inventories interface {
@@ -68,7 +68,7 @@ func (r *RollItemOnCell) Do(ctx context.Context, actor *player.Actor, _ actions.
 		return nil, err
 	}
 
-	cellRollable, ok := currentCell.(model.Rollable)
+	cellRollable, ok := currentCell.(cells.Rollable)
 	if !ok {
 		return nil, fmt.Errorf("current cell is not rollable")
 	}

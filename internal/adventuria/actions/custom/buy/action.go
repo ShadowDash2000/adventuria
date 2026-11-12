@@ -49,17 +49,14 @@ func (b *Buy) CanDo(_ context.Context, actor *player.Actor) bool {
 	return actor.Player().LastAction().State().Shop != nil
 }
 
-type Request struct {
-	ItemId string `json:"item_id"`
-}
-
 func (b *Buy) Do(ctx context.Context, actor *player.Actor, actionReq actions.Request) (any, error) {
 	req, ok := actionReq.(Request)
 	if !ok {
 		return nil, errors.New("invalid request")
 	}
-	if req.ItemId == "" {
-		return nil, errors.New("item id is required")
+	err := req.validate()
+	if err != nil {
+		return nil, err
 	}
 
 	shopState := actor.Player().LastAction().State().Shop

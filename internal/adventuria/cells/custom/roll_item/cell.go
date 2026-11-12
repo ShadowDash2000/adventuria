@@ -13,7 +13,7 @@ type itemsService interface {
 	GetAllRollableByType(ctx context.Context, t model.ItemType) ([]*model.Item, error)
 }
 
-var _ model.Rollable = (*CellRollItem)(nil)
+var _ cells.Rollable = (*CellRollItem)(nil)
 var _ player.CellReached = (*CellRollItem)(nil)
 
 const Type model.CellType = "roll_item"
@@ -30,7 +30,7 @@ func NewDef(
 ) cells.CellDef {
 	return cells.NewCell(
 		Type,
-		func(cell model.CellInfo) (model.Cell, error) {
+		func(cell model.CellInfo) (cells.Cell, error) {
 			return New(itemsService, cell)
 		},
 		categories...,
@@ -62,7 +62,7 @@ func (c *CellRollItem) Roll(_ context.Context, _ *model.Events, player *model.Pl
 	}, nil
 }
 
-func (c *CellRollItem) OnPlayerReached(ctx context.Context, actor *player.Actor, _ *model.ReachedContext) error {
+func (c *CellRollItem) OnPlayerReached(ctx context.Context, actor *player.Actor, _ *cells.ReachedContext) error {
 	return c.refreshItems(ctx, actor.Player())
 }
 

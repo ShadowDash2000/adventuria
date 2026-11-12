@@ -2,6 +2,7 @@ package teleport_to_random_cell
 
 import (
 	"adventuria/internal/adventuria/actions"
+	"adventuria/internal/adventuria/board/actors"
 	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/cells"
 	"adventuria/internal/adventuria/effects"
@@ -23,8 +24,8 @@ type cellsService interface {
 	CountGlobal(ctx context.Context) (int, error)
 }
 
-type board interface {
-	MoveToCellId(ctx context.Context, actor model.BoardActor, cellId string) ([]*model.MoveResult, error)
+type boardService interface {
+	MoveToCellId(ctx context.Context, actor actors.Actor, cellId string) ([]*model.MoveResult, error)
 }
 
 var _ effects.Effect = (*TeleportToRandomCell)(nil)
@@ -35,10 +36,10 @@ type TeleportToRandomCell struct {
 	effects.EffectBase
 	actions actionsService
 	cells   cellsService
-	board   board
+	board   boardService
 }
 
-func NewDef(actions actionsService, cells cellsService, board board) effects.EffectDef {
+func NewDef(actions actionsService, cells cellsService, board boardService) effects.EffectDef {
 	return effects.NewEffectDef(
 		Type,
 		func(effect model.EffectInfo) effects.Effect {

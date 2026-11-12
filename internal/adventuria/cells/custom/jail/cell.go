@@ -13,7 +13,7 @@ type filters interface {
 	GetByID(ctx context.Context, id string) (*model.ActivityFilterInfo, error)
 }
 
-var _ model.Rollable = (*CellJail)(nil)
+var _ cells.Rollable = (*CellJail)(nil)
 var _ player.CellReached = (*CellJail)(nil)
 var _ player.CellLeft = (*CellJail)(nil)
 
@@ -31,7 +31,7 @@ func NewDef(
 ) cells.CellDef {
 	return cells.NewCell(
 		Type,
-		func(cell model.CellInfo) (model.Cell, error) {
+		func(cell model.CellInfo) (cells.Cell, error) {
 			return &CellJail{
 				CellBase:     cells.NewCellBase(cell),
 				activityType: model.ActivityTypeGame,
@@ -54,7 +54,7 @@ func (c *CellJail) Roll(_ context.Context, _ *model.Events, player *model.Player
 	}, nil
 }
 
-func (c *CellJail) OnPlayerReached(ctx context.Context, actor *player.Actor, _ *model.ReachedContext) error {
+func (c *CellJail) OnPlayerReached(ctx context.Context, actor *player.Actor, _ *cells.ReachedContext) error {
 	if actor.Player().Progress().IsInJail() {
 		actor.Player().Progress().SetCanMove(false)
 

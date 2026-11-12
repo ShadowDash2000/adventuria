@@ -8,7 +8,7 @@ type CellDef struct {
 	new        CellCreator
 }
 
-type CellCreator func(cell model.CellInfo) (model.Cell, error)
+type CellCreator func(cell model.CellInfo) (Cell, error)
 
 var registry = &Registry{cellDefs: map[model.CellType]CellDef{}}
 

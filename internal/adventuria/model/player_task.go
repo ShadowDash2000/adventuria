@@ -1,8 +1,6 @@
 package model
 
 import (
-	"adventuria/pkg/event"
-	"context"
 	"errors"
 	"time"
 )
@@ -10,16 +8,10 @@ import (
 type PlayerTaskType string
 type PlayerTaskTrigger string
 
-type PlayerTaskCompleteFunc func(ctx context.Context) error
-
 type PlayerTask interface {
 	Type() PlayerTaskType
 	Trigger() PlayerTaskTrigger
 	Payload() string
-}
-
-type PlayerTaskSubscriber interface {
-	Subscribe(ctx context.Context, events *Events, player *Player, complete PlayerTaskCompleteFunc, payload string) ([]event.Unsubscribe, error)
 }
 
 type PlayerTaskData struct {

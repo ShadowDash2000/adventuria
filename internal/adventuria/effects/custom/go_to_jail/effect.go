@@ -2,6 +2,7 @@ package go_to_jail
 
 import (
 	"adventuria/internal/adventuria/actions"
+	"adventuria/internal/adventuria/board/actors"
 	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/cells"
 	"adventuria/internal/adventuria/effects"
@@ -14,8 +15,8 @@ type actionsService interface {
 	CanDo(ctx context.Context, actor *player.Actor, t model.ActionType) bool
 }
 
-type board interface {
-	MoveToClosestCellType(ctx context.Context, actor model.BoardActor, cellType model.CellType) ([]*model.MoveResult, error)
+type boardService interface {
+	MoveToClosestCellType(ctx context.Context, actor actors.Actor, cellType model.CellType) ([]*model.MoveResult, error)
 }
 
 var _ effects.Effect = (*GoToJail)(nil)
@@ -25,10 +26,10 @@ const Type model.EffectType = "go_to_jail"
 type GoToJail struct {
 	effects.EffectBase
 	actions actionsService
-	board   board
+	board   boardService
 }
 
-func NewDef(actions actionsService, board board) effects.EffectDef {
+func NewDef(actions actionsService, board boardService) effects.EffectDef {
 	return effects.NewEffectDef(
 		Type,
 		func(effect model.EffectInfo) effects.Effect {
