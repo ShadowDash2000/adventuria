@@ -2,6 +2,7 @@ package teleport_to_random_cell
 
 import (
 	"adventuria/internal/adventuria/actions"
+	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/cells"
 	"adventuria/internal/adventuria/effects"
 	"adventuria/internal/adventuria/model"
@@ -12,8 +13,8 @@ import (
 )
 
 type actionsService interface {
-	CanDo(ctx context.Context, events *model.Events, player *model.Player, t model.ActionType) bool
-	HasActionsInCategories(ctx context.Context, events *model.Events, player *model.Player, categories []string) bool
+	CanDo(ctx context.Context, actor *player.Actor, t model.ActionType) bool
+	HasActionsInCategories(ctx context.Context, actor *player.Actor, categories []string) bool
 }
 
 type cellsService interface {
@@ -23,10 +24,10 @@ type cellsService interface {
 }
 
 type board interface {
-	MoveToCellId(ctx context.Context, events *model.Events, player *model.Player, cellId string) ([]*model.MoveResult, error)
+	MoveToCellId(ctx context.Context, actor model.BoardActor, cellId string) ([]*model.MoveResult, error)
 }
 
-var _ model.Effect = (*TeleportToRandomCell)(nil)
+var _ effects.Effect = (*TeleportToRandomCell)(nil)
 
 const Type model.EffectType = "teleport_to_random_cell"
 
@@ -40,7 +41,7 @@ type TeleportToRandomCell struct {
 func NewDef(actions actionsService, cells cellsService, board board) effects.EffectDef {
 	return effects.NewEffectDef(
 		Type,
-		func(effect model.EffectInfo) model.Effect {
+		func(effect model.EffectInfo) effects.Effect {
 			return &TeleportToRandomCell{
 				EffectBase: effects.NewEffectBase(effect),
 				actions:    actions,
@@ -51,22 +52,22 @@ func NewDef(actions actionsService, cells cellsService, board board) effects.Eff
 	)
 }
 
-func (t *TeleportToRandomCell) CanUse(ctx context.Context, events *model.Events, player *model.Player) bool {
-	if t.actions.CanDo(ctx, events, player, actions.ActionTypeRollDice) {
+func (t *TeleportToRandomCell) CanUse(ctx context.Context, actor *player.Actor) bool {
+	if t.actions.CanDo(ctx, actor, actions.ActionTypeRollDice) {
 		return true
 	}
 
-	if t.actions.HasActionsInCategories(ctx, events, player, []string{"wheel_roll", "on_cell"}) {
+	if t.actions.HasActionsInCategories(ctx, actor, []string{"wheel_roll", "on_cell"}) {
 		return false
 	}
 
-	currentCell, err := t.cells.GetByID(ctx, player.LastAction().Cell())
+	currentCell, err := t.cells.GetByID(ctx, actor.Player().LastAction().Cell())
 	if err != nil {
 		return false
 	}
 
-	canDone := t.actions.CanDo(ctx, events, player, actions.ActionTypeDone)
-	canDrop := t.actions.CanDo(ctx, events, player, actions.ActionTypeDrop)
+	canDone := t.actions.CanDo(ctx, actor, actions.ActionTypeDone)
+	canDrop := t.actions.CanDo(ctx, actor, actions.ActionTypeDrop)
 
 	if canDone && !canDrop {
 		if currentCell.Type() != cells.CellTypeJail {
@@ -79,14 +80,13 @@ func (t *TeleportToRandomCell) CanUse(ctx context.Context, events *model.Events,
 
 func (t *TeleportToRandomCell) Subscribe(
 	_ context.Context,
-	events *model.Events,
-	player *model.Player,
-	effectCtx model.EffectContext,
-	callback model.EffectCallback,
+	actor *player.Actor,
+	effectCtx effects.Context,
+	callback effects.Callback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		events.OnAfterItemUse(effectCtx.InvItemID).BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterItemUseEvent) error {
-			currentCell, err := t.cells.GetByID(ctx, player.LastAction().Cell())
+		actor.Events().OnAfterItemUse(effectCtx.InvItemID).BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterItemUseEvent) error {
+			currentCell, err := t.cells.GetByID(ctx, actor.Player().LastAction().Cell())
 			if err != nil {
 				return err
 			}
@@ -110,7 +110,7 @@ func (t *TeleportToRandomCell) Subscribe(
 				return err
 			}
 
-			_, err = t.board.MoveToCellId(ctx, events, player, randomCell.ID())
+			_, err = t.board.MoveToCellId(ctx, actor, randomCell.ID())
 			if err != nil {
 				return err
 			}

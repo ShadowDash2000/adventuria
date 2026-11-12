@@ -15,7 +15,7 @@ import (
 )
 
 type game interface {
-	DoAction(ctx context.Context, pb core.App, playerId string, actionType model.ActionType, req model.ActionRequest) (any, error)
+	DoAction(ctx context.Context, pb core.App, playerId string, actionType model.ActionType, req actions.Request) (any, error)
 	UseItem(ctx context.Context, pb core.App, playerId string, itemId string, data map[string]any) error
 	DropItem(ctx context.Context, pb core.App, playerId, itemId string) error
 	GetAvailableActions(ctx context.Context, playerId string) ([]model.ActionType, error)

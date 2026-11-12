@@ -1,13 +1,14 @@
 package points_change
 
 import (
+	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/effects"
 	"adventuria/internal/adventuria/model"
 	"adventuria/pkg/event"
 	"context"
 )
 
-var _ model.Effect = (*PointsChange)(nil)
+var _ effects.Effect = (*PointsChange)(nil)
 
 const Type model.EffectType = "points_change"
 
@@ -18,7 +19,7 @@ type PointsChange struct {
 func NewDef() effects.EffectDef {
 	return effects.NewEffectDef(
 		Type,
-		func(effect model.EffectInfo) model.Effect {
+		func(effect model.EffectInfo) effects.Effect {
 			return &PointsChange{
 				EffectBase: effects.NewEffectBase(effect),
 			}
@@ -26,19 +27,18 @@ func NewDef() effects.EffectDef {
 	)
 }
 
-func (p *PointsChange) CanUse(_ context.Context, _ *model.Events, _ *model.Player) bool {
+func (p *PointsChange) CanUse(_ context.Context, _ *player.Actor) bool {
 	return true
 }
 
 func (p *PointsChange) Subscribe(
 	_ context.Context,
-	events *model.Events,
-	_ *model.Player,
-	effectCtx model.EffectContext,
-	callback model.EffectCallback,
+	actor *player.Actor,
+	effectCtx effects.Context,
+	callback effects.Callback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		events.OnActivityDone().BindFuncWithPriority(func(ctx context.Context, e *model.OnActivityDoneEvent) error {
+		actor.Events().OnActivityDone().BindFuncWithPriority(func(ctx context.Context, e *model.OnActivityDoneEvent) error {
 			amount, err := p.decodeValue(p.Value())
 			if err != nil {
 				return err

@@ -1,6 +1,7 @@
 package stats
 
 import (
+	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/effects"
 	"adventuria/internal/adventuria/model"
 	"adventuria/pkg/event"
@@ -12,7 +13,7 @@ type activityFilters interface {
 	GetByID(ctx context.Context, id string) (*model.ActivityFilterInfo, error)
 }
 
-var _ model.EffectPersistent = (*Stats)(nil)
+var _ effects.EffectPersistent = (*Stats)(nil)
 
 const Type model.EffectType = "stats"
 
@@ -29,9 +30,9 @@ func NewDef(activityFilters activityFilters) effects.EffectPersistentDef {
 	)
 }
 
-func (s *Stats) Subscribe(_ context.Context, events *model.Events, player *model.Player) ([]event.Unsubscribe, error) {
+func (s *Stats) Subscribe(_ context.Context, actor *player.Actor) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		events.OnAfterDone().BindFunc(func(ctx context.Context, e *model.OnAfterDoneEvent) error {
+		actor.Events().OnAfterDone().BindFunc(func(ctx context.Context, e *model.OnAfterDoneEvent) error {
 			activityFilter, err := s.activityFilters.GetByID(ctx, e.CurrentCell.Filter())
 			if err != nil {
 				return err
@@ -39,39 +40,39 @@ func (s *Stats) Subscribe(_ context.Context, events *model.Events, player *model
 
 			switch activityFilter.Type() {
 			case model.ActivityTypeGame:
-				player.Stats().GamesCompletedChange(1)
+				actor.Player().Stats().GamesCompletedChange(1)
 			case model.ActivityTypeMovie:
-				player.Stats().MoviesCompletedChange(1)
+				actor.Player().Stats().MoviesCompletedChange(1)
 			case model.ActivityTypeGym:
-				player.Stats().GymsCompletedChange(1)
+				actor.Player().Stats().GymsCompletedChange(1)
 			case model.ActivityTypeKaraoke:
-				player.Stats().KaraokeCompletedChange(1)
+				actor.Player().Stats().KaraokeCompletedChange(1)
 			}
 
 			return e.Next()
 		}),
-		events.OnAfterMove().BindFunc(func(ctx context.Context, e *model.OnAfterMoveEvent) error {
-			player.Stats().CellsPassedChange(mathhelper.Abs(e.Steps))
+		actor.Events().OnAfterMove().BindFunc(func(ctx context.Context, e *model.OnAfterMoveEvent) error {
+			actor.Player().Stats().CellsPassedChange(mathhelper.Abs(e.Steps))
 			return e.Next()
 		}),
-		events.OnAfterDrop().BindFunc(func(ctx context.Context, e *model.OnAfterDropEvent) error {
-			player.Stats().DropsChange(1)
+		actor.Events().OnAfterDrop().BindFunc(func(ctx context.Context, e *model.OnAfterDropEvent) error {
+			actor.Player().Stats().DropsChange(1)
 			return e.Next()
 		}),
-		events.OnAfterGoToJail().BindFunc(func(ctx context.Context, e *model.OnAfterGoToJailEvent) error {
-			player.Stats().WasInJailChange(1)
+		actor.Events().OnAfterGoToJail().BindFunc(func(ctx context.Context, e *model.OnAfterGoToJailEvent) error {
+			actor.Player().Stats().WasInJailChange(1)
 			return e.Next()
 		}),
-		events.OnAfterItemUse().BindFunc(func(ctx context.Context, e *model.OnAfterItemUseEvent) error {
-			player.Stats().ItemsUsedChange(1)
+		actor.Events().OnAfterItemUse().BindFunc(func(ctx context.Context, e *model.OnAfterItemUseEvent) error {
+			actor.Player().Stats().ItemsUsedChange(1)
 			return e.Next()
 		}),
-		events.OnAfterRoll().BindFunc(func(ctx context.Context, e *model.OnAfterRollEvent) error {
-			player.Stats().DiceRollsChange(1)
+		actor.Events().OnAfterRoll().BindFunc(func(ctx context.Context, e *model.OnAfterRollEvent) error {
+			actor.Player().Stats().DiceRollsChange(1)
 			return e.Next()
 		}),
-		events.OnAfterWheelRoll().BindFunc(func(ctx context.Context, e *model.OnAfterWheelRollEvent) error {
-			player.Stats().WheelsRolledChange(1)
+		actor.Events().OnAfterWheelRoll().BindFunc(func(ctx context.Context, e *model.OnAfterWheelRollEvent) error {
+			actor.Player().Stats().WheelsRolledChange(1)
 			return e.Next()
 		}),
 	}, nil

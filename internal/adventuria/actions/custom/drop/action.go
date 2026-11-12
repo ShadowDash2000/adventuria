@@ -2,6 +2,7 @@ package drop
 
 import (
 	"adventuria/internal/adventuria/actions"
+	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/model"
 	"adventuria/internal/adventuria/reviews"
 	"context"
@@ -13,7 +14,7 @@ type dropResultCalculator interface {
 }
 
 type actionsService interface {
-	CanDo(ctx context.Context, events *model.Events, player *model.Player, t model.ActionType) bool
+	CanDo(ctx context.Context, actor *player.Actor, t model.ActionType) bool
 }
 
 type cells interface {
@@ -33,10 +34,10 @@ type settings interface {
 }
 
 type board interface {
-	MoveToClosestCellType(ctx context.Context, events *model.Events, player *model.Player, cellType model.CellType) ([]*model.MoveResult, error)
+	MoveToClosestCellType(ctx context.Context, actor model.BoardActor, cellType model.CellType) ([]*model.MoveResult, error)
 }
 
-var _ model.Action = (*Drop)(nil)
+var _ actions.Action = (*Drop)(nil)
 
 const Type model.ActionType = "drop"
 
@@ -62,7 +63,7 @@ func NewDef(
 ) actions.ActionDef {
 	return actions.NewAction(
 		Type,
-		func() model.Action {
+		func() actions.Action {
 			return &Drop{
 				ActionBase:           actions.NewActionBase(Type),
 				dropResultCalculator: dropResultCalculator,
@@ -77,17 +78,17 @@ func NewDef(
 	)
 }
 
-func (d *Drop) CanDo(ctx context.Context, events *model.Events, player *model.Player) bool {
-	if !d.actions.CanDo(ctx, events, player, actions.ActionTypeCompleteActivity) {
+func (d *Drop) CanDo(ctx context.Context, actor *player.Actor) bool {
+	if !d.actions.CanDo(ctx, actor, actions.ActionTypeCompleteActivity) {
 		return false
 	}
 
-	currentCell, err := d.cells.GetByPlayer(ctx, player)
+	currentCell, err := d.cells.GetByPlayer(ctx, actor.Player())
 	if err != nil {
 		return false
 	}
 
-	dropResult, err := d.dropResultCalculator.Calculate(ctx, events, currentCell, model.EffectRunModePreview)
+	dropResult, err := d.dropResultCalculator.Calculate(ctx, actor.Events(), currentCell, model.EffectRunModePreview)
 	if err != nil {
 		return false
 	}
@@ -104,7 +105,7 @@ type Request struct {
 	Score   float64 `json:"score"`
 }
 
-func (d *Drop) Do(ctx context.Context, events *model.Events, player *model.Player, actionReq model.ActionRequest) (any, error) {
+func (d *Drop) Do(ctx context.Context, actor *player.Actor, actionReq actions.Request) (any, error) {
 	req, ok := actionReq.(Request)
 	if !ok {
 		return nil, errors.New("invalid request")
@@ -123,25 +124,25 @@ func (d *Drop) Do(ctx context.Context, events *model.Events, player *model.Playe
 		return nil, err
 	}
 
-	currentCell, err := d.cells.GetByPlayer(ctx, player)
+	currentCell, err := d.cells.GetByPlayer(ctx, actor.Player())
 	if err != nil {
 		return nil, err
 	}
 
-	dropResult, err := d.dropResultCalculator.Calculate(ctx, events, currentCell, model.EffectRunModeApply)
+	dropResult, err := d.dropResultCalculator.Calculate(ctx, actor.Events(), currentCell, model.EffectRunModeApply)
 	if err != nil {
 		return nil, err
 	}
 
-	lastAction := player.LastAction()
+	lastAction := actor.Player().LastAction()
 	lastAction.SetStatus(model.ActionStatusDrop)
 	lastAction.SetReview(review.ID())
-	err = d.players.Save(ctx, player)
+	err = d.players.Save(ctx, actor.Player())
 	if err != nil {
 		return nil, err
 	}
 
-	progress := player.Progress()
+	progress := actor.Player().Progress()
 	progress.SetCanMove(true)
 
 	if !dropResult.IsSafe() {
@@ -153,12 +154,12 @@ func (d *Drop) Do(ctx context.Context, events *model.Events, player *model.Playe
 		if progress.DropsInARow() >= settings.DropsToJail() {
 			progress.SetIsInJail(true)
 
-			_, err = d.board.MoveToClosestCellType(ctx, events, player, "jail")
+			_, err = d.board.MoveToClosestCellType(ctx, actor, "jail")
 			if err != nil {
 				return nil, err
 			}
 		}
 	}
 
-	return nil, events.OnAfterDrop().Trigger(ctx, &model.OnAfterDropEvent{})
+	return nil, actor.Events().OnAfterDrop().Trigger(ctx, &model.OnAfterDropEvent{})
 }

@@ -13,18 +13,18 @@ type EffectDef struct {
 
 type EffectPersistentDef struct {
 	t model.EffectType
-	e model.EffectPersistent
+	e EffectPersistent
 }
 
 func (e *EffectPersistentDef) Type() model.EffectType {
 	return e.t
 }
 
-func (e *EffectPersistentDef) Effect() model.EffectPersistent {
+func (e *EffectPersistentDef) Effect() EffectPersistent {
 	return e.e
 }
 
-type EffectCreator func(effect model.EffectInfo) model.Effect
+type EffectCreator func(effect model.EffectInfo) Effect
 
 var (
 	registry           = &Registry{effects: map[model.EffectType]EffectDef{}}
@@ -73,7 +73,7 @@ func NewEffectDef(t model.EffectType, new EffectCreator) EffectDef {
 	}
 }
 
-func NewEffectPersistentDef(t model.EffectType, e model.EffectPersistent) EffectPersistentDef {
+func NewEffectPersistentDef(t model.EffectType, e EffectPersistent) EffectPersistentDef {
 	return EffectPersistentDef{
 		t: t,
 		e: e,
@@ -92,7 +92,7 @@ func Get(t model.EffectType) (EffectDef, bool) {
 	return registry.Get(t)
 }
 
-func Create(effect model.EffectInfo) (model.Effect, error) {
+func Create(effect model.EffectInfo) (Effect, error) {
 	effectDef, ok := Get(effect.Type())
 	if !ok {
 		return nil, fmt.Errorf("effect type %s not registered", effect.Type())

@@ -1,27 +1,6 @@
 package model
 
-import (
-	"adventuria/pkg/event"
-	"context"
-)
-
 type EffectType string
-type EffectCallback func(ctx context.Context)
-
-type Effect interface {
-	Data() *EffectInfo
-	CanUse(ctx context.Context, events *Events, player *Player) bool
-	Subscribe(ctx context.Context, events *Events, player *Player, effectCtx EffectContext, callback EffectCallback) ([]event.Unsubscribe, error)
-}
-
-type EffectPersistent interface {
-	Subscribe(ctx context.Context, events *Events, player *Player) ([]event.Unsubscribe, error)
-}
-
-type EffectContext struct {
-	InvItemID string
-	Priority  int
-}
 
 type EffectData struct {
 	Id    string

@@ -1,6 +1,8 @@
 package model
 
-import "context"
+import (
+	"context"
+)
 
 type CellType string
 
@@ -9,9 +11,14 @@ type Cell interface {
 	Categories() []string
 	InCategory(category string) bool
 	InCategories(categories []string) bool
+}
 
-	OnCellReached(ctx context.Context, events *Events, player *Player, reachedCtx *ReachedContext) error
-	OnCellLeft(ctx context.Context, events *Events, player *Player) error
+type ActorCellReached interface {
+	OnActorReached(ctx context.Context, actor BoardActor, reached *ReachedContext) error
+}
+
+type ActorCellLeft interface {
+	OnActorLeft(ctx context.Context, actor BoardActor) error
 }
 
 type ReachedContext struct {

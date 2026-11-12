@@ -1,13 +1,14 @@
 package debuff_block
 
 import (
+	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/effects"
 	"adventuria/internal/adventuria/model"
 	"adventuria/pkg/event"
 	"context"
 )
 
-var _ model.Effect = (*DebuffBlock)(nil)
+var _ effects.Effect = (*DebuffBlock)(nil)
 
 const Type model.EffectType = "debuff_block"
 
@@ -18,7 +19,7 @@ type DebuffBlock struct {
 func NewDef() effects.EffectDef {
 	return effects.NewEffectDef(
 		Type,
-		func(effect model.EffectInfo) model.Effect {
+		func(effect model.EffectInfo) effects.Effect {
 			return &DebuffBlock{
 				EffectBase: effects.NewEffectBase(effect),
 			}
@@ -26,19 +27,18 @@ func NewDef() effects.EffectDef {
 	)
 }
 
-func (d *DebuffBlock) CanUse(_ context.Context, _ *model.Events, _ *model.Player) bool {
+func (d *DebuffBlock) CanUse(_ context.Context, _ *player.Actor) bool {
 	return true
 }
 
 func (d *DebuffBlock) Subscribe(
 	_ context.Context,
-	events *model.Events,
-	_ *model.Player,
-	effectCtx model.EffectContext,
-	callback model.EffectCallback,
+	actor *player.Actor,
+	effectCtx effects.Context,
+	callback effects.Callback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		events.OnBeforeItemAdd().BindFuncWithPriority(func(ctx context.Context, e *model.OnBeforeItemAddEvent) error {
+		actor.Events().OnBeforeItemAdd().BindFuncWithPriority(func(ctx context.Context, e *model.OnBeforeItemAddEvent) error {
 			if e.ItemRecord.Type() == model.ItemTypeDebuff {
 				e.ShouldAddItem = false
 				callback(ctx)

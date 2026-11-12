@@ -1,12 +1,14 @@
 package start
 
 import (
+	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/cells"
 	"adventuria/internal/adventuria/model"
 	"context"
 )
 
 var _ model.Cell = (*CellStart)(nil)
+var _ player.CellReached = (*CellStart)(nil)
 
 const Type model.CellType = "start"
 
@@ -25,11 +27,7 @@ func NewDef() cells.CellDef {
 	)
 }
 
-func (c *CellStart) OnCellReached(_ context.Context, _ *model.Events, player *model.Player, _ *model.ReachedContext) error {
-	player.Progress().SetCanMove(true)
-	return nil
-}
-
-func (c *CellStart) OnCellLeft(_ context.Context, _ *model.Events, _ *model.Player) error {
+func (c *CellStart) OnPlayerReached(_ context.Context, actor *player.Actor, _ *model.ReachedContext) error {
+	actor.Player().Progress().SetCanMove(true)
 	return nil
 }

@@ -1,6 +1,7 @@
 package add_items_to_inventory
 
 import (
+	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/effects"
 	inventoriesMocks "adventuria/internal/adventuria/inventories/mocks"
 	itemsMocks "adventuria/internal/adventuria/items/mocks"
@@ -12,6 +13,7 @@ import (
 
 func TestAddItemsToInventory_CanUse(t *testing.T) {
 	ctx := t.Context()
+	factory := player.NewFactory(nil, nil)
 
 	setup := func() (*AddItemsToInventory, *inventoriesMocks.Inventories, *itemsMocks.Items) {
 		mInventories := &inventoriesMocks.Inventories{}
@@ -33,9 +35,9 @@ func TestAddItemsToInventory_CanUse(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		eff, _, _ := setup()
-		player := model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, nil, nil)
+		actor := factory.New(model.NewEvents(), model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, nil, nil))
 
-		if !eff.CanUse(ctx, nil, player) {
+		if !eff.CanUse(ctx, actor) {
 			t.Error("CanUse should return true")
 		}
 	})
@@ -43,11 +45,11 @@ func TestAddItemsToInventory_CanUse(t *testing.T) {
 
 func TestAddItemsToInventory_Subscribe(t *testing.T) {
 	ctx := t.Context()
+	factory := player.NewFactory(nil, nil)
 
 	setup := func() (
 		*AddItemsToInventory,
-		*model.Events,
-		*model.Player,
+		*player.Actor,
 		*bool,
 		func(context.Context),
 		*inventoriesMocks.Inventories,
@@ -80,29 +82,29 @@ func TestAddItemsToInventory_Subscribe(t *testing.T) {
 			callbackCalled = true
 		}
 
-		return eff, events, player, &callbackCalled, callback, mInventories
+		return eff, factory.New(events, player), &callbackCalled, callback, mInventories
 	}
 
-	effectCtx := model.EffectContext{
+	effectCtx := effects.Context{
 		InvItemID: "trigger_item",
 		Priority:  10,
 	}
 
 	t.Run("successful activation", func(t *testing.T) {
-		eff, events, player, called, callback, mInventories := setup()
+		eff, actor, called, callback, mInventories := setup()
 		addedItems := make([]string, 0)
 
-		_, err := eff.Subscribe(ctx, events, player, effectCtx, callback)
+		_, err := eff.Subscribe(ctx, actor, effectCtx, callback)
 		if err != nil {
 			t.Fatalf("Subscribe failed: %v", err)
 		}
 
-		mInventories.AddItemByIDFunc = func(ctx context.Context, events *model.Events, player *model.Player, itemId string, source item_received.Source) (*model.InventoryItemWithEffects, error) {
+		mInventories.AddItemByIDFunc = func(ctx context.Context, actor *player.Actor, itemId string, source item_received.Source) (*effects.InventoryItemWithEffects, error) {
 			addedItems = append(addedItems, itemId)
-			return &model.InventoryItemWithEffects{}, nil
+			return &effects.InventoryItemWithEffects{}, nil
 		}
 
-		err = events.OnAfterItemUse().Trigger(ctx, &model.OnAfterItemUseEvent{
+		err = actor.Events().OnAfterItemUse().Trigger(ctx, &model.OnAfterItemUseEvent{
 			InvItemId: "trigger_item",
 		})
 		if err != nil {
@@ -123,20 +125,20 @@ func TestAddItemsToInventory_Subscribe(t *testing.T) {
 	})
 
 	t.Run("wrong trigger item", func(t *testing.T) {
-		eff, events, player, called, callback, mInventories := setup()
+		eff, actor, called, callback, mInventories := setup()
 		addedItemsCount := 0
 
-		_, err := eff.Subscribe(ctx, events, player, effectCtx, callback)
+		_, err := eff.Subscribe(ctx, actor, effectCtx, callback)
 		if err != nil {
 			t.Fatalf("Subscribe failed: %v", err)
 		}
 
-		mInventories.AddItemByIDFunc = func(ctx context.Context, events *model.Events, player *model.Player, itemId string, source item_received.Source) (*model.InventoryItemWithEffects, error) {
+		mInventories.AddItemByIDFunc = func(ctx context.Context, actor *player.Actor, itemId string, source item_received.Source) (*effects.InventoryItemWithEffects, error) {
 			addedItemsCount++
-			return &model.InventoryItemWithEffects{}, nil
+			return &effects.InventoryItemWithEffects{}, nil
 		}
 
-		err = events.OnAfterItemUse().Trigger(ctx, &model.OnAfterItemUseEvent{
+		err = actor.Events().OnAfterItemUse().Trigger(ctx, &model.OnAfterItemUseEvent{
 			InvItemId: "other_item",
 		})
 		if err != nil {

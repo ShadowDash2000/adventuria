@@ -1,6 +1,7 @@
 package effects
 
 import (
+	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/model"
 	"context"
 	"log/slog"
@@ -30,12 +31,12 @@ func NewEffects(logger *slog.Logger, repository repository, inventories inventor
 	}
 }
 
-func (e *Effects) CreateFromEffectInfo(info *model.EffectInfo) (model.Effect, error) {
+func (e *Effects) CreateFromEffectInfo(info *model.EffectInfo) (Effect, error) {
 	return Create(*info)
 }
 
-func (e *Effects) CreateFromEffectInfos(infos []*model.EffectInfo) ([]model.Effect, error) {
-	effects := make([]model.Effect, len(infos))
+func (e *Effects) CreateFromEffectInfos(infos []*model.EffectInfo) ([]Effect, error) {
+	effects := make([]Effect, len(infos))
 	for i, info := range infos {
 		effect, err := e.CreateFromEffectInfo(info)
 		if err != nil {
@@ -46,12 +47,7 @@ func (e *Effects) CreateFromEffectInfos(infos []*model.EffectInfo) ([]model.Effe
 	return effects, nil
 }
 
-func (e *Effects) SubscribeInventoryEffects(
-	ctx context.Context,
-	events *model.Events,
-	player *model.Player,
-	items []*model.InventoryItemWithEffects,
-) error {
+func (e *Effects) SubscribeInventoryEffects(ctx context.Context, actor *player.Actor, items []*InventoryItemWithEffects) error {
 	for _, item := range items {
 		if !item.Inventory().IsActive() {
 			continue
@@ -74,48 +70,41 @@ func (e *Effects) SubscribeInventoryEffects(
 
 			unsubs, err := effect.Subscribe(
 				ctx,
-				events,
-				player,
-				model.EffectContext{
+				actor,
+				Context{
 					InvItemID: item.Inventory().ID(),
 					Priority:  0,
 				},
 				func(ctx context.Context) {
-					events.Unsubscribe(unsubKey)
-					e.effectCallback(ctx, events, player, item, effect)
+					actor.Events().Unsubscribe(unsubKey)
+					e.effectCallback(ctx, actor, item, effect)
 				},
 			)
 			if err != nil {
 				return err
 			}
 
-			events.AddUnsubs(unsubKey, unsubs...)
+			actor.Events().AddUnsubs(unsubKey, unsubs...)
 		}
 	}
 
 	return nil
 }
 
-func (e *Effects) effectCallback(
-	ctx context.Context,
-	events *model.Events,
-	player *model.Player,
-	item *model.InventoryItemWithEffects,
-	effect model.Effect,
-) {
+func (e *Effects) effectCallback(ctx context.Context, actor *player.Actor, item *InventoryItemWithEffects, effect Effect) {
 	item.Inventory().AddAppliedEffects(effect.Data().ID())
 
 	if item.Inventory().AppliedEffectsCount() < item.Item().EffectsCount() {
 		return
 	}
 
-	actionState := player.LastAction().State()
+	actionState := actor.Player().LastAction().State()
 	actionState.UsedItems = append(actionState.UsedItems, model.ActionUsedItemState{
 		Id: item.Item().ID(),
 	})
 
 	for _, effectId := range item.Item().Effects() {
-		events.Unsubscribe(item.Inventory().ID() + ":" + effectId)
+		actor.Events().Unsubscribe(item.Inventory().ID() + ":" + effectId)
 	}
 
 	err := e.inventories.DeleteByID(ctx, item.Inventory().ID())
@@ -124,14 +113,14 @@ func (e *Effects) effectCallback(
 	}
 }
 
-func (e *Effects) SubscribePersistentEffects(ctx context.Context, events *model.Events, player *model.Player) error {
+func (e *Effects) SubscribePersistentEffects(ctx context.Context, actor *player.Actor) error {
 	for _, effectDef := range GetAllPersistent() {
-		unsubs, err := effectDef.Effect().Subscribe(ctx, events, player)
+		unsubs, err := effectDef.Effect().Subscribe(ctx, actor)
 		if err != nil {
 			return err
 		}
 
-		events.AddUnsubs(player.ID()+":"+string(effectDef.Type()), unsubs...)
+		actor.Events().AddUnsubs(actor.Player().ID()+":"+string(effectDef.Type()), unsubs...)
 	}
 	return nil
 }
@@ -158,7 +147,7 @@ func (e *Effects) GetView(ctx context.Context, events *model.Events, player *mod
 	return effectWithView.GetView(ctx, events, player)
 }
 
-func (e *Effects) GetByID(ctx context.Context, id string) (model.Effect, error) {
+func (e *Effects) GetByID(ctx context.Context, id string) (Effect, error) {
 	effectInfo, err := e.repository.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
@@ -166,7 +155,7 @@ func (e *Effects) GetByID(ctx context.Context, id string) (model.Effect, error) 
 	return e.CreateFromEffectInfo(effectInfo)
 }
 
-func (e *Effects) GetByIDs(ctx context.Context, ids []string) ([]model.Effect, error) {
+func (e *Effects) GetByIDs(ctx context.Context, ids []string) ([]Effect, error) {
 	effects, err := e.repository.GetByIDs(ctx, ids)
 	if err != nil {
 		return nil, err
@@ -174,7 +163,7 @@ func (e *Effects) GetByIDs(ctx context.Context, ids []string) ([]model.Effect, e
 	return e.CreateFromEffectInfos(effects)
 }
 
-func (e *Effects) GetAllByItemID(ctx context.Context, itemId string) ([]model.Effect, error) {
+func (e *Effects) GetAllByItemID(ctx context.Context, itemId string) ([]Effect, error) {
 	effectInfos, err := e.repository.GetAllByItemID(ctx, itemId)
 	if err != nil {
 		return nil, err

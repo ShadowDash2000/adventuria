@@ -1,13 +1,14 @@
 package give_wheel_on_done
 
 import (
+	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/effects"
 	"adventuria/internal/adventuria/model"
 	"adventuria/pkg/event"
 	"context"
 )
 
-var _ model.EffectPersistent = (*GiveWheelOnDone)(nil)
+var _ effects.EffectPersistent = (*GiveWheelOnDone)(nil)
 
 const Type model.EffectType = "give_wheel_on_done"
 
@@ -28,19 +29,19 @@ func NewDef(notify notify) effects.EffectPersistentDef {
 	)
 }
 
-func (g *GiveWheelOnDone) Subscribe(_ context.Context, events *model.Events, player *model.Player) ([]event.Unsubscribe, error) {
+func (g *GiveWheelOnDone) Subscribe(_ context.Context, actor *player.Actor) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		events.OnAfterDone().BindFunc(func(ctx context.Context, e *model.OnAfterDoneEvent) error {
+		actor.Events().OnAfterDone().BindFunc(func(ctx context.Context, e *model.OnAfterDoneEvent) error {
 			if e.CurrentCell.DontGiveItemWheel() {
 				return e.Next()
 			}
 
-			err := player.Progress().ItemWheelsCountChange(1)
+			err := actor.Player().Progress().ItemWheelsCountChange(1)
 			if err != nil {
 				return err
 			}
 
-			err = g.notify.ItemWheelsChangeNotify(ctx, player.Progress().ID(), 1)
+			err = g.notify.ItemWheelsChangeNotify(ctx, actor.Player().Progress().ID(), 1)
 			if err != nil {
 				return err
 			}

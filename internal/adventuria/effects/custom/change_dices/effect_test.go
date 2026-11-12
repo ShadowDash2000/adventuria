@@ -1,6 +1,7 @@
 package change_dices
 
 import (
+	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/effects"
 	"adventuria/internal/adventuria/model"
 	"context"
@@ -9,6 +10,7 @@ import (
 
 func TestChangeDices_CanUse(t *testing.T) {
 	ctx := t.Context()
+	factory := player.NewFactory(nil, nil)
 	eff := &ChangeDices{
 		EffectBase: effects.NewEffectBase(
 			*model.RestoreEffectInfo(model.EffectData{
@@ -21,7 +23,9 @@ func TestChangeDices_CanUse(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		player := model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, nil, nil)
 
-		if !eff.CanUse(ctx, nil, player) {
+		actor := factory.New(model.NewEvents(), player)
+
+		if !eff.CanUse(ctx, actor) {
 			t.Error("CanUse should return true")
 		}
 	})
@@ -29,8 +33,9 @@ func TestChangeDices_CanUse(t *testing.T) {
 
 func TestChangeDices_Subscribe(t *testing.T) {
 	ctx := t.Context()
+	factory := player.NewFactory(nil, nil)
 
-	setup := func() (*model.Events, *model.Player, *bool, func(context.Context)) {
+	setup := func() (*player.Actor, *bool, func(context.Context)) {
 		events := model.NewEvents()
 		player := model.RestorePlayer(
 			model.PlayerData{Id: "p1"},
@@ -42,15 +47,15 @@ func TestChangeDices_Subscribe(t *testing.T) {
 		callback := func(ctx context.Context) {
 			callbackCalled = true
 		}
-		return events, player, &callbackCalled, callback
+		return factory.New(events, player), &callbackCalled, callback
 	}
 
-	effectCtx := model.EffectContext{
+	effectCtx := effects.Context{
 		Priority: 10,
 	}
 
 	t.Run("successful dice change", func(t *testing.T) {
-		events, player, called, callback := setup()
+		actor, called, callback := setup()
 		eff := &ChangeDices{
 			EffectBase: effects.NewEffectBase(
 				*model.RestoreEffectInfo(model.EffectData{
@@ -61,7 +66,7 @@ func TestChangeDices_Subscribe(t *testing.T) {
 			),
 		}
 
-		_, err := eff.Subscribe(ctx, events, player, effectCtx, callback)
+		_, err := eff.Subscribe(ctx, actor, effectCtx, callback)
 		if err != nil {
 			t.Fatalf("Subscribe failed: %v", err)
 		}
@@ -69,7 +74,7 @@ func TestChangeDices_Subscribe(t *testing.T) {
 		e := &model.OnBeforeRollEvent{
 			Dices: []model.Dice{model.DiceD6()},
 		}
-		err = events.OnBeforeRoll().Trigger(ctx, e)
+		err = actor.Events().OnBeforeRoll().Trigger(ctx, e)
 		if err != nil {
 			t.Errorf("Trigger failed: %v", err)
 		}
@@ -90,7 +95,7 @@ func TestChangeDices_Subscribe(t *testing.T) {
 	})
 
 	t.Run("invalid value in subscribe", func(t *testing.T) {
-		events, player, _, callback := setup()
+		actor, _, callback := setup()
 		eff := &ChangeDices{
 			EffectBase: effects.NewEffectBase(
 				*model.RestoreEffectInfo(model.EffectData{
@@ -101,13 +106,13 @@ func TestChangeDices_Subscribe(t *testing.T) {
 			),
 		}
 
-		_, err := eff.Subscribe(ctx, events, player, effectCtx, callback)
+		_, err := eff.Subscribe(ctx, actor, effectCtx, callback)
 		if err != nil {
 			t.Fatalf("Subscribe failed: %v", err)
 		}
 
 		e := &model.OnBeforeRollEvent{}
-		err = events.OnBeforeRoll().Trigger(ctx, e)
+		err = actor.Events().OnBeforeRoll().Trigger(ctx, e)
 		if err == nil {
 			t.Error("Trigger should fail for invalid dice type")
 		}

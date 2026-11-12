@@ -1,6 +1,7 @@
 package cell_points_divide
 
 import (
+	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/effects"
 	"adventuria/internal/adventuria/model"
 	"context"
@@ -9,6 +10,7 @@ import (
 
 func TestCellPointsDivide_CanUse(t *testing.T) {
 	ctx := t.Context()
+	factory := player.NewFactory(nil, nil)
 	eff := &CellPointsDivide{
 		EffectBase: effects.NewEffectBase(
 			*model.RestoreEffectInfo(model.EffectData{
@@ -19,9 +21,9 @@ func TestCellPointsDivide_CanUse(t *testing.T) {
 	}
 
 	t.Run("success", func(t *testing.T) {
-		player := model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, nil, nil)
+		actor := factory.New(model.NewEvents(), model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, nil, nil))
 
-		if !eff.CanUse(ctx, nil, player) {
+		if !eff.CanUse(ctx, actor) {
 			t.Error("CanUse should return true")
 		}
 	})
@@ -29,8 +31,9 @@ func TestCellPointsDivide_CanUse(t *testing.T) {
 
 func TestCellPointsDivide_Subscribe(t *testing.T) {
 	ctx := t.Context()
+	factory := player.NewFactory(nil, nil)
 
-	setup := func() (*model.Events, *model.Player, *bool, func(context.Context)) {
+	setup := func() (*player.Actor, *bool, func(context.Context)) {
 		events := model.NewEvents()
 		player := model.RestorePlayer(
 			model.PlayerData{Id: "p1"},
@@ -42,15 +45,15 @@ func TestCellPointsDivide_Subscribe(t *testing.T) {
 		callback := func(ctx context.Context) {
 			callbackCalled = true
 		}
-		return events, player, &callbackCalled, callback
+		return factory.New(events, player), &callbackCalled, callback
 	}
 
-	effectCtx := model.EffectContext{
+	effectCtx := effects.Context{
 		Priority: 10,
 	}
 
 	t.Run("on done - divide points", func(t *testing.T) {
-		events, player, called, callback := setup()
+		actor, called, callback := setup()
 		eff := &CellPointsDivide{
 			EffectBase: effects.NewEffectBase(
 				*model.RestoreEffectInfo(model.EffectData{
@@ -61,7 +64,7 @@ func TestCellPointsDivide_Subscribe(t *testing.T) {
 			),
 		}
 
-		_, err := eff.Subscribe(ctx, events, player, effectCtx, callback)
+		_, err := eff.Subscribe(ctx, actor, effectCtx, callback)
 		if err != nil {
 			t.Fatalf("Subscribe failed: %v", err)
 		}
@@ -72,7 +75,7 @@ func TestCellPointsDivide_Subscribe(t *testing.T) {
 				Points: 100,
 			}),
 		}
-		err = events.OnActivityDone().Trigger(ctx, e)
+		err = actor.Events().OnActivityDone().Trigger(ctx, e)
 		if err != nil {
 			t.Errorf("Trigger failed: %v", err)
 		}
@@ -87,7 +90,7 @@ func TestCellPointsDivide_Subscribe(t *testing.T) {
 	})
 
 	t.Run("on after move - call callback", func(t *testing.T) {
-		events, player, called, callback := setup()
+		actor, called, callback := setup()
 		eff := &CellPointsDivide{
 			EffectBase: effects.NewEffectBase(
 				*model.RestoreEffectInfo(model.EffectData{
@@ -98,12 +101,12 @@ func TestCellPointsDivide_Subscribe(t *testing.T) {
 			),
 		}
 
-		_, err := eff.Subscribe(ctx, events, player, effectCtx, callback)
+		_, err := eff.Subscribe(ctx, actor, effectCtx, callback)
 		if err != nil {
 			t.Fatalf("Subscribe failed: %v", err)
 		}
 
-		err = events.OnAfterMove().Trigger(ctx, &model.OnAfterMoveEvent{})
+		err = actor.Events().OnAfterMove().Trigger(ctx, &model.OnAfterMoveEvent{})
 		if err != nil {
 			t.Errorf("Trigger failed: %v", err)
 		}

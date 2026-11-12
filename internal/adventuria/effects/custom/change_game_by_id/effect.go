@@ -2,6 +2,7 @@ package change_game_by_id
 
 import (
 	"adventuria/internal/adventuria/actions"
+	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/effects"
 	"adventuria/internal/adventuria/model"
 	"adventuria/pkg/event"
@@ -13,14 +14,14 @@ type cells interface {
 }
 
 type actionsService interface {
-	CanDo(ctx context.Context, events *model.Events, player *model.Player, t model.ActionType) bool
+	CanDo(ctx context.Context, actor *player.Actor, t model.ActionType) bool
 }
 
 type activities interface {
 	GetByID(ctx context.Context, id string) (*model.Activity, error)
 }
 
-var _ model.Effect = (*ChangeGameById)(nil)
+var _ effects.Effect = (*ChangeGameById)(nil)
 
 const Type model.EffectType = "change_game_by_id"
 
@@ -34,7 +35,7 @@ type ChangeGameById struct {
 func NewDef(cells cells, actions actionsService, activities activities) effects.EffectDef {
 	return effects.NewEffectDef(
 		Type,
-		func(effect model.EffectInfo) model.Effect {
+		func(effect model.EffectInfo) effects.Effect {
 			return &ChangeGameById{
 				EffectBase: effects.NewEffectBase(effect),
 				cells:      cells,
@@ -45,8 +46,8 @@ func NewDef(cells cells, actions actionsService, activities activities) effects.
 	)
 }
 
-func (c *ChangeGameById) CanUse(ctx context.Context, events *model.Events, player *model.Player) bool {
-	currentCell, err := c.cells.GetByPlayer(ctx, player)
+func (c *ChangeGameById) CanUse(ctx context.Context, actor *player.Actor) bool {
+	currentCell, err := c.cells.GetByPlayer(ctx, actor.Player())
 	if err != nil {
 		return false
 	}
@@ -55,11 +56,11 @@ func (c *ChangeGameById) CanUse(ctx context.Context, events *model.Events, playe
 		return false
 	}
 
-	if ok := c.actions.CanDo(ctx, events, player, actions.ActionTypeDrop); !ok {
+	if ok := c.actions.CanDo(ctx, actor, actions.ActionTypeDrop); !ok {
 		return false
 	}
 
-	if ok := c.actions.CanDo(ctx, events, player, actions.ActionTypeDone); !ok {
+	if ok := c.actions.CanDo(ctx, actor, actions.ActionTypeDone); !ok {
 		return false
 	}
 
@@ -68,19 +69,18 @@ func (c *ChangeGameById) CanUse(ctx context.Context, events *model.Events, playe
 
 func (c *ChangeGameById) Subscribe(
 	_ context.Context,
-	events *model.Events,
-	player *model.Player,
-	effectCtx model.EffectContext,
-	callback model.EffectCallback,
+	actor *player.Actor,
+	effectCtx effects.Context,
+	callback effects.Callback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		events.OnAfterItemUse(effectCtx.InvItemID).BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterItemUseEvent) error {
-			player.LastAction().SetActivity(c.Value())
+		actor.Events().OnAfterItemUse(effectCtx.InvItemID).BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterItemUseEvent) error {
+			actor.Player().LastAction().SetActivity(c.Value())
 			callback(ctx)
 
 			return e.Next()
 		}, effectCtx.Priority),
-		events.OnAfterMove().BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterMoveEvent) error {
+		actor.Events().OnAfterMove().BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterMoveEvent) error {
 			callback(ctx)
 			return e.Next()
 		}, effectCtx.Priority),

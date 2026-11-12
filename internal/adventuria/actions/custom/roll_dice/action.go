@@ -2,6 +2,7 @@ package roll_dice
 
 import (
 	"adventuria/internal/adventuria/actions"
+	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/model"
 	"context"
 	"strconv"
@@ -12,10 +13,10 @@ type actionsService interface {
 }
 
 type board interface {
-	Move(ctx context.Context, events *model.Events, player *model.Player, steps int, moveType model.MoveType) ([]*model.MoveResult, error)
+	Move(ctx context.Context, actor model.BoardActor, steps int, moveType model.MoveType) ([]*model.MoveResult, error)
 }
 
-var _ model.Action = (*RollDice)(nil)
+var _ actions.Action = (*RollDice)(nil)
 
 const Type model.ActionType = "roll_dice"
 
@@ -28,7 +29,7 @@ type RollDice struct {
 func NewDef(actionsService actionsService, board board) actions.ActionDef {
 	return actions.NewAction(
 		Type,
-		func() model.Action {
+		func() actions.Action {
 			return &RollDice{
 				ActionBase: actions.NewActionBase(Type),
 				actions:    actionsService,
@@ -38,8 +39,8 @@ func NewDef(actionsService actionsService, board board) actions.ActionDef {
 	)
 }
 
-func (r *RollDice) CanDo(_ context.Context, _ *model.Events, player *model.Player) bool {
-	return player.Progress().CanMove() && player.LastAction().Status() != model.ActionStatusNone
+func (r *RollDice) CanDo(_ context.Context, actor *player.Actor) bool {
+	return actor.Player().Progress().CanMove() && actor.Player().LastAction().Status() != model.ActionStatusNone
 }
 
 type rollDiceResult struct {
@@ -63,11 +64,11 @@ type diceRoll struct {
 	Roll int    `json:"roll"`
 }
 
-func (r *RollDice) Do(ctx context.Context, events *model.Events, player *model.Player, _ model.ActionRequest) (any, error) {
+func (r *RollDice) Do(ctx context.Context, actor *player.Actor, _ actions.Request) (any, error) {
 	onBeforeRollEvent := &model.OnBeforeRollEvent{
 		Dices: []model.Dice{model.DiceD6(), model.DiceD6()},
 	}
-	err := events.OnBeforeRoll().Trigger(ctx, onBeforeRollEvent)
+	err := actor.Events().OnBeforeRoll().Trigger(ctx, onBeforeRollEvent)
 	if err != nil {
 		return nil, err
 	}
@@ -83,19 +84,19 @@ func (r *RollDice) Do(ctx context.Context, events *model.Events, player *model.P
 		}
 		onBeforeRollMoveEvent.N += diceRolls[i].Roll
 	}
-	err = events.OnBeforeRollMove().Trigger(ctx, onBeforeRollMoveEvent)
+	err = actor.Events().OnBeforeRollMove().Trigger(ctx, onBeforeRollMoveEvent)
 	if err != nil {
 		return nil, err
 	}
 
 	// we need to save the latest action before Move(), because it creates a new one
-	newAction, err := r.actions.Save(ctx, player.LastAction())
+	newAction, err := r.actions.Save(ctx, actor.Player().LastAction())
 	if err != nil {
 		return nil, err
 	}
-	player.SetLastAction(newAction)
+	actor.Player().SetLastAction(newAction)
 
-	moves, err := r.board.Move(ctx, events, player, onBeforeRollMoveEvent.N, model.MoveTypePath)
+	moves, err := r.board.Move(ctx, actor, onBeforeRollMoveEvent.N, model.MoveTypePath)
 	if err != nil {
 		return nil, err
 	}
@@ -113,9 +114,9 @@ func (r *RollDice) Do(ctx context.Context, events *model.Events, player *model.P
 		}
 	}
 
-	player.LastAction().SetStatus(model.ActionStatusRollDice)
+	actor.Player().LastAction().SetStatus(model.ActionStatusRollDice)
 
-	err = events.OnAfterRoll().Trigger(ctx, &model.OnAfterRollEvent{
+	err = actor.Events().OnAfterRoll().Trigger(ctx, &model.OnAfterRollEvent{
 		Dices: onBeforeRollEvent.Dices,
 		N:     onBeforeRollMoveEvent.N,
 	})

@@ -1,6 +1,7 @@
 package coins_for_all
 
 import (
+	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/effects"
 	"adventuria/internal/adventuria/model"
 	"adventuria/internal/adventuria/outboxes/custom/change_balance"
@@ -20,7 +21,7 @@ type outboxes interface {
 	Save(ctx context.Context, outbox *model.OutboxInfo) (*model.OutboxInfo, error)
 }
 
-var _ model.Effect = (*CoinsForAll)(nil)
+var _ effects.Effect = (*CoinsForAll)(nil)
 
 const Type model.EffectType = "coins_for_all"
 
@@ -34,7 +35,7 @@ type CoinsForAll struct {
 func NewDef(progress progress, notify notify, outboxes outboxes) effects.EffectDef {
 	return effects.NewEffectDef(
 		Type,
-		func(effect model.EffectInfo) model.Effect {
+		func(effect model.EffectInfo) effects.Effect {
 			return &CoinsForAll{
 				EffectBase: effects.NewEffectBase(effect),
 				progress:   progress,
@@ -45,41 +46,40 @@ func NewDef(progress progress, notify notify, outboxes outboxes) effects.EffectD
 	)
 }
 
-func (c *CoinsForAll) CanUse(_ context.Context, _ *model.Events, _ *model.Player) bool {
+func (c *CoinsForAll) CanUse(_ context.Context, _ *player.Actor) bool {
 	return true
 }
 
 func (c *CoinsForAll) Subscribe(
 	_ context.Context,
-	events *model.Events,
-	player *model.Player,
-	effectCtx model.EffectContext,
-	callback model.EffectCallback,
+	actor *player.Actor,
+	effectCtx effects.Context,
+	callback effects.Callback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		events.OnAfterItemUse(effectCtx.InvItemID).BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterItemUseEvent) error {
+		actor.Events().OnAfterItemUse(effectCtx.InvItemID).BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterItemUseEvent) error {
 			effectValue, err := c.decodeValue(c.Value())
 			if err != nil {
 				return err
 			}
 
-			err = player.Progress().BalanceChange(effectValue.CoinsForPlayer)
+			err = actor.Player().Progress().BalanceChange(effectValue.CoinsForPlayer)
 			if err != nil {
 				return err
 			}
 
-			err = c.notify.BalanceChangeNotify(ctx, player.Progress().ID(), effectValue.CoinsForPlayer)
+			err = c.notify.BalanceChangeNotify(ctx, actor.Player().Progress().ID(), effectValue.CoinsForPlayer)
 			if err != nil {
 				return err
 			}
 
-			progresses, err := c.progress.GetAllBySeasonID(ctx, player.Progress().Season())
+			progresses, err := c.progress.GetAllBySeasonID(ctx, actor.Player().Progress().Season())
 			if err != nil {
 				return err
 			}
 
 			for _, p := range progresses {
-				if p.Player() == player.ID() {
+				if p.Player() == actor.Player().ID() {
 					continue
 				}
 

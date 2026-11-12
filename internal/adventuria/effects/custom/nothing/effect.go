@@ -1,6 +1,7 @@
 package nothing
 
 import (
+	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/effects"
 	"adventuria/internal/adventuria/model"
 	"adventuria/pkg/event"
@@ -11,7 +12,7 @@ type cellsService interface {
 	GetByPlayerWrapped(ctx context.Context, player *model.Player) (model.Cell, error)
 }
 
-var _ model.Effect = (*Nothing)(nil)
+var _ effects.Effect = (*Nothing)(nil)
 
 const Type model.EffectType = "nothing"
 
@@ -23,7 +24,7 @@ type Nothing struct {
 func NewDef(cells cellsService) effects.EffectDef {
 	return effects.NewEffectDef(
 		Type,
-		func(effect model.EffectInfo) model.Effect {
+		func(effect model.EffectInfo) effects.Effect {
 			return &Nothing{
 				EffectBase: effects.NewEffectBase(effect),
 				cells:      cells,
@@ -32,21 +33,20 @@ func NewDef(cells cellsService) effects.EffectDef {
 	)
 }
 
-func (n *Nothing) CanUse(_ context.Context, _ *model.Events, _ *model.Player) bool {
+func (n *Nothing) CanUse(_ context.Context, _ *player.Actor) bool {
 	return true
 }
 
 func (n *Nothing) Subscribe(
 	_ context.Context,
-	events *model.Events,
-	player *model.Player,
-	effectCtx model.EffectContext,
-	callback model.EffectCallback,
+	actor *player.Actor,
+	effectCtx effects.Context,
+	callback effects.Callback,
 ) ([]event.Unsubscribe, error) {
 	switch n.Value() {
 	case useAfterItemAdd:
 		return []event.Unsubscribe{
-			events.OnAfterItemAdd().BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterItemAddEvent) error {
+			actor.Events().OnAfterItemAdd().BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterItemAddEvent) error {
 				if e.Item.Inventory().ID() == effectCtx.InvItemID {
 					callback(ctx)
 				}
@@ -55,15 +55,15 @@ func (n *Nothing) Subscribe(
 		}, nil
 	case useAfterItemUse:
 		return []event.Unsubscribe{
-			events.OnAfterItemUse(effectCtx.InvItemID).BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterItemUseEvent) error {
+			actor.Events().OnAfterItemUse(effectCtx.InvItemID).BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterItemUseEvent) error {
 				callback(ctx)
 				return e.Next()
 			}, effectCtx.Priority),
 		}, nil
 	case useBeforeGameDone:
 		return []event.Unsubscribe{
-			events.OnActivityDone().BindFuncWithPriority(func(ctx context.Context, e *model.OnActivityDoneEvent) error {
-				currentCell, err := n.cells.GetByPlayerWrapped(ctx, player)
+			actor.Events().OnActivityDone().BindFuncWithPriority(func(ctx context.Context, e *model.OnActivityDoneEvent) error {
+				currentCell, err := n.cells.GetByPlayerWrapped(ctx, actor.Player())
 				if err != nil {
 					return err
 				}

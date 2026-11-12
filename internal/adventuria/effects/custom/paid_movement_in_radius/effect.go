@@ -2,6 +2,7 @@ package paid_movement_in_radius
 
 import (
 	"adventuria/internal/adventuria/actions"
+	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/cells"
 	"adventuria/internal/adventuria/effects"
 	"adventuria/internal/adventuria/model"
@@ -11,8 +12,8 @@ import (
 )
 
 type actionsService interface {
-	CanDo(ctx context.Context, events *model.Events, player *model.Player, t model.ActionType) bool
-	HasActionsInCategories(ctx context.Context, events *model.Events, player *model.Player, categories []string) bool
+	CanDo(ctx context.Context, actor *player.Actor, t model.ActionType) bool
+	HasActionsInCategories(ctx context.Context, actor *player.Actor, categories []string) bool
 }
 
 type cellsService interface {
@@ -23,10 +24,10 @@ type cellsService interface {
 
 type board interface {
 	GetLocalDistanceBetweenCells(cell1, cell2 *model.CellInfo) (int, error)
-	MoveToCellId(ctx context.Context, events *model.Events, player *model.Player, cellId string) ([]*model.MoveResult, error)
+	MoveToCellId(ctx context.Context, actor model.BoardActor, cellId string) ([]*model.MoveResult, error)
 }
 
-var _ model.Effect = (*PaidMovementInRadius)(nil)
+var _ effects.Effect = (*PaidMovementInRadius)(nil)
 
 const Type model.EffectType = "paid_movement_in_radius"
 
@@ -40,7 +41,7 @@ type PaidMovementInRadius struct {
 func NewDef(actions actionsService, cells cellsService, board board) effects.EffectDef {
 	return effects.NewEffectDef(
 		Type,
-		func(effect model.EffectInfo) model.Effect {
+		func(effect model.EffectInfo) effects.Effect {
 			return &PaidMovementInRadius{
 				EffectBase: effects.NewEffectBase(effect),
 				actions:    actions,
@@ -51,31 +52,31 @@ func NewDef(actions actionsService, cells cellsService, board board) effects.Eff
 	)
 }
 
-func (p *PaidMovementInRadius) CanUse(ctx context.Context, events *model.Events, player *model.Player) bool {
+func (p *PaidMovementInRadius) CanUse(ctx context.Context, actor *player.Actor) bool {
 	effectValue, err := p.decodeValue(p.Value())
 	if err != nil {
 		return false
 	}
 
-	if player.Progress().Balance() < effectValue.Price {
+	if actor.Player().Progress().Balance() < effectValue.Price {
 		return false
 	}
 
-	if p.actions.CanDo(ctx, events, player, actions.ActionTypeRollDice) {
+	if p.actions.CanDo(ctx, actor, actions.ActionTypeRollDice) {
 		return true
 	}
 
-	if p.actions.HasActionsInCategories(ctx, events, player, []string{"wheel_roll", "on_cell"}) {
+	if p.actions.HasActionsInCategories(ctx, actor, []string{"wheel_roll", "on_cell"}) {
 		return false
 	}
 
-	currentCell, err := p.cells.GetByID(ctx, player.LastAction().Cell())
+	currentCell, err := p.cells.GetByID(ctx, actor.Player().LastAction().Cell())
 	if err != nil {
 		return false
 	}
 
-	canDone := p.actions.CanDo(ctx, events, player, actions.ActionTypeDone)
-	canDrop := p.actions.CanDo(ctx, events, player, actions.ActionTypeDrop)
+	canDone := p.actions.CanDo(ctx, actor, actions.ActionTypeDone)
+	canDrop := p.actions.CanDo(ctx, actor, actions.ActionTypeDrop)
 
 	if canDone && !canDrop {
 		if currentCell.Type() != cells.CellTypeJail {
@@ -88,13 +89,12 @@ func (p *PaidMovementInRadius) CanUse(ctx context.Context, events *model.Events,
 
 func (p *PaidMovementInRadius) Subscribe(
 	_ context.Context,
-	events *model.Events,
-	player *model.Player,
-	effectCtx model.EffectContext,
-	callback model.EffectCallback,
+	actor *player.Actor,
+	effectCtx effects.Context,
+	callback effects.Callback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		events.OnAfterItemUse(effectCtx.InvItemID).BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterItemUseEvent) error {
+		actor.Events().OnAfterItemUse(effectCtx.InvItemID).BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterItemUseEvent) error {
 			cellId, ok := e.Data["cell_id"].(string)
 			if !ok {
 				return errors.New("invalid cell_id")
@@ -105,7 +105,7 @@ func (p *PaidMovementInRadius) Subscribe(
 				return err
 			}
 
-			currentCell, err := p.cells.GetByID(ctx, player.LastAction().Cell())
+			currentCell, err := p.cells.GetByID(ctx, actor.Player().LastAction().Cell())
 			if err != nil {
 				return err
 			}
@@ -124,12 +124,12 @@ func (p *PaidMovementInRadius) Subscribe(
 				return errors.New("destination cell is too far")
 			}
 
-			_, err = p.board.MoveToCellId(ctx, events, player, cellId)
+			_, err = p.board.MoveToCellId(ctx, actor, cellId)
 			if err != nil {
 				return err
 			}
 
-			err = player.Progress().BalanceChange(-effectValue.Price)
+			err = actor.Player().Progress().BalanceChange(-effectValue.Price)
 			if err != nil {
 				return err
 			}

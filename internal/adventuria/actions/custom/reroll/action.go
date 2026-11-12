@@ -2,6 +2,7 @@ package reroll
 
 import (
 	"adventuria/internal/adventuria/actions"
+	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
 	"adventuria/internal/adventuria/reviews"
@@ -18,7 +19,7 @@ type reviewsService interface {
 }
 
 type actionsService interface {
-	CanDo(ctx context.Context, events *model.Events, player *model.Player, t model.ActionType) bool
+	CanDo(ctx context.Context, actor *player.Actor, t model.ActionType) bool
 	Save(ctx context.Context, action *model.ActionInfo) (*model.ActionInfo, error)
 }
 
@@ -26,7 +27,7 @@ type activities interface {
 	GetRandomIDsByFilter(ctx context.Context, filter model.ActivityFilter) ([]string, error)
 }
 
-var _ model.Action = (*Reroll)(nil)
+var _ actions.Action = (*Reroll)(nil)
 
 const Type model.ActionType = "reroll"
 
@@ -41,7 +42,7 @@ type Reroll struct {
 func NewDef(cells cells, reviews reviewsService, actionsService actionsService, activities activities) actions.ActionDef {
 	return actions.NewAction(
 		Type,
-		func() model.Action {
+		func() actions.Action {
 			return &Reroll{
 				ActionBase: actions.NewActionBase(Type),
 				cells:      cells,
@@ -53,16 +54,16 @@ func NewDef(cells cells, reviews reviewsService, actionsService actionsService, 
 	)
 }
 
-func (r *Reroll) CanDo(ctx context.Context, events *model.Events, player *model.Player) bool {
-	if player.LastAction().State().ActivityFilter == nil {
+func (r *Reroll) CanDo(ctx context.Context, actor *player.Actor) bool {
+	if actor.Player().LastAction().State().ActivityFilter == nil {
 		return false
 	}
 
-	if !r.actions.CanDo(ctx, events, player, actions.ActionTypeCompleteActivity) {
+	if !r.actions.CanDo(ctx, actor, actions.ActionTypeCompleteActivity) {
 		return false
 	}
 
-	currentCell, err := r.cells.GetByPlayer(ctx, player)
+	currentCell, err := r.cells.GetByPlayer(ctx, actor.Player())
 	if err != nil {
 		return false
 	}
@@ -74,7 +75,7 @@ func (r *Reroll) CanDo(ctx context.Context, events *model.Events, player *model.
 	onBeforeRerollCheckEvent := &model.OnBeforeRerollCheckEvent{
 		IsRerollBlocked: false,
 	}
-	err = events.OnBeforeRerollCheck().Trigger(ctx, onBeforeRerollCheckEvent)
+	err = actor.Events().OnBeforeRerollCheck().Trigger(ctx, onBeforeRerollCheckEvent)
 	if err != nil {
 		return false
 	}
@@ -91,13 +92,13 @@ type Request struct {
 	Score   float64 `json:"score"`
 }
 
-func (r *Reroll) Do(ctx context.Context, events *model.Events, player *model.Player, actionReq model.ActionRequest) (any, error) {
+func (r *Reroll) Do(ctx context.Context, actor *player.Actor, actionReq actions.Request) (any, error) {
 	req, ok := actionReq.(Request)
 	if !ok {
 		return nil, errors.New("invalid request")
 	}
 
-	activityFilter := player.LastAction().State().ActivityFilter
+	activityFilter := actor.Player().LastAction().State().ActivityFilter
 	if activityFilter == nil {
 		return nil, errs.ErrNoActiveActivityFilter
 	}
@@ -110,7 +111,7 @@ func (r *Reroll) Do(ctx context.Context, events *model.Events, player *model.Pla
 		return nil, err
 	}
 
-	lastAction := player.LastAction()
+	lastAction := actor.Player().LastAction()
 	lastAction.SetStatus(model.ActionStatusReroll)
 	lastAction.SetReview(review.ID())
 	lastAction, err = r.actions.Save(ctx, lastAction)
@@ -119,7 +120,7 @@ func (r *Reroll) Do(ctx context.Context, events *model.Events, player *model.Pla
 	}
 
 	newAction, err := model.NewAction(model.ActionCreate{
-		Player: player.ID(),
+		Player: actor.Player().ID(),
 		Cell:   lastAction.Cell(),
 		Status: model.ActionStatusNeedToRollWheel,
 	})
@@ -132,7 +133,7 @@ func (r *Reroll) Do(ctx context.Context, events *model.Events, player *model.Pla
 		return nil, err
 	}
 
-	player.SetLastAction(newAction)
+	actor.Player().SetLastAction(newAction)
 
 	ids, err := r.activities.GetRandomIDsByFilter(ctx, activityFilter.Clone())
 	if err != nil {
@@ -152,5 +153,5 @@ func (r *Reroll) Do(ctx context.Context, events *model.Events, player *model.Pla
 	}
 	newAction.SetRootAction(rootActionId)
 
-	return nil, events.OnAfterReroll().Trigger(ctx, &model.OnAfterRerollEvent{})
+	return nil, actor.Events().OnAfterReroll().Trigger(ctx, &model.OnAfterRerollEvent{})
 }

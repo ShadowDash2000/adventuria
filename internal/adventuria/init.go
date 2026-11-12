@@ -38,6 +38,7 @@ func (g *Game) init(ctx context.Context, pb core.App) (*Registry, error) {
 	g.worlds = registry.Worlds()
 	g.board = registry.Board()
 	g.playersLocker = registry.PlayersLocker()
+	g.playerFactory = registry.PlayerFactory()
 
 	customCells.RegisterCells(
 		registry.ActivityFilters(),

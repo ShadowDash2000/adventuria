@@ -2,6 +2,8 @@ package roll_item
 
 import (
 	"adventuria/internal/adventuria/actions"
+	"adventuria/internal/adventuria/board/actors/player"
+	"adventuria/internal/adventuria/effects"
 	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
 	"adventuria/internal/adventuria/player_events/custom/item_received"
@@ -11,11 +13,11 @@ import (
 )
 
 type actionsService interface {
-	CanDo(ctx context.Context, events *model.Events, player *model.Player, t model.ActionType) bool
+	CanDo(ctx context.Context, actor *player.Actor, t model.ActionType) bool
 }
 
 type inventories interface {
-	AddItemByID(ctx context.Context, events *model.Events, player *model.Player, itemId string, source item_received.Source) (*model.InventoryItemWithEffects, error)
+	AddItemByID(ctx context.Context, actor *player.Actor, itemId string, source item_received.Source) (*effects.InventoryItemWithEffects, error)
 	HasEmptySlots(ctx context.Context, player *model.Player) (bool, error)
 }
 
@@ -23,7 +25,7 @@ type items interface {
 	GetAllRollable(ctx context.Context) ([]*model.Item, error)
 }
 
-var _ model.Action = (*RollItem)(nil)
+var _ actions.Action = (*RollItem)(nil)
 
 const Type model.ActionType = "roll_item"
 
@@ -37,7 +39,7 @@ type RollItem struct {
 func NewDef(actionsService actionsService, inventories inventories, items items) actions.ActionDef {
 	return actions.NewAction(
 		Type,
-		func() model.Action {
+		func() actions.Action {
 			return &RollItem{
 				ActionBase:  actions.NewActionBase(Type),
 				actions:     actionsService,
@@ -48,20 +50,20 @@ func NewDef(actionsService actionsService, inventories inventories, items items)
 	)
 }
 
-func (r *RollItem) CanDo(ctx context.Context, events *model.Events, player *model.Player) bool {
-	if player.Progress().ItemWheelsCount() <= 0 {
+func (r *RollItem) CanDo(ctx context.Context, actor *player.Actor) bool {
+	if actor.Player().Progress().ItemWheelsCount() <= 0 {
 		return false
 	}
 
-	if r.actions.CanDo(ctx, events, player, actions.ActionTypeDone) {
+	if r.actions.CanDo(ctx, actor, actions.ActionTypeDone) {
 		return false
 	}
 
 	return true
 }
 
-func (r *RollItem) Do(ctx context.Context, events *model.Events, player *model.Player, _ model.ActionRequest) (any, error) {
-	hasEmptySlots, err := r.inventories.HasEmptySlots(ctx, player)
+func (r *RollItem) Do(ctx context.Context, actor *player.Actor, _ actions.Request) (any, error) {
+	hasEmptySlots, err := r.inventories.HasEmptySlots(ctx, actor.Player())
 	if err != nil {
 		return nil, err
 	}
@@ -82,23 +84,23 @@ func (r *RollItem) Do(ctx context.Context, events *model.Events, player *model.P
 
 	res.WinnerId = helper.RandomItemFromSlice(items).ID()
 
-	_, err = r.inventories.AddItemByID(ctx, events, player, res.WinnerId, item_received.SourceItemWheel)
+	_, err = r.inventories.AddItemByID(ctx, actor, res.WinnerId, item_received.SourceItemWheel)
 	if err != nil {
 		return nil, err
 	}
 
-	err = player.Progress().ItemWheelsCountChange(-1)
+	err = actor.Player().Progress().ItemWheelsCountChange(-1)
 	if err != nil {
 		return nil, err
 	}
 
-	err = events.OnAfterItemRoll().Trigger(ctx, &model.OnAfterItemRollEvent{
+	err = actor.Events().OnAfterItemRoll().Trigger(ctx, &model.OnAfterItemRollEvent{
 		ItemId: res.WinnerId,
 	})
 	if err != nil {
 		return nil, err
 	}
-	err = events.OnAfterWheelRoll().Trigger(ctx, &model.OnAfterWheelRollEvent{
+	err = actor.Events().OnAfterWheelRoll().Trigger(ctx, &model.OnAfterWheelRollEvent{
 		ItemId: res.WinnerId,
 	})
 	if err != nil {

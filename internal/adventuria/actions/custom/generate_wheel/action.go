@@ -2,6 +2,7 @@ package generate_wheel
 
 import (
 	"adventuria/internal/adventuria/actions"
+	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
 	"context"
@@ -12,7 +13,7 @@ type activities interface {
 	GetRandomIDsByFilter(ctx context.Context, filter model.ActivityFilter) ([]string, error)
 }
 
-var _ model.Action = (*GenerateWheel)(nil)
+var _ actions.Action = (*GenerateWheel)(nil)
 
 const Type model.ActionType = "generate_wheel"
 
@@ -24,7 +25,7 @@ type GenerateWheel struct {
 func NewDef(activities activities) actions.ActionDef {
 	return actions.NewAction(
 		Type,
-		func() model.Action {
+		func() actions.Action {
 			return &GenerateWheel{
 				ActionBase: actions.NewActionBase(Type),
 				activities: activities,
@@ -33,20 +34,20 @@ func NewDef(activities activities) actions.ActionDef {
 	)
 }
 
-func (g *GenerateWheel) CanDo(_ context.Context, _ *model.Events, player *model.Player) bool {
-	if player.LastAction().State().ActivityFilter == nil {
+func (g *GenerateWheel) CanDo(_ context.Context, actor *player.Actor) bool {
+	if actor.Player().LastAction().State().ActivityFilter == nil {
 		return false
 	}
 
-	return !player.Progress().CanMove() &&
+	return !actor.Player().Progress().CanMove() &&
 		!slices.Contains([]model.ActionStatus{
 			model.ActionStatusNeedToRollWheel,
 			model.ActionStatusRollWheel,
-		}, player.LastAction().Status())
+		}, actor.Player().LastAction().Status())
 }
 
-func (g *GenerateWheel) Do(ctx context.Context, _ *model.Events, player *model.Player, _ model.ActionRequest) (any, error) {
-	actionState := player.LastAction().State()
+func (g *GenerateWheel) Do(ctx context.Context, actor *player.Actor, _ actions.Request) (any, error) {
+	actionState := actor.Player().LastAction().State()
 	if actionState.ActivityFilter == nil {
 		return nil, errs.ErrNoActiveActivityFilter
 	}
@@ -60,7 +61,7 @@ func (g *GenerateWheel) Do(ctx context.Context, _ *model.Events, player *model.P
 		Ids: ids,
 	}
 
-	player.LastAction().SetStatus(model.ActionStatusNeedToRollWheel)
+	actor.Player().LastAction().SetStatus(model.ActionStatusNeedToRollWheel)
 
 	return nil, nil
 }

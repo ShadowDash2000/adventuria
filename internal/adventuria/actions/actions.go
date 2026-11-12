@@ -1,6 +1,7 @@
 package actions
 
 import (
+	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
 	"context"
@@ -75,32 +76,32 @@ func (a *Actions) GetLast(ctx context.Context, playerId, seasonId string) (*mode
 	return a.repository.GetLastPlayerActionBySeasonID(ctx, playerId, seasonId)
 }
 
-func (a *Actions) canDoAction(ctx context.Context, events *model.Events, player *model.Player, actionDef ActionDef) bool {
+func (a *Actions) canDoAction(ctx context.Context, actor *player.Actor, actionDef ActionDef) bool {
 	action := actionDef.New()
 
-	return action.CanDo(ctx, events, player)
+	return action.CanDo(ctx, actor)
 }
 
-func (a *Actions) CanDo(ctx context.Context, events *model.Events, player *model.Player, t model.ActionType) bool {
+func (a *Actions) CanDo(ctx context.Context, actor *player.Actor, t model.ActionType) bool {
 	actionDef, ok := Get(t)
 	if !ok {
 		return false
 	}
 
-	return a.canDoAction(ctx, events, player, actionDef)
+	return a.canDoAction(ctx, actor, actionDef)
 }
 
-func (a *Actions) Do(ctx context.Context, events *model.Events, player *model.Player, req model.ActionRequest, t model.ActionType) (any, error) {
+func (a *Actions) Do(ctx context.Context, actor *player.Actor, req Request, t model.ActionType) (any, error) {
 	if actionDef, ok := Get(t); ok {
-		return actionDef.New().Do(ctx, events, player, req)
+		return actionDef.New().Do(ctx, actor, req)
 	}
 	return nil, errs.ErrUnknownAction
 }
 
-func (a *Actions) AvailableActions(ctx context.Context, events *model.Events, player *model.Player) []model.ActionType {
+func (a *Actions) AvailableActions(ctx context.Context, actor *player.Actor) []model.ActionType {
 	var res []model.ActionType
 	for _, actionDef := range GetAll() {
-		if a.canDoAction(ctx, events, player, actionDef) {
+		if a.canDoAction(ctx, actor, actionDef) {
 			res = append(res, actionDef.Type())
 		}
 	}
@@ -108,7 +109,7 @@ func (a *Actions) AvailableActions(ctx context.Context, events *model.Events, pl
 	return res
 }
 
-func (a *Actions) HasActionsInCategory(ctx context.Context, events *model.Events, player *model.Player, category string) bool {
+func (a *Actions) HasActionsInCategory(ctx context.Context, actor *player.Actor, category string) bool {
 	for _, actionDef := range GetAll() {
 		action := actionDef.New()
 
@@ -116,7 +117,7 @@ func (a *Actions) HasActionsInCategory(ctx context.Context, events *model.Events
 			continue
 		}
 
-		if a.canDoAction(ctx, events, player, actionDef) {
+		if a.canDoAction(ctx, actor, actionDef) {
 			return true
 		}
 	}
@@ -124,7 +125,7 @@ func (a *Actions) HasActionsInCategory(ctx context.Context, events *model.Events
 	return false
 }
 
-func (a *Actions) HasActionsInCategories(ctx context.Context, events *model.Events, player *model.Player, categories []string) bool {
+func (a *Actions) HasActionsInCategories(ctx context.Context, actor *player.Actor, categories []string) bool {
 	for _, actionDef := range GetAll() {
 		action := actionDef.New()
 
@@ -132,7 +133,7 @@ func (a *Actions) HasActionsInCategories(ctx context.Context, events *model.Even
 			continue
 		}
 
-		if a.canDoAction(ctx, events, player, actionDef) {
+		if a.canDoAction(ctx, actor, actionDef) {
 			return true
 		}
 	}

@@ -8,14 +8,6 @@ import (
 	"fmt"
 )
 
-type notify interface {
-	PlayerMovedNotify(ctx context.Context, player *model.Player, moves []*model.MoveResult) error
-}
-
-type actionsService interface {
-	Save(ctx context.Context, action *model.ActionInfo) (*model.ActionInfo, error)
-}
-
 type cellsService interface {
 	GetByID(ctx context.Context, id string) (*model.CellInfo, error)
 	GetByIDWrapped(ctx context.Context, id string) (model.Cell, error)
@@ -31,18 +23,14 @@ type worlds interface {
 }
 
 type Board struct {
-	notify  notify
-	actions actionsService
-	cells   cellsService
-	worlds  worlds
+	cells  cellsService
+	worlds worlds
 }
 
-func NewBoard(notify notify, actions actionsService, cells cellsService, worlds worlds) *Board {
+func NewBoard(cells cellsService, worlds worlds) *Board {
 	return &Board{
-		notify:  notify,
-		actions: actions,
-		cells:   cells,
-		worlds:  worlds,
+		cells:  cells,
+		worlds: worlds,
 	}
 }
 
@@ -57,24 +45,18 @@ func isMovementStarted(ctx context.Context) bool {
 	return ok
 }
 
-func (b *Board) Move(
-	ctx context.Context,
-	events *model.Events,
-	player *model.Player,
-	steps int,
-	moveType model.MoveType,
-) ([]*model.MoveResult, error) {
+func (b *Board) Move(ctx context.Context, actor model.BoardActor, steps int, moveType model.MoveType) ([]*model.MoveResult, error) {
 	if isMovementStarted(ctx) {
-		return b.move(ctx, events, player, steps, moveType)
+		return b.move(ctx, actor, steps, moveType)
 	}
 
 	ctx = withMovementStarted(ctx)
-	moves, err := b.move(ctx, events, player, steps, moveType)
+	moves, err := b.move(ctx, actor, steps, moveType)
 	if err != nil {
 		return nil, err
 	}
 
-	err = b.notify.PlayerMovedNotify(ctx, player, moves)
+	err = actor.MovementFinished(ctx, moves)
 	if err != nil {
 		return nil, err
 	}
@@ -82,30 +64,24 @@ func (b *Board) Move(
 	return moves, nil
 }
 
-func (b *Board) move(
-	ctx context.Context,
-	events *model.Events,
-	player *model.Player,
-	steps int,
-	moveType model.MoveType,
-) ([]*model.MoveResult, error) {
-	prevCell, err := b.cells.GetByIDWrapped(ctx, player.LastAction().Cell())
+func (b *Board) move(ctx context.Context, actor model.BoardActor, steps int, moveType model.MoveType) ([]*model.MoveResult, error) {
+	prevCell, err := b.cells.GetByIDWrapped(ctx, actor.Position().CellId)
 	if err != nil {
 		return nil, err
 	}
 
-	err = prevCell.OnCellLeft(ctx, events, player)
+	err = actor.LeaveCell(ctx, prevCell)
 	if err != nil {
 		return nil, err
 	}
 
-	currentWorldId := player.Progress().CurrentWorld()
+	currentWorldId := actor.Position().WorldId
 	world, err := b.worlds.GetByID(ctx, currentWorldId)
 	if err != nil {
 		return nil, err
 	}
 
-	cellsPassed := player.Progress().CellsPassed()
+	cellsPassed := actor.Position().CellsPassed
 	cellsCount, err := b.cells.CountLocal(ctx, currentWorldId)
 	if err != nil {
 		return nil, err
@@ -127,12 +103,12 @@ func (b *Board) move(
 			}
 		}
 
-		err = b.changeWorld(ctx, events, player, currentWorldId, nextWorld.ID())
+		err = actor.ChangeWorld(ctx, nextWorld.ID())
 		if err != nil {
 			return nil, err
 		}
 
-		return b.Move(ctx, events, player, 0, model.MoveTypeWorldTransition)
+		return b.Move(ctx, actor, 0, model.MoveTypeWorldTransition)
 	}
 
 	currentCellNum := mathhelper.Mod(totalSteps, cellsCount)
@@ -143,31 +119,8 @@ func (b *Board) move(
 		return nil, err
 	}
 
-	err = player.Progress().CellsPassedChange(steps)
-	if err != nil {
-		return nil, err
-	}
-
-	newAction, err := model.NewAction(model.ActionCreate{
-		Player: player.ID(),
-		Cell:   currentCell.Data().ID(),
-		Status: model.ActionStatusMove,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	newAction.SetCellsPassed(steps)
-
-	newAction, err = b.actions.Save(ctx, newAction)
-	if err != nil {
-		return nil, err
-	}
-
-	player.SetLastAction(newAction)
-	player.Progress().SetCanMove(false)
-
-	onAfterMoveEvent := model.OnAfterMoveEvent{
+	move := &model.MoveResult{
+		Type:           moveType,
 		Steps:          steps,
 		TotalSteps:     totalSteps,
 		PrevTotalSteps: cellsPassed,
@@ -175,88 +128,62 @@ func (b *Board) move(
 		CurrentWorld:   world,
 		Laps:           lapsPassed,
 	}
-	err = events.OnAfterMove().Trigger(ctx, &onAfterMoveEvent)
+	err = actor.ApplyMovement(ctx, move)
 	if err != nil {
 		return nil, err
 	}
 
 	cellReachedCtx := model.ReachedContext{
-		Moves: []*model.MoveResult{
-			{
-				Type:           moveType,
-				Steps:          onAfterMoveEvent.Steps,
-				TotalSteps:     onAfterMoveEvent.TotalSteps,
-				PrevTotalSteps: onAfterMoveEvent.PrevTotalSteps,
-				CurrentCell:    onAfterMoveEvent.CurrentCell,
-				CurrentWorld:   onAfterMoveEvent.CurrentWorld,
-				Laps:           onAfterMoveEvent.Laps,
-			},
-		},
+		Moves: []*model.MoveResult{move},
 	}
-	err = currentCell.OnCellReached(ctx, events, player, &cellReachedCtx)
+	err = actor.ReachCell(ctx, currentCell, &cellReachedCtx)
 	if err != nil {
 		return nil, err
 	}
 
-	// Check if we're not moving backwards and passed new lap(-s)
-	if steps > 0 && lapsPassed > 0 {
-		err = events.OnNewLap().Trigger(ctx, &model.OnNewLapEvent{
-			Laps: lapsPassed,
-		})
-		if err != nil {
-			return nil, err
-		}
+	err = actor.AfterMovement(ctx, move)
+	if err != nil {
+		return nil, err
 	}
 
 	return cellReachedCtx.Moves, nil
 }
 
-func (b *Board) MoveToCellId(ctx context.Context, events *model.Events, player *model.Player, cellId string) ([]*model.MoveResult, error) {
-	cell, err := b.cells.GetByID(ctx, cellId)
-	if err != nil {
-		return nil, err
-	}
-
+func (b *Board) MoveToCell(ctx context.Context, actor model.BoardActor, cell *model.CellInfo) ([]*model.MoveResult, error) {
 	if cell.Disabled() {
 		return nil, errs.ErrCellIsDisabled
 	}
 
 	cellWorldId := cell.World()
-	currentWorld := player.Progress().CurrentWorld()
+	currentWorld := actor.Position().WorldId
 	if cellWorldId != currentWorld {
-		err = b.changeWorld(ctx, events, player, currentWorld, cellWorldId)
+		err := actor.ChangeWorld(ctx, cellWorldId)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	cellsCount, err := b.cells.CountLocal(ctx, currentWorld)
+	cellsCount, err := b.cells.CountLocal(ctx, actor.Position().WorldId)
 	if err != nil {
 		return nil, err
 	}
 
-	currentCellOrder := mathhelper.Mod(player.Progress().CellsPassed(), cellsCount)
+	currentCellOrder := mathhelper.Mod(actor.Position().CellsPassed, cellsCount)
 
-	return b.Move(ctx, events, player, cell.LocalOrder()-currentCellOrder, model.MoveTypeTeleport)
+	return b.Move(ctx, actor, cell.LocalOrder()-currentCellOrder, model.MoveTypeTeleport)
 }
 
-func (b *Board) changeWorld(ctx context.Context, events *model.Events, player *model.Player, oldWorldId, newWorldId string) error {
-	player.Progress().SetCurrentWorld(newWorldId)
-	player.Progress().SetCellsPassed(0)
+func (b *Board) MoveToCellId(ctx context.Context, actor model.BoardActor, cellId string) ([]*model.MoveResult, error) {
+	cell, err := b.cells.GetByID(ctx, cellId)
+	if err != nil {
+		return nil, err
+	}
 
-	return events.OnWorldChanged().Trigger(ctx, &model.OnWorldChangedEvent{
-		OldWorldId: oldWorldId,
-		NewWorldId: newWorldId,
-	})
+	return b.MoveToCell(ctx, actor, cell)
 }
 
-func (b *Board) MoveToClosestCellType(
-	ctx context.Context,
-	events *model.Events,
-	player *model.Player,
-	cellType model.CellType,
-) ([]*model.MoveResult, error) {
-	currentCell, err := b.cells.GetByIDWrapped(ctx, player.LastAction().Cell())
+func (b *Board) MoveToClosestCellType(ctx context.Context, actor model.BoardActor, cellType model.CellType) ([]*model.MoveResult, error) {
+	currentCell, err := b.cells.GetByIDWrapped(ctx, actor.Position().CellId)
 	if err != nil {
 		return nil, err
 	}
@@ -287,15 +214,7 @@ func (b *Board) MoveToClosestCellType(
 		return nil, fmt.Errorf("cell of type %s not found", cellType)
 	}
 
-	currentWorld := player.Progress().CurrentWorld()
-	if closestCell.World() != currentWorld {
-		err = b.changeWorld(ctx, events, player, currentWorld, closestCell.World())
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return b.Move(ctx, events, player, closestCell.LocalOrder()-currentCell.Data().LocalOrder(), model.MoveTypeTeleport)
+	return b.MoveToCell(ctx, actor, closestCell)
 }
 
 func (b *Board) GetLocalDistanceBetweenCells(cell1, cell2 *model.CellInfo) (int, error) {

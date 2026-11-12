@@ -1,6 +1,7 @@
 package stay_on_cell_after_done
 
 import (
+	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/effects"
 	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
@@ -12,7 +13,7 @@ type actionsService interface {
 	Save(ctx context.Context, action *model.ActionInfo) (*model.ActionInfo, error)
 }
 
-var _ model.Effect = (*StayOnCellAfterDone)(nil)
+var _ effects.Effect = (*StayOnCellAfterDone)(nil)
 
 const Type model.EffectType = "stay_on_cell_after_done"
 
@@ -24,7 +25,7 @@ type StayOnCellAfterDone struct {
 func NewDef(actions actionsService) effects.EffectDef {
 	return effects.NewEffectDef(
 		Type,
-		func(effect model.EffectInfo) model.Effect {
+		func(effect model.EffectInfo) effects.Effect {
 			return &StayOnCellAfterDone{
 				EffectBase: effects.NewEffectBase(effect),
 				actions:    actions,
@@ -33,20 +34,19 @@ func NewDef(actions actionsService) effects.EffectDef {
 	)
 }
 
-func (s *StayOnCellAfterDone) CanUse(_ context.Context, _ *model.Events, _ *model.Player) bool {
+func (s *StayOnCellAfterDone) CanUse(_ context.Context, _ *player.Actor) bool {
 	return true
 }
 
 func (s *StayOnCellAfterDone) Subscribe(
 	_ context.Context,
-	events *model.Events,
-	player *model.Player,
-	effectCtx model.EffectContext,
-	callback model.EffectCallback,
+	actor *player.Actor,
+	effectCtx effects.Context,
+	callback effects.Callback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		events.OnAfterDone().BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterDoneEvent) error {
-			lastAction := player.LastAction()
+		actor.Events().OnAfterDone().BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterDoneEvent) error {
+			lastAction := actor.Player().LastAction()
 			if lastAction.Status() != model.ActionStatusDone {
 				return e.Next()
 			}
@@ -61,7 +61,7 @@ func (s *StayOnCellAfterDone) Subscribe(
 			}
 
 			newAction, err := model.NewAction(model.ActionCreate{
-				Player: player.ID(),
+				Player: actor.Player().ID(),
 				Cell:   lastAction.Cell(),
 				Status: model.ActionStatusRollDice,
 			})
@@ -84,8 +84,8 @@ func (s *StayOnCellAfterDone) Subscribe(
 				return err
 			}
 
-			player.SetLastAction(newAction)
-			player.Progress().SetCanMove(false)
+			actor.Player().SetLastAction(newAction)
+			actor.Player().Progress().SetCanMove(false)
 
 			callback(ctx)
 

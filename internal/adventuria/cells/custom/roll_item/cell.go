@@ -1,6 +1,7 @@
 package roll_item
 
 import (
+	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/cells"
 	"adventuria/internal/adventuria/model"
 	"adventuria/pkg/helper"
@@ -13,6 +14,7 @@ type items interface {
 }
 
 var _ model.Rollable = (*CellRollItem)(nil)
+var _ player.CellReached = (*CellRollItem)(nil)
 
 const Type model.CellType = "roll_item"
 
@@ -49,12 +51,8 @@ func (c *CellRollItem) Roll(_ context.Context, _ *model.Events, player *model.Pl
 	}, nil
 }
 
-func (c *CellRollItem) OnCellReached(ctx context.Context, _ *model.Events, player *model.Player, _ *model.ReachedContext) error {
-	return c.refreshItems(ctx, player)
-}
-
-func (c *CellRollItem) OnCellLeft(_ context.Context, _ *model.Events, _ *model.Player) error {
-	return nil
+func (c *CellRollItem) OnPlayerReached(ctx context.Context, actor *player.Actor, _ *model.ReachedContext) error {
+	return c.refreshItems(ctx, actor.Player())
 }
 
 func (c *CellRollItem) refreshItems(ctx context.Context, player *model.Player) error {

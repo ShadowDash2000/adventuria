@@ -2,6 +2,7 @@ package change_game_price_filter
 
 import (
 	"adventuria/internal/adventuria/actions"
+	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/effects"
 	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
@@ -10,7 +11,7 @@ import (
 )
 
 type actionsService interface {
-	CanDo(ctx context.Context, events *model.Events, player *model.Player, t model.ActionType) bool
+	CanDo(ctx context.Context, actor *player.Actor, t model.ActionType) bool
 }
 
 type cellsService interface {
@@ -21,7 +22,7 @@ type activities interface {
 	GetRandomIDsByFilter(ctx context.Context, filter model.ActivityFilter) ([]string, error)
 }
 
-var _ model.Effect = (*ChangeGamePriceFilter)(nil)
+var _ effects.Effect = (*ChangeGamePriceFilter)(nil)
 
 const Type model.EffectType = "change_game_price_filter"
 
@@ -35,7 +36,7 @@ type ChangeGamePriceFilter struct {
 func NewDef(actions actionsService, cells cellsService, activities activities) effects.EffectDef {
 	return effects.NewEffectDef(
 		Type,
-		func(effect model.EffectInfo) model.Effect {
+		func(effect model.EffectInfo) effects.Effect {
 			return &ChangeGamePriceFilter{
 				EffectBase: effects.NewEffectBase(effect),
 				actions:    actions,
@@ -46,12 +47,12 @@ func NewDef(actions actionsService, cells cellsService, activities activities) e
 	)
 }
 
-func (c *ChangeGamePriceFilter) CanUse(ctx context.Context, events *model.Events, player *model.Player) bool {
-	if !c.actions.CanDo(ctx, events, player, actions.ActionTypeRollWheel) {
+func (c *ChangeGamePriceFilter) CanUse(ctx context.Context, actor *player.Actor) bool {
+	if !c.actions.CanDo(ctx, actor, actions.ActionTypeRollWheel) {
 		return false
 	}
 
-	currentCell, err := c.cells.GetByPlayer(ctx, player)
+	currentCell, err := c.cells.GetByPlayer(ctx, actor.Player())
 	if err != nil {
 		return false
 	}
@@ -60,7 +61,7 @@ func (c *ChangeGamePriceFilter) CanUse(ctx context.Context, events *model.Events
 		return false
 	}
 
-	activityFilter := player.LastAction().State().ActivityFilter
+	activityFilter := actor.Player().LastAction().State().ActivityFilter
 	if activityFilter == nil {
 		return false
 	}
@@ -78,10 +79,9 @@ func (c *ChangeGamePriceFilter) CanUse(ctx context.Context, events *model.Events
 
 func (c *ChangeGamePriceFilter) Subscribe(
 	_ context.Context,
-	events *model.Events,
-	player *model.Player,
-	effectCtx model.EffectContext,
-	callback model.EffectCallback,
+	actor *player.Actor,
+	effectCtx effects.Context,
+	callback effects.Callback,
 ) ([]event.Unsubscribe, error) {
 	effectValue, err := c.decodeValue(c.Value())
 	if err != nil {
@@ -91,8 +91,8 @@ func (c *ChangeGamePriceFilter) Subscribe(
 	switch effectValue.UseType {
 	case useTypeUsable:
 		return []event.Unsubscribe{
-			events.OnAfterItemUse(effectCtx.InvItemID).BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterItemUseEvent) error {
-				err := c.tryToApplyEffect(ctx, player, effectValue)
+			actor.Events().OnAfterItemUse(effectCtx.InvItemID).BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterItemUseEvent) error {
+				err := c.tryToApplyEffect(ctx, actor.Player(), effectValue)
 				if err != nil {
 					return err
 				}
@@ -104,12 +104,12 @@ func (c *ChangeGamePriceFilter) Subscribe(
 		}, nil
 	case useTypeUnusable:
 		return []event.Unsubscribe{
-			events.OnAfterMove().BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterMoveEvent) error {
-				if !c.CanUse(ctx, events, player) {
+			actor.Events().OnAfterMove().BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterMoveEvent) error {
+				if !c.CanUse(ctx, actor) {
 					return e.Next()
 				}
 
-				err := c.tryToApplyEffect(ctx, player, effectValue)
+				err := c.tryToApplyEffect(ctx, actor.Player(), effectValue)
 				if err != nil {
 					return err
 				}
@@ -118,16 +118,16 @@ func (c *ChangeGamePriceFilter) Subscribe(
 
 				return e.Next()
 			}, effectCtx.Priority),
-			events.OnAfterItemAdd().BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterItemAddEvent) error {
+			actor.Events().OnAfterItemAdd().BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterItemAddEvent) error {
 				if e.Item.Inventory().ID() != effectCtx.InvItemID {
 					return e.Next()
 				}
 
-				if !c.CanUse(ctx, events, player) {
+				if !c.CanUse(ctx, actor) {
 					return e.Next()
 				}
 
-				err := c.tryToApplyEffect(ctx, player, effectValue)
+				err := c.tryToApplyEffect(ctx, actor.Player(), effectValue)
 				if err != nil {
 					return err
 				}

@@ -1,6 +1,8 @@
 package worlds
 
 import (
+	"adventuria/internal/adventuria/board/actors/player"
+	"adventuria/internal/adventuria/effects"
 	"adventuria/internal/adventuria/model"
 	"context"
 )
@@ -11,40 +13,39 @@ type repository interface {
 	GetDefault(ctx context.Context) (*model.World, error)
 }
 
-type effects interface {
-	GetByIDs(ctx context.Context, ids []string) ([]model.Effect, error)
+type effectsService interface {
+	GetByIDs(ctx context.Context, ids []string) ([]effects.Effect, error)
 }
 
 type Worlds struct {
 	repository repository
-	effects    effects
+	effects    effectsService
 }
 
-func NewWorlds(repo repository, effects effects) *Worlds {
+func NewWorlds(repo repository, effects effectsService) *Worlds {
 	return &Worlds{
 		repository: repo,
 		effects:    effects,
 	}
 }
 
-func (w *Worlds) SubscribeEffects(ctx context.Context, events *model.Events, player *model.Player, worldId string) error {
+func (w *Worlds) SubscribeEffects(ctx context.Context, actor *player.Actor, worldId string) error {
 	world, err := w.GetByID(ctx, worldId)
 	if err != nil {
 		return err
 	}
 
-	effects, err := w.effects.GetByIDs(ctx, world.Effects())
+	worldEffects, err := w.effects.GetByIDs(ctx, world.Effects())
 	if err != nil {
 		return err
 	}
 
-	unsubKeys := make([]string, len(effects))
-	for i, effect := range effects {
+	unsubKeys := make([]string, len(worldEffects))
+	for i, effect := range worldEffects {
 		unsubs, err := effect.Subscribe(
 			ctx,
-			events,
-			player,
-			model.EffectContext{
+			actor,
+			effects.Context{
 				InvItemID: "",
 				Priority:  100,
 			},
@@ -54,17 +55,17 @@ func (w *Worlds) SubscribeEffects(ctx context.Context, events *model.Events, pla
 			return err
 		}
 
-		unsubKey := player.ID() + ":" + worldId + ":" + string(effect.Data().Type())
-		events.AddUnsubs(unsubKey, unsubs...)
+		unsubKey := actor.Player().ID() + ":" + worldId + ":" + string(effect.Data().Type())
+		actor.Events().AddUnsubs(unsubKey, unsubs...)
 		unsubKeys[i] = unsubKey
 	}
 
-	events.OnWorldChanged().BindFuncOnce(func(ctx context.Context, e *model.OnWorldChangedEvent) error {
+	actor.Events().OnWorldChanged().BindFuncOnce(func(ctx context.Context, e *model.OnWorldChangedEvent) error {
 		for _, key := range unsubKeys {
-			events.Unsubscribe(key)
+			actor.Events().Unsubscribe(key)
 		}
 
-		err := w.SubscribeEffects(ctx, events, player, e.NewWorldId)
+		err := w.SubscribeEffects(ctx, actor, e.NewWorldId)
 		if err != nil {
 			return err
 		}

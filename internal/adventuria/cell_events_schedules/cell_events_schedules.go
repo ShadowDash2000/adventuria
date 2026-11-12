@@ -1,6 +1,8 @@
 package cell_events_schedules
 
 import (
+	"adventuria/internal/adventuria/board/actors/player"
+	"adventuria/internal/adventuria/effects"
 	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
 	"adventuria/pkg/event"
@@ -25,13 +27,13 @@ type cells interface {
 	GetAllByWorldID(ctx context.Context, worldId string) ([]*model.CellInfo, error)
 }
 
-type effects interface {
-	GetByIDs(ctx context.Context, ids []string) ([]model.Effect, error)
+type effectsService interface {
+	GetByIDs(ctx context.Context, ids []string) ([]effects.Effect, error)
 }
 
 type actionEvents interface {
 	GetByIDWrapped(ctx context.Context, id string) (model.ActionEvent, error)
-	ListenToActionEvents(events *model.Events, player *model.Player) error
+	ListenToActionEvents(actor *player.Actor) error
 }
 
 type players interface {
@@ -52,7 +54,7 @@ type CellEventsSchedules struct {
 	playersLocker *locker.Locker[string]
 	repository    repository
 	cells         cells
-	effects       effects
+	effects       effectsService
 	actionEvents  actionEvents
 	players       players
 	settings      settings
@@ -66,7 +68,7 @@ func NewCellEventsSchedules(
 	playersLocker *locker.Locker[string],
 	repository repository,
 	cells cells,
-	effects effects,
+	effects effectsService,
 	actionEvents actionEvents,
 	players players,
 	settings settings,
@@ -289,13 +291,13 @@ func (c *CellEventsSchedules) pickCellsForEvents(ctx context.Context, events []*
 	return nil
 }
 
-func (c *CellEventsSchedules) ListenToCellEvents(ctx context.Context, events *model.Events, player *model.Player) error {
-	err := c.actionEvents.ListenToActionEvents(events, player)
+func (c *CellEventsSchedules) ListenToCellEvents(ctx context.Context, actor *player.Actor) error {
+	err := c.actionEvents.ListenToActionEvents(actor)
 	if err != nil {
 		return err
 	}
 
-	err = c.ListenToCellEventEffects(ctx, events, player)
+	err = c.ListenToCellEventEffects(ctx, actor)
 	if err != nil {
 		return err
 	}
@@ -303,21 +305,21 @@ func (c *CellEventsSchedules) ListenToCellEvents(ctx context.Context, events *mo
 	return nil
 }
 
-func (c *CellEventsSchedules) ListenToCellEventEffects(ctx context.Context, events *model.Events, player *model.Player) error {
-	unsubKeys, err := c.subscribeCellEventEffects(ctx, events, player)
+func (c *CellEventsSchedules) ListenToCellEventEffects(ctx context.Context, actor *player.Actor) error {
+	unsubKeys, err := c.subscribeCellEventEffects(ctx, actor)
 	if err != nil {
 		return err
 	}
 
-	events.OnAfterMove().BindFunc(func(ctx context.Context, e *model.OnAfterMoveEvent) error {
+	actor.Events().OnAfterMove().BindFunc(func(ctx context.Context, e *model.OnAfterMoveEvent) error {
 		if len(unsubKeys) > 0 {
 			for _, unsubKey := range unsubKeys {
-				events.Unsubscribe(unsubKey)
+				actor.Events().Unsubscribe(unsubKey)
 			}
 			unsubKeys = nil
 		}
 
-		unsubKeys, err = c.subscribeCellEventEffects(ctx, events, player)
+		unsubKeys, err = c.subscribeCellEventEffects(ctx, actor)
 		if err != nil {
 			return err
 		}
@@ -328,8 +330,8 @@ func (c *CellEventsSchedules) ListenToCellEventEffects(ctx context.Context, even
 	return nil
 }
 
-func (c *CellEventsSchedules) subscribeCellEventEffects(ctx context.Context, events *model.Events, player *model.Player) ([]string, error) {
-	cellEvent, err := c.repository.GetByActiveCellID(ctx, player.LastAction().Cell())
+func (c *CellEventsSchedules) subscribeCellEventEffects(ctx context.Context, actor *player.Actor) ([]string, error) {
+	cellEvent, err := c.repository.GetByActiveCellID(ctx, actor.Player().LastAction().Cell())
 	if err != nil {
 		if errors.Is(err, errs.ErrCellEventScheduleNotFound) {
 			return nil, nil
@@ -337,34 +339,33 @@ func (c *CellEventsSchedules) subscribeCellEventEffects(ctx context.Context, eve
 		return nil, err
 	}
 
-	effects, err := c.effects.GetByIDs(ctx, cellEvent.Effects())
+	eventEffects, err := c.effects.GetByIDs(ctx, cellEvent.Effects())
 	if err != nil {
 		return nil, err
 	}
 
-	if len(effects) == 0 {
+	if len(eventEffects) == 0 {
 		return nil, nil
 	}
 
-	unsubKeys := make([]string, len(effects))
-	for i, effect := range effects {
-		unsubKey := "cell_event_effect:" + player.ID() + ":" + effect.Data().ID() + ":" + player.LastAction().Cell()
+	unsubKeys := make([]string, len(eventEffects))
+	for i, effect := range eventEffects {
+		unsubKey := "cell_event_effect:" + actor.Player().ID() + ":" + effect.Data().ID() + ":" + actor.Player().LastAction().Cell()
 		unsubs, err := effect.Subscribe(
 			ctx,
-			events,
-			player,
-			model.EffectContext{
+			actor,
+			effects.Context{
 				Priority: 50,
 			},
 			func(ctx context.Context) {
-				events.Unsubscribe(unsubKey)
+				actor.Events().Unsubscribe(unsubKey)
 			},
 		)
 		if err != nil {
 			return nil, err
 		}
 
-		events.AddUnsubs(unsubKey, unsubs...)
+		actor.Events().AddUnsubs(unsubKey, unsubs...)
 		unsubKeys[i] = unsubKey
 	}
 

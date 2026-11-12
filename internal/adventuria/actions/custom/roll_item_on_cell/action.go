@@ -2,7 +2,9 @@ package roll_item_on_cell
 
 import (
 	"adventuria/internal/adventuria/actions"
+	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/cells"
+	"adventuria/internal/adventuria/effects"
 	"adventuria/internal/adventuria/model"
 	"adventuria/internal/adventuria/player_events/custom/item_received"
 	"context"
@@ -15,14 +17,14 @@ type cellsService interface {
 }
 
 type inventories interface {
-	AddItemByID(ctx context.Context, events *model.Events, player *model.Player, itemId string, source item_received.Source) (*model.InventoryItemWithEffects, error)
+	AddItemByID(ctx context.Context, actor *player.Actor, itemId string, source item_received.Source) (*effects.InventoryItemWithEffects, error)
 }
 
 type items interface {
 	GetByIDs(ctx context.Context, ids []string) ([]*model.Item, error)
 }
 
-var _ model.Action = (*RollItemOnCell)(nil)
+var _ actions.Action = (*RollItemOnCell)(nil)
 
 const Type model.ActionType = "roll_item_on_cell"
 
@@ -36,7 +38,7 @@ type RollItemOnCell struct {
 func NewDef(cells cellsService, inventories inventories, items items) actions.ActionDef {
 	return actions.NewAction(
 		Type,
-		func() model.Action {
+		func() actions.Action {
 			return &RollItemOnCell{
 				ActionBase:  actions.NewActionBase(Type),
 				cells:       cells,
@@ -47,8 +49,8 @@ func NewDef(cells cellsService, inventories inventories, items items) actions.Ac
 	)
 }
 
-func (r *RollItemOnCell) CanDo(ctx context.Context, _ *model.Events, player *model.Player) bool {
-	currentCell, err := r.cells.GetByPlayer(ctx, player)
+func (r *RollItemOnCell) CanDo(ctx context.Context, actor *player.Actor) bool {
+	currentCell, err := r.cells.GetByPlayer(ctx, actor.Player())
 	if err != nil {
 		return false
 	}
@@ -57,11 +59,11 @@ func (r *RollItemOnCell) CanDo(ctx context.Context, _ *model.Events, player *mod
 		return false
 	}
 
-	return !player.Progress().CanMove() && player.LastAction().Status() != model.ActionStatusRollItemOnCell
+	return !actor.Player().Progress().CanMove() && actor.Player().LastAction().Status() != model.ActionStatusRollItemOnCell
 }
 
-func (r *RollItemOnCell) Do(ctx context.Context, events *model.Events, player *model.Player, _ model.ActionRequest) (any, error) {
-	currentCell, err := r.cells.GetByPlayerWrapped(ctx, player)
+func (r *RollItemOnCell) Do(ctx context.Context, actor *player.Actor, _ actions.Request) (any, error) {
+	currentCell, err := r.cells.GetByPlayerWrapped(ctx, actor.Player())
 	if err != nil {
 		return nil, err
 	}
@@ -71,20 +73,20 @@ func (r *RollItemOnCell) Do(ctx context.Context, events *model.Events, player *m
 		return nil, fmt.Errorf("current cell is not rollable")
 	}
 
-	res, err := cellRollable.Roll(ctx, events, player)
+	res, err := cellRollable.Roll(ctx, actor.Events(), actor.Player())
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = r.inventories.AddItemByID(ctx, events, player, res.WinnerId, item_received.SourceItemWheel)
+	_, err = r.inventories.AddItemByID(ctx, actor, res.WinnerId, item_received.SourceItemWheel)
 	if err != nil {
 		return nil, err
 	}
 
-	lastAction := player.LastAction()
+	lastAction := actor.Player().LastAction()
 	lastAction.SetStatus(model.ActionStatusRollItemOnCell)
 
-	player.Progress().SetCanMove(true)
+	actor.Player().Progress().SetCanMove(true)
 
 	return res, nil
 }

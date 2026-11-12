@@ -1,21 +1,10 @@
 package model
 
 import (
-	"context"
 	"errors"
 )
 
 type ActionType string
-type ActionRequest any
-
-type Action interface {
-	Type() ActionType
-	Categories() []string
-	InCategory(string) bool
-	InCategories(categories []string) bool
-	CanDo(ctx context.Context, events *Events, player *Player) bool
-	Do(ctx context.Context, events *Events, player *Player, actionReq ActionRequest) (any, error)
-}
 
 type ActionData struct {
 	Id          string

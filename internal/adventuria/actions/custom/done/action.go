@@ -2,6 +2,7 @@ package done
 
 import (
 	"adventuria/internal/adventuria/actions"
+	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
 	"adventuria/internal/adventuria/player_events/custom/energy_changed"
@@ -11,7 +12,7 @@ import (
 )
 
 type actionsService interface {
-	CanDo(ctx context.Context, events *model.Events, player *model.Player, t model.ActionType) bool
+	CanDo(ctx context.Context, actor *player.Actor, t model.ActionType) bool
 }
 
 type cells interface {
@@ -34,7 +35,7 @@ type playerEvents interface {
 	Save(ctx context.Context, playerEvent *model.PlayerEventInfo) (*model.PlayerEventInfo, error)
 }
 
-var _ model.Action = (*Done)(nil)
+var _ actions.Action = (*Done)(nil)
 
 const Type model.ActionType = "done"
 
@@ -58,7 +59,7 @@ func NewDef(
 ) actions.ActionDef {
 	return actions.NewAction(
 		Type,
-		func() model.Action {
+		func() actions.Action {
 			return &Done{
 				ActionBase:               actions.NewActionBase(Type),
 				actions:                  actionsService,
@@ -72,22 +73,22 @@ func NewDef(
 	)
 }
 
-func (d *Done) CanDo(ctx context.Context, events *model.Events, player *model.Player) bool {
-	if !d.actions.CanDo(ctx, events, player, actions.ActionTypeCompleteActivity) {
+func (d *Done) CanDo(ctx context.Context, actor *player.Actor) bool {
+	if !d.actions.CanDo(ctx, actor, actions.ActionTypeCompleteActivity) {
 		return false
 	}
 
-	currentCell, err := d.cells.GetByPlayer(ctx, player)
+	currentCell, err := d.cells.GetByPlayer(ctx, actor.Player())
 	if err != nil {
 		return false
 	}
 
-	activityResult, err := d.activityResultCalculator.Calculate(ctx, events, currentCell, model.EffectRunModePreview)
+	activityResult, err := d.activityResultCalculator.Calculate(ctx, actor.Events(), currentCell, model.EffectRunModePreview)
 	if err != nil {
 		return false
 	}
 
-	return activityResult.EnergyConsume() <= player.Progress().Energy()
+	return activityResult.EnergyConsume() <= actor.Player().Progress().Energy()
 }
 
 type Request struct {
@@ -95,7 +96,7 @@ type Request struct {
 	Score   float64 `json:"score"`
 }
 
-func (d *Done) Do(ctx context.Context, events *model.Events, player *model.Player, actionReq model.ActionRequest) (any, error) {
+func (d *Done) Do(ctx context.Context, actor *player.Actor, actionReq actions.Request) (any, error) {
 	req, ok := actionReq.(Request)
 	if !ok {
 		return nil, errors.New("invalid request")
@@ -109,25 +110,25 @@ func (d *Done) Do(ctx context.Context, events *model.Events, player *model.Playe
 		return nil, err
 	}
 
-	currentCell, err := d.cells.GetByPlayer(ctx, player)
+	currentCell, err := d.cells.GetByPlayer(ctx, actor.Player())
 	if err != nil {
 		return nil, err
 	}
 
-	activityResult, err := d.activityResultCalculator.Calculate(ctx, events, currentCell, model.EffectRunModeApply)
+	activityResult, err := d.activityResultCalculator.Calculate(ctx, actor.Events(), currentCell, model.EffectRunModeApply)
 	if err != nil {
 		return nil, err
 	}
 
-	if activityResult.EnergyConsume() > player.Progress().Energy() {
+	if activityResult.EnergyConsume() > actor.Player().Progress().Energy() {
 		return nil, errs.ErrNotEnoughEnergy
 	}
 
-	lastAction := player.LastAction()
+	lastAction := actor.Player().LastAction()
 	lastAction.SetStatus(model.ActionStatusDone)
 	lastAction.SetReview(review.ID())
 
-	progress := player.Progress()
+	progress := actor.Player().Progress()
 	progress.SetCanMove(true)
 	progress.SetDropsInARow(0)
 	progress.SetIsInJail(false)
@@ -137,17 +138,17 @@ func (d *Done) Do(ctx context.Context, events *model.Events, player *model.Playe
 		return nil, err
 	}
 
-	err = d.recordEnergyChange(ctx, player.ID(), progress, lastAction, -activityResult.EnergyConsume())
+	err = d.recordEnergyChange(ctx, actor.Player().ID(), progress, lastAction, -activityResult.EnergyConsume())
 	if err != nil {
 		return nil, err
 	}
 
-	err = d.recordBalanceChange(ctx, player.ID(), progress, lastAction, activityResult.Coins())
+	err = d.recordBalanceChange(ctx, actor.Player().ID(), progress, lastAction, activityResult.Coins())
 	if err != nil {
 		return nil, err
 	}
 
-	return nil, events.OnAfterDone().Trigger(ctx, &model.OnAfterDoneEvent{
+	return nil, actor.Events().OnAfterDone().Trigger(ctx, &model.OnAfterDoneEvent{
 		CurrentCell: currentCell,
 	})
 }

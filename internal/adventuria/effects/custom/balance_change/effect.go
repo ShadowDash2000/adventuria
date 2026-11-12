@@ -1,13 +1,14 @@
 package balance_change
 
 import (
+	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/effects"
 	"adventuria/internal/adventuria/model"
 	"adventuria/pkg/event"
 	"context"
 )
 
-var _ model.Effect = (*BalanceChange)(nil)
+var _ effects.Effect = (*BalanceChange)(nil)
 
 const Type model.EffectType = "balance_change"
 
@@ -18,7 +19,7 @@ type BalanceChange struct {
 func NewDef() effects.EffectDef {
 	return effects.NewEffectDef(
 		Type,
-		func(effect model.EffectInfo) model.Effect {
+		func(effect model.EffectInfo) effects.Effect {
 			return &BalanceChange{
 				EffectBase: effects.NewEffectBase(effect),
 			}
@@ -26,19 +27,18 @@ func NewDef() effects.EffectDef {
 	)
 }
 
-func (b *BalanceChange) CanUse(_ context.Context, _ *model.Events, _ *model.Player) bool {
+func (b *BalanceChange) CanUse(_ context.Context, _ *player.Actor) bool {
 	return true
 }
 
 func (b *BalanceChange) Subscribe(
 	_ context.Context,
-	events *model.Events,
-	player *model.Player,
-	effectCtx model.EffectContext,
-	callback model.EffectCallback,
+	actor *player.Actor,
+	effectCtx effects.Context,
+	callback effects.Callback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		events.OnAfterItemAdd().BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterItemAddEvent) error {
+		actor.Events().OnAfterItemAdd().BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterItemAddEvent) error {
 			if e.Item.Inventory().ID() != effectCtx.InvItemID {
 				return e.Next()
 			}
@@ -48,7 +48,7 @@ func (b *BalanceChange) Subscribe(
 				return err
 			}
 
-			err = player.Progress().BalanceChange(amount)
+			err = actor.Player().Progress().BalanceChange(amount)
 			if err != nil {
 				return err
 			}

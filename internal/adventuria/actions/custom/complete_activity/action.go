@@ -2,6 +2,7 @@ package complete_activity
 
 import (
 	"adventuria/internal/adventuria/actions"
+	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
 	"context"
@@ -19,7 +20,7 @@ type dropResultCalculator interface {
 	Calculate(ctx context.Context, events *model.Events, cell *model.CellInfo, mode model.EffectRunMode) (*model.ActivityDropResult, error)
 }
 
-var _ model.Action = (*CompleteActivity)(nil)
+var _ actions.Action = (*CompleteActivity)(nil)
 
 const Type model.ActionType = "complete_activity"
 
@@ -37,7 +38,7 @@ func NewDef(
 ) actions.ActionDef {
 	return actions.NewAction(
 		Type,
-		func() model.Action {
+		func() actions.Action {
 			return &CompleteActivity{
 				ActionBase:           actions.NewActionBase(Type),
 				cells:                cells,
@@ -48,10 +49,10 @@ func NewDef(
 	)
 }
 
-func (c *CompleteActivity) CanDo(_ context.Context, _ *model.Events, player *model.Player) bool {
-	return player.LastAction().Status() == model.ActionStatusRollWheel
+func (c *CompleteActivity) CanDo(_ context.Context, actor *player.Actor) bool {
+	return actor.Player().LastAction().Status() == model.ActionStatusRollWheel
 }
 
-func (c *CompleteActivity) Do(_ context.Context, _ *model.Events, _ *model.Player, _ model.ActionRequest) (any, error) {
+func (c *CompleteActivity) Do(_ context.Context, _ *player.Actor, _ actions.Request) (any, error) {
 	return nil, errs.ErrDontDoThat
 }

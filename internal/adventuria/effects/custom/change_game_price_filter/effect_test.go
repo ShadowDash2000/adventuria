@@ -4,6 +4,7 @@ import (
 	"adventuria/internal/adventuria/actions"
 	actionsMocks "adventuria/internal/adventuria/actions/mocks"
 	activitiesMocks "adventuria/internal/adventuria/activities/mocks"
+	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/cells"
 	cellsMocks "adventuria/internal/adventuria/cells/mocks"
 	"adventuria/internal/adventuria/effects"
@@ -14,6 +15,7 @@ import (
 
 func TestChangeGamePriceFilter_CanUse(t *testing.T) {
 	ctx := t.Context()
+	factory := player.NewFactory(nil, nil)
 
 	setup := func() (*ChangeGamePriceFilter, *actionsMocks.Actions, *cellsMocks.Cells, *activitiesMocks.Activities) {
 		mActions := &actionsMocks.Actions{}
@@ -44,9 +46,9 @@ func TestChangeGamePriceFilter_CanUse(t *testing.T) {
 				},
 			},
 		})
-		player := model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, lastAction, nil)
+		actor := factory.New(model.NewEvents(), model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, lastAction, nil))
 
-		mActions.CanDoFunc = func(ctx context.Context, events *model.Events, p *model.Player, t model.ActionType) bool {
+		mActions.CanDoFunc = func(ctx context.Context, actor *player.Actor, t model.ActionType) bool {
 			return t == actions.ActionTypeRollWheel
 		}
 
@@ -56,20 +58,20 @@ func TestChangeGamePriceFilter_CanUse(t *testing.T) {
 			}), nil
 		}
 
-		if !eff.CanUse(ctx, nil, player) {
+		if !eff.CanUse(ctx, actor) {
 			t.Error("CanUse should return true")
 		}
 	})
 
 	t.Run("cannot roll wheel", func(t *testing.T) {
 		eff, mActions, _, _ := setup()
-		player := model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, nil, nil)
+		actor := factory.New(model.NewEvents(), model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, nil, nil))
 
-		mActions.CanDoFunc = func(ctx context.Context, events *model.Events, p *model.Player, t model.ActionType) bool {
+		mActions.CanDoFunc = func(ctx context.Context, actor *player.Actor, t model.ActionType) bool {
 			return false
 		}
 
-		if eff.CanUse(ctx, nil, player) {
+		if eff.CanUse(ctx, actor) {
 			t.Error("CanUse should return false")
 		}
 	})
@@ -83,9 +85,9 @@ func TestChangeGamePriceFilter_CanUse(t *testing.T) {
 				},
 			},
 		})
-		player := model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, lastAction, nil)
+		actor := factory.New(model.NewEvents(), model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, lastAction, nil))
 
-		mActions.CanDoFunc = func(ctx context.Context, events *model.Events, p *model.Player, t model.ActionType) bool {
+		mActions.CanDoFunc = func(ctx context.Context, actor *player.Actor, t model.ActionType) bool {
 			return true
 		}
 
@@ -95,16 +97,16 @@ func TestChangeGamePriceFilter_CanUse(t *testing.T) {
 			}), nil
 		}
 
-		if eff.CanUse(ctx, nil, player) {
+		if eff.CanUse(ctx, actor) {
 			t.Error("CanUse should return false")
 		}
 	})
 
 	t.Run("custom filter not allowed", func(t *testing.T) {
 		eff, mActions, mCells, _ := setup()
-		player := model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, nil, nil)
+		actor := factory.New(model.NewEvents(), model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, nil, nil))
 
-		mActions.CanDoFunc = func(ctx context.Context, events *model.Events, p *model.Player, t model.ActionType) bool {
+		mActions.CanDoFunc = func(ctx context.Context, actor *player.Actor, t model.ActionType) bool {
 			return true
 		}
 
@@ -115,7 +117,7 @@ func TestChangeGamePriceFilter_CanUse(t *testing.T) {
 			}), nil
 		}
 
-		if eff.CanUse(ctx, nil, player) {
+		if eff.CanUse(ctx, actor) {
 			t.Error("CanUse should return false")
 		}
 	})
@@ -129,9 +131,9 @@ func TestChangeGamePriceFilter_CanUse(t *testing.T) {
 				},
 			},
 		})
-		player := model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, lastAction, nil)
+		actor := factory.New(model.NewEvents(), model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, lastAction, nil))
 
-		mActions.CanDoFunc = func(ctx context.Context, events *model.Events, p *model.Player, t model.ActionType) bool {
+		mActions.CanDoFunc = func(ctx context.Context, actor *player.Actor, t model.ActionType) bool {
 			return true
 		}
 
@@ -146,7 +148,7 @@ func TestChangeGamePriceFilter_CanUse(t *testing.T) {
 			return []string{"act1"}, nil
 		}
 
-		if eff.CanUse(ctx, nil, player) {
+		if eff.CanUse(ctx, actor) {
 			t.Error("CanUse should return false")
 		}
 	})
@@ -154,13 +156,13 @@ func TestChangeGamePriceFilter_CanUse(t *testing.T) {
 
 func TestChangeGamePriceFilter_Subscribe(t *testing.T) {
 	ctx := t.Context()
+	factory := player.NewFactory(nil, nil)
 
 	setup := func(value string) (
 		*ChangeGamePriceFilter,
-		*model.Events,
-		*model.Player,
+		*player.Actor,
 		*bool,
-		model.EffectCallback,
+		effects.Callback,
 		*cellsMocks.Cells,
 		*activitiesMocks.Activities,
 	) {
@@ -201,16 +203,16 @@ func TestChangeGamePriceFilter_Subscribe(t *testing.T) {
 			callbackCalled = true
 		}
 
-		return eff, events, player, &callbackCalled, callback, mCells, mActivities
+		return eff, factory.New(events, player), &callbackCalled, callback, mCells, mActivities
 	}
 
-	effectCtx := model.EffectContext{
+	effectCtx := effects.Context{
 		InvItemID: "item1",
 		Priority:  10,
 	}
 
 	t.Run("usable min price", func(t *testing.T) {
-		eff, events, player, called, callback, mCells, mActivities := setup("100;min;usable")
+		eff, actor, called, callback, mCells, mActivities := setup("100;min;usable")
 
 		mCell := &cellsMocks.RollableCell{
 			Cell: &cellsMocks.Cell{
@@ -225,12 +227,12 @@ func TestChangeGamePriceFilter_Subscribe(t *testing.T) {
 			return []string{"act1"}, nil
 		}
 
-		_, err := eff.Subscribe(ctx, events, player, effectCtx, callback)
+		_, err := eff.Subscribe(ctx, actor, effectCtx, callback)
 		if err != nil {
 			t.Fatalf("Subscribe failed: %v", err)
 		}
 
-		err = events.OnAfterItemUse().Trigger(ctx, &model.OnAfterItemUseEvent{
+		err = actor.Events().OnAfterItemUse().Trigger(ctx, &model.OnAfterItemUseEvent{
 			InvItemId: "item1",
 		})
 		if err != nil {
@@ -241,17 +243,17 @@ func TestChangeGamePriceFilter_Subscribe(t *testing.T) {
 			t.Error("Callback was not called")
 		}
 
-		filter := player.LastAction().State().ActivityFilter
+		filter := actor.Player().LastAction().State().ActivityFilter
 		if filter.MinPrice != 100 || filter.MaxPrice != -1 {
 			t.Errorf("Invalid filter prices: %+v", filter)
 		}
 	})
 
 	t.Run("unusable max price", func(t *testing.T) {
-		eff, events, player, called, callback, mCells, mActivities := setup("500;max;unusable")
+		eff, actor, called, callback, mCells, mActivities := setup("500;max;unusable")
 
 		mActions := eff.actions.(*actionsMocks.Actions)
-		mActions.CanDoFunc = func(ctx context.Context, events *model.Events, p *model.Player, t model.ActionType) bool {
+		mActions.CanDoFunc = func(ctx context.Context, actor *player.Actor, t model.ActionType) bool {
 			return true
 		}
 
@@ -273,12 +275,12 @@ func TestChangeGamePriceFilter_Subscribe(t *testing.T) {
 			return []string{"act1"}, nil
 		}
 
-		_, err := eff.Subscribe(ctx, events, player, effectCtx, callback)
+		_, err := eff.Subscribe(ctx, actor, effectCtx, callback)
 		if err != nil {
 			t.Fatalf("Subscribe failed: %v", err)
 		}
 
-		err = events.OnAfterMove().Trigger(ctx, &model.OnAfterMoveEvent{})
+		err = actor.Events().OnAfterMove().Trigger(ctx, &model.OnAfterMoveEvent{})
 		if err != nil {
 			t.Errorf("Trigger OnAfterMove failed: %v", err)
 		}
@@ -287,20 +289,19 @@ func TestChangeGamePriceFilter_Subscribe(t *testing.T) {
 			t.Error("Callback was not called on OnAfterMove")
 		}
 
-		filter := player.LastAction().State().ActivityFilter
+		filter := actor.Player().LastAction().State().ActivityFilter
 		if filter.MaxPrice != 500 || filter.MinPrice != -1 {
 			t.Errorf("Invalid filter prices: %+v", filter)
 		}
 
 		*called = false
 
-		item := model.RestoreInventoryItemWithEffects(
+		item := model.RestoreInventoryItem(
 			model.RestoreInventory(model.InventoryData{Id: "item1"}),
-			nil,
 			nil,
 		)
 
-		err = events.OnAfterItemAdd().Trigger(ctx, &model.OnAfterItemAddEvent{
+		err = actor.Events().OnAfterItemAdd().Trigger(ctx, &model.OnAfterItemAddEvent{
 			Item: item,
 		})
 		if err != nil {

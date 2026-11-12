@@ -1,6 +1,7 @@
 package give_soap_on_jail_completion
 
 import (
+	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/cells"
 	"adventuria/internal/adventuria/effects"
 	"adventuria/internal/adventuria/errs"
@@ -12,10 +13,10 @@ import (
 )
 
 type inventories interface {
-	AddItemBySlug(ctx context.Context, events *model.Events, player *model.Player, itemSlug string, source item_received.Source) (*model.InventoryItemWithEffects, error)
+	AddItemBySlug(ctx context.Context, actor *player.Actor, itemSlug string, source item_received.Source) (*effects.InventoryItemWithEffects, error)
 }
 
-var _ model.EffectPersistent = (*GiveSoapOnJailCompletion)(nil)
+var _ effects.EffectPersistent = (*GiveSoapOnJailCompletion)(nil)
 
 const Type model.EffectType = "give_soap_on_jail_completion"
 
@@ -32,17 +33,16 @@ func NewDef(inventories inventories) effects.EffectPersistentDef {
 	)
 }
 
-func (g *GiveSoapOnJailCompletion) Subscribe(_ context.Context, events *model.Events, player *model.Player) ([]event.Unsubscribe, error) {
+func (g *GiveSoapOnJailCompletion) Subscribe(_ context.Context, actor *player.Actor) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		events.OnAfterDone().BindFunc(func(ctx context.Context, e *model.OnAfterDoneEvent) error {
+		actor.Events().OnAfterDone().BindFunc(func(ctx context.Context, e *model.OnAfterDoneEvent) error {
 			if e.CurrentCell.Type() != cells.CellTypeJail {
 				return e.Next()
 			}
 
 			_, err := g.inventories.AddItemBySlug(
 				ctx,
-				events,
-				player,
+				actor,
 				"soap",
 				item_received.SourceCell,
 			)

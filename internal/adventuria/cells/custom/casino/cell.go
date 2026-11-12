@@ -1,6 +1,7 @@
 package casino
 
 import (
+	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/cells"
 	"adventuria/internal/adventuria/model"
 	"context"
@@ -9,6 +10,8 @@ import (
 type items interface {
 	GetByIDs(ctx context.Context, ids []string) ([]*model.Item, error)
 }
+
+var _ player.CellReached = (*CellCasino)(nil)
 
 const Type model.CellType = "casino"
 
@@ -33,20 +36,20 @@ func NewDef(
 	)
 }
 
-func (c *CellCasino) OnCellReached(_ context.Context, _ *model.Events, player *model.Player, _ *model.ReachedContext) error {
-	err := player.Progress().ItemWheelsCountChange(1)
+func (c *CellCasino) OnPlayerReached(_ context.Context, actor *player.Actor, _ *model.ReachedContext) error {
+	err := actor.Player().Progress().ItemWheelsCountChange(1)
 	if err != nil {
 		return err
 	}
 
-	player.Progress().SetCanMove(true)
+	actor.Player().Progress().SetCanMove(true)
 
 	decodedValue, err := c.decodeValue(c.Value())
 	if err != nil {
 		return err
 	}
 
-	actionState := player.LastAction().State()
+	actionState := actor.Player().LastAction().State()
 	actionState.ShopFilter = &model.ActionShopFilterState{
 		Ids: decodedValue.ItemIds,
 	}
@@ -59,9 +62,5 @@ func (c *CellCasino) OnCellReached(_ context.Context, _ *model.Events, player *m
 		return err
 	}
 
-	return nil
-}
-
-func (c *CellCasino) OnCellLeft(_ context.Context, _ *model.Events, _ *model.Player) error {
 	return nil
 }

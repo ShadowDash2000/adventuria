@@ -3,6 +3,7 @@ package adventuria
 import (
 	"adventuria/internal/adventuria/actions"
 	"adventuria/internal/adventuria/board"
+	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/cell_events_schedules"
 	"adventuria/internal/adventuria/cells"
 	"adventuria/internal/adventuria/effects"
@@ -40,6 +41,7 @@ type Game struct {
 	worlds           *worlds.Worlds
 	board            *board.Board
 	playersLocker    *locker.Locker[string]
+	playerFactory    *player.Factory
 
 	onKillParserEvent *event.Hook[*onKillParserEvent]
 }
@@ -80,20 +82,20 @@ func Start(fn func(game *Game, registry *Registry, se *core.ServeEvent) error) (
 	return g, nil
 }
 
-func (g *Game) initScope(ctx context.Context, player *model.Player) (*scope.Scope, error) {
-	s := scope.New(player)
+func (g *Game) initScope(ctx context.Context, player *model.Player) (*player.Actor, error) {
+	actor := g.playerFactory.New(model.NewEvents(), player)
 
 	inventory, err := g.inventories.GetAllWithEffectsByPlayerID(ctx, player.ID())
 	if err != nil {
 		return nil, err
 	}
 
-	err = g.eventsSubscriber.Subscribe(ctx, s.Events(), s.Player(), inventory)
+	err = g.eventsSubscriber.Subscribe(ctx, actor, inventory)
 	if err != nil {
 		return nil, err
 	}
 
-	return s, nil
+	return actor, nil
 }
 
 func (g *Game) DoAction(
@@ -101,7 +103,7 @@ func (g *Game) DoAction(
 	pb core.App,
 	playerId string,
 	actionType model.ActionType,
-	req model.ActionRequest,
+	req actions.Request,
 ) (any, error) {
 	currentSeason, err := g.settings.CurrentSeason(ctx)
 	if err != nil {
@@ -118,18 +120,18 @@ func (g *Game) DoAction(
 		return nil, err
 	}
 
-	s, err := g.initScope(ctx, player)
+	actor, err := g.initScope(ctx, player)
 	if err != nil {
 		return nil, err
 	}
 
-	if ok := g.actions.CanDo(ctx, s.Events(), s.Player(), actionType); !ok {
+	if ok := g.actions.CanDo(ctx, actor, actionType); !ok {
 		return nil, errors.New("action is not available")
 	}
 
 	var res any
 	err = pbtransaction.RunInTransaction(ctx, pb, func(ctx context.Context, txApp core.App) error {
-		res, err = g.actions.Do(ctx, s.Events(), s.Player(), req, actionType)
+		res, err = g.actions.Do(ctx, actor, req, actionType)
 		if err != nil {
 			return err
 		}
@@ -161,13 +163,13 @@ func (g *Game) AddItemByID(ctx context.Context, pb core.App, playerId, itemId st
 		return err
 	}
 
-	s, err := g.initScope(ctx, player)
+	actor, err := g.initScope(ctx, player)
 	if err != nil {
 		return err
 	}
 
 	return pbtransaction.RunInTransaction(ctx, pb, func(ctx context.Context, txApp core.App) error {
-		_, err = g.inventories.AddItemByID(ctx, s.Events(), s.Player(), itemId, source)
+		_, err = g.inventories.AddItemByID(ctx, actor, itemId, source)
 		if err != nil {
 			return err
 		}
@@ -203,12 +205,12 @@ func (g *Game) UseItem(
 		return err
 	}
 
-	s, err := g.initScope(ctx, player)
+	actor, err := g.initScope(ctx, player)
 	if err != nil {
 		return err
 	}
 
-	canUse, err := g.inventories.CanUseItem(ctx, s.Events(), s.Player(), itemId)
+	canUse, err := g.inventories.CanUseItem(ctx, actor, itemId)
 	if err != nil {
 		return err
 	}
@@ -217,12 +219,12 @@ func (g *Game) UseItem(
 	}
 
 	return pbtransaction.RunInTransaction(ctx, pb, func(ctx context.Context, txApp core.App) error {
-		err = g.inventories.UseItem(ctx, s.Events(), s.Player(), itemId)
+		err = g.inventories.UseItem(ctx, actor, itemId)
 		if err != nil {
 			return err
 		}
 
-		err = s.Events().OnAfterItemUse().Trigger(ctx, &model.OnAfterItemUseEvent{
+		err = actor.Events().OnAfterItemUse().Trigger(ctx, &model.OnAfterItemUseEvent{
 			InvItemId: itemId,
 			Data:      data,
 		})
@@ -255,7 +257,7 @@ func (g *Game) DropItem(ctx context.Context, pb core.App, playerId, itemId strin
 		return err
 	}
 
-	s, err := g.initScope(ctx, player)
+	actor, err := g.initScope(ctx, player)
 	if err != nil {
 		return err
 	}
@@ -270,7 +272,7 @@ func (g *Game) DropItem(ctx context.Context, pb core.App, playerId, itemId strin
 	}
 
 	return pbtransaction.RunInTransaction(ctx, pb, func(ctx context.Context, txApp core.App) error {
-		err = g.inventories.DropItem(ctx, s.Events(), s.Player(), item)
+		err = g.inventories.DropItem(ctx, actor.Events(), actor.Player(), item)
 		if err != nil {
 			return err
 		}
@@ -300,13 +302,13 @@ func (g *Game) MoveToCellID(ctx context.Context, pb core.App, playerId, cellId s
 		return err
 	}
 
-	s, err := g.initScope(ctx, player)
+	actor, err := g.initScope(ctx, player)
 	if err != nil {
 		return err
 	}
 
 	return pbtransaction.RunInTransaction(ctx, pb, func(ctx context.Context, txApp core.App) error {
-		_, err = g.board.MoveToCellId(ctx, s.Events(), s.Player(), cellId)
+		_, err = g.board.MoveToCellId(ctx, actor, cellId)
 		if err != nil {
 			return err
 		}
@@ -331,12 +333,12 @@ func (g *Game) GetAvailableActions(ctx context.Context, playerId string) ([]mode
 		return nil, err
 	}
 
-	s, err := g.initScope(ctx, player)
+	actor, err := g.initScope(ctx, player)
 	if err != nil {
 		return nil, err
 	}
 
-	availableActions := g.actions.AvailableActions(ctx, s.Events(), s.Player())
+	availableActions := g.actions.AvailableActions(ctx, actor)
 
 	return availableActions, nil
 }
@@ -352,12 +354,12 @@ func (g *Game) GetEffectView(ctx context.Context, playerId, effectId string) (an
 		return nil, err
 	}
 
-	s, err := g.initScope(ctx, player)
+	actor, err := g.initScope(ctx, player)
 	if err != nil {
 		return nil, err
 	}
 
-	return g.effects.GetView(ctx, s.Events(), s.Player(), effectId)
+	return g.effects.GetView(ctx, actor.Events(), actor.Player(), effectId)
 }
 
 func (g *Game) GetActionView(ctx context.Context, playerId string, actionType model.ActionType) (any, error) {
@@ -371,12 +373,12 @@ func (g *Game) GetActionView(ctx context.Context, playerId string, actionType mo
 		return nil, err
 	}
 
-	s, err := g.initScope(ctx, player)
+	actor, err := g.initScope(ctx, player)
 	if err != nil {
 		return nil, err
 	}
 
-	return g.actions.GetView(ctx, s.Events(), s.Player(), actionType)
+	return g.actions.GetView(ctx, actor.Events(), actor.Player(), actionType)
 }
 
 func (g *Game) IsActionsBlocked(ctx context.Context) error {

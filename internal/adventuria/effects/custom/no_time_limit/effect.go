@@ -2,6 +2,7 @@ package no_time_limit
 
 import (
 	"adventuria/internal/adventuria/actions"
+	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/effects"
 	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
@@ -10,14 +11,14 @@ import (
 )
 
 type actionsService interface {
-	CanDo(ctx context.Context, events *model.Events, player *model.Player, t model.ActionType) bool
+	CanDo(ctx context.Context, actor *player.Actor, t model.ActionType) bool
 }
 
 type activities interface {
 	GetRandomIDsByFilter(ctx context.Context, filter model.ActivityFilter) ([]string, error)
 }
 
-var _ model.Effect = (*NoTimeLimit)(nil)
+var _ effects.Effect = (*NoTimeLimit)(nil)
 
 const Type model.EffectType = "no_time_limit"
 
@@ -30,7 +31,7 @@ type NoTimeLimit struct {
 func NewDef(actions actionsService, activities activities) effects.EffectDef {
 	return effects.NewEffectDef(
 		Type,
-		func(effect model.EffectInfo) model.Effect {
+		func(effect model.EffectInfo) effects.Effect {
 			return &NoTimeLimit{
 				EffectBase: effects.NewEffectBase(effect),
 				actions:    actions,
@@ -40,12 +41,12 @@ func NewDef(actions actionsService, activities activities) effects.EffectDef {
 	)
 }
 
-func (n *NoTimeLimit) CanUse(ctx context.Context, events *model.Events, player *model.Player) bool {
-	if !n.actions.CanDo(ctx, events, player, actions.ActionTypeRollWheel) {
+func (n *NoTimeLimit) CanUse(ctx context.Context, actor *player.Actor) bool {
+	if !n.actions.CanDo(ctx, actor, actions.ActionTypeRollWheel) {
 		return false
 	}
 
-	activityFilter := player.LastAction().State().ActivityFilter
+	activityFilter := actor.Player().LastAction().State().ActivityFilter
 	if activityFilter == nil {
 		return false
 	}
@@ -59,18 +60,17 @@ func (n *NoTimeLimit) CanUse(ctx context.Context, events *model.Events, player *
 
 func (n *NoTimeLimit) Subscribe(
 	_ context.Context,
-	events *model.Events,
-	player *model.Player,
-	effectCtx model.EffectContext,
-	callback model.EffectCallback,
+	actor *player.Actor,
+	effectCtx effects.Context,
+	callback effects.Callback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		events.OnAfterMove().BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterMoveEvent) error {
-			if !n.CanUse(ctx, events, player) {
+		actor.Events().OnAfterMove().BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterMoveEvent) error {
+			if !n.CanUse(ctx, actor) {
 				return e.Next()
 			}
 
-			err := n.tryToApplyEffect(ctx, player)
+			err := n.tryToApplyEffect(ctx, actor.Player())
 			if err != nil {
 				return err
 			}
@@ -79,16 +79,16 @@ func (n *NoTimeLimit) Subscribe(
 
 			return e.Next()
 		}, effectCtx.Priority),
-		events.OnAfterItemAdd().BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterItemAddEvent) error {
+		actor.Events().OnAfterItemAdd().BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterItemAddEvent) error {
 			if e.Item.Inventory().ID() != effectCtx.InvItemID {
 				return e.Next()
 			}
 
-			if !n.CanUse(ctx, events, player) {
+			if !n.CanUse(ctx, actor) {
 				return e.Next()
 			}
 
-			err := n.tryToApplyEffect(ctx, player)
+			err := n.tryToApplyEffect(ctx, actor.Player())
 			if err != nil {
 				return err
 			}

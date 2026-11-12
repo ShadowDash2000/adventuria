@@ -11,7 +11,7 @@ type ActionDef struct {
 	new        ActionCreator
 }
 
-func (a *ActionDef) New() model.Action {
+func (a *ActionDef) New() Action {
 	return a.new()
 }
 
@@ -19,7 +19,7 @@ func (a *ActionDef) Type() model.ActionType {
 	return a.t
 }
 
-type ActionCreator func() model.Action
+type ActionCreator func() Action
 
 var registry = &Registry{actions: map[model.ActionType]ActionDef{}}
 

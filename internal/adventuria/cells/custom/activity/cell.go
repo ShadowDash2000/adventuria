@@ -1,6 +1,7 @@
 package activity
 
 import (
+	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/cells"
 	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
@@ -14,6 +15,7 @@ type filters interface {
 }
 
 var _ model.Rollable = (*CellActivity)(nil)
+var _ player.CellReached = (*CellActivity)(nil)
 
 type CellActivity struct {
 	cells.CellBase
@@ -53,17 +55,13 @@ func (c *CellActivity) Roll(_ context.Context, _ *model.Events, player *model.Pl
 	}, nil
 }
 
-func (c *CellActivity) OnCellReached(ctx context.Context, _ *model.Events, player *model.Player, _ *model.ReachedContext) error {
+func (c *CellActivity) OnPlayerReached(ctx context.Context, actor *player.Actor, _ *model.ReachedContext) error {
 	filter, err := c.filters.GetByID(ctx, c.Filter())
 	if err != nil {
 		return err
 	}
 
-	player.LastAction().State().ActivityFilter = new(filter.Filter())
+	actor.Player().LastAction().State().ActivityFilter = new(filter.Filter())
 
-	return nil
-}
-
-func (c *CellActivity) OnCellLeft(_ context.Context, _ *model.Events, _ *model.Player) error {
 	return nil
 }

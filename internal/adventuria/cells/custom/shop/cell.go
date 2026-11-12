@@ -1,6 +1,7 @@
 package shop
 
 import (
+	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/cells"
 	"adventuria/internal/adventuria/model"
 	"context"
@@ -10,6 +11,8 @@ import (
 type itemsService interface {
 	GetAllBuyableIDsByType(ctx context.Context, t model.ItemType) ([]string, error)
 }
+
+var _ player.CellReached = (*CellShop)(nil)
 
 const shopMaxItems = 6
 
@@ -38,15 +41,15 @@ func NewDef(
 	)
 }
 
-func (c *CellShop) OnCellReached(ctx context.Context, _ *model.Events, player *model.Player, _ *model.ReachedContext) error {
-	player.Progress().SetCanMove(true)
+func (c *CellShop) OnPlayerReached(ctx context.Context, actor *player.Actor, _ *model.ReachedContext) error {
+	actor.Player().Progress().SetCanMove(true)
 
 	ids, err := c.items.GetAllBuyableIDsByType(ctx, c.itemsType)
 	if err != nil {
 		return err
 	}
 
-	actionState := player.LastAction().State()
+	actionState := actor.Player().LastAction().State()
 	actionState.ShopFilter = &model.ActionShopFilterState{
 		ItemType: c.itemsType,
 	}
@@ -58,10 +61,6 @@ func (c *CellShop) OnCellReached(ctx context.Context, _ *model.Events, player *m
 		return err
 	}
 
-	return nil
-}
-
-func (c *CellShop) OnCellLeft(_ context.Context, _ *model.Events, _ *model.Player) error {
 	return nil
 }
 

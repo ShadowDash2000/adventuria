@@ -2,6 +2,7 @@ package go_to_jail
 
 import (
 	"adventuria/internal/adventuria/actions"
+	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/cells"
 	"adventuria/internal/adventuria/effects"
 	"adventuria/internal/adventuria/model"
@@ -10,14 +11,14 @@ import (
 )
 
 type actionsService interface {
-	CanDo(ctx context.Context, events *model.Events, player *model.Player, t model.ActionType) bool
+	CanDo(ctx context.Context, actor *player.Actor, t model.ActionType) bool
 }
 
 type board interface {
-	MoveToClosestCellType(ctx context.Context, events *model.Events, player *model.Player, cellType model.CellType) ([]*model.MoveResult, error)
+	MoveToClosestCellType(ctx context.Context, actor model.BoardActor, cellType model.CellType) ([]*model.MoveResult, error)
 }
 
-var _ model.Effect = (*GoToJail)(nil)
+var _ effects.Effect = (*GoToJail)(nil)
 
 const Type model.EffectType = "go_to_jail"
 
@@ -30,7 +31,7 @@ type GoToJail struct {
 func NewDef(actions actionsService, board board) effects.EffectDef {
 	return effects.NewEffectDef(
 		Type,
-		func(effect model.EffectInfo) model.Effect {
+		func(effect model.EffectInfo) effects.Effect {
 			return &GoToJail{
 				EffectBase: effects.NewEffectBase(effect),
 				actions:    actions,
@@ -40,14 +41,14 @@ func NewDef(actions actionsService, board board) effects.EffectDef {
 	)
 }
 
-func (g *GoToJail) CanUse(ctx context.Context, events *model.Events, player *model.Player) bool {
-	canRollWheel := g.actions.CanDo(ctx, events, player, actions.ActionTypeRollWheel)
+func (g *GoToJail) CanUse(ctx context.Context, actor *player.Actor) bool {
+	canRollWheel := g.actions.CanDo(ctx, actor, actions.ActionTypeRollWheel)
 	if canRollWheel {
 		return false
 	}
 
-	canDone := g.actions.CanDo(ctx, events, player, actions.ActionTypeDone)
-	canDrop := g.actions.CanDo(ctx, events, player, actions.ActionTypeDrop)
+	canDone := g.actions.CanDo(ctx, actor, actions.ActionTypeDone)
+	canDrop := g.actions.CanDo(ctx, actor, actions.ActionTypeDrop)
 
 	if canDone && !canDrop {
 		return false
@@ -58,20 +59,19 @@ func (g *GoToJail) CanUse(ctx context.Context, events *model.Events, player *mod
 
 func (g *GoToJail) Subscribe(
 	_ context.Context,
-	events *model.Events,
-	player *model.Player,
-	effectCtx model.EffectContext,
-	callback model.EffectCallback,
+	actor *player.Actor,
+	effectCtx effects.Context,
+	callback effects.Callback,
 ) ([]event.Unsubscribe, error) {
 	switch g.Value() {
 	case useAfterItemAdd:
 		return []event.Unsubscribe{
-			events.OnAfterItemAdd().BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterItemAddEvent) error {
+			actor.Events().OnAfterItemAdd().BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterItemAddEvent) error {
 				if e.Item.Inventory().ID() != effectCtx.InvItemID {
 					return e.Next()
 				}
 
-				err := g.tryToApplyEffect(ctx, events, player)
+				err := g.tryToApplyEffect(ctx, actor)
 				if err != nil {
 					return err
 				}
@@ -83,8 +83,8 @@ func (g *GoToJail) Subscribe(
 		}, nil
 	case useAfterItemUse:
 		return []event.Unsubscribe{
-			events.OnAfterItemUse(effectCtx.InvItemID).BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterItemUseEvent) error {
-				err := g.tryToApplyEffect(ctx, events, player)
+			actor.Events().OnAfterItemUse(effectCtx.InvItemID).BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterItemUseEvent) error {
+				err := g.tryToApplyEffect(ctx, actor)
 				if err != nil {
 					return err
 				}
@@ -98,9 +98,9 @@ func (g *GoToJail) Subscribe(
 	return nil, nil
 }
 
-func (g *GoToJail) tryToApplyEffect(ctx context.Context, events *model.Events, player *model.Player) error {
-	player.Progress().SetIsInJail(true)
+func (g *GoToJail) tryToApplyEffect(ctx context.Context, actor *player.Actor) error {
+	actor.Player().Progress().SetIsInJail(true)
 
-	_, err := g.board.MoveToClosestCellType(ctx, events, player, cells.CellTypeJail)
+	_, err := g.board.MoveToClosestCellType(ctx, actor, cells.CellTypeJail)
 	return err
 }

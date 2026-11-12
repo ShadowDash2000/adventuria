@@ -1,13 +1,14 @@
 package discount_price_divide
 
 import (
+	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/effects"
 	"adventuria/internal/adventuria/model"
 	"adventuria/pkg/event"
 	"context"
 )
 
-var _ model.Effect = (*DiscountPriceDivide)(nil)
+var _ effects.Effect = (*DiscountPriceDivide)(nil)
 
 const Type model.EffectType = "discount_price_divide"
 
@@ -18,7 +19,7 @@ type DiscountPriceDivide struct {
 func NewDef() effects.EffectDef {
 	return effects.NewEffectDef(
 		Type,
-		func(effect model.EffectInfo) model.Effect {
+		func(effect model.EffectInfo) effects.Effect {
 			return &DiscountPriceDivide{
 				EffectBase: effects.NewEffectBase(effect),
 			}
@@ -26,19 +27,18 @@ func NewDef() effects.EffectDef {
 	)
 }
 
-func (d *DiscountPriceDivide) CanUse(_ context.Context, _ *model.Events, _ *model.Player) bool {
+func (d *DiscountPriceDivide) CanUse(_ context.Context, _ *player.Actor) bool {
 	return true
 }
 
 func (d *DiscountPriceDivide) Subscribe(
 	_ context.Context,
-	events *model.Events,
-	_ *model.Player,
-	effectCtx model.EffectContext,
-	callback model.EffectCallback,
+	actor *player.Actor,
+	effectCtx effects.Context,
+	callback effects.Callback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		events.OnItemBuy().BindFuncWithPriority(func(ctx context.Context, e *model.OnItemBuyEvent) error {
+		actor.Events().OnItemBuy().BindFuncWithPriority(func(ctx context.Context, e *model.OnItemBuyEvent) error {
 			divider, err := d.decodeValue(d.Value())
 			if err != nil {
 				return err

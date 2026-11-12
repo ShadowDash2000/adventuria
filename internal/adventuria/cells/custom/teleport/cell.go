@@ -1,6 +1,7 @@
 package teleport
 
 import (
+	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/cells"
 	"adventuria/internal/adventuria/model"
 	"context"
@@ -11,12 +12,15 @@ type cellsService interface {
 }
 
 type board interface {
-	MoveToCellId(ctx context.Context, events *model.Events, player *model.Player, cellId string) ([]*model.MoveResult, error)
+	MoveToCellId(ctx context.Context, actor model.BoardActor, cellId string) ([]*model.MoveResult, error)
 }
 
 type actionsService interface {
 	Save(ctx context.Context, action *model.ActionInfo) (*model.ActionInfo, error)
 }
+
+var _ model.ActorCellReached = (*CellTeleport)(nil)
+var _ player.CellReached = (*CellTeleport)(nil)
 
 const Type model.CellType = "teleport"
 
@@ -47,7 +51,7 @@ func NewDef(
 	)
 }
 
-func (c *CellTeleport) OnCellReached(ctx context.Context, events *model.Events, player *model.Player, reachedCtx *model.ReachedContext) error {
+func (c *CellTeleport) OnPlayerReached(ctx context.Context, actor *player.Actor, reached *model.ReachedContext) error {
 	decodedValue, err := c.decodeValue(c.Value())
 	if err != nil {
 		return err
@@ -57,35 +61,39 @@ func (c *CellTeleport) OnCellReached(ctx context.Context, events *model.Events, 
 		CellId:       decodedValue.CellId,
 		SkipTeleport: false,
 	}
-
-	err = events.OnBeforeTeleportOnCell().Trigger(ctx, onBeforeTeleportOnCell)
+	err = actor.Events().OnBeforeTeleportOnCell().Trigger(ctx, onBeforeTeleportOnCell)
 	if err != nil {
 		return err
 	}
 
 	if onBeforeTeleportOnCell.SkipTeleport {
-		player.Progress().SetCanMove(true)
+		actor.Player().Progress().SetCanMove(true)
 		return nil
 	}
 
-	player.LastAction().SetStatus(model.ActionStatusTeleport)
-	newAction, err := c.actions.Save(ctx, player.LastAction())
+	actor.Player().LastAction().SetStatus(model.ActionStatusTeleport)
+	newAction, err := c.actions.Save(ctx, actor.Player().LastAction())
 	if err != nil {
 		return err
 	}
 
-	player.SetLastAction(newAction)
+	actor.Player().SetLastAction(newAction)
 
-	moves, err := c.board.MoveToCellId(ctx, events, player, decodedValue.CellId)
-	if err != nil {
-		return err
-	}
-
-	reachedCtx.Moves = append(reachedCtx.Moves, moves...)
-
-	return nil
+	return c.OnActorReached(ctx, actor, reached)
 }
 
-func (c *CellTeleport) OnCellLeft(_ context.Context, _ *model.Events, _ *model.Player) error {
+func (c *CellTeleport) OnActorReached(ctx context.Context, actor model.BoardActor, reached *model.ReachedContext) error {
+	decodedValue, err := c.decodeValue(c.Value())
+	if err != nil {
+		return err
+	}
+
+	moves, err := c.board.MoveToCellId(ctx, actor, decodedValue.CellId)
+	if err != nil {
+		return err
+	}
+
+	reached.Moves = append(reached.Moves, moves...)
+
 	return nil
 }

@@ -1,21 +1,22 @@
 package scope
 
 import (
-	"adventuria/internal/adventuria/model"
+	"adventuria/internal/adventuria/board/actors/player"
+	effects2 "adventuria/internal/adventuria/effects"
 	"context"
 )
 
 type effects interface {
-	SubscribeInventoryEffects(ctx context.Context, events *model.Events, player *model.Player, items []*model.InventoryItemWithEffects) error
-	SubscribePersistentEffects(ctx context.Context, events *model.Events, player *model.Player) error
+	SubscribeInventoryEffects(ctx context.Context, actor *player.Actor, items []*effects2.InventoryItemWithEffects) error
+	SubscribePersistentEffects(ctx context.Context, actor *player.Actor) error
 }
 
 type cellEvents interface {
-	ListenToCellEvents(ctx context.Context, events *model.Events, player *model.Player) error
+	ListenToCellEvents(ctx context.Context, actor *player.Actor) error
 }
 
 type worlds interface {
-	SubscribeEffects(ctx context.Context, events *model.Events, player *model.Player, worldId string) error
+	SubscribeEffects(ctx context.Context, actor *player.Actor, worldId string) error
 }
 
 type EventsSubscriber struct {
@@ -32,23 +33,23 @@ func NewEventsSubscriber(effects effects, cellEvents cellEvents, worlds worlds) 
 	}
 }
 
-func (e *EventsSubscriber) Subscribe(ctx context.Context, events *model.Events, player *model.Player, inventory []*model.InventoryItemWithEffects) error {
-	err := e.effects.SubscribeInventoryEffects(ctx, events, player, inventory)
+func (e *EventsSubscriber) Subscribe(ctx context.Context, actor *player.Actor, inventory []*effects2.InventoryItemWithEffects) error {
+	err := e.effects.SubscribeInventoryEffects(ctx, actor, inventory)
 	if err != nil {
 		return err
 	}
 
-	err = e.effects.SubscribePersistentEffects(ctx, events, player)
+	err = e.effects.SubscribePersistentEffects(ctx, actor)
 	if err != nil {
 		return err
 	}
 
-	err = e.cellEvents.ListenToCellEvents(ctx, events, player)
+	err = e.cellEvents.ListenToCellEvents(ctx, actor)
 	if err != nil {
 		return err
 	}
 
-	err = e.worlds.SubscribeEffects(ctx, events, player, player.Progress().CurrentWorld())
+	err = e.worlds.SubscribeEffects(ctx, actor, actor.Player().Progress().CurrentWorld())
 	if err != nil {
 		return err
 	}

@@ -2,6 +2,8 @@ package buy
 
 import (
 	"adventuria/internal/adventuria/actions"
+	"adventuria/internal/adventuria/board/actors/player"
+	"adventuria/internal/adventuria/effects"
 	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
 	"adventuria/internal/adventuria/player_events/custom/item_received"
@@ -17,10 +19,10 @@ type items interface {
 }
 
 type inventories interface {
-	TryAddItem(ctx context.Context, events *model.Events, player *model.Player, item *model.Item, source item_received.Source) (*model.InventoryItemWithEffects, error)
+	TryAddItem(ctx context.Context, actor *player.Actor, item *model.Item, source item_received.Source) (*effects.InventoryItemWithEffects, error)
 }
 
-var _ model.Action = (*Buy)(nil)
+var _ actions.Action = (*Buy)(nil)
 
 const Type model.ActionType = "buy"
 
@@ -33,7 +35,7 @@ type Buy struct {
 func NewDef(items items, inventories inventories) actions.ActionDef {
 	return actions.NewAction(
 		Type,
-		func() model.Action {
+		func() actions.Action {
 			return &Buy{
 				ActionBase:  actions.NewActionBase(Type),
 				items:       items,
@@ -43,15 +45,15 @@ func NewDef(items items, inventories inventories) actions.ActionDef {
 	)
 }
 
-func (b *Buy) CanDo(_ context.Context, _ *model.Events, player *model.Player) bool {
-	return player.LastAction().State().Shop != nil
+func (b *Buy) CanDo(_ context.Context, actor *player.Actor) bool {
+	return actor.Player().LastAction().State().Shop != nil
 }
 
 type Request struct {
 	ItemId string `json:"item_id"`
 }
 
-func (b *Buy) Do(ctx context.Context, events *model.Events, player *model.Player, actionReq model.ActionRequest) (any, error) {
+func (b *Buy) Do(ctx context.Context, actor *player.Actor, actionReq actions.Request) (any, error) {
 	req, ok := actionReq.(Request)
 	if !ok {
 		return nil, errors.New("invalid request")
@@ -60,7 +62,7 @@ func (b *Buy) Do(ctx context.Context, events *model.Events, player *model.Player
 		return nil, errors.New("item id is required")
 	}
 
-	shopState := player.LastAction().State().Shop
+	shopState := actor.Player().LastAction().State().Shop
 	if shopState == nil {
 		return nil, errs.ErrNoActiveShop
 	}
@@ -77,23 +79,23 @@ func (b *Buy) Do(ctx context.Context, events *model.Events, player *model.Player
 		return nil, err
 	}
 
-	buyResult, err := calculatePrice(ctx, events, item, shopState, model.EffectRunModeApply)
+	buyResult, err := calculatePrice(ctx, actor.Events(), item, shopState, model.EffectRunModeApply)
 	if err != nil {
 		return nil, err
 	}
 
-	if player.Progress().Balance() < buyResult.Price() {
+	if actor.Player().Progress().Balance() < buyResult.Price() {
 		return nil, errs.ErrNotEnoughMoney
 	}
 
-	_, err = b.inventories.TryAddItem(ctx, events, player, item, item_received.SourceShop)
+	_, err = b.inventories.TryAddItem(ctx, actor, item, item_received.SourceShop)
 	if err != nil {
 		return nil, err
 	}
 
 	shopState.Ids = itemIds
 
-	err = player.Progress().BalanceChange(-buyResult.Price())
+	err = actor.Player().Progress().BalanceChange(-buyResult.Price())
 	if err != nil {
 		return nil, err
 	}

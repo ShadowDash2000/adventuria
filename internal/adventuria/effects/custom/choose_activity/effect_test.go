@@ -4,6 +4,7 @@ import (
 	"adventuria/internal/adventuria/actions"
 	actionsMocks "adventuria/internal/adventuria/actions/mocks"
 	activitiesMocks "adventuria/internal/adventuria/activities/mocks"
+	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/effects"
 	"adventuria/internal/adventuria/model"
 	"context"
@@ -12,6 +13,7 @@ import (
 
 func TestChooseActivity_CanUse(t *testing.T) {
 	ctx := t.Context()
+	factory := player.NewFactory(nil, nil)
 
 	setup := func() (*ChooseActivity, *actionsMocks.Actions) {
 		mActions := &actionsMocks.Actions{}
@@ -40,22 +42,22 @@ func TestChooseActivity_CanUse(t *testing.T) {
 				},
 			},
 		})
-		player := model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, lastAction, nil)
+		actor := factory.New(model.NewEvents(), model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, lastAction, nil))
 
-		mActions.CanDoFunc = func(ctx context.Context, events *model.Events, p *model.Player, t model.ActionType) bool {
+		mActions.CanDoFunc = func(ctx context.Context, actor *player.Actor, t model.ActionType) bool {
 			return t == actions.ActionTypeCompleteActivity
 		}
 
-		if !eff.CanUse(ctx, nil, player) {
+		if !eff.CanUse(ctx, actor) {
 			t.Error("CanUse should return true")
 		}
 	})
 
 	t.Run("failure", func(t *testing.T) {
 		eff, _ := setup()
-		player := model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, &model.ActionInfo{}, nil)
+		actor := factory.New(model.NewEvents(), model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, &model.ActionInfo{}, nil))
 
-		if eff.CanUse(ctx, nil, player) {
+		if eff.CanUse(ctx, actor) {
 			t.Error("CanUse should return false")
 		}
 	})
@@ -63,8 +65,9 @@ func TestChooseActivity_CanUse(t *testing.T) {
 
 func TestChooseActivity_Subscribe(t *testing.T) {
 	ctx := t.Context()
+	factory := player.NewFactory(nil, nil)
 
-	setup := func() (*ChooseActivity, *model.Events, *model.Player, *bool, model.EffectCallback) {
+	setup := func() (*ChooseActivity, *player.Actor, *bool, effects.Callback) {
 		mActivities := &activitiesMocks.Activities{}
 
 		eff := &ChooseActivity{
@@ -92,23 +95,23 @@ func TestChooseActivity_Subscribe(t *testing.T) {
 			callbackCalled = true
 		}
 
-		return eff, events, player, &callbackCalled, callback
+		return eff, factory.New(events, player), &callbackCalled, callback
 	}
 
-	effectCtx := model.EffectContext{
+	effectCtx := effects.Context{
 		InvItemID: "item1",
 		Priority:  10,
 	}
 
 	t.Run("success", func(t *testing.T) {
-		eff, events, player, called, callback := setup()
+		eff, actor, called, callback := setup()
 
-		_, err := eff.Subscribe(ctx, events, player, effectCtx, callback)
+		_, err := eff.Subscribe(ctx, actor, effectCtx, callback)
 		if err != nil {
 			t.Fatalf("Subscribe failed: %v", err)
 		}
 
-		err = events.OnAfterItemUse().Trigger(ctx, &model.OnAfterItemUseEvent{
+		err = actor.Events().OnAfterItemUse().Trigger(ctx, &model.OnAfterItemUseEvent{
 			InvItemId: "item1",
 			Data:      map[string]any{"activity_id": "game1"},
 		})
@@ -120,20 +123,20 @@ func TestChooseActivity_Subscribe(t *testing.T) {
 			t.Error("Callback was not called")
 		}
 
-		if player.LastAction().Activity() != "game1" {
-			t.Errorf("Expected activity game1, got %s", player.LastAction().Activity())
+		if actor.Player().LastAction().Activity() != "game1" {
+			t.Errorf("Expected activity game1, got %s", actor.Player().LastAction().Activity())
 		}
 	})
 
 	t.Run("wrong item id", func(t *testing.T) {
-		eff, events, player, called, callback := setup()
+		eff, actor, called, callback := setup()
 
-		_, err := eff.Subscribe(ctx, events, player, effectCtx, callback)
+		_, err := eff.Subscribe(ctx, actor, effectCtx, callback)
 		if err != nil {
 			t.Fatalf("Subscribe failed: %v", err)
 		}
 
-		err = events.OnAfterItemUse().Trigger(ctx, &model.OnAfterItemUseEvent{
+		err = actor.Events().OnAfterItemUse().Trigger(ctx, &model.OnAfterItemUseEvent{
 			InvItemId: "wrong_item",
 			Data:      map[string]any{"activity_id": "game1"},
 		})
@@ -147,14 +150,14 @@ func TestChooseActivity_Subscribe(t *testing.T) {
 	})
 
 	t.Run("missing activity_id in data", func(t *testing.T) {
-		eff, events, player, called, callback := setup()
+		eff, actor, called, callback := setup()
 
-		_, err := eff.Subscribe(ctx, events, player, effectCtx, callback)
+		_, err := eff.Subscribe(ctx, actor, effectCtx, callback)
 		if err != nil {
 			t.Fatalf("Subscribe failed: %v", err)
 		}
 
-		err = events.OnAfterItemUse().Trigger(ctx, &model.OnAfterItemUseEvent{
+		err = actor.Events().OnAfterItemUse().Trigger(ctx, &model.OnAfterItemUseEvent{
 			InvItemId: "item1",
 			Data:      map[string]any{},
 		})
@@ -168,14 +171,14 @@ func TestChooseActivity_Subscribe(t *testing.T) {
 	})
 
 	t.Run("activity_id not in items list", func(t *testing.T) {
-		eff, events, player, called, callback := setup()
+		eff, actor, called, callback := setup()
 
-		_, err := eff.Subscribe(ctx, events, player, effectCtx, callback)
+		_, err := eff.Subscribe(ctx, actor, effectCtx, callback)
 		if err != nil {
 			t.Fatalf("Subscribe failed: %v", err)
 		}
 
-		err = events.OnAfterItemUse().Trigger(ctx, &model.OnAfterItemUseEvent{
+		err = actor.Events().OnAfterItemUse().Trigger(ctx, &model.OnAfterItemUseEvent{
 			InvItemId: "item1",
 			Data:      map[string]any{"activity_id": "unknown_game"},
 		})

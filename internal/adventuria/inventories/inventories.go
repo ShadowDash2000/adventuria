@@ -1,6 +1,8 @@
 package inventories
 
 import (
+	"adventuria/internal/adventuria/board/actors/player"
+	"adventuria/internal/adventuria/effects"
 	"adventuria/internal/adventuria/errs"
 	inventoryModel "adventuria/internal/adventuria/inventories/model"
 	"adventuria/internal/adventuria/model"
@@ -25,9 +27,9 @@ type repository interface {
 }
 
 type effectsService interface {
-	CreateFromEffectInfos(infos []*model.EffectInfo) ([]model.Effect, error)
-	GetAllByItemID(ctx context.Context, itemId string) ([]model.Effect, error)
-	SubscribeInventoryEffects(ctx context.Context, events *model.Events, player *model.Player, items []*model.InventoryItemWithEffects) error
+	CreateFromEffectInfos(infos []*model.EffectInfo) ([]effects.Effect, error)
+	GetAllByItemID(ctx context.Context, itemId string) ([]effects.Effect, error)
+	SubscribeInventoryEffects(ctx context.Context, actor *player.Actor, items []*effects.InventoryItemWithEffects) error
 	UnsubscribeActiveEffects(events *model.Events, items []*model.InventoryItem)
 }
 
@@ -48,8 +50,12 @@ type playerEvents interface {
 	Save(ctx context.Context, playerEvent *model.PlayerEventInfo) (*model.PlayerEventInfo, error)
 }
 
+type playerFactory interface {
+	New(events *model.Events, player *model.Player) *player.Actor
+}
+
 type eventsSubscriber interface {
-	Subscribe(ctx context.Context, events *model.Events, player *model.Player, inventory []*model.InventoryItemWithEffects) error
+	Subscribe(ctx context.Context, actor *player.Actor, inventory []*effects.InventoryItemWithEffects) error
 }
 
 type Inventories struct {
@@ -59,6 +65,7 @@ type Inventories struct {
 	players          players
 	playerInfo       playerInfo
 	playerEvents     playerEvents
+	playerFactory    playerFactory
 	eventsSubscriber eventsSubscriber
 }
 
@@ -69,6 +76,7 @@ func NewInventories(
 	players players,
 	playerInfo playerInfo,
 	playerEvents playerEvents,
+	playerFactory playerFactory,
 	eventsSubscriber eventsSubscriber,
 ) *Inventories {
 	return &Inventories{
@@ -78,6 +86,7 @@ func NewInventories(
 		players:          players,
 		playerInfo:       playerInfo,
 		playerEvents:     playerEvents,
+		playerFactory:    playerFactory,
 		eventsSubscriber: eventsSubscriber,
 	}
 }
@@ -102,7 +111,7 @@ func (i *Inventories) GetAllByPlayerID(ctx context.Context, playerId string) ([]
 	return i.repository.GetAllByPlayerID(ctx, playerId)
 }
 
-func (i *Inventories) GetAllWithEffectsByPlayerID(ctx context.Context, playerId string) ([]*model.InventoryItemWithEffects, error) {
+func (i *Inventories) GetAllWithEffectsByPlayerID(ctx context.Context, playerId string) ([]*effects.InventoryItemWithEffects, error) {
 	items, err := i.repository.GetAllDetailedByPlayerID(ctx, playerId)
 	if err != nil {
 		return nil, err
@@ -112,54 +121,53 @@ func (i *Inventories) GetAllWithEffectsByPlayerID(ctx context.Context, playerId 
 		return nil, nil
 	}
 
-	itemsWithEffects := make([]*model.InventoryItemWithEffects, len(items))
+	itemsWithEffects := make([]*effects.InventoryItemWithEffects, len(items))
 	for j, item := range items {
-		effects, err := i.effects.CreateFromEffectInfos(item.Effects)
+		itemEffects, err := i.effects.CreateFromEffectInfos(item.Effects)
 		if err != nil {
 			return nil, err
 		}
 
-		itemsWithEffects[j] = model.RestoreInventoryItemWithEffects(
+		itemsWithEffects[j] = effects.RestoreInventoryItemWithEffects(
 			item.Inventory,
 			item.Item,
-			effects,
+			itemEffects,
 		)
 	}
 
 	return itemsWithEffects, nil
 }
 
-func (i *Inventories) GetPlayerInventoryItemWithEffectsByID(ctx context.Context, playerId, itemId string) (*model.InventoryItemWithEffects, error) {
+func (i *Inventories) GetPlayerInventoryItemWithEffectsByID(ctx context.Context, playerId, itemId string) (*effects.InventoryItemWithEffects, error) {
 	item, err := i.repository.GetPlayerInventoryItemWithEffectsByID(ctx, playerId, itemId)
 	if err != nil {
 		return nil, err
 	}
 
-	effects, err := i.effects.CreateFromEffectInfos(item.Effects)
+	itemEffects, err := i.effects.CreateFromEffectInfos(item.Effects)
 	if err != nil {
 		return nil, err
 	}
 
-	return model.RestoreInventoryItemWithEffects(
+	return effects.RestoreInventoryItemWithEffects(
 		item.Inventory,
 		item.Item,
-		effects,
+		itemEffects,
 	), nil
 }
 
 func (i *Inventories) AddItem(
 	ctx context.Context,
-	events *model.Events,
-	player *model.Player,
+	actor *player.Actor,
 	item *model.Item,
 	source item_received.Source,
-) (*model.InventoryItemWithEffects, error) {
+) (*effects.InventoryItemWithEffects, error) {
 	onBeforeItemAddEvent := model.OnBeforeItemAddEvent{
 		ItemRecord:    item,
 		ShouldAddItem: true,
 	}
 
-	err := events.OnBeforeItemAdd().Trigger(ctx, &onBeforeItemAddEvent)
+	err := actor.Events().OnBeforeItemAdd().Trigger(ctx, &onBeforeItemAddEvent)
 	if err != nil {
 		return nil, err
 	}
@@ -168,13 +176,13 @@ func (i *Inventories) AddItem(
 		return nil, nil
 	}
 
-	effects, err := i.effects.GetAllByItemID(ctx, item.ID())
+	itemEffects, err := i.effects.GetAllByItemID(ctx, item.ID())
 	if err != nil {
 		return nil, err
 	}
 
 	inventoryCreate := model.InventoryCreate{
-		Player: player.ID(),
+		Player: actor.Player().ID(),
 		Item:   item.ID(),
 	}
 	if item.IsActiveByDefault() {
@@ -192,9 +200,9 @@ func (i *Inventories) AddItem(
 
 	itemReceivedEvent, err := item_received.NewPlayerEvent(
 		model.PlayerEventCreate{
-			Player: player.ID(),
-			Season: player.Progress().Season(),
-			Action: player.LastAction().ID(),
+			Player: actor.Player().ID(),
+			Season: actor.Player().Progress().Season(),
+			Action: actor.Player().LastAction().ID(),
 		},
 		item_received.Payload{
 			ItemId:   item.ID(),
@@ -212,32 +220,32 @@ func (i *Inventories) AddItem(
 		return nil, err
 	}
 
-	inventoryItem := model.RestoreInventoryItemWithEffects(inventory, item, effects)
+	inventoryItem := model.RestoreInventoryItem(inventory, item)
+	inventoryItemWithEffects := effects.RestoreInventoryItemWithEffects(inventory, item, itemEffects)
 
-	err = i.effects.SubscribeInventoryEffects(ctx, events, player, []*model.InventoryItemWithEffects{inventoryItem})
+	err = i.effects.SubscribeInventoryEffects(ctx, actor, []*effects.InventoryItemWithEffects{inventoryItemWithEffects})
 	if err != nil {
 		return nil, err
 	}
 
-	err = events.OnAfterItemAdd().Trigger(ctx, &model.OnAfterItemAddEvent{
+	err = actor.Events().OnAfterItemAdd().Trigger(ctx, &model.OnAfterItemAddEvent{
 		Item: inventoryItem,
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	return inventoryItem, nil
+	return inventoryItemWithEffects, nil
 }
 
 func (i *Inventories) TryAddItem(
 	ctx context.Context,
-	events *model.Events,
-	player *model.Player,
+	actor *player.Actor,
 	item *model.Item,
 	source item_received.Source,
-) (*model.InventoryItemWithEffects, error) {
+) (*effects.InventoryItemWithEffects, error) {
 	if item.IsUsingSlot() {
-		hasEmptySlots, err := i.HasEmptySlots(ctx, player)
+		hasEmptySlots, err := i.HasEmptySlots(ctx, actor.Player())
 		if err != nil {
 			return nil, err
 		}
@@ -247,7 +255,7 @@ func (i *Inventories) TryAddItem(
 		}
 	}
 
-	return i.AddItem(ctx, events, player, item, source)
+	return i.AddItem(ctx, actor, item, source)
 }
 
 func (i *Inventories) GetPlayerUsedSlots(ctx context.Context, playerId string) (int, error) {
@@ -264,35 +272,33 @@ func (i *Inventories) HasEmptySlots(ctx context.Context, player *model.Player) (
 
 func (i *Inventories) AddItemByID(
 	ctx context.Context,
-	events *model.Events,
-	player *model.Player,
+	actor *player.Actor,
 	itemId string,
 	source item_received.Source,
-) (*model.InventoryItemWithEffects, error) {
+) (*effects.InventoryItemWithEffects, error) {
 	item, err := i.items.GetByID(ctx, itemId)
 	if err != nil {
 		return nil, err
 	}
 
-	return i.AddItem(ctx, events, player, item, source)
+	return i.AddItem(ctx, actor, item, source)
 }
 
 func (i *Inventories) AddItemBySlug(
 	ctx context.Context,
-	events *model.Events,
-	player *model.Player,
+	actor *player.Actor,
 	itemSlug string,
 	source item_received.Source,
-) (*model.InventoryItemWithEffects, error) {
+) (*effects.InventoryItemWithEffects, error) {
 	item, err := i.items.GetBySlug(ctx, itemSlug)
 	if err != nil {
 		return nil, err
 	}
 
-	return i.AddItem(ctx, events, player, item, source)
+	return i.AddItem(ctx, actor, item, source)
 }
 
-func (i *Inventories) CanUseItem(ctx context.Context, events *model.Events, player *model.Player, itemId string) (bool, error) {
+func (i *Inventories) CanUseItem(ctx context.Context, actor *player.Actor, itemId string) (bool, error) {
 	inventory, err := i.GetByID(ctx, itemId)
 	if err != nil {
 		return false, err
@@ -308,7 +314,7 @@ func (i *Inventories) CanUseItem(ctx context.Context, events *model.Events, play
 	}
 
 	for _, effect := range effs {
-		if !effect.CanUse(ctx, events, player) {
+		if !effect.CanUse(ctx, actor) {
 			return false, nil
 		}
 	}
@@ -316,8 +322,8 @@ func (i *Inventories) CanUseItem(ctx context.Context, events *model.Events, play
 	return true, nil
 }
 
-func (i *Inventories) UseItem(ctx context.Context, events *model.Events, player *model.Player, itemId string) error {
-	item, err := i.GetPlayerInventoryItemWithEffectsByID(ctx, player.ID(), itemId)
+func (i *Inventories) UseItem(ctx context.Context, actor *player.Actor, itemId string) error {
+	item, err := i.GetPlayerInventoryItemWithEffectsByID(ctx, actor.Player().ID(), itemId)
 	if err != nil {
 		return err
 	}
@@ -327,7 +333,7 @@ func (i *Inventories) UseItem(ctx context.Context, events *model.Events, player 
 		return err
 	}
 
-	err = i.effects.SubscribeInventoryEffects(ctx, events, player, []*model.InventoryItemWithEffects{item})
+	err = i.effects.SubscribeInventoryEffects(ctx, actor, []*effects.InventoryItemWithEffects{item})
 	if err != nil {
 		return err
 	}
@@ -432,23 +438,23 @@ func (i *Inventories) GetPlayerInventory(ctx context.Context, playerId, seasonId
 		return playerInventory, nil
 	}
 
-	itemsWithEffects := make([]*model.InventoryItemWithEffects, len(inventoryDetailed))
+	itemsWithEffects := make([]*effects.InventoryItemWithEffects, len(inventoryDetailed))
 	for j, inventory := range inventoryDetailed {
-		effects, err := i.effects.CreateFromEffectInfos(inventory.Effects)
+		itemEffects, err := i.effects.CreateFromEffectInfos(inventory.Effects)
 		if err != nil {
 			return nil, err
 		}
 
-		itemsWithEffects[j] = model.RestoreInventoryItemWithEffects(
+		itemsWithEffects[j] = effects.RestoreInventoryItemWithEffects(
 			inventory.Inventory,
 			inventory.Item,
-			effects,
+			itemEffects,
 		)
 	}
 
-	events := model.NewEvents()
+	actor := i.playerFactory.New(model.NewEvents(), player)
 
-	err = i.eventsSubscriber.Subscribe(ctx, events, player, itemsWithEffects)
+	err = i.eventsSubscriber.Subscribe(ctx, actor, itemsWithEffects)
 	if err != nil {
 		return nil, err
 	}
@@ -484,7 +490,7 @@ func (i *Inventories) GetPlayerInventory(ctx context.Context, playerId, seasonId
 			Description:      inventory.Item.Description(),
 			IsActive:         inventory.Inventory.IsActive(),
 			CanDrop:          itemWithEffects.CanDrop(),
-			CanUse:           itemWithEffects.CanUse(ctx, events, player),
+			CanUse:           itemWithEffects.CanUse(ctx, actor),
 			DropPrice:        itemWithEffects.DropPrice(),
 			UnappliedEffects: unappliedEffects,
 		}

@@ -1,13 +1,14 @@
 package roll_reverse
 
 import (
+	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/effects"
 	"adventuria/internal/adventuria/model"
 	"adventuria/pkg/event"
 	"context"
 )
 
-var _ model.Effect = (*RollReverse)(nil)
+var _ effects.Effect = (*RollReverse)(nil)
 
 const Type model.EffectType = "roll_reverse"
 
@@ -18,7 +19,7 @@ type RollReverse struct {
 func NewDef() effects.EffectDef {
 	return effects.NewEffectDef(
 		Type,
-		func(effect model.EffectInfo) model.Effect {
+		func(effect model.EffectInfo) effects.Effect {
 			return &RollReverse{
 				EffectBase: effects.NewEffectBase(effect),
 			}
@@ -26,19 +27,18 @@ func NewDef() effects.EffectDef {
 	)
 }
 
-func (r *RollReverse) CanUse(_ context.Context, _ *model.Events, _ *model.Player) bool {
+func (r *RollReverse) CanUse(_ context.Context, _ *player.Actor) bool {
 	return true
 }
 
 func (r *RollReverse) Subscribe(
 	_ context.Context,
-	events *model.Events,
-	_ *model.Player,
-	effectCtx model.EffectContext,
-	callback model.EffectCallback,
+	actor *player.Actor,
+	effectCtx effects.Context,
+	callback effects.Callback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		events.OnBeforeRollMove().BindFuncWithPriority(func(ctx context.Context, e *model.OnBeforeRollMoveEvent) error {
+		actor.Events().OnBeforeRollMove().BindFuncWithPriority(func(ctx context.Context, e *model.OnBeforeRollMoveEvent) error {
 			e.N *= -1
 			callback(ctx)
 			return e.Next()

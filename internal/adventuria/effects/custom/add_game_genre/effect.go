@@ -2,6 +2,7 @@ package add_game_genre
 
 import (
 	"adventuria/internal/adventuria/actions"
+	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/effects"
 	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
@@ -12,7 +13,7 @@ import (
 )
 
 type actionsService interface {
-	CanDo(ctx context.Context, events *model.Events, player *model.Player, t model.ActionType) bool
+	CanDo(ctx context.Context, actor *player.Actor, t model.ActionType) bool
 }
 
 type genres interface {
@@ -23,7 +24,7 @@ type activities interface {
 	GetRandomIDsByFilter(ctx context.Context, filter model.ActivityFilter) ([]string, error)
 }
 
-var _ model.Effect = (*AddGameGenre)(nil)
+var _ effects.Effect = (*AddGameGenre)(nil)
 
 const Type model.EffectType = "add_game_genre"
 
@@ -37,7 +38,7 @@ type AddGameGenre struct {
 func NewDef(actions actionsService, genres genres, activities activities) effects.EffectDef {
 	return effects.NewEffectDef(
 		Type,
-		func(effect model.EffectInfo) model.Effect {
+		func(effect model.EffectInfo) effects.Effect {
 			return &AddGameGenre{
 				EffectBase: effects.NewEffectBase(effect),
 				actions:    actions,
@@ -48,12 +49,12 @@ func NewDef(actions actionsService, genres genres, activities activities) effect
 	)
 }
 
-func (a *AddGameGenre) CanUse(ctx context.Context, events *model.Events, player *model.Player) bool {
-	if !a.actions.CanDo(ctx, events, player, actions.ActionTypeRollWheel) {
+func (a *AddGameGenre) CanUse(ctx context.Context, actor *player.Actor) bool {
+	if !a.actions.CanDo(ctx, actor, actions.ActionTypeRollWheel) {
 		return false
 	}
 
-	activityFilter := player.LastAction().State().ActivityFilter
+	activityFilter := actor.Player().LastAction().State().ActivityFilter
 	if activityFilter == nil {
 		return false
 	}
@@ -77,13 +78,12 @@ func (a *AddGameGenre) CanUse(ctx context.Context, events *model.Events, player 
 
 func (a *AddGameGenre) Subscribe(
 	_ context.Context,
-	events *model.Events,
-	player *model.Player,
-	effectCtx model.EffectContext,
-	callback model.EffectCallback,
+	actor *player.Actor,
+	effectCtx effects.Context,
+	callback effects.Callback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		events.OnAfterItemUse(effectCtx.InvItemID).BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterItemUseEvent) error {
+		actor.Events().OnAfterItemUse(effectCtx.InvItemID).BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterItemUseEvent) error {
 			genreId, ok := e.Data["genre_id"].(string)
 			if !ok {
 				return errors.New("genre_id not specified")
@@ -97,7 +97,7 @@ func (a *AddGameGenre) Subscribe(
 				return errs.ErrGenreNotFound
 			}
 
-			actionState := player.LastAction().State()
+			actionState := actor.Player().LastAction().State()
 			if actionState.ActivityFilter == nil {
 				return errs.ErrNoActiveActivityFilter
 			}

@@ -1,6 +1,8 @@
 package model
 
-import "adventuria/pkg/event"
+import (
+	"adventuria/pkg/event"
+)
 
 type Events struct {
 	unsubs map[string][]event.Unsubscribe
@@ -253,7 +255,7 @@ type OnBeforeItemAddEvent struct {
 }
 type OnAfterItemAddEvent struct {
 	event.Event
-	Item *InventoryItemWithEffects
+	Item *InventoryItem
 }
 type OnNewLapEvent struct {
 	event.Event

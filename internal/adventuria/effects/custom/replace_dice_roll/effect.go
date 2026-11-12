@@ -1,13 +1,14 @@
 package replace_dice_roll
 
 import (
+	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/effects"
 	"adventuria/internal/adventuria/model"
 	"adventuria/pkg/event"
 	"context"
 )
 
-var _ model.Effect = (*ReplaceDiceRoll)(nil)
+var _ effects.Effect = (*ReplaceDiceRoll)(nil)
 
 const Type model.EffectType = "replace_dice_roll"
 
@@ -18,7 +19,7 @@ type ReplaceDiceRoll struct {
 func NewDef() effects.EffectDef {
 	return effects.NewEffectDef(
 		Type,
-		func(effect model.EffectInfo) model.Effect {
+		func(effect model.EffectInfo) effects.Effect {
 			return &ReplaceDiceRoll{
 				EffectBase: effects.NewEffectBase(effect),
 			}
@@ -26,19 +27,18 @@ func NewDef() effects.EffectDef {
 	)
 }
 
-func (r *ReplaceDiceRoll) CanUse(_ context.Context, _ *model.Events, _ *model.Player) bool {
+func (r *ReplaceDiceRoll) CanUse(_ context.Context, _ *player.Actor) bool {
 	return true
 }
 
 func (r *ReplaceDiceRoll) Subscribe(
 	_ context.Context,
-	events *model.Events,
-	_ *model.Player,
-	effectCtx model.EffectContext,
-	callback model.EffectCallback,
+	actor *player.Actor,
+	effectCtx effects.Context,
+	callback effects.Callback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		events.OnBeforeRollMove().BindFuncWithPriority(func(ctx context.Context, e *model.OnBeforeRollMoveEvent) error {
+		actor.Events().OnBeforeRollMove().BindFuncWithPriority(func(ctx context.Context, e *model.OnBeforeRollMoveEvent) error {
 			roll, err := r.decodeValue(r.Value())
 			if err != nil {
 				return err

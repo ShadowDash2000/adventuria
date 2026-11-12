@@ -2,6 +2,7 @@ package roll_wheel
 
 import (
 	"adventuria/internal/adventuria/actions"
+	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/model"
 	"context"
 	"errors"
@@ -16,7 +17,7 @@ type activities interface {
 	GetDetailedByIDs(ctx context.Context, ids []string) ([]*model.ActivityDetailed, error)
 }
 
-var _ model.Action = (*RollWheel)(nil)
+var _ actions.Action = (*RollWheel)(nil)
 
 const Type model.ActionType = "roll_wheel"
 
@@ -29,7 +30,7 @@ type RollWheel struct {
 func NewDef(cells cells, activities activities) actions.ActionDef {
 	return actions.NewAction(
 		Type,
-		func() model.Action {
+		func() actions.Action {
 			return &RollWheel{
 				ActionBase: actions.NewActionBase(Type),
 				cells:      cells,
@@ -39,12 +40,12 @@ func NewDef(cells cells, activities activities) actions.ActionDef {
 	)
 }
 
-func (r *RollWheel) CanDo(_ context.Context, _ *model.Events, player *model.Player) bool {
-	return player.LastAction().Status() == model.ActionStatusNeedToRollWheel
+func (r *RollWheel) CanDo(_ context.Context, actor *player.Actor) bool {
+	return actor.Player().LastAction().Status() == model.ActionStatusNeedToRollWheel
 }
 
-func (r *RollWheel) Do(ctx context.Context, events *model.Events, player *model.Player, _ model.ActionRequest) (any, error) {
-	currentCell, err := r.cells.GetByPlayerWrapped(ctx, player)
+func (r *RollWheel) Do(ctx context.Context, actor *player.Actor, _ actions.Request) (any, error) {
+	currentCell, err := r.cells.GetByPlayerWrapped(ctx, actor.Player())
 	if err != nil {
 		return nil, err
 	}
@@ -54,16 +55,16 @@ func (r *RollWheel) Do(ctx context.Context, events *model.Events, player *model.
 		return nil, errors.New("current cell is not rollable")
 	}
 
-	res, err := cellRollable.Roll(ctx, events, player)
+	res, err := cellRollable.Roll(ctx, actor.Events(), actor.Player())
 	if err != nil {
 		return nil, err
 	}
 
-	lastAction := player.LastAction()
+	lastAction := actor.Player().LastAction()
 	lastAction.SetStatus(model.ActionStatusRollWheel)
 	lastAction.SetActivity(res.WinnerId)
 
-	err = events.OnAfterWheelRoll().Trigger(ctx, &model.OnAfterWheelRollEvent{
+	err = actor.Events().OnAfterWheelRoll().Trigger(ctx, &model.OnAfterWheelRollEvent{
 		ItemId: res.WinnerId,
 	})
 	if err != nil {

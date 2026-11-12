@@ -1,13 +1,14 @@
 package jail_escape
 
 import (
+	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/effects"
 	"adventuria/internal/adventuria/model"
 	"adventuria/pkg/event"
 	"context"
 )
 
-var _ model.Effect = (*JailEscape)(nil)
+var _ effects.Effect = (*JailEscape)(nil)
 
 const Type model.EffectType = "jail_escape"
 
@@ -18,7 +19,7 @@ type JailEscape struct {
 func NewDef() effects.EffectDef {
 	return effects.NewEffectDef(
 		Type,
-		func(effect model.EffectInfo) model.Effect {
+		func(effect model.EffectInfo) effects.Effect {
 			return &JailEscape{
 				EffectBase: effects.NewEffectBase(effect),
 			}
@@ -26,20 +27,19 @@ func NewDef() effects.EffectDef {
 	)
 }
 
-func (j *JailEscape) CanUse(_ context.Context, _ *model.Events, player *model.Player) bool {
-	return player.Progress().IsInJail()
+func (j *JailEscape) CanUse(_ context.Context, actor *player.Actor) bool {
+	return actor.Player().Progress().IsInJail()
 }
 
 func (j *JailEscape) Subscribe(
 	_ context.Context,
-	events *model.Events,
-	player *model.Player,
-	effectCtx model.EffectContext,
-	callback model.EffectCallback,
+	actor *player.Actor,
+	effectCtx effects.Context,
+	callback effects.Callback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		events.OnAfterItemUse(effectCtx.InvItemID).BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterItemUseEvent) error {
-			progress := player.Progress()
+		actor.Events().OnAfterItemUse(effectCtx.InvItemID).BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterItemUseEvent) error {
+			progress := actor.Player().Progress()
 			progress.SetCanMove(true)
 			progress.SetIsInJail(false)
 			progress.SetDropsInARow(0)

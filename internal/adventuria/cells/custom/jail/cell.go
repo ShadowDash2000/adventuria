@@ -1,6 +1,7 @@
 package jail
 
 import (
+	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/cells"
 	"adventuria/internal/adventuria/model"
 	"adventuria/pkg/helper"
@@ -13,6 +14,8 @@ type filters interface {
 }
 
 var _ model.Rollable = (*CellJail)(nil)
+var _ player.CellReached = (*CellJail)(nil)
+var _ player.CellLeft = (*CellJail)(nil)
 
 const Type model.CellType = "jail"
 
@@ -51,32 +54,32 @@ func (c *CellJail) Roll(_ context.Context, _ *model.Events, player *model.Player
 	}, nil
 }
 
-func (c *CellJail) OnCellReached(ctx context.Context, events *model.Events, player *model.Player, _ *model.ReachedContext) error {
-	if player.Progress().IsInJail() {
-		player.Progress().SetCanMove(false)
+func (c *CellJail) OnPlayerReached(ctx context.Context, actor *player.Actor, _ *model.ReachedContext) error {
+	if actor.Player().Progress().IsInJail() {
+		actor.Player().Progress().SetCanMove(false)
 
 		filter, err := c.filters.GetByID(ctx, c.Filter())
 		if err != nil {
 			return err
 		}
 
-		player.LastAction().State().ActivityFilter = new(filter.Filter())
+		actor.Player().LastAction().State().ActivityFilter = new(filter.Filter())
 
-		err = events.OnAfterGoToJail().Trigger(ctx, &model.OnAfterGoToJailEvent{})
+		err = actor.Events().OnAfterGoToJail().Trigger(ctx, &model.OnAfterGoToJailEvent{})
 		if err != nil {
 			return err
 		}
 	} else {
-		player.Progress().SetCanMove(true)
+		actor.Player().Progress().SetCanMove(true)
 	}
 	return nil
 }
 
-func (c *CellJail) OnCellLeft(_ context.Context, _ *model.Events, player *model.Player) error {
+func (c *CellJail) OnPlayerLeft(_ context.Context, actor *player.Actor) error {
 	// If a player somehow left a jail, we need to free them
-	if player.Progress().IsInJail() {
-		player.Progress().SetIsInJail(false)
-		player.Progress().SetDropsInARow(0)
+	if actor.Player().Progress().IsInJail() {
+		actor.Player().Progress().SetIsInJail(false)
+		actor.Player().Progress().SetDropsInARow(0)
 	}
 
 	return nil

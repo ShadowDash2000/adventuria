@@ -1,6 +1,7 @@
 package action_events
 
 import (
+	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
 	"context"
@@ -24,8 +25,8 @@ func toActionEvent(actionEventInfo *model.ActionEventInfo) (model.ActionEvent, e
 	return Create(*actionEventInfo)
 }
 
-func (a *ActionEvents) ListenToActionEvents(events *model.Events, player *model.Player) error {
-	events.OnAfterMove().BindFunc(func(ctx context.Context, e *model.OnAfterMoveEvent) error {
+func (a *ActionEvents) ListenToActionEvents(actor *player.Actor) error {
+	actor.Events().OnAfterMove().BindFunc(func(ctx context.Context, e *model.OnAfterMoveEvent) error {
 		actionEventInfo, err := a.repository.GetByActiveCellID(ctx, e.CurrentCell.ID())
 		if err != nil {
 			if errors.Is(err, errs.ErrActionEventNotFound) {
@@ -39,7 +40,7 @@ func (a *ActionEvents) ListenToActionEvents(events *model.Events, player *model.
 			return err
 		}
 
-		err = actionEvent.Init(ctx, player)
+		err = actionEvent.Init(ctx, actor.Player())
 
 		return e.Next()
 	})
