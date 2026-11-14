@@ -84,9 +84,9 @@ func (g *Game) registerCrons(ctx context.Context, pb core.App, registry *Registr
 		}
 	})
 
-	pb.Cron().MustAdd("cell_events_scheduler", "*/1 * * * *", func() {
+	pb.Cron().MustAdd("npc_scheduler", "*/1 * * * *", func() {
 		err := pbtransaction.RunInTransaction(ctx, pb, func(ctx context.Context, txApp core.App) error {
-			return g.cellEvents.CheckEventsSchedules(ctx)
+			return g.npc.CheckNPCSchedules(ctx)
 		})
 		if err != nil {
 			pb.Logger().Error("Failed to run cell events scheduler", "error", err)

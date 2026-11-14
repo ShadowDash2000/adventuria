@@ -17,6 +17,19 @@ func RestoreEffectInfo(data EffectData) *EffectInfo {
 	return &EffectInfo{data: data}
 }
 
+func (e *EffectInfo) Clone() *EffectInfo {
+	if e == nil {
+		return nil
+	}
+
+	return &EffectInfo{data: EffectData{
+		Id:    e.data.Id,
+		Name:  e.data.Name,
+		Type:  e.data.Type,
+		Value: e.data.Value,
+	}}
+}
+
 func (e *EffectInfo) ID() string {
 	return e.data.Id
 }

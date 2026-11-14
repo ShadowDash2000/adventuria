@@ -3,8 +3,7 @@ package change_energy
 import (
 	"adventuria/internal/adventuria/model"
 	"adventuria/internal/adventuria/outboxes"
-	"encoding/json"
-	"fmt"
+	"bytes"
 )
 
 var _ model.OutboxTask = (*ChangeEnergy)(nil)
@@ -22,31 +21,25 @@ func New(payload Payload) (*ChangeEnergy, error) {
 		return nil, err
 	}
 
-	encoded, err := json.Marshal(payload)
-	if err != nil {
-		return nil, fmt.Errorf("change_energy: failed to marshal payload: %w", err)
-	}
-
-	return &ChangeEnergy{
-		OutboxTaskBase: outboxes.NewOutboxTaskBase(Type, string(encoded)),
-		payload:        payload,
-	}, nil
-}
-
-func NewFromJSON(payload string) (*ChangeEnergy, error) {
-	var decoded Payload
-	err := json.Unmarshal([]byte(payload), &decoded)
-	if err != nil {
-		return nil, fmt.Errorf("change_energy: failed to unmarshal payload: %w", err)
-	}
-
-	err = decoded.validate()
+	encoded, err := payload.Marshal()
 	if err != nil {
 		return nil, err
 	}
 
 	return &ChangeEnergy{
-		OutboxTaskBase: outboxes.NewOutboxTaskBase(Type, payload),
-		payload:        decoded,
+		OutboxTaskBase: outboxes.NewOutboxTaskBase(Type, encoded),
+		payload:        payload,
+	}, nil
+}
+
+func NewFromJSON(data []byte) (*ChangeEnergy, error) {
+	payload, err := NewPayloadFromJSON(data)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ChangeEnergy{
+		OutboxTaskBase: outboxes.NewOutboxTaskBase(Type, bytes.Clone(data)),
+		payload:        payload,
 	}, nil
 }

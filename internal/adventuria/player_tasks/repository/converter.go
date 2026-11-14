@@ -5,6 +5,7 @@ import (
 	"adventuria/internal/adventuria/schema"
 
 	"ganigeorgiev.com/pocketbase/pocketbase/core"
+	"ganigeorgiev.com/pocketbase/pocketbase/tools/types"
 )
 
 func PlayerTaskToRecord(task *model.PlayerTaskInfo, record *core.Record) {
@@ -23,6 +24,6 @@ func RecordToPlayerTask(record *core.Record) *model.PlayerTaskInfo {
 		Progress:  record.GetString(schema.PlayerTasksSchema.Progress),
 		Type:      model.PlayerTaskType(record.GetString(schema.PlayerTasksSchema.Type)),
 		Trigger:   model.PlayerTaskTrigger(record.GetString(schema.PlayerTasksSchema.Trigger)),
-		Payload:   record.GetString(schema.PlayerTasksSchema.Payload),
+		Payload:   record.Get(schema.PlayerTasksSchema.Payload).(types.JSONRaw),
 	})
 }

@@ -15,36 +15,41 @@ var _ action_events.ActionEvent = (*Casino)(nil)
 const Type model.ActionEventType = "casino"
 
 type Casino struct {
-	action_events.ActionEventBase
-	items items
+	items   items
+	payload Payload
 }
 
 func NewDef(items items) action_events.ActionEventDef {
 	return action_events.NewActionEventDef(
 		Type,
-		func(cellEventInfo model.ActionEventInfo) action_events.ActionEvent {
-			return &Casino{
-				ActionEventBase: action_events.NewActionEventBase(cellEventInfo),
-				items:           items,
-			}
+		func(data []byte) (action_events.ActionEvent, error) {
+			return NewFromJSON(items, data)
 		},
 	)
 }
 
-func (c *Casino) Init(_ context.Context, player *model.Player) error {
-	decodedValue, err := c.decodeValue(c.Data().Value())
+func NewFromJSON(items items, data []byte) (*Casino, error) {
+	payload, err := NewPayloadFromJSON(data)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
+	return &Casino{
+		items:   items,
+		payload: payload,
+	}, nil
+}
+
+func (c *Casino) Init(_ context.Context, player *model.Player) error {
+	var err error
 	actionState := player.LastAction().State()
 	actionState.ShopFilter = &model.ActionShopFilterState{
-		Ids: decodedValue.ItemIds,
+		Ids: c.payload.ItemIds,
 	}
 	actionState.Shop, err = model.NewShopState(model.ActionShopStateCreate{
 		Type:            model.ShopTypeCasino,
-		Ids:             decodedValue.ItemIds,
-		PriceMultiplier: decodedValue.PriceMultiplier,
+		Ids:             c.payload.ItemIds,
+		PriceMultiplier: c.payload.PriceMultiplier,
 	})
 	if err != nil {
 		return err

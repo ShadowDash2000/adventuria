@@ -120,9 +120,9 @@ var (
 		Code:    "action_event_not_found",
 		Message: "Action event not found",
 	}
-	ErrCellEventScheduleNotFound = &AppError{
-		Code:    "cell_event_schedule_not_found",
-		Message: "Cell event schedule not found",
+	ErrNPCNotFound = &AppError{
+		Code:    "npc_not_found",
+		Message: "NPC not found",
 	}
 	ErrReviewFileNotFound = &AppError{
 		Code:    "review_file_not_found",
@@ -204,6 +204,10 @@ var (
 	ErrUnknownActionEventType = &AppError{
 		Code:    "unknown_action_event_type",
 		Message: "Unknown action event type",
+	}
+	ErrUnknownNPCBehaviorType = &AppError{
+		Code:    "unknown_npc_behavior_type",
+		Message: "Unknown NPC behavior type",
 	}
 
 	ErrNoPendingOutbox = &AppError{

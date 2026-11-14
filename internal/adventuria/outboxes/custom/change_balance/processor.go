@@ -23,8 +23,8 @@ func NewDef(progress progress) outboxes.OutboxDef {
 
 	return outboxes.NewOutbox(
 		Type,
-		func(ctx context.Context, payload string) error {
-			task, err := NewFromJSON(payload)
+		func(ctx context.Context, data []byte) error {
+			task, err := NewFromJSON(data)
 			if err != nil {
 				return err
 			}

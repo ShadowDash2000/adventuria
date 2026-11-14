@@ -36,6 +36,10 @@ func (e *Effects) CreateFromEffectInfo(info *model.EffectInfo) (Effect, error) {
 }
 
 func (e *Effects) CreateFromEffectInfos(infos []*model.EffectInfo) ([]Effect, error) {
+	if len(infos) == 0 {
+		return nil, nil
+	}
+
 	effects := make([]Effect, len(infos))
 	for i, info := range infos {
 		effect, err := e.CreateFromEffectInfo(info)
@@ -44,6 +48,7 @@ func (e *Effects) CreateFromEffectInfos(infos []*model.EffectInfo) ([]Effect, er
 		}
 		effects[i] = effect
 	}
+
 	return effects, nil
 }
 

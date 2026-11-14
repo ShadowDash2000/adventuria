@@ -6,7 +6,6 @@ import (
 	"adventuria/internal/adventuria/model"
 	"adventuria/internal/adventuria/schema"
 	"context"
-	"errors"
 	"fmt"
 
 	"ganigeorgiev.com/pocketbase/pocketbase/core"
@@ -30,19 +29,14 @@ func verify(ctx context.Context, actionEventInfo *model.ActionEventInfo) error {
 		return fmt.Errorf("%w: %s", errs.ErrUnknownActionEventType, actionEventInfo.Type())
 	}
 
-	actionEvent := actionEventDef.new(*actionEventInfo)
-	verifiable, ok := actionEvent.(model.Verifiable)
-	if !ok {
-		// actionEventValue is JSON value so we need to check those empty values
-		if actionEventValue == "\"\"" || actionEventValue == "null" {
-			return nil
-		}
-		return errors.New("action event type is not verifiable")
-	}
-
-	err := verifiable.Verify(ctx, actionEventValue)
+	actionEvent, err := actionEventDef.c([]byte(actionEventValue))
 	if err != nil {
 		return err
+	}
+
+	verifiable, ok := actionEvent.(model.Verifiable)
+	if ok {
+		return verifiable.Verify(ctx, actionEventValue)
 	}
 
 	return nil

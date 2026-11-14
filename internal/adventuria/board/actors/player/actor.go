@@ -12,7 +12,7 @@ type actionsService interface {
 }
 
 type notifyService interface {
-	PlayerMovedNotify(ctx context.Context, player *model.Player, moves []*model.MoveResult) error
+	ActorMovedNotify(ctx context.Context, actorRef actors.ActorRef, moves []*model.MoveResult) error
 }
 
 var _ actors.Actor = (*Actor)(nil)
@@ -137,5 +137,5 @@ func (a *Actor) AfterMovement(ctx context.Context, move *model.MoveResult) error
 }
 
 func (a *Actor) MovementFinished(ctx context.Context, moves []*model.MoveResult) error {
-	return a.notify.PlayerMovedNotify(ctx, a.player, moves)
+	return a.notify.ActorMovedNotify(ctx, a.Ref(), moves)
 }

@@ -1,10 +1,38 @@
 package change_balance
 
-import "errors"
+import (
+	"encoding/json"
+	"errors"
+	"fmt"
+)
 
 type Payload struct {
 	ProgressId string `json:"progress_id"`
 	Amount     *int   `json:"amount"`
+}
+
+func NewPayloadFromJSON(data []byte) (Payload, error) {
+	var payload Payload
+	err := json.Unmarshal(data, &payload)
+	if err != nil {
+		return Payload{}, fmt.Errorf("change_balance: failed to unmarshal payload: %w", err)
+	}
+
+	err = payload.validate()
+	if err != nil {
+		return Payload{}, err
+	}
+
+	return payload, nil
+}
+
+func (p Payload) Marshal() ([]byte, error) {
+	b, err := json.Marshal(p)
+	if err != nil {
+		return nil, fmt.Errorf("change_balance: failed to marshal payload: %w", err)
+	}
+
+	return b, nil
 }
 
 func (p Payload) clone() Payload {

@@ -65,7 +65,7 @@ func (c *CachedRepository) getCachedStats(seasonId string) (*statCacheEntry, boo
 		return nil, false
 	}
 
-	if cachedStats.expiresAt.Before(time.Now()) {
+	if cachedStats.expiresAt.Compare(time.Now()) <= 0 {
 		delete(c.cachedStats, seasonId)
 		return nil, false
 	}

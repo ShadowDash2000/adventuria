@@ -15,3 +15,11 @@ func RecordToActionEvent(record *core.Record) *model.ActionEventInfo {
 		Value: record.GetString(schema.ActionEventsSchema.Value),
 	})
 }
+
+func RecordsToActionEvents(records []*core.Record) []*model.ActionEventInfo {
+	res := make([]*model.ActionEventInfo, len(records))
+	for i, record := range records {
+		res[i] = RecordToActionEvent(record)
+	}
+	return res
+}

@@ -2,15 +2,18 @@ package action_events
 
 import (
 	"adventuria/internal/adventuria/model"
-	"fmt"
 )
 
 type ActionEventDef struct {
-	t   model.ActionEventType
-	new ActionEventCreator
+	t model.ActionEventType
+	c ActionEventCreator
 }
 
-type ActionEventCreator func(actionEventInfo model.ActionEventInfo) ActionEvent
+func (a *ActionEventDef) New(actionEvent *model.ActionEventInfo) (ActionEvent, error) {
+	return a.c([]byte(actionEvent.Value()))
+}
+
+type ActionEventCreator func(data []byte) (ActionEvent, error)
 
 var registry = &Registry{actionEvents: map[model.ActionEventType]ActionEventDef{}}
 
@@ -29,10 +32,10 @@ func (r *Registry) Get(t model.ActionEventType) (ActionEventDef, bool) {
 	return e, ok
 }
 
-func NewActionEventDef(t model.ActionEventType, new ActionEventCreator) ActionEventDef {
+func NewActionEventDef(t model.ActionEventType, c ActionEventCreator) ActionEventDef {
 	return ActionEventDef{
-		t:   t,
-		new: new,
+		t: t,
+		c: c,
 	}
 }
 
@@ -42,12 +45,4 @@ func Register(actionEventDefs ...ActionEventDef) {
 
 func Get(t model.ActionEventType) (ActionEventDef, bool) {
 	return registry.Get(t)
-}
-
-func Create(actionEventInfo model.ActionEventInfo) (ActionEvent, error) {
-	actionEventDef, ok := Get(actionEventInfo.Type())
-	if !ok {
-		return nil, fmt.Errorf("action event type %s not registered", actionEventInfo.Type())
-	}
-	return actionEventDef.new(actionEventInfo), nil
 }

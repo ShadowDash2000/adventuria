@@ -4,12 +4,12 @@ import (
 	"adventuria/internal/adventuria/actions"
 	"adventuria/internal/adventuria/board"
 	"adventuria/internal/adventuria/board/actors/player"
-	"adventuria/internal/adventuria/cell_events_schedules"
 	"adventuria/internal/adventuria/cells"
 	"adventuria/internal/adventuria/effects"
 	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/inventories"
 	"adventuria/internal/adventuria/model"
+	"adventuria/internal/adventuria/npcs"
 	"adventuria/internal/adventuria/player_events/custom/item_received"
 	"adventuria/internal/adventuria/player_progress"
 	"adventuria/internal/adventuria/players"
@@ -34,7 +34,7 @@ type Game struct {
 	players          *players.Players
 	playerProgress   *player_progress.PlayerProgress
 	cells            *cells.Cells
-	cellEvents       *cell_events_schedules.CellEventsSchedules
+	npc              *npcs.NPCs
 	actions          *actions.Actions
 	inventories      *inventories.Inventories
 	effects          *effects.Effects
@@ -382,7 +382,7 @@ func (g *Game) GetActionView(ctx context.Context, playerId string, actionType mo
 }
 
 func (g *Game) IsActionsBlocked(ctx context.Context) error {
-	if g.cellEvents.IsRunning() {
+	if g.npc.IsRunning() {
 		return errs.ErrCellEventSchedulerRunning
 	}
 

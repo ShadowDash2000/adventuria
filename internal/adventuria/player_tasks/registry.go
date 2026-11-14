@@ -2,7 +2,7 @@ package player_tasks
 
 import "adventuria/internal/adventuria/model"
 
-type PlayerTaskCreator func(payload string) (model.PlayerTask, error)
+type PlayerTaskCreator func(data []byte) (model.PlayerTask, error)
 
 type PlayerTaskDef struct {
 	t model.PlayerTaskType
@@ -14,8 +14,8 @@ type SubscribablePlayerTaskDef struct {
 	PlayerTaskSubscriber
 }
 
-func (p *PlayerTaskDef) NewFromJSON(payload string) (model.PlayerTask, error) {
-	return p.c(payload)
+func (p *PlayerTaskDef) NewFromJSON(data []byte) (model.PlayerTask, error) {
+	return p.c(data)
 }
 
 func (p *PlayerTaskDef) Type() model.PlayerTaskType {

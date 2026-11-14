@@ -9,6 +9,7 @@ import (
 	customCells "adventuria/internal/adventuria/cells/custom"
 	"adventuria/internal/adventuria/effects"
 	customEffects "adventuria/internal/adventuria/effects/custom"
+	customBehaviors "adventuria/internal/adventuria/npcs/behaviors/custom"
 	customOutboxes "adventuria/internal/adventuria/outboxes/custom"
 	customPlayerEvents "adventuria/internal/adventuria/player_events/custom"
 	customPlayerTasks "adventuria/internal/adventuria/player_tasks/custom"
@@ -31,7 +32,7 @@ func (g *Game) init(ctx context.Context, pb core.App) (*Registry, error) {
 	g.players = registry.Players()
 	g.playerProgress = registry.PlayerProgress()
 	g.cells = registry.Cells()
-	g.cellEvents = registry.CellEventsSchedules()
+	g.npc = registry.NPCs()
 	g.actions = registry.Actions()
 	g.inventories = registry.Inventories()
 	g.effects = registry.Effects()
@@ -98,6 +99,10 @@ func (g *Game) init(ctx context.Context, pb core.App) (*Registry, error) {
 	customPlayerEvents.RegisterPlayerEvents()
 
 	customPlayerTasks.RegisterPlayerTasks()
+
+	customBehaviors.RegisterNPCBehaviors(
+		registry.Board(),
+	)
 
 	// background tasks
 	registry.Outboxes().Start(ctx)

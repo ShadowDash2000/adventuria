@@ -82,7 +82,7 @@ func (s *Season) SeasonDateEnd() time.Time {
 }
 
 func IsSeasonEnded(dateEnd, now time.Time) bool {
-	return dateEnd.Before(now)
+	return dateEnd.Compare(now) <= 0
 }
 
 func (s *Season) IsEnded(now time.Time) bool {

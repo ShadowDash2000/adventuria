@@ -11,7 +11,7 @@ type PlayerTaskTrigger string
 type PlayerTask interface {
 	Type() PlayerTaskType
 	Trigger() PlayerTaskTrigger
-	Payload() string
+	Payload() []byte
 }
 
 type PlayerTaskData struct {
@@ -20,7 +20,7 @@ type PlayerTaskData struct {
 	Progress  string
 	Type      PlayerTaskType
 	Trigger   PlayerTaskTrigger
-	Payload   string
+	Payload   []byte
 }
 
 type PlayerTaskInfo struct {
@@ -86,6 +86,6 @@ func (p *PlayerTaskInfo) Trigger() PlayerTaskTrigger {
 	return p.data.Trigger
 }
 
-func (p *PlayerTaskInfo) Payload() string {
+func (p *PlayerTaskInfo) Payload() []byte {
 	return p.data.Payload
 }

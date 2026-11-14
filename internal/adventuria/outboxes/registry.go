@@ -14,11 +14,11 @@ func (o *OutboxDef) Type() model.OutboxType {
 	return o.t
 }
 
-func (o *OutboxDef) Process(ctx context.Context, payload string) error {
-	return o.process(ctx, payload)
+func (o *OutboxDef) Process(ctx context.Context, data []byte) error {
+	return o.process(ctx, data)
 }
 
-type ProcessFunc func(ctx context.Context, payload string) error
+type ProcessFunc func(ctx context.Context, data []byte) error
 
 var registry = &Registry{outboxes: map[model.OutboxType]OutboxDef{}}
 

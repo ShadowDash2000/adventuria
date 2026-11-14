@@ -9,5 +9,5 @@ import (
 type PlayerTaskCompleteFunc func(ctx context.Context) error
 
 type PlayerTaskSubscriber interface {
-	Subscribe(ctx context.Context, events *model.Events, player *model.Player, complete PlayerTaskCompleteFunc, payload string) ([]event.Unsubscribe, error)
+	Subscribe(ctx context.Context, events *model.Events, player *model.Player, complete PlayerTaskCompleteFunc, data string) ([]event.Unsubscribe, error)
 }

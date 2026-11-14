@@ -1,24 +1,25 @@
 package schema
 
 const (
-	CollectionPlayers            = "players"
-	CollectionPlayersProgress    = "players_progress"
-	CollectionPlayerStats        = "player_stats"
-	CollectionActions            = "actions"
-	CollectionCells              = "cells"
-	CollectionItems              = "items"
-	CollectionEffects            = "effects"
-	CollectionInventory          = "inventory"
-	CollectionSettings           = "settings"
-	CollectionSeasons            = "seasons"
-	CollectionWorlds             = "worlds"
-	CollectionReviews            = "reviews"
-	CollectionReviewsFiles       = "reviews_files"
-	CollectionsOutbox            = "outbox"
-	CollectionActionEvents       = "action_events"
-	CollectionCellEventsSchedule = "cell_events_schedule"
-	CollectionPlayerEvents       = "player_events"
-	CollectionPlayerTasks        = "player_tasks"
+	CollectionPlayers         = "players"
+	CollectionPlayersProgress = "players_progress"
+	CollectionPlayerStats     = "player_stats"
+	CollectionActions         = "actions"
+	CollectionCells           = "cells"
+	CollectionItems           = "items"
+	CollectionEffects         = "effects"
+	CollectionInventory       = "inventory"
+	CollectionSettings        = "settings"
+	CollectionSeasons         = "seasons"
+	CollectionWorlds          = "worlds"
+	CollectionReviews         = "reviews"
+	CollectionReviewsFiles    = "reviews_files"
+	CollectionsOutbox         = "outbox"
+	CollectionActionEvents    = "action_events"
+	CollectionNPCs            = "npcs"
+	CollectionNPCBehaviors    = "npc_behaviors"
+	CollectionPlayerEvents    = "player_events"
+	CollectionPlayerTasks     = "player_tasks"
 
 	CollectionActivities     = "activities"
 	CollectionCompanies      = "companies"
@@ -638,24 +639,48 @@ var ActionEventsSchema = struct {
 	Value:      "value",
 }
 
-var CellEventsScheduleSchema = struct {
+var NPCsSchema = struct {
 	Id                string
+	Name              string
+	Avatar            string
+	Color             string
+	Behavior          string
 	ActionEvent       string
 	Effects           string
-	ActiveCell        string
-	CellTypes         string
-	Worlds            string
+	CurrentWorld      string
+	CurrentCell       string
+	CellsPassed       string
 	ShiftInterval     string
 	NextShiftChangeAt string
+	Description       string
 }{
 	Id:                "id",
+	Name:              "name",
+	Avatar:            "avatar",
+	Color:             "color",
+	Behavior:          "behavior",
 	ActionEvent:       "action_event",
 	Effects:           "effects",
-	ActiveCell:        "active_cell",
-	CellTypes:         "cell_types",
-	Worlds:            "worlds",
+	CurrentWorld:      "current_world",
+	CurrentCell:       "current_cell",
+	CellsPassed:       "cells_passed",
 	ShiftInterval:     "shift_interval",
 	NextShiftChangeAt: "next_shift_change_at",
+	Description:       "description",
+}
+
+var NPCBehaviorsSchema = struct {
+	Id      string
+	Name    string
+	Type    string
+	Payload string
+	Data    string
+}{
+	Id:      "id",
+	Name:    "name",
+	Type:    "type",
+	Payload: "payload",
+	Data:    "data",
 }
 
 var ReviewsFilesSchema = struct {

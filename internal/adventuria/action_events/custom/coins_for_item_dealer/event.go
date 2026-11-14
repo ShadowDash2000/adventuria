@@ -15,20 +15,29 @@ var _ action_events.ActionEvent = (*CoinsForItemDealer)(nil)
 const Type model.ActionEventType = "coins_for_item_dealer"
 
 type CoinsForItemDealer struct {
-	action_events.ActionEventBase
-	items items
+	items   items
+	payload Payload
 }
 
 func NewDef(items items) action_events.ActionEventDef {
 	return action_events.NewActionEventDef(
 		Type,
-		func(cellEventInfo model.ActionEventInfo) action_events.ActionEvent {
-			return &CoinsForItemDealer{
-				ActionEventBase: action_events.NewActionEventBase(cellEventInfo),
-				items:           items,
-			}
+		func(data []byte) (action_events.ActionEvent, error) {
+			return NewFromJSON(items, data)
 		},
 	)
+}
+
+func NewFromJSON(items items, data []byte) (*CoinsForItemDealer, error) {
+	payload, err := NewPayloadFromJSON(data)
+	if err != nil {
+		return nil, err
+	}
+
+	return &CoinsForItemDealer{
+		items:   items,
+		payload: payload,
+	}, nil
 }
 
 func (c *CoinsForItemDealer) Init(_ context.Context, player *model.Player) error {
@@ -37,14 +46,9 @@ func (c *CoinsForItemDealer) Init(_ context.Context, player *model.Player) error
 		return nil
 	}
 
-	decodedValue, err := c.decodeValue(c.Data().Value())
-	if err != nil {
-		return err
-	}
-
 	actionState.Dealer = model.NewCoinsForItemDeal(
-		decodedValue.Coins,
-		decodedValue.ItemId,
+		c.payload.Coins,
+		c.payload.ItemId,
 	)
 
 	return nil

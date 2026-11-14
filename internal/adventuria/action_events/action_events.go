@@ -1,65 +1,21 @@
 package action_events
 
 import (
-	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
-	"context"
-	"errors"
+	"fmt"
 )
 
-type repository interface {
-	GetByID(ctx context.Context, id string) (*model.ActionEventInfo, error)
-	GetByActiveCellID(ctx context.Context, activeCellId string) (*model.ActionEventInfo, error)
+type ActionEvents struct{}
+
+func NewActionEvents() *ActionEvents {
+	return &ActionEvents{}
 }
 
-type ActionEvents struct {
-	repository repository
-}
-
-func NewActionEvents(repository repository) *ActionEvents {
-	return &ActionEvents{repository: repository}
-}
-
-func toActionEvent(actionEventInfo *model.ActionEventInfo) (ActionEvent, error) {
-	return Create(*actionEventInfo)
-}
-
-func (a *ActionEvents) ListenToActionEvents(actor *player.Actor) error {
-	actor.Events().OnAfterMove().BindFunc(func(ctx context.Context, e *model.OnAfterMoveEvent) error {
-		actionEventInfo, err := a.repository.GetByActiveCellID(ctx, e.CurrentCell.ID())
-		if err != nil {
-			if errors.Is(err, errs.ErrActionEventNotFound) {
-				return e.Next()
-			}
-			return err
-		}
-
-		actionEvent, err := Create(*actionEventInfo)
-		if err != nil {
-			return err
-		}
-
-		err = actionEvent.Init(ctx, actor.Player())
-
-		return e.Next()
-	})
-
-	return nil
-}
-
-func (a *ActionEvents) GetByID(ctx context.Context, id string) (*model.ActionEventInfo, error) {
-	return a.repository.GetByID(ctx, id)
-}
-
-func (a *ActionEvents) GetByIDWrapped(ctx context.Context, id string) (ActionEvent, error) {
-	actionEventInfo, err := a.GetByID(ctx, id)
-	if err != nil {
-		return nil, err
+func (a *ActionEvents) CreateFromActionEventInfo(info *model.ActionEventInfo) (ActionEvent, error) {
+	actionEventDef, ok := Get(info.Type())
+	if !ok {
+		return nil, fmt.Errorf("%w: %s", errs.ErrUnknownActionEventType, info.Type())
 	}
-	return toActionEvent(actionEventInfo)
-}
-
-func (a *ActionEvents) GetByActiveCellID(ctx context.Context, activeCellId string) (*model.ActionEventInfo, error) {
-	return a.repository.GetByActiveCellID(ctx, activeCellId)
+	return actionEventDef.New(info)
 }

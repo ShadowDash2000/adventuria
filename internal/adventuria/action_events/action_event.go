@@ -6,7 +6,6 @@ import (
 )
 
 type ActionEvent interface {
-	Data() *model.ActionEventInfo
 	Init(ctx context.Context, player *model.Player) error
 	Dispose(ctx context.Context, player *model.Player) error
 }

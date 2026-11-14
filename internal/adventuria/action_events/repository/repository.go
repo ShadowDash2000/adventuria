@@ -1,15 +1,11 @@
 package repository
 
 import (
-	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
 	"adventuria/internal/adventuria/schema"
 	"adventuria/pkg/pbhelper"
 	"adventuria/pkg/pbtransaction"
 	"context"
-	"database/sql"
-	"errors"
-	"fmt"
 
 	"ganigeorgiev.com/pocketbase/dbx"
 	"ganigeorgiev.com/pocketbase/pocketbase/core"
@@ -23,55 +19,20 @@ func NewRepository(pb core.App) *Repository {
 	return &Repository{pb: pb}
 }
 
-func (r *Repository) GetByID(ctx context.Context, id string) (*model.ActionEventInfo, error) {
+func (r *Repository) GetByIDs(ctx context.Context, ids []string) ([]*model.ActionEventInfo, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 
-	var record core.Record
+	var records []*core.Record
 	err := pb.RecordQuery(schema.CollectionActionEvents).
 		WithContext(ctx).
-		Where(dbx.HashExp{
-			schema.ActionEventsSchema.Id: id,
-		}).
-		Limit(1).
-		One(&record)
+		Where(dbx.In(
+			schema.ActionEventsSchema.Id,
+			pbhelper.SliceToAny(ids)...,
+		)).
+		All(&records)
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, errs.ErrActionEventNotFound
-		}
 		return nil, err
 	}
 
-	return RecordToActionEvent(&record), err
-}
-
-func (r *Repository) GetByActiveCellID(ctx context.Context, activeCellId string) (*model.ActionEventInfo, error) {
-	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
-
-	var record core.Record
-	err := pb.RecordQuery(schema.CollectionActionEvents).
-		WithContext(ctx).
-		Select(fmt.Sprintf("%s.*", schema.CollectionActionEvents)).
-		Where(dbx.HashExp{
-			pbhelper.DotExpand(
-				schema.CollectionCellEventsSchedule,
-				schema.CellEventsScheduleSchema.ActiveCell,
-			): activeCellId,
-		}).
-		InnerJoin(
-			schema.CollectionCellEventsSchedule,
-			dbx.NewExp(pbhelper.Eq(
-				pbhelper.DotExpand(schema.CollectionActionEvents, schema.ActionEventsSchema.Id),
-				pbhelper.DotExpand(schema.CollectionCellEventsSchedule, schema.CellEventsScheduleSchema.ActionEvent),
-			)),
-		).
-		Limit(1).
-		One(&record)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, errs.ErrActionEventNotFound
-		}
-		return nil, err
-	}
-
-	return RecordToActionEvent(&record), err
+	return RecordsToActionEvents(records), nil
 }

@@ -8,13 +8,13 @@ type OutboxType string
 
 type OutboxTask interface {
 	Type() OutboxType
-	Payload() string
+	Payload() []byte
 }
 
 type OutboxData struct {
 	Id      string
 	Type    OutboxType
-	Payload string
+	Payload []byte
 	Status  OutboxStatus
 }
 
@@ -64,7 +64,7 @@ func (o *OutboxInfo) Type() OutboxType {
 	return o.data.Type
 }
 
-func (o *OutboxInfo) Payload() string {
+func (o *OutboxInfo) Payload() []byte {
 	return o.data.Payload
 }
 

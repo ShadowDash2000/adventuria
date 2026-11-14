@@ -1,6 +1,7 @@
 package game_state
 
 import (
+	"adventuria/internal/adventuria/board/actors"
 	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
 	"adventuria/internal/adventuria/player_progress"
@@ -26,17 +27,23 @@ type playerProgress interface {
 	GetActivePlayersBySeasonID(ctx context.Context, seasonId string) ([]*player_progress.ActivePlayer, error)
 }
 
+type actorsService interface {
+	GetActiveActorsBySeasonID(ctx context.Context, seasonId string) ([]*actors.ActiveActor, error)
+}
+
 type Handler struct {
 	settings       settings
 	playerInfo     playerInfo
 	playerProgress playerProgress
+	actors         actorsService
 }
 
-func NewHandler(settings settings, playerInfo playerInfo, playerProgress playerProgress) *Handler {
+func NewHandler(settings settings, playerInfo playerInfo, playerProgress playerProgress, actors actorsService) *Handler {
 	return &Handler{
 		settings:       settings,
 		playerInfo:     playerInfo,
 		playerProgress: playerProgress,
+		actors:         actors,
 	}
 }
 
@@ -82,4 +89,18 @@ func (h *Handler) GetActivePlayers(e *core.RequestEvent) error {
 	}
 
 	return response.Success(e, activePlayersToView(activePlayers))
+}
+
+func (h *Handler) GetActiveActors(e *core.RequestEvent) error {
+	currentSeason, err := h.settings.CurrentSeason(e.Request.Context())
+	if err != nil {
+		return response.Error(e, err)
+	}
+
+	activeActors, err := h.actors.GetActiveActorsBySeasonID(e.Request.Context(), currentSeason)
+	if err != nil {
+		return response.Error(e, err)
+	}
+
+	return response.Success(e, activeActorsToView(activeActors))
 }

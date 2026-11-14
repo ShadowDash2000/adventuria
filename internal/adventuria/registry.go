@@ -11,10 +11,11 @@ import (
 	"adventuria/internal/adventuria/activity_filters"
 	activityFiltersRepo "adventuria/internal/adventuria/activity_filters/repository"
 	"adventuria/internal/adventuria/board"
+	"adventuria/internal/adventuria/board/actors"
+	"adventuria/internal/adventuria/board/actors/npc"
 	"adventuria/internal/adventuria/board/actors/player"
+	actorsRepo "adventuria/internal/adventuria/board/actors/repository"
 	boardRepo "adventuria/internal/adventuria/board/repository"
-	"adventuria/internal/adventuria/cell_events_schedules"
-	cellEventsSchedulesRepo "adventuria/internal/adventuria/cell_events_schedules/repository"
 	"adventuria/internal/adventuria/cells"
 	cellsRepo "adventuria/internal/adventuria/cells/repository"
 	"adventuria/internal/adventuria/companies"
@@ -43,6 +44,9 @@ import (
 	inventoriesRepo "adventuria/internal/adventuria/inventories/repository"
 	"adventuria/internal/adventuria/items"
 	itemsRepo "adventuria/internal/adventuria/items/repository"
+	"adventuria/internal/adventuria/npcs"
+	"adventuria/internal/adventuria/npcs/behaviors"
+	npcsRepo "adventuria/internal/adventuria/npcs/repository"
 	"adventuria/internal/adventuria/outboxes"
 	outboxesRepo "adventuria/internal/adventuria/outboxes/repository"
 	"adventuria/internal/adventuria/platforms"
@@ -125,11 +129,12 @@ type Registry struct {
 	igdbRepo                *igdbRepo.Repository
 	igdbRemoteRepo          *igdbRepo.RemoteRepository
 	actionEventsRepo        *actionEventsRepo.Repository
-	cellEventsSchedulesRepo *cellEventsSchedulesRepo.Repository
+	npcRepo                 *npcsRepo.Repository
 	completedActivitiesRepo *completedActivitiesRepo.Repository
 	playerEventsRepo        *playerEventsRepo.Repository
 	playerInfoRepo          *playerInfoRepo.Repository
 	boardNotifyRepo         *boardRepo.Notify
+	actorsRepo              *actorsRepo.Repository
 
 	// services
 	seasons              *seasons.Seasons
@@ -165,7 +170,7 @@ type Registry struct {
 	github               *github.Github
 	igdb                 *igdb.IGDB
 	actionEvents         *action_events.ActionEvents
-	cellEventsSchedules  *cell_events_schedules.CellEventsSchedules
+	npc                  *npcs.NPCs
 	completedActivities  *completed_activities.Query
 	doneResultCalculator *activities.DoneResultCalculator
 	dropResultCalculator *activities.DropResultCalculator
@@ -173,6 +178,9 @@ type Registry struct {
 	playerInfo           *player_info.PlayerInfo
 	eventsSubscriber     *scope.EventsSubscriber
 	playerFactory        *player.Factory
+	npcFactory           *npc.Factory
+	actors               *actors.Actors
+	behaviors            *behaviors.Behaviors
 }
 
 func NewRegistry(pb core.App, logger *slog.Logger) *Registry {
@@ -456,11 +464,11 @@ func (r *Registry) ActionEventsRepo() *actionEventsRepo.Repository {
 	return r.actionEventsRepo
 }
 
-func (r *Registry) CellEventsSchedulesRepo() *cellEventsSchedulesRepo.Repository {
-	if r.cellEventsSchedulesRepo == nil {
-		r.cellEventsSchedulesRepo = cellEventsSchedulesRepo.NewRepository(r.pb)
+func (r *Registry) NPCsRepo() *npcsRepo.Repository {
+	if r.npcRepo == nil {
+		r.npcRepo = npcsRepo.NewRepository(r.pb, r.EffectsRepo(), r.ActionEventsRepo())
 	}
-	return r.cellEventsSchedulesRepo
+	return r.npcRepo
 }
 
 func (r *Registry) CompletedActivitiesRepo() *completedActivitiesRepo.Repository {
@@ -489,6 +497,13 @@ func (r *Registry) BoardNotifyRepo() *boardRepo.Notify {
 		r.boardNotifyRepo = boardRepo.NewRepositoryNotify(r.pb)
 	}
 	return r.boardNotifyRepo
+}
+
+func (r *Registry) ActorsRepo() *actorsRepo.Repository {
+	if r.actorsRepo == nil {
+		r.actorsRepo = actorsRepo.NewRepository(r.pb)
+	}
+	return r.actorsRepo
 }
 
 func (r *Registry) Seasons() *seasons.Seasons {
@@ -756,17 +771,17 @@ func (r *Registry) IGDB() *igdb.IGDB {
 
 func (r *Registry) ActionEvents() *action_events.ActionEvents {
 	if r.actionEvents == nil {
-		r.actionEvents = action_events.NewActionEvents(r.ActionEventsRepo())
+		r.actionEvents = action_events.NewActionEvents()
 	}
 	return r.actionEvents
 }
 
-func (r *Registry) CellEventsSchedules() *cell_events_schedules.CellEventsSchedules {
-	if r.cellEventsSchedules == nil {
-		r.cellEventsSchedules = cell_events_schedules.NewCellEventsSchedules(
+func (r *Registry) NPCs() *npcs.NPCs {
+	if r.npc == nil {
+		r.npc = npcs.NewNPCs(
 			r.PlayersLocker(),
-			r.CellEventsSchedulesRepo(),
-			r.Cells(),
+			r.NPCsRepo(),
+			r.Behaviors(),
 			r.Effects(),
 			r.ActionEvents(),
 			r.Players(),
@@ -774,7 +789,7 @@ func (r *Registry) CellEventsSchedules() *cell_events_schedules.CellEventsSchedu
 			r.Seasons(),
 		)
 	}
-	return r.cellEventsSchedules
+	return r.npc
 }
 
 func (r *Registry) CompletedActivities() *completed_activities.Query {
@@ -814,7 +829,7 @@ func (r *Registry) PlayerInfo() *player_info.PlayerInfo {
 
 func (r *Registry) EventsSubscriber() *scope.EventsSubscriber {
 	if r.eventsSubscriber == nil {
-		r.eventsSubscriber = scope.NewEventsSubscriber(r.Effects(), r.CellEventsSchedules(), r.Worlds())
+		r.eventsSubscriber = scope.NewEventsSubscriber(r.Effects(), r.NPCs(), r.Worlds())
 	}
 	return r.eventsSubscriber
 }
@@ -824,4 +839,25 @@ func (r *Registry) PlayerFactory() *player.Factory {
 		r.playerFactory = player.NewFactory(r.Actions(), r.BoardNotify())
 	}
 	return r.playerFactory
+}
+
+func (r *Registry) NPCFactory() *npc.Factory {
+	if r.npcFactory == nil {
+		r.npcFactory = npc.NewFactory(r.BoardNotify())
+	}
+	return r.npcFactory
+}
+
+func (r *Registry) Actors() *actors.Actors {
+	if r.actors == nil {
+		r.actors = actors.NewActors(r.ActorsRepo())
+	}
+	return r.actors
+}
+
+func (r *Registry) Behaviors() *behaviors.Behaviors {
+	if r.behaviors == nil {
+		r.behaviors = behaviors.NewBehaviors(r.NPCFactory())
+	}
+	return r.behaviors
 }

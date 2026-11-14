@@ -17,18 +17,31 @@ func RestoreActionEvent(data ActionEventData) *ActionEventInfo {
 	return &ActionEventInfo{data: data}
 }
 
-func (c *ActionEventInfo) ID() string {
-	return c.data.Id
+func (a *ActionEventInfo) Clone() *ActionEventInfo {
+	if a == nil {
+		return nil
+	}
+
+	return &ActionEventInfo{data: ActionEventData{
+		Id:    a.data.Id,
+		Name:  a.data.Name,
+		Type:  a.data.Type,
+		Value: a.data.Value,
+	}}
 }
 
-func (c *ActionEventInfo) Name() string {
-	return c.data.Name
+func (a *ActionEventInfo) ID() string {
+	return a.data.Id
 }
 
-func (c *ActionEventInfo) Type() ActionEventType {
-	return c.data.Type
+func (a *ActionEventInfo) Name() string {
+	return a.data.Name
 }
 
-func (c *ActionEventInfo) Value() string {
-	return c.data.Value
+func (a *ActionEventInfo) Type() ActionEventType {
+	return a.data.Type
+}
+
+func (a *ActionEventInfo) Value() string {
+	return a.data.Value
 }

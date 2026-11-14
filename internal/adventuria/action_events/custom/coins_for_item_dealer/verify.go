@@ -8,12 +8,12 @@ import (
 var _ model.Verifiable = (*CoinsForItemDealer)(nil)
 
 func (c *CoinsForItemDealer) Verify(ctx context.Context, value string) error {
-	decodedValue, err := c.decodeValue(value)
+	payload, err := NewPayloadFromJSON([]byte(value))
 	if err != nil {
 		return err
 	}
 
-	_, err = c.items.GetByID(ctx, decodedValue.ItemId)
+	_, err = c.items.GetByID(ctx, payload.ItemId)
 	if err != nil {
 		return err
 	}

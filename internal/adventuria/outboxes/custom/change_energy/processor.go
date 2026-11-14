@@ -42,8 +42,8 @@ func NewDef(playersLocker *locker.Locker[string], progress progress, actions act
 
 	return outboxes.NewOutbox(
 		Type,
-		func(ctx context.Context, payload string) error {
-			task, err := NewFromJSON(payload)
+		func(ctx context.Context, data []byte) error {
+			task, err := NewFromJSON(data)
 			if err != nil {
 				return err
 			}

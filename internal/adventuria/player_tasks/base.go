@@ -1,18 +1,21 @@
 package player_tasks
 
-import "adventuria/internal/adventuria/model"
+import (
+	"adventuria/internal/adventuria/model"
+	"bytes"
+)
 
 type PlayerTaskBase struct {
 	t           model.PlayerTaskType
 	trigger     model.PlayerTaskTrigger
-	payloadJSON string
+	payloadJSON []byte
 }
 
-func NewPlayerTaskBase(t model.PlayerTaskType, trigger model.PlayerTaskTrigger, payload string) PlayerTaskBase {
+func NewPlayerTaskBase(t model.PlayerTaskType, trigger model.PlayerTaskTrigger, data []byte) PlayerTaskBase {
 	return PlayerTaskBase{
 		t:           t,
 		trigger:     trigger,
-		payloadJSON: payload,
+		payloadJSON: data,
 	}
 }
 
@@ -24,6 +27,6 @@ func (p PlayerTaskBase) Trigger() model.PlayerTaskTrigger {
 	return p.trigger
 }
 
-func (p PlayerTaskBase) Payload() string {
-	return p.payloadJSON
+func (p PlayerTaskBase) Payload() []byte {
+	return bytes.Clone(p.payloadJSON)
 }

@@ -3,8 +3,7 @@ package daily_reward_bonus
 import (
 	"adventuria/internal/adventuria/model"
 	"adventuria/internal/adventuria/player_tasks"
-	"encoding/json"
-	"fmt"
+	"bytes"
 )
 
 var _ model.PlayerTask = (*DailyRewardBonus)(nil)
@@ -19,8 +18,8 @@ type DailyRewardBonus struct {
 func NewDef() player_tasks.PlayerTaskDef {
 	return player_tasks.NewPlayerTask(
 		Type,
-		func(payload string) (model.PlayerTask, error) {
-			task, err := NewFromJSON(payload)
+		func(data []byte) (model.PlayerTask, error) {
+			task, err := NewFromJSON(data)
 			if err != nil {
 				return nil, err
 			}
@@ -38,31 +37,25 @@ func New(payload Payload) (*DailyRewardBonus, error) {
 		return nil, err
 	}
 
-	encoded, err := json.Marshal(payload)
-	if err != nil {
-		return nil, fmt.Errorf("daily_reward_bonus: failed to marshal payload: %w", err)
-	}
-
-	return &DailyRewardBonus{
-		PlayerTaskBase: player_tasks.NewPlayerTaskBase(Type, "daily_reward", string(encoded)),
-		payload:        payload,
-	}, nil
-}
-
-func NewFromJSON(payload string) (*DailyRewardBonus, error) {
-	var decoded Payload
-	err := json.Unmarshal([]byte(payload), &decoded)
-	if err != nil {
-		return nil, fmt.Errorf("daily_reward_bonus: failed to unmarshal payload: %w", err)
-	}
-
-	err = decoded.validate()
+	encoded, err := payload.Marshal()
 	if err != nil {
 		return nil, err
 	}
 
 	return &DailyRewardBonus{
-		PlayerTaskBase: player_tasks.NewPlayerTaskBase(Type, "daily_reward", payload),
-		payload:        decoded,
+		PlayerTaskBase: player_tasks.NewPlayerTaskBase(Type, "daily_reward", encoded),
+		payload:        payload,
+	}, nil
+}
+
+func NewFromJSON(data []byte) (*DailyRewardBonus, error) {
+	payload, err := NewPayloadFromJSON(data)
+	if err != nil {
+		return nil, err
+	}
+
+	return &DailyRewardBonus{
+		PlayerTaskBase: player_tasks.NewPlayerTaskBase(Type, "daily_reward", bytes.Clone(data)),
+		payload:        payload,
 	}, nil
 }

@@ -1,8 +1,7 @@
 package adventuria
 
 import (
-	"adventuria/internal/adventuria/cell_events_schedules"
-	"adventuria/internal/adventuria/errs"
+	"adventuria/internal/adventuria/npcs"
 	"adventuria/internal/adventuria/player_events/custom/energy_changed"
 	"adventuria/internal/adventuria/schema"
 	"adventuria/internal/adventuria/settings"
@@ -25,33 +24,6 @@ func (g *Game) bindHooks(ctx context.Context, pb core.App) {
 			}
 			e.Record.Set(schema.SettingsSchema.KillParser, false)
 		}
-		return e.Next()
-	})
-
-	pb.OnRecordEnrich(schema.CollectionCells).BindFunc(func(e *core.RecordEnrichEvent) error {
-		cellEventId, err := g.cellEvents.GetIDByActiveCellID(ctx, e.Record.Id)
-		if err != nil {
-			if errors.Is(err, errs.ErrCellEventScheduleNotFound) {
-				return e.Next()
-			}
-			return err
-		}
-
-		var record core.Record
-		err = e.App.RecordQuery(schema.CollectionCellEventsSchedule).
-			WithContext(ctx).
-			Where(dbx.HashExp{
-				schema.CellEventsScheduleSchema.Id: cellEventId,
-			}).
-			Limit(1).
-			One(&record)
-		if err != nil {
-			return err
-		}
-
-		e.Record.WithCustomData(true)
-		e.Record.Set("cell_event", record)
-
 		return e.Next()
 	})
 
@@ -188,7 +160,7 @@ func (g *Game) bindHooks(ctx context.Context, pb core.App) {
 		return e.Next()
 	})
 
-	g.cellEvents.OnUpdateStart().BindFunc(func(ctx context.Context, e *cell_events_schedules.UpdateStartEvent) error {
+	g.npc.OnUpdateStart().BindFunc(func(ctx context.Context, e *npcs.UpdateStartEvent) error {
 		err := pbrealtime.Notify(ctx, pb, "cell_events_scheduler_start", nil)
 		if err != nil {
 			pb.Logger().Error("Failed to notify cell events scheduler start", "error", err)
@@ -197,7 +169,7 @@ func (g *Game) bindHooks(ctx context.Context, pb core.App) {
 		return e.Next()
 	})
 
-	g.cellEvents.OnUpdateEnd().BindFunc(func(ctx context.Context, e *cell_events_schedules.UpdateEndEvent) error {
+	g.npc.OnUpdateEnd().BindFunc(func(ctx context.Context, e *npcs.UpdateEndEvent) error {
 		err := pbrealtime.Notify(ctx, pb, "cell_events_scheduler_end", nil)
 		if err != nil {
 			pb.Logger().Error("Failed to notify cell events scheduler end", "error", err)
