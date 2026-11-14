@@ -251,7 +251,12 @@ func (n *NPCs) listenToActionEvents(npcsByCellId map[string][]*NPC, actor *playe
 		}
 
 		for _, npc := range npcs {
-			err := npc.ActionEvent().Init(ctx, actor.Player())
+			actionEvent := npc.ActionEvent()
+			if actionEvent == nil {
+				continue
+			}
+
+			err := actionEvent.Init(ctx, actor.Player())
 			if err != nil {
 				return err
 			}
@@ -294,41 +299,32 @@ func (n *NPCs) subscribeCellEventEffects(ctx context.Context, npcsByCellId map[s
 		return nil, nil
 	}
 
-	var npcEffects []effects.Effect
-	var npcIds []string
+	var unsubKeys []string
 	for _, npc := range npcs {
-		npcEffects = append(npcEffects, npc.Effects()...)
-		npcIds = append(npcIds, npc.npc.ID())
-	}
+		for _, effect := range npc.Effects() {
+			unsubKey := "npc_effect:" +
+				actor.Player().ID() + ":" +
+				npc.NPC().ID() + ":" +
+				effect.Data().ID() + ":" +
+				actor.Player().LastAction().Cell()
 
-	if len(npcEffects) == 0 {
-		return nil, nil
-	}
+			unsubs, err := effect.Subscribe(
+				ctx,
+				actor,
+				effects.Context{
+					Priority: 50,
+				},
+				func(ctx context.Context) {
+					actor.Events().Unsubscribe(unsubKey)
+				},
+			)
+			if err != nil {
+				return nil, err
+			}
 
-	unsubKeys := make([]string, len(npcEffects))
-	for i, effect := range npcEffects {
-		unsubKey := "npc_effect:" +
-			actor.Player().ID() + ":" +
-			npcIds[i] + ":" +
-			effect.Data().ID() + ":" +
-			actor.Player().LastAction().Cell()
-
-		unsubs, err := effect.Subscribe(
-			ctx,
-			actor,
-			effects.Context{
-				Priority: 50,
-			},
-			func(ctx context.Context) {
-				actor.Events().Unsubscribe(unsubKey)
-			},
-		)
-		if err != nil {
-			return nil, err
+			actor.Events().AddUnsubs(unsubKey, unsubs...)
+			unsubKeys = append(unsubKeys, unsubKey)
 		}
-
-		actor.Events().AddUnsubs(unsubKey, unsubs...)
-		unsubKeys[i] = unsubKey
 	}
 
 	return unsubKeys, nil
