@@ -50,7 +50,7 @@ func NewFromJSON(board board, data []byte) (*Walk, error) {
 }
 
 func (w *Walk) Move(ctx context.Context, actor *npc.Actor) (actors.Position, error) {
-	steps := rand.IntN(w.payload.MaxDistance) + w.payload.MinDistance
+	steps := rand.IntN(w.payload.MaxDistance-w.payload.MinDistance+1) + w.payload.MinDistance
 
 	_, err := w.board.Move(ctx, actor, steps, model.MoveTypePath)
 	if err != nil {
