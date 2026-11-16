@@ -27,6 +27,7 @@ func Route(game *adventuria.Game, registry *adventuria.Registry, router *router.
 		registry.PlayerInfo(),
 		registry.PlayerProgress(),
 		registry.Actors(),
+		registry.NPCs(),
 	)
 	debug := debug.NewHandler(game)
 	inventory := inventory.NewHandler(registry.Settings(), registry.Inventories())
@@ -48,7 +49,7 @@ func Route(game *adventuria.Game, registry *adventuria.Registry, router *router.
 	g.GET("/event-ended", handlers.IsEventEnded)
 	g.GET("/completed-activities", completedActivities.GetCompletedActivitiesByCellID)
 	g.GET("/game-state", gameState.GetGameState)
-	g.GET("/active-players", gameState.GetActivePlayers)
+	g.GET("/active-actors-list", gameState.GetActiveActorsList)
 	g.GET("/active-actors", gameState.GetActiveActors)
 	g.GET("/inventory", inventory.GetInventoryByPlayerID)
 

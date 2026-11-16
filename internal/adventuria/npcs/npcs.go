@@ -15,8 +15,9 @@ import (
 )
 
 type repository interface {
+	GetActiveNPCs(ctx context.Context) ([]*ActiveNPC, error)
 	UpdateShiftAndPositionByID(ctx context.Context, id string, nextShiftChangeAt time.Time, position actors.Position) error
-	GetAllByFilter(ctx context.Context, filter Filter) ([]*NPCDetailed, error)
+	GetAllDetailedByFilter(ctx context.Context, filter Filter) ([]*NPCDetailed, error)
 }
 
 type npcNotify interface {
@@ -132,7 +133,7 @@ func (n *NPCs) CheckNPCSchedules(ctx context.Context) (err error) {
 		return err
 	}
 
-	npcs, err := n.GetAll(ctx)
+	npcs, err := n.GetAllDetailed(ctx)
 	if err != nil {
 		return err
 	}
@@ -225,7 +226,7 @@ func (n *NPCs) waitForPlayersUnlock(ctx context.Context) error {
 }
 
 func (n *NPCs) ListenToCellEvents(ctx context.Context, actor *player.Actor) error {
-	npcs, err := n.GetAll(ctx)
+	npcs, err := n.GetAllDetailed(ctx)
 	if err != nil {
 		return err
 	}
@@ -402,8 +403,12 @@ func (n *NPCs) disposeActionEvents(ctx context.Context, npcs []*NPC, playersByCe
 	return nil
 }
 
-func (n *NPCs) GetAll(ctx context.Context) ([]*NPC, error) {
-	npcsDetailed, err := n.repository.GetAllByFilter(ctx, Filter{})
+func (n *NPCs) GetActiveNPCs(ctx context.Context) ([]*ActiveNPC, error) {
+	return n.repository.GetActiveNPCs(ctx)
+}
+
+func (n *NPCs) GetAllDetailed(ctx context.Context) ([]*NPC, error) {
+	npcsDetailed, err := n.repository.GetAllDetailedByFilter(ctx, Filter{})
 	if err != nil {
 		return nil, err
 	}

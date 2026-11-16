@@ -39,6 +39,36 @@ func NewRepository(pb core.App, effectsRepo effectsRepo, actionEventsRepo action
 	}
 }
 
+func (r *Repository) GetActiveNPCs(ctx context.Context) ([]*npcs.ActiveNPC, error) {
+	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
+
+	var activeNPCs []*activeNPCRow
+	err := pb.DB().
+		Select(
+			schema.NPCsSchema.Id,
+			schema.NPCsSchema.Name,
+			schema.NPCsSchema.Avatar,
+			schema.NPCsSchema.Color,
+		).
+		From(schema.CollectionNPCs).
+		WithContext(ctx).
+		All(&activeNPCs)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(activeNPCs) == 0 {
+		return nil, nil
+	}
+
+	res := make([]*npcs.ActiveNPC, len(activeNPCs))
+	for i, activeNPC := range activeNPCs {
+		res[i] = activeNPC.ToActiveNPC()
+	}
+
+	return res, nil
+}
+
 func (r *Repository) UpdateShiftAndPositionByID(ctx context.Context, id string, nextShiftChangeAt time.Time, position actors.Position) error {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 
@@ -71,7 +101,7 @@ func (r *Repository) UpdateShiftAndPositionByID(ctx context.Context, id string, 
 	return nil
 }
 
-func (r *Repository) GetAllByFilter(ctx context.Context, filter npcs.Filter) ([]*npcs.NPCDetailed, error) {
+func (r *Repository) GetAllDetailedByFilter(ctx context.Context, filter npcs.Filter) ([]*npcs.NPCDetailed, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 
 	npcsTable := schema.CollectionNPCs

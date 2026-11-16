@@ -4,6 +4,7 @@ import (
 	"adventuria/internal/adventuria/board/actors"
 	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
+	"adventuria/internal/adventuria/npcs"
 	"adventuria/internal/adventuria/player_progress"
 	"adventuria/internal/http/response"
 	"context"
@@ -31,19 +32,31 @@ type actorsService interface {
 	GetActiveActorsBySeasonID(ctx context.Context, seasonId string) ([]*actors.ActiveActor, error)
 }
 
+type npcsService interface {
+	GetActiveNPCs(ctx context.Context) ([]*npcs.ActiveNPC, error)
+}
+
 type Handler struct {
 	settings       settings
 	playerInfo     playerInfo
 	playerProgress playerProgress
 	actors         actorsService
+	npc            npcsService
 }
 
-func NewHandler(settings settings, playerInfo playerInfo, playerProgress playerProgress, actors actorsService) *Handler {
+func NewHandler(
+	settings settings,
+	playerInfo playerInfo,
+	playerProgress playerProgress,
+	actors actorsService,
+	npc npcsService,
+) *Handler {
 	return &Handler{
 		settings:       settings,
 		playerInfo:     playerInfo,
 		playerProgress: playerProgress,
 		actors:         actors,
+		npc:            npc,
 	}
 }
 
@@ -77,7 +90,7 @@ func (h *Handler) GetGameState(e *core.RequestEvent) error {
 	return response.Success(e, gameStateToView(currentSeason, nextDayAt, player, progress))
 }
 
-func (h *Handler) GetActivePlayers(e *core.RequestEvent) error {
+func (h *Handler) GetActiveActorsList(e *core.RequestEvent) error {
 	currentSeason, err := h.settings.CurrentSeason(e.Request.Context())
 	if err != nil {
 		return response.Error(e, err)
@@ -88,7 +101,18 @@ func (h *Handler) GetActivePlayers(e *core.RequestEvent) error {
 		return response.Error(e, err)
 	}
 
-	return response.Success(e, activePlayersToView(activePlayers))
+	activeNPCs, err := h.npc.GetActiveNPCs(e.Request.Context())
+	if err != nil {
+		return response.Error(e, err)
+	}
+
+	return response.Success(e, struct {
+		Players []*activePlayerView `json:"players"`
+		NPCs    []*activeNPCView    `json:"npcs"`
+	}{
+		Players: activePlayersToView(activePlayers),
+		NPCs:    activeNPCsToView(activeNPCs),
+	})
 }
 
 func (h *Handler) GetActiveActors(e *core.RequestEvent) error {
