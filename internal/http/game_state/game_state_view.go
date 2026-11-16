@@ -15,6 +15,7 @@ type gameStateView struct {
 	CurrentWorld     string    `json:"current_world"`
 	Balance          int       `json:"balance"`
 	Energy           int       `json:"energy"`
+	MaxEnergyLimit   int       `json:"max_energy_limit"`
 	DropsInARow      int       `json:"drops_in_a_row"`
 	ItemWheelsCount  int       `json:"item_wheels_count"`
 }
@@ -41,6 +42,7 @@ func gameStateToView(
 		v.CurrentWorld = progress.CurrentWorld()
 		v.Balance = progress.Balance()
 		v.Energy = progress.Energy()
+		v.MaxEnergyLimit = progress.MaxEnergyLimit()
 		v.DropsInARow = progress.DropsInARow()
 		v.ItemWheelsCount = progress.ItemWheelsCount()
 	}
