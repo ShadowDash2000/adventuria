@@ -71,7 +71,7 @@ func (a *Actor) ChangeWorld(ctx context.Context, worldID string) error {
 
 func (a *Actor) ApplyMovement(ctx context.Context, move *model.MoveResult) error {
 	progress := a.player.Progress()
-	progress.SetCellsPassed(move.TotalSteps)
+	progress.SetCellsPassed(move.CurrentCell.LocalOrder())
 
 	newAction, err := model.NewAction(model.ActionCreate{
 		Player: a.player.ID(),

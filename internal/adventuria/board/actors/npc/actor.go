@@ -49,7 +49,7 @@ func (a *Actor) ChangeWorld(_ context.Context, worldId string) error {
 func (a *Actor) ApplyMovement(_ context.Context, move *model.MoveResult) error {
 	a.npc.SetCurrentWorld(move.CurrentWorld.ID())
 	a.npc.SetCurrentCell(move.CurrentCell.ID())
-	a.npc.SetCellsPassed(move.TotalSteps)
+	a.npc.SetCellsPassed(move.CurrentCell.LocalOrder())
 	return nil
 }
 
