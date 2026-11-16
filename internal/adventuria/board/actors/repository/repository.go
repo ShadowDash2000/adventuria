@@ -45,6 +45,7 @@ func (r *Repository) GetActiveActorsBySeasonID(ctx context.Context, seasonId str
 	npcColor := pbhelper.DotExpand(npcTable, schema.NPCsSchema.Color)
 	npcCurrentWorld := pbhelper.DotExpand(npcTable, schema.NPCsSchema.CurrentWorld)
 	npcCellsPassed := pbhelper.DotExpand(npcTable, schema.NPCsSchema.CellsPassed)
+	npcNextShiftChangeAt := pbhelper.DotExpand(npcTable, schema.NPCsSchema.NextShiftChangeAt)
 
 	npcQuery := "SELECT " +
 		fmt.Sprintf("%s AS id, ", npcId) +
@@ -55,7 +56,8 @@ func (r *Repository) GetActiveActorsBySeasonID(ctx context.Context, seasonId str
 		fmt.Sprintf("%s AS avatar, ", npcAvatar) +
 		fmt.Sprintf("%s AS color, ", npcColor) +
 		fmt.Sprintf("%s AS current_world, ", npcCurrentWorld) +
-		fmt.Sprintf("%s AS cells_passed ", npcCellsPassed) +
+		fmt.Sprintf("%s AS cells_passed, ", npcCellsPassed) +
+		fmt.Sprintf("%s AS next_shift_change_at ", npcNextShiftChangeAt) +
 		fmt.Sprintf("FROM %s", npcTable)
 
 	playersQuery := "SELECT " +
@@ -67,7 +69,8 @@ func (r *Repository) GetActiveActorsBySeasonID(ctx context.Context, seasonId str
 		fmt.Sprintf("%s AS avatar, ", playerAvatar) +
 		fmt.Sprintf("%s AS color, ", playerColor) +
 		fmt.Sprintf("%s AS current_world, ", progressCurrentWorld) +
-		fmt.Sprintf("%s AS cells_passed ", progressCellsPassed) +
+		fmt.Sprintf("%s AS cells_passed, ", progressCellsPassed) +
+		"NULL AS next_shift_change_at " +
 		fmt.Sprintf("FROM %s ", playersTable) +
 		fmt.Sprintf("INNER JOIN %s ON %s = %s ", progressTable, playerId, progressPlayer) +
 		fmt.Sprintf("WHERE %s = {:seasonId}", progressSeason)

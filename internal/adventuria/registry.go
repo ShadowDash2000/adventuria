@@ -130,6 +130,7 @@ type Registry struct {
 	igdbRemoteRepo          *igdbRepo.RemoteRepository
 	actionEventsRepo        *actionEventsRepo.Repository
 	npcRepo                 *npcsRepo.Repository
+	npcNotifyRepo           *npcsRepo.Notify
 	completedActivitiesRepo *completedActivitiesRepo.Repository
 	playerEventsRepo        *playerEventsRepo.Repository
 	playerInfoRepo          *playerInfoRepo.Repository
@@ -171,6 +172,7 @@ type Registry struct {
 	igdb                 *igdb.IGDB
 	actionEvents         *action_events.ActionEvents
 	npc                  *npcs.NPCs
+	npcNotify            *npcs.Notify
 	completedActivities  *completed_activities.Query
 	doneResultCalculator *activities.DoneResultCalculator
 	dropResultCalculator *activities.DropResultCalculator
@@ -469,6 +471,13 @@ func (r *Registry) NPCsRepo() *npcsRepo.Repository {
 		r.npcRepo = npcsRepo.NewRepository(r.pb, r.EffectsRepo(), r.ActionEventsRepo())
 	}
 	return r.npcRepo
+}
+
+func (r *Registry) NPCsNotifyRepo() *npcsRepo.Notify {
+	if r.npcNotifyRepo == nil {
+		r.npcNotifyRepo = npcsRepo.NewRepositoryNotify(r.pb)
+	}
+	return r.npcNotifyRepo
 }
 
 func (r *Registry) CompletedActivitiesRepo() *completedActivitiesRepo.Repository {
@@ -781,6 +790,7 @@ func (r *Registry) NPCs() *npcs.NPCs {
 		r.npc = npcs.NewNPCs(
 			r.PlayersLocker(),
 			r.NPCsRepo(),
+			r.NPCsNotify(),
 			r.Behaviors(),
 			r.Effects(),
 			r.ActionEvents(),
@@ -790,6 +800,13 @@ func (r *Registry) NPCs() *npcs.NPCs {
 		)
 	}
 	return r.npc
+}
+
+func (r *Registry) NPCsNotify() *npcs.Notify {
+	if r.npcNotify == nil {
+		r.npcNotify = npcs.NewNPCsNotify(r.NPCsNotifyRepo())
+	}
+	return r.npcNotify
 }
 
 func (r *Registry) CompletedActivities() *completed_activities.Query {

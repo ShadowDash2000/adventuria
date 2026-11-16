@@ -19,6 +19,10 @@ type repository interface {
 	GetAllByFilter(ctx context.Context, filter Filter) ([]*NPCDetailed, error)
 }
 
+type npcNotify interface {
+	NextShiftChangeNotify(ctx context.Context, id string, nextShiftChangeAt time.Time) error
+}
+
 type behaviorsService interface {
 	Move(ctx context.Context, npc *model.NPC, behavior *model.NPCBehavior) (actors.Position, error)
 }
@@ -48,6 +52,7 @@ type NPCs struct {
 	running       atomic.Bool
 	playersLocker *locker.Locker[string]
 	repository    repository
+	notify        npcNotify
 	behaviors     behaviorsService
 	effects       effectsService
 	actionEvents  actionEvents
@@ -62,6 +67,7 @@ type NPCs struct {
 func NewNPCs(
 	playersLocker *locker.Locker[string],
 	repository repository,
+	notify npcNotify,
 	behaviors behaviorsService,
 	effects effectsService,
 	actionEvents actionEvents,
@@ -72,6 +78,7 @@ func NewNPCs(
 	return &NPCs{
 		playersLocker: playersLocker,
 		repository:    repository,
+		notify:        notify,
 		behaviors:     behaviors,
 		effects:       effects,
 		actionEvents:  actionEvents,
@@ -165,16 +172,7 @@ func (n *NPCs) CheckNPCSchedules(ctx context.Context) (err error) {
 	}
 
 	for _, npc := range npcsToUpdate {
-		position, err := n.behaviors.Move(ctx, npc.NPC(), npc.Behavior())
-		if err != nil {
-			return err
-		}
-
-		npc.NPC().SetNextShiftChangeAt(
-			time.Now().Add(time.Duration(npc.NPC().ShiftInterval()) * time.Second),
-		)
-
-		err = n.repository.UpdateShiftAndPositionByID(ctx, npc.NPC().ID(), npc.NPC().NextShiftChangeAt(), position)
+		err = n.move(ctx, npc)
 		if err != nil {
 			return err
 		}
@@ -186,6 +184,24 @@ func (n *NPCs) CheckNPCSchedules(ctx context.Context) (err error) {
 	}
 
 	return nil
+}
+
+func (n *NPCs) move(ctx context.Context, npc *NPC) error {
+	position, err := n.behaviors.Move(ctx, npc.NPC(), npc.Behavior())
+	if err != nil {
+		return err
+	}
+
+	npc.NPC().SetNextShiftChangeAt(
+		time.Now().Add(time.Duration(npc.NPC().ShiftInterval()) * time.Second),
+	)
+
+	err = n.repository.UpdateShiftAndPositionByID(ctx, npc.NPC().ID(), npc.NPC().NextShiftChangeAt(), position)
+	if err != nil {
+		return err
+	}
+
+	return n.notify.NextShiftChangeNotify(ctx, npc.NPC().ID(), npc.NPC().NextShiftChangeAt())
 }
 
 func (n *NPCs) waitForPlayersUnlock(ctx context.Context) error {
