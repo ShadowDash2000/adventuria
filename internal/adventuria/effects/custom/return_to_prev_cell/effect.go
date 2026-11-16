@@ -44,11 +44,21 @@ func NewDef(actions actionsService, board boardService) effects.EffectDef {
 }
 
 func (r *ReturnToPrevCell) CanUse(ctx context.Context, actor *player.Actor) bool {
-	if actor.Player().Progress().CellsPassed() == 0 {
+	if r.actions.CanDo(ctx, actor, actions.ActionTypeCompleteActivity) {
 		return false
 	}
 
-	return !r.actions.CanDo(ctx, actor, actions.ActionTypeCompleteActivity)
+	lastAction := actor.Player().LastAction()
+	if lastAction == nil || lastAction.IsNew() {
+		return false
+	}
+
+	rootAction, err := r.getRootAction(ctx, lastAction)
+	if err != nil || rootAction.CellsPassed() == 0 {
+		return false
+	}
+
+	return true
 }
 
 func (r *ReturnToPrevCell) Subscribe(
@@ -66,14 +76,9 @@ func (r *ReturnToPrevCell) Subscribe(
 				return err
 			}
 
-			rootAction := lastAction
-			rootActionId := rootAction.RootAction()
-			if rootActionId != "" {
-				action, err := r.actions.GetByID(ctx, rootActionId)
-				if err != nil {
-					return err
-				}
-				rootAction = action
+			rootAction, err := r.getRootAction(ctx, lastAction)
+			if err != nil {
+				return err
 			}
 
 			_, err = r.board.Move(ctx, actor, -rootAction.CellsPassed(), model.MoveTypePath)
@@ -87,4 +92,13 @@ func (r *ReturnToPrevCell) Subscribe(
 			return e.Next()
 		}, effectCtx.Priority),
 	}, nil
+}
+
+func (r *ReturnToPrevCell) getRootAction(ctx context.Context, action *model.ActionInfo) (*model.ActionInfo, error) {
+	rootActionId := action.RootAction()
+	if rootActionId == "" {
+		return action, nil
+	}
+
+	return r.actions.GetByID(ctx, rootActionId)
 }
