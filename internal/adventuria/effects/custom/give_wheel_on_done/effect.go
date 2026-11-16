@@ -6,6 +6,7 @@ import (
 	"adventuria/internal/adventuria/model"
 	"adventuria/pkg/event"
 	"context"
+	"errors"
 )
 
 var _ effects.EffectPersistent = (*GiveWheelOnDone)(nil)
@@ -32,7 +33,12 @@ func NewDef(notify notify) effects.EffectPersistentDef {
 func (g *GiveWheelOnDone) Subscribe(_ context.Context, actor *player.Actor) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
 		actor.Events().OnAfterDone().BindFunc(func(ctx context.Context, e *model.OnAfterDoneEvent) error {
-			if e.CurrentCell.DontGiveItemWheel() {
+			state := actor.Player().LastAction().State().ActivityCompletion
+			if state == nil {
+				return errors.New("no activity completion state")
+			}
+
+			if !state.GiveItemWheel {
 				return e.Next()
 			}
 

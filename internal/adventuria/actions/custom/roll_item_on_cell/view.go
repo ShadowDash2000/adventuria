@@ -1,13 +1,15 @@
 package roll_item_on_cell
 
 import (
+	"adventuria/internal/adventuria/actions"
+	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
 	"adventuria/internal/adventuria/schema"
 	"context"
 )
 
-var _ model.WithView = (*RollItemOnCell)(nil)
+var _ actions.View = (*RollItemOnCell)(nil)
 
 type itemView struct {
 	Id             string         `json:"id"`
@@ -18,13 +20,13 @@ type itemView struct {
 	Type           model.ItemType `json:"type"`
 }
 
-func (r *RollItemOnCell) GetView(ctx context.Context, _ *model.Events, player *model.Player) (any, error) {
-	currentCell, err := r.cells.GetByPlayer(ctx, player)
+func (r *RollItemOnCell) GetView(ctx context.Context, actor *player.Actor) (any, error) {
+	currentCell, err := r.cells.GetByPlayer(ctx, actor.Player())
 	if err != nil {
 		return nil, err
 	}
 
-	itemsState := player.LastAction().State().Items
+	itemsState := actor.Player().LastAction().State().Items
 	if itemsState == nil {
 		return nil, errs.ErrNoActiveItems
 	}

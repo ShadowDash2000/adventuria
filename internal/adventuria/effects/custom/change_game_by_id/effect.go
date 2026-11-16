@@ -9,10 +9,6 @@ import (
 	"context"
 )
 
-type cells interface {
-	GetByPlayer(ctx context.Context, player *model.Player) (*model.CellInfo, error)
-}
-
 type actionsService interface {
 	CanDo(ctx context.Context, actor *player.Actor, t model.ActionType) bool
 }
@@ -27,18 +23,16 @@ const Type model.EffectType = "change_game_by_id"
 
 type ChangeGameById struct {
 	effects.EffectBase
-	cells      cells
 	actions    actionsService
 	activities activities
 }
 
-func NewDef(cells cells, actions actionsService, activities activities) effects.EffectDef {
+func NewDef(actions actionsService, activities activities) effects.EffectDef {
 	return effects.NewEffectDef(
 		Type,
 		func(effect model.EffectInfo) effects.Effect {
 			return &ChangeGameById{
 				EffectBase: effects.NewEffectBase(effect),
-				cells:      cells,
 				actions:    actions,
 				activities: activities,
 			}
@@ -47,20 +41,22 @@ func NewDef(cells cells, actions actionsService, activities activities) effects.
 }
 
 func (c *ChangeGameById) CanUse(ctx context.Context, actor *player.Actor) bool {
-	currentCell, err := c.cells.GetByPlayer(ctx, actor.Player())
-	if err != nil {
+	state := actor.Player().LastAction().State()
+	if state.ActivityCompletion == nil {
 		return false
 	}
 
-	if ok := currentCell.IsChangeGameNotAllowed(); ok {
+	if !state.ActivityCompletion.IsChangeActivityAllowed {
 		return false
 	}
 
-	if ok := c.actions.CanDo(ctx, actor, actions.ActionTypeDrop); !ok {
+	ok := c.actions.CanDo(ctx, actor, actions.ActionTypeDrop)
+	if !ok {
 		return false
 	}
 
-	if ok := c.actions.CanDo(ctx, actor, actions.ActionTypeDone); !ok {
+	ok = c.actions.CanDo(ctx, actor, actions.ActionTypeDone)
+	if !ok {
 		return false
 	}
 

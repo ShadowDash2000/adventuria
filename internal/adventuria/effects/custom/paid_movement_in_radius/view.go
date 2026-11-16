@@ -1,24 +1,26 @@
 package paid_movement_in_radius
 
 import (
+	"adventuria/internal/adventuria/board/actors/player"
+	"adventuria/internal/adventuria/effects"
 	"adventuria/internal/adventuria/model"
 	"context"
 )
 
-var _ model.WithView = (*PaidMovementInRadius)(nil)
+var _ effects.View = (*PaidMovementInRadius)(nil)
 
 type cellView struct {
 	Id   string `json:"id"`
 	Name string `json:"name"`
 }
 
-func (p *PaidMovementInRadius) GetView(ctx context.Context, _ *model.Events, player *model.Player) (any, error) {
+func (p *PaidMovementInRadius) GetView(ctx context.Context, actor *player.Actor) (any, error) {
 	effectValue, err := p.decodeValue(p.Value())
 	if err != nil {
 		return nil, err
 	}
 
-	currentCell, err := p.cells.GetByID(ctx, player.LastAction().Cell())
+	currentCell, err := p.cells.GetByID(ctx, actor.Player().LastAction().Cell())
 	if err != nil {
 		return nil, err
 	}

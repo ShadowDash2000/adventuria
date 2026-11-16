@@ -14,10 +14,6 @@ type actionsService interface {
 	CanDo(ctx context.Context, actor *player.Actor, t model.ActionType) bool
 }
 
-type cellsService interface {
-	GetByPlayer(ctx context.Context, player *model.Player) (*model.CellInfo, error)
-}
-
 type activities interface {
 	GetRandomIDsByFilter(ctx context.Context, filter model.ActivityFilter) ([]string, error)
 }
@@ -29,18 +25,16 @@ const Type model.EffectType = "change_game_price_filter"
 type ChangeGamePriceFilter struct {
 	effects.EffectBase
 	actions    actionsService
-	cells      cellsService
 	activities activities
 }
 
-func NewDef(actions actionsService, cells cellsService, activities activities) effects.EffectDef {
+func NewDef(actions actionsService, activities activities) effects.EffectDef {
 	return effects.NewEffectDef(
 		Type,
 		func(effect model.EffectInfo) effects.Effect {
 			return &ChangeGamePriceFilter{
 				EffectBase: effects.NewEffectBase(effect),
 				actions:    actions,
-				cells:      cells,
 				activities: activities,
 			}
 		},
@@ -52,25 +46,20 @@ func (c *ChangeGamePriceFilter) CanUse(ctx context.Context, actor *player.Actor)
 		return false
 	}
 
-	currentCell, err := c.cells.GetByPlayer(ctx, actor.Player())
-	if err != nil {
+	state := actor.Player().LastAction().State()
+	if state.ActivityCompletion == nil || state.ActivityFilter == nil {
 		return false
 	}
 
-	if currentCell.IsCustomFilterNotAllowed() {
+	if !state.ActivityCompletion.IsCustomFilterAllowed {
 		return false
 	}
 
-	activityFilter := actor.Player().LastAction().State().ActivityFilter
-	if activityFilter == nil {
+	if state.ActivityFilter.Type != model.ActivityTypeGame {
 		return false
 	}
 
-	if activityFilter.Type != model.ActivityTypeGame {
-		return false
-	}
-
-	if len(activityFilter.Activities) > 0 {
+	if len(state.ActivityFilter.Activities) > 0 {
 		return false
 	}
 

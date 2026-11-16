@@ -4,6 +4,7 @@ import (
 	"adventuria/internal/adventuria/actions"
 	"adventuria/internal/adventuria/board/actors"
 	"adventuria/internal/adventuria/board/actors/player"
+	"adventuria/internal/adventuria/cells"
 	"adventuria/internal/adventuria/model"
 	"adventuria/internal/adventuria/reviews"
 	"context"
@@ -11,15 +12,11 @@ import (
 )
 
 type dropResultCalculator interface {
-	Calculate(ctx context.Context, events *model.Events, cell *model.CellInfo, mode model.EffectRunMode) (*model.ActivityDropResult, error)
+	Calculate(ctx context.Context, actor *player.Actor, mode model.EffectRunMode) (*model.ActivityDropResult, error)
 }
 
 type actionsService interface {
 	CanDo(ctx context.Context, actor *player.Actor, t model.ActionType) bool
-}
-
-type cells interface {
-	GetByPlayer(ctx context.Context, player *model.Player) (*model.CellInfo, error)
 }
 
 type reviewsService interface {
@@ -46,7 +43,6 @@ type Drop struct {
 	actions.ActionBase
 	dropResultCalculator dropResultCalculator
 	actions              actionsService
-	cells                cells
 	reviews              reviewsService
 	players              players
 	settings             settings
@@ -56,7 +52,6 @@ type Drop struct {
 func NewDef(
 	dropResultCalculator dropResultCalculator,
 	actionsService actionsService,
-	cells cells,
 	reviews reviewsService,
 	players players,
 	settings settings,
@@ -69,7 +64,6 @@ func NewDef(
 				ActionBase:           actions.NewActionBase(Type),
 				dropResultCalculator: dropResultCalculator,
 				actions:              actionsService,
-				cells:                cells,
 				reviews:              reviews,
 				players:              players,
 				settings:             settings,
@@ -84,12 +78,7 @@ func (d *Drop) CanDo(ctx context.Context, actor *player.Actor) bool {
 		return false
 	}
 
-	currentCell, err := d.cells.GetByPlayer(ctx, actor.Player())
-	if err != nil {
-		return false
-	}
-
-	dropResult, err := d.dropResultCalculator.Calculate(ctx, actor.Events(), currentCell, model.EffectRunModePreview)
+	dropResult, err := d.dropResultCalculator.Calculate(ctx, actor, model.EffectRunModePreview)
 	if err != nil {
 		return false
 	}
@@ -98,7 +87,7 @@ func (d *Drop) CanDo(ctx context.Context, actor *player.Actor) bool {
 		return false
 	}
 
-	return true
+	return dropResult.EnergyConsume() <= actor.Player().Progress().Energy()
 }
 
 func (d *Drop) Do(ctx context.Context, actor *player.Actor, actionReq actions.Request) (any, error) {
@@ -120,12 +109,7 @@ func (d *Drop) Do(ctx context.Context, actor *player.Actor, actionReq actions.Re
 		return nil, err
 	}
 
-	currentCell, err := d.cells.GetByPlayer(ctx, actor.Player())
-	if err != nil {
-		return nil, err
-	}
-
-	dropResult, err := d.dropResultCalculator.Calculate(ctx, actor.Events(), currentCell, model.EffectRunModeApply)
+	dropResult, err := d.dropResultCalculator.Calculate(ctx, actor, model.EffectRunModeApply)
 	if err != nil {
 		return nil, err
 	}
@@ -150,7 +134,7 @@ func (d *Drop) Do(ctx context.Context, actor *player.Actor, actionReq actions.Re
 		if progress.DropsInARow() >= settings.DropsToJail() {
 			progress.SetIsInJail(true)
 
-			_, err = d.board.MoveToClosestCellType(ctx, actor, "jail")
+			_, err = d.board.MoveToClosestCellType(ctx, actor, cells.CellTypeJail)
 			if err != nil {
 				return nil, err
 			}

@@ -1,13 +1,15 @@
 package buy
 
 import (
+	"adventuria/internal/adventuria/actions"
+	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
 	"adventuria/internal/adventuria/schema"
 	"context"
 )
 
-var _ model.WithView = (*Buy)(nil)
+var _ actions.View = (*Buy)(nil)
 
 type itemView struct {
 	Id             string `json:"id"`
@@ -18,8 +20,8 @@ type itemView struct {
 	Price          int    `json:"price"`
 }
 
-func (b *Buy) GetView(ctx context.Context, events *model.Events, player *model.Player) (any, error) {
-	shopState := player.LastAction().State().Shop
+func (b *Buy) GetView(ctx context.Context, actor *player.Actor) (any, error) {
+	shopState := actor.Player().LastAction().State().Shop
 	if shopState == nil {
 		return nil, errs.ErrNoActiveShop
 	}
@@ -31,7 +33,7 @@ func (b *Buy) GetView(ctx context.Context, events *model.Events, player *model.P
 
 	itemsViewMap := make(map[string]*itemView, len(items))
 	for _, item := range items {
-		buyResult, err := calculatePrice(ctx, events, item, shopState, model.EffectRunModePreview)
+		buyResult, err := calculatePrice(ctx, actor.Events(), item, shopState, model.EffectRunModePreview)
 		if err != nil {
 			return nil, err
 		}

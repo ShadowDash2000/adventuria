@@ -61,7 +61,20 @@ func (c *CellActivity) OnPlayerReached(ctx context.Context, actor *player.Actor,
 		return err
 	}
 
-	actor.Player().LastAction().State().ActivityFilter = new(filter.Filter())
+	state := actor.Player().LastAction().State()
+	state.ActivityFilter = new(filter.Filter())
+	state.ActivityCompletion = &model.ActionActivityCompletionState{
+		Points:                  c.Points(),
+		DoneEnergyConsume:       c.EnergyConsume(),
+		DropEnergyConsume:       0,
+		Coins:                   c.Coins(),
+		CanDrop:                 !c.CantDrop(),
+		CanReroll:               !c.CantReroll(),
+		IsSafeDrop:              c.IsSafeDrop(),
+		IsCustomFilterAllowed:   !c.IsCustomFilterNotAllowed(),
+		IsChangeActivityAllowed: !c.IsChangeGameNotAllowed(),
+		GiveItemWheel:           !c.DontGiveItemWheel(),
+	}
 
 	return nil
 }

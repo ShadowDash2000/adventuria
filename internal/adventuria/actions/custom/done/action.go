@@ -3,7 +3,6 @@ package done
 import (
 	"adventuria/internal/adventuria/actions"
 	"adventuria/internal/adventuria/board/actors/player"
-	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
 	"adventuria/internal/adventuria/player_events/custom/energy_changed"
 	"adventuria/internal/adventuria/reviews"
@@ -20,7 +19,7 @@ type cells interface {
 }
 
 type activityResultCalculator interface {
-	Calculate(ctx context.Context, events *model.Events, cell *model.CellInfo, mode model.EffectRunMode) (*model.ActivityDoneResult, error)
+	Calculate(ctx context.Context, actor *player.Actor, mode model.EffectRunMode) (*model.ActivityDoneResult, error)
 }
 
 type reviewsService interface {
@@ -78,12 +77,7 @@ func (d *Done) CanDo(ctx context.Context, actor *player.Actor) bool {
 		return false
 	}
 
-	currentCell, err := d.cells.GetByPlayer(ctx, actor.Player())
-	if err != nil {
-		return false
-	}
-
-	activityResult, err := d.activityResultCalculator.Calculate(ctx, actor.Events(), currentCell, model.EffectRunModePreview)
+	activityResult, err := d.activityResultCalculator.Calculate(ctx, actor, model.EffectRunModePreview)
 	if err != nil {
 		return false
 	}
@@ -110,13 +104,9 @@ func (d *Done) Do(ctx context.Context, actor *player.Actor, actionReq actions.Re
 		return nil, err
 	}
 
-	activityResult, err := d.activityResultCalculator.Calculate(ctx, actor.Events(), currentCell, model.EffectRunModeApply)
+	activityResult, err := d.activityResultCalculator.Calculate(ctx, actor, model.EffectRunModeApply)
 	if err != nil {
 		return nil, err
-	}
-
-	if activityResult.EnergyConsume() > actor.Player().Progress().Energy() {
-		return nil, errs.ErrNotEnoughEnergy
 	}
 
 	lastAction := actor.Player().LastAction()

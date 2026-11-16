@@ -138,18 +138,18 @@ func (e *Effects) UnsubscribeActiveEffects(events *model.Events, items []*model.
 	}
 }
 
-func (e *Effects) GetView(ctx context.Context, events *model.Events, player *model.Player, id string) (any, error) {
+func (e *Effects) GetView(ctx context.Context, actor *player.Actor, id string) (any, error) {
 	effect, err := e.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
-	effectWithView, ok := effect.(model.WithView)
+	effectWithView, ok := effect.(View)
 	if !ok {
 		return nil, nil
 	}
 
-	return effectWithView.GetView(ctx, events, player)
+	return effectWithView.GetView(ctx, actor)
 }
 
 func (e *Effects) GetByID(ctx context.Context, id string) (Effect, error) {

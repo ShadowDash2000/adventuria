@@ -3,7 +3,6 @@ package stay_on_cell_after_done
 import (
 	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/effects"
-	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
 	"adventuria/pkg/event"
 	"context"
@@ -52,7 +51,7 @@ func (s *StayOnCellAfterDone) Subscribe(
 			}
 
 			if lastAction.State().ActivityFilter == nil {
-				return errs.ErrNoActiveActivityFilter
+				return e.Next()
 			}
 
 			lastAction, err := s.actions.Save(ctx, lastAction)

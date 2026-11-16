@@ -1,20 +1,22 @@
 package choose_activity
 
 import (
+	"adventuria/internal/adventuria/board/actors/player"
+	"adventuria/internal/adventuria/effects"
 	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
 	"context"
 )
 
-var _ model.WithView = (*ChooseActivity)(nil)
+var _ effects.View = (*ChooseActivity)(nil)
 
 type activityView struct {
 	Id   string `json:"id"`
 	Name string `json:"name"`
 }
 
-func (c *ChooseActivity) GetView(ctx context.Context, _ *model.Events, player *model.Player) (any, error) {
-	activitiesState := player.LastAction().State().Activities
+func (c *ChooseActivity) GetView(ctx context.Context, actor *player.Actor) (any, error) {
+	activitiesState := actor.Player().LastAction().State().Activities
 	if activitiesState == nil {
 		return nil, errs.ErrNoActiveActivity
 	}

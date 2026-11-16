@@ -46,10 +46,10 @@ func RegisterActions(
 ) {
 	actions.Register(
 		start.NewDef(),
-		complete_activity.NewDef(cells, doneResultCalculator, dropResultCalculator),
+		complete_activity.NewDef(doneResultCalculator, dropResultCalculator),
 		done.NewDef(actionsService, cells, doneResultCalculator, reviews, progressNotify, playerEvents),
-		drop.NewDef(dropResultCalculator, actionsService, cells, reviews, players, settings, board),
-		reroll.NewDef(cells, reviews, actionsService, activities),
+		drop.NewDef(dropResultCalculator, actionsService, reviews, players, settings, board),
+		reroll.NewDef(reviews, actionsService, activities),
 		buy.NewDef(items, inventories),
 		refresh_shop.NewActionRefreshShopDef(items),
 		roll_dice.NewDef(actionsService, board),

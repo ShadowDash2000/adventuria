@@ -1,12 +1,14 @@
 package roll_item
 
 import (
+	"adventuria/internal/adventuria/actions"
+	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/model"
 	"adventuria/internal/adventuria/schema"
 	"context"
 )
 
-var _ model.WithView = (*RollItem)(nil)
+var _ actions.View = (*RollItem)(nil)
 
 type itemView struct {
 	Id             string         `json:"id"`
@@ -17,7 +19,7 @@ type itemView struct {
 	Type           model.ItemType `json:"type"`
 }
 
-func (r *RollItem) GetView(ctx context.Context, _ *model.Events, _ *model.Player) (any, error) {
+func (r *RollItem) GetView(ctx context.Context, _ *player.Actor) (any, error) {
 	items, err := r.items.GetAllRollable(ctx)
 	if err != nil {
 		return nil, err

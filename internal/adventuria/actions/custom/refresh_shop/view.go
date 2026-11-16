@@ -1,15 +1,16 @@
 package refresh_shop
 
 import (
+	"adventuria/internal/adventuria/actions"
+	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/errs"
-	"adventuria/internal/adventuria/model"
 	"context"
 )
 
-var _ model.WithView = (*RefreshShop)(nil)
+var _ actions.View = (*RefreshShop)(nil)
 
-func (r *RefreshShop) GetView(_ context.Context, _ *model.Events, player *model.Player) (any, error) {
-	actionState := player.LastAction().State()
+func (r *RefreshShop) GetView(_ context.Context, actor *player.Actor) (any, error) {
+	actionState := actor.Player().LastAction().State()
 	if actionState.Shop == nil {
 		return nil, errs.ErrNoActiveShop
 	}

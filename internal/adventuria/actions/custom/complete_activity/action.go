@@ -8,16 +8,12 @@ import (
 	"context"
 )
 
-type cells interface {
-	GetByPlayer(ctx context.Context, player *model.Player) (*model.CellInfo, error)
-}
-
 type doneResultCalculator interface {
-	Calculate(ctx context.Context, events *model.Events, cell *model.CellInfo, mode model.EffectRunMode) (*model.ActivityDoneResult, error)
+	Calculate(ctx context.Context, actor *player.Actor, mode model.EffectRunMode) (*model.ActivityDoneResult, error)
 }
 
 type dropResultCalculator interface {
-	Calculate(ctx context.Context, events *model.Events, cell *model.CellInfo, mode model.EffectRunMode) (*model.ActivityDropResult, error)
+	Calculate(ctx context.Context, actor *player.Actor, mode model.EffectRunMode) (*model.ActivityDropResult, error)
 }
 
 var _ actions.Action = (*CompleteActivity)(nil)
@@ -26,13 +22,11 @@ const Type model.ActionType = "complete_activity"
 
 type CompleteActivity struct {
 	actions.ActionBase
-	cells                cells
 	doneResultCalculator doneResultCalculator
 	dropResultCalculator dropResultCalculator
 }
 
 func NewDef(
-	cells cells,
 	doneResultCalculator doneResultCalculator,
 	dropResultCalculator dropResultCalculator,
 ) actions.ActionDef {
@@ -41,7 +35,6 @@ func NewDef(
 		func() actions.Action {
 			return &CompleteActivity{
 				ActionBase:           actions.NewActionBase(Type),
-				cells:                cells,
 				doneResultCalculator: doneResultCalculator,
 				dropResultCalculator: dropResultCalculator,
 			}
@@ -50,6 +43,10 @@ func NewDef(
 }
 
 func (c *CompleteActivity) CanDo(_ context.Context, actor *player.Actor) bool {
+	if actor.Player().LastAction().Activity() == "" {
+		return false
+	}
+
 	return actor.Player().LastAction().Status() == model.ActionStatusRollWheel
 }
 

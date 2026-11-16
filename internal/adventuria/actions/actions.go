@@ -141,11 +141,11 @@ func (a *Actions) HasActionsInCategories(ctx context.Context, actor *player.Acto
 	return false
 }
 
-func (a *Actions) GetView(ctx context.Context, events *model.Events, player *model.Player, t model.ActionType) (any, error) {
+func (a *Actions) GetView(ctx context.Context, actor *player.Actor, t model.ActionType) (any, error) {
 	if actionDef, ok := Get(t); ok {
 		action := actionDef.New()
-		if actionWithView, ok := action.(model.WithView); ok {
-			return actionWithView.GetView(ctx, events, player)
+		if actionWithView, ok := action.(View); ok {
+			return actionWithView.GetView(ctx, actor)
 		}
 	}
 	return nil, errs.ErrUnknownAction

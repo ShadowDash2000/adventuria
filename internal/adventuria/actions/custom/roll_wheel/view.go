@@ -1,20 +1,21 @@
 package roll_wheel
 
 import (
+	"adventuria/internal/adventuria/actions"
+	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/errs"
-	"adventuria/internal/adventuria/model"
 	"context"
 )
 
-var _ model.WithView = (*RollWheel)(nil)
+var _ actions.View = (*RollWheel)(nil)
 
-func (r *RollWheel) GetView(ctx context.Context, _ *model.Events, player *model.Player) (any, error) {
-	currentCell, err := r.cells.GetByPlayer(ctx, player)
+func (r *RollWheel) GetView(ctx context.Context, actor *player.Actor) (any, error) {
+	currentCell, err := r.cells.GetByPlayer(ctx, actor.Player())
 	if err != nil {
 		return nil, err
 	}
 
-	activitiesState := player.LastAction().State().Activities
+	activitiesState := actor.Player().LastAction().State().Activities
 	if activitiesState == nil {
 		return nil, errs.ErrNoActiveActivity
 	}

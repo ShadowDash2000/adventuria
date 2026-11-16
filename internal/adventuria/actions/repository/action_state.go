@@ -8,13 +8,27 @@ import (
 )
 
 type actionState struct {
-	Activities     *activitiesState     `json:"activities,omitempty"`
-	UsedItems      usedItemsState       `json:"used_items,omitempty"`
-	ActivityFilter *activityFilterState `json:"activity_filter,omitempty"`
-	Items          *itemsState          `json:"items,omitempty"`
-	Shop           *shopState           `json:"shop,omitempty"`
-	ShopFilter     *shopFilterState     `json:"shop_filter,omitempty"`
-	Dealer         *dealerState         `json:"dealer,omitempty"`
+	ActivityCompletion *activityCompletionState `json:"activity_completion,omitzero"`
+	Activities         *activitiesState         `json:"activities,omitempty"`
+	UsedItems          usedItemsState           `json:"used_items,omitempty"`
+	ActivityFilter     *activityFilterState     `json:"activity_filter,omitempty"`
+	Items              *itemsState              `json:"items,omitempty"`
+	Shop               *shopState               `json:"shop,omitempty"`
+	ShopFilter         *shopFilterState         `json:"shop_filter,omitempty"`
+	Dealer             *dealerState             `json:"dealer,omitempty"`
+}
+
+type activityCompletionState struct {
+	Points                  int  `json:"points,omitzero"`
+	DoneEnergyConsume       int  `json:"done_energy_consume,omitzero"`
+	DropEnergyConsume       int  `json:"drop_energy_consume,omitzero"`
+	Coins                   int  `json:"coins,omitzero"`
+	CanDrop                 bool `json:"can_drop,omitzero"`
+	CanReroll               bool `json:"can_reroll,omitzero"`
+	IsSafeDrop              bool `json:"is_safe_drop,omitzero"`
+	IsCustomFilterAllowed   bool `json:"is_custom_filter_allowed,omitzero"`
+	IsChangeActivityAllowed bool `json:"is_change_activity_allowed,omitzero"`
+	GiveItemWheel           bool `json:"give_item_wheel,omitzero"`
 }
 
 type activitiesState struct {
@@ -79,13 +93,14 @@ func actionStateToDTO(state model.ActionState) (actionState, error) {
 	}
 
 	return actionState{
-		Activities:     activitiesStateToDTO(state.Activities),
-		UsedItems:      usedItemsStateToDTO(state.UsedItems),
-		ActivityFilter: activityFilterStateToDTO(state.ActivityFilter),
-		Items:          itemsStateToDTO(state.Items),
-		Shop:           shopStateToDTO(state.Shop),
-		ShopFilter:     shopFilterStateToDTO(state.ShopFilter),
-		Dealer:         dealerStateDTO,
+		ActivityCompletion: activityCompletionStateToDTO(state.ActivityCompletion),
+		Activities:         activitiesStateToDTO(state.Activities),
+		UsedItems:          usedItemsStateToDTO(state.UsedItems),
+		ActivityFilter:     activityFilterStateToDTO(state.ActivityFilter),
+		Items:              itemsStateToDTO(state.Items),
+		Shop:               shopStateToDTO(state.Shop),
+		ShopFilter:         shopFilterStateToDTO(state.ShopFilter),
+		Dealer:             dealerStateDTO,
 	}, nil
 }
 
@@ -96,14 +111,53 @@ func actionStateFromDTO(dto actionState) (model.ActionState, error) {
 	}
 
 	return model.ActionState{
-		Activities:     activitiesStateFromDTO(dto.Activities),
-		UsedItems:      usedItemsStateFromDTO(dto.UsedItems),
-		ActivityFilter: activityFilterStateFromDTO(dto.ActivityFilter),
-		Items:          itemsStateFromDTO(dto.Items),
-		Shop:           shopStateFromDTO(dto.Shop),
-		ShopFilter:     shopFilterStateFromDTO(dto.ShopFilter),
-		Dealer:         dealerState,
+		ActivityCompletion: activityCompletionStateFromDTO(dto.ActivityCompletion),
+		Activities:         activitiesStateFromDTO(dto.Activities),
+		UsedItems:          usedItemsStateFromDTO(dto.UsedItems),
+		ActivityFilter:     activityFilterStateFromDTO(dto.ActivityFilter),
+		Items:              itemsStateFromDTO(dto.Items),
+		Shop:               shopStateFromDTO(dto.Shop),
+		ShopFilter:         shopFilterStateFromDTO(dto.ShopFilter),
+		Dealer:             dealerState,
 	}, nil
+}
+
+func activityCompletionStateToDTO(state *model.ActionActivityCompletionState) *activityCompletionState {
+	if state == nil {
+		return nil
+	}
+
+	return &activityCompletionState{
+		Points:                  state.Points,
+		DoneEnergyConsume:       state.DoneEnergyConsume,
+		DropEnergyConsume:       state.DropEnergyConsume,
+		Coins:                   state.Coins,
+		CanDrop:                 state.CanDrop,
+		CanReroll:               state.CanReroll,
+		IsSafeDrop:              state.IsSafeDrop,
+		IsCustomFilterAllowed:   state.IsCustomFilterAllowed,
+		IsChangeActivityAllowed: state.IsChangeActivityAllowed,
+		GiveItemWheel:           state.GiveItemWheel,
+	}
+}
+
+func activityCompletionStateFromDTO(dto *activityCompletionState) *model.ActionActivityCompletionState {
+	if dto == nil {
+		return nil
+	}
+
+	return &model.ActionActivityCompletionState{
+		Points:                  dto.Points,
+		DoneEnergyConsume:       dto.DoneEnergyConsume,
+		DropEnergyConsume:       dto.DropEnergyConsume,
+		Coins:                   dto.Coins,
+		CanDrop:                 dto.CanDrop,
+		CanReroll:               dto.CanReroll,
+		IsSafeDrop:              dto.IsSafeDrop,
+		IsCustomFilterAllowed:   dto.IsCustomFilterAllowed,
+		IsChangeActivityAllowed: dto.IsChangeActivityAllowed,
+		GiveItemWheel:           dto.GiveItemWheel,
+	}
 }
 
 func activitiesStateToDTO(state *model.ActionActivitiesState) *activitiesState {

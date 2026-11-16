@@ -359,7 +359,7 @@ func (g *Game) GetEffectView(ctx context.Context, playerId, effectId string) (an
 		return nil, err
 	}
 
-	return g.effects.GetView(ctx, actor.Events(), actor.Player(), effectId)
+	return g.effects.GetView(ctx, actor, effectId)
 }
 
 func (g *Game) GetActionView(ctx context.Context, playerId string, actionType model.ActionType) (any, error) {
@@ -378,7 +378,7 @@ func (g *Game) GetActionView(ctx context.Context, playerId string, actionType mo
 		return nil, err
 	}
 
-	return g.actions.GetView(ctx, actor.Events(), actor.Player(), actionType)
+	return g.actions.GetView(ctx, actor, actionType)
 }
 
 func (g *Game) IsActionsBlocked(ctx context.Context) error {

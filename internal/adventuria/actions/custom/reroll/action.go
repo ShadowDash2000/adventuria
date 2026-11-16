@@ -10,10 +10,6 @@ import (
 	"errors"
 )
 
-type cells interface {
-	GetByPlayer(ctx context.Context, player *model.Player) (*model.CellInfo, error)
-}
-
 type reviewsService interface {
 	Create(ctx context.Context, input reviews.CreateInput) (*model.Review, error)
 }
@@ -33,19 +29,17 @@ const Type model.ActionType = "reroll"
 
 type Reroll struct {
 	actions.ActionBase
-	cells      cells
 	reviews    reviewsService
 	actions    actionsService
 	activities activities
 }
 
-func NewDef(cells cells, reviews reviewsService, actionsService actionsService, activities activities) actions.ActionDef {
+func NewDef(reviews reviewsService, actionsService actionsService, activities activities) actions.ActionDef {
 	return actions.NewAction(
 		Type,
 		func() actions.Action {
 			return &Reroll{
 				ActionBase: actions.NewActionBase(Type),
-				cells:      cells,
 				reviews:    reviews,
 				actions:    actionsService,
 				activities: activities,
@@ -55,7 +49,9 @@ func NewDef(cells cells, reviews reviewsService, actionsService actionsService, 
 }
 
 func (r *Reroll) CanDo(ctx context.Context, actor *player.Actor) bool {
-	if actor.Player().LastAction().State().ActivityFilter == nil {
+	state := actor.Player().LastAction().State()
+
+	if state.ActivityFilter == nil || state.ActivityCompletion == nil {
 		return false
 	}
 
@@ -63,19 +59,14 @@ func (r *Reroll) CanDo(ctx context.Context, actor *player.Actor) bool {
 		return false
 	}
 
-	currentCell, err := r.cells.GetByPlayer(ctx, actor.Player())
-	if err != nil {
-		return false
-	}
-
-	if currentCell.CantReroll() {
+	if !state.ActivityCompletion.CanReroll {
 		return false
 	}
 
 	onBeforeRerollCheckEvent := &model.OnBeforeRerollCheckEvent{
 		IsRerollBlocked: false,
 	}
-	err = actor.Events().OnBeforeRerollCheck().Trigger(ctx, onBeforeRerollCheckEvent)
+	err := actor.Events().OnBeforeRerollCheck().Trigger(ctx, onBeforeRerollCheckEvent)
 	if err != nil {
 		return false
 	}

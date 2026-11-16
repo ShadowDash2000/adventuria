@@ -1,12 +1,13 @@
 package coins_for_item
 
 import (
-	"adventuria/internal/adventuria/model"
+	"adventuria/internal/adventuria/actions"
+	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/schema"
 	"context"
 )
 
-var _ model.WithView = (*CoinsForItem)(nil)
+var _ actions.View = (*CoinsForItem)(nil)
 
 type itemView struct {
 	Id             string `json:"id"`
@@ -16,8 +17,8 @@ type itemView struct {
 	Icon           string `json:"icon"`
 }
 
-func (c *CoinsForItem) GetView(ctx context.Context, _ *model.Events, player *model.Player) (any, error) {
-	deal, err := player.LastAction().State().Dealer.AsCoinsForItemDeal()
+func (c *CoinsForItem) GetView(ctx context.Context, actor *player.Actor) (any, error) {
+	deal, err := actor.Player().LastAction().State().Dealer.AsCoinsForItemDeal()
 	if err != nil {
 		return nil, err
 	}
