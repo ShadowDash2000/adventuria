@@ -63,7 +63,25 @@ func (c *CellJail) OnPlayerReached(ctx context.Context, actor *player.Actor, _ *
 			return err
 		}
 
-		actor.Player().LastAction().State().ActivityFilter = new(filter.Filter())
+		dropEnergyConsume := c.DropEnergyConsume()
+		if dropEnergyConsume == 0 && !c.IsSafeDrop() {
+			dropEnergyConsume = c.DoneEnergyConsume() * 2
+		}
+
+		state := actor.Player().LastAction().State()
+		state.ActivityFilter = new(filter.Filter())
+		state.ActivityCompletion = &model.ActionActivityCompletionState{
+			Points:                  c.Points(),
+			DoneEnergyConsume:       c.DoneEnergyConsume(),
+			DropEnergyConsume:       dropEnergyConsume,
+			Coins:                   c.Coins(),
+			CanDrop:                 !c.CantDrop(),
+			CanReroll:               !c.CantReroll(),
+			IsSafeDrop:              c.IsSafeDrop(),
+			IsCustomFilterAllowed:   !c.IsCustomFilterNotAllowed(),
+			IsChangeActivityAllowed: !c.IsChangeGameNotAllowed(),
+			GiveItemWheel:           !c.DontGiveItemWheel(),
+		}
 
 		err = actor.Events().OnAfterGoToJail().Trigger(ctx, &model.OnAfterGoToJailEvent{})
 		if err != nil {

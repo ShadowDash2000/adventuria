@@ -268,7 +268,8 @@ var CellSchema = struct {
 	Icon                     string
 	Name                     string
 	Points                   string
-	EnergyConsume            string
+	DoneEnergyConsume        string
+	DropEnergyConsume        string
 	Coins                    string
 	Description              string
 	Color                    string
@@ -291,7 +292,8 @@ var CellSchema = struct {
 	Icon:                     "icon",
 	Name:                     "name",
 	Points:                   "points",
-	EnergyConsume:            "energy_consume",
+	DoneEnergyConsume:        "done_energy_consume",
+	DropEnergyConsume:        "drop_energy_consume",
 	Coins:                    "coins",
 	Description:              "description",
 	Color:                    "color",
