@@ -12,6 +12,7 @@ import (
 	"adventuria/internal/adventuria/cells/custom/shop"
 	"adventuria/internal/adventuria/cells/custom/start"
 	"adventuria/internal/adventuria/cells/custom/teleport"
+	cellsService "adventuria/internal/adventuria/cells/service"
 	"adventuria/internal/adventuria/items"
 	"adventuria/internal/adventuria/model"
 )
@@ -19,7 +20,7 @@ import (
 func RegisterCells(
 	activityFilters *activity_filters.ActivityFilters,
 	items *items.Items,
-	cellsService *cells.Cells,
+	cellsService *cellsService.Cells,
 	actions *actions.Actions,
 	board *board.Board,
 ) {

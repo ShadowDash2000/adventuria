@@ -9,11 +9,14 @@ func DotExpand(parts ...string) string {
 	if len(parts) == 0 {
 		return ""
 	}
-	result := parts[0]
+
+	var result strings.Builder
+	result.WriteString(parts[0])
 	for _, part := range parts[1:] {
-		result += "." + part
+		result.WriteString("." + part)
 	}
-	return result
+
+	return result.String()
 }
 
 func Eq(a, b string) string {
@@ -38,12 +41,4 @@ func SliceToSqlString[V any](slice []V) string {
 		quotedValues[i] = fmt.Sprintf("'%v'", v)
 	}
 	return strings.Join(quotedValues, ", ")
-}
-
-func BuildFilePath(collection, id, filename string) string {
-	if filename == "" {
-		return ""
-	}
-
-	return "/api/files/" + collection + "/" + id + "/" + filename
 }

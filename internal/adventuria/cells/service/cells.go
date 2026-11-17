@@ -1,6 +1,7 @@
-package cells
+package service
 
 import (
+	"adventuria/internal/adventuria/cells"
 	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
 	"context"
@@ -43,19 +44,19 @@ func NewCells(repository repository, activityFilter activityFilters, activities 
 	}
 }
 
-func toCell(cell *model.CellInfo) (Cell, error) {
-	cellDef, ok := Get(cell.Type())
+func toCell(cell *model.CellInfo) (cells.Cell, error) {
+	cellDef, ok := cells.Get(cell.Type())
 	if !ok {
 		return nil, fmt.Errorf("%w: %s", errs.ErrUnknownCellType, cell.Type())
 	}
-	return cellDef.new(*cell)
+	return cellDef.New(*cell)
 }
 
 func (c *Cells) GetByPlayer(ctx context.Context, player *model.Player) (*model.CellInfo, error) {
 	return c.GetByID(ctx, player.LastAction().Cell())
 }
 
-func (c *Cells) GetByPlayerWrapped(ctx context.Context, player *model.Player) (Cell, error) {
+func (c *Cells) GetByPlayerWrapped(ctx context.Context, player *model.Player) (cells.Cell, error) {
 	return c.GetByIDWrapped(ctx, player.LastAction().Cell())
 }
 
@@ -63,7 +64,7 @@ func (c *Cells) GetByID(ctx context.Context, id string) (*model.CellInfo, error)
 	return c.repository.GetByID(ctx, id)
 }
 
-func (c *Cells) GetByIDWrapped(ctx context.Context, id string) (Cell, error) {
+func (c *Cells) GetByIDWrapped(ctx context.Context, id string) (cells.Cell, error) {
 	cell, err := c.repository.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
@@ -79,7 +80,7 @@ func (c *Cells) GetByLocalOrder(ctx context.Context, worldId string, order int) 
 	return c.repository.GetByLocalOrder(ctx, worldId, order)
 }
 
-func (c *Cells) GetByLocalOrderWrapped(ctx context.Context, worldId string, order int) (Cell, error) {
+func (c *Cells) GetByLocalOrderWrapped(ctx context.Context, worldId string, order int) (cells.Cell, error) {
 	cell, err := c.GetByLocalOrder(ctx, worldId, order)
 	if err != nil {
 		return nil, err
@@ -91,7 +92,7 @@ func (c *Cells) GetByGlobalOrder(ctx context.Context, order int) (*model.CellInf
 	return c.repository.GetByGlobalOrder(ctx, order)
 }
 
-func (c *Cells) GetByGlobalOrderWrapped(ctx context.Context, order int) (Cell, error) {
+func (c *Cells) GetByGlobalOrderWrapped(ctx context.Context, order int) (cells.Cell, error) {
 	cell, err := c.repository.GetByGlobalOrder(ctx, order)
 	if err != nil {
 		return nil, err

@@ -1,4 +1,4 @@
-package worlds
+package service
 
 import (
 	"adventuria/internal/adventuria/board/actors/player"

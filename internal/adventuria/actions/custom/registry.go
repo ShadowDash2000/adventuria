@@ -18,7 +18,7 @@ import (
 	"adventuria/internal/adventuria/actions/custom/start"
 	"adventuria/internal/adventuria/activities"
 	"adventuria/internal/adventuria/board"
-	"adventuria/internal/adventuria/cells"
+	cellsSerivce "adventuria/internal/adventuria/cells/service"
 	"adventuria/internal/adventuria/inventories"
 	"adventuria/internal/adventuria/items"
 	"adventuria/internal/adventuria/player_events"
@@ -29,7 +29,7 @@ import (
 )
 
 func RegisterActions(
-	cells *cells.Cells,
+	cells *cellsSerivce.Cells,
 	reviews *reviews.Reviews,
 	players *players.Players,
 	settings *settings.Settings,

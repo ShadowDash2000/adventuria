@@ -5,7 +5,7 @@ import (
 	"adventuria/internal/adventuria/activities"
 	"adventuria/internal/adventuria/activity_filters"
 	"adventuria/internal/adventuria/board"
-	"adventuria/internal/adventuria/cells"
+	cellsService "adventuria/internal/adventuria/cells/service"
 	"adventuria/internal/adventuria/effects"
 	"adventuria/internal/adventuria/effects/custom/add_game_genre"
 	"adventuria/internal/adventuria/effects/custom/add_items_to_inventory"
@@ -50,7 +50,7 @@ import (
 
 func RegisterEffects(
 	actions *actions.Actions,
-	cells *cells.Cells,
+	cells *cellsService.Cells,
 	genres *genres.Genres,
 	inventories *inventories.Inventories,
 	items *items.Items,

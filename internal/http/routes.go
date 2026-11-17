@@ -3,6 +3,7 @@ package http
 import (
 	"adventuria/internal/adventuria"
 	"adventuria/internal/adventuria/errs"
+	"adventuria/internal/http/cells"
 	"adventuria/internal/http/completed_activities"
 	"adventuria/internal/http/debug"
 	"adventuria/internal/http/event_stats"
@@ -31,6 +32,7 @@ func Route(game *adventuria.Game, registry *adventuria.Registry, router *router.
 	)
 	debug := debug.NewHandler(game)
 	inventory := inventory.NewHandler(registry.Settings(), registry.Inventories())
+	cells := cells.NewHandler(registry.CellsView(), registry.WorldsView())
 
 	g := router.Group("/api")
 	g.BindFunc(func(e *core.RequestEvent) error {
@@ -52,6 +54,8 @@ func Route(game *adventuria.Game, registry *adventuria.Registry, router *router.
 	g.GET("/active-actors-list", gameState.GetActiveActorsList)
 	g.GET("/active-actors", gameState.GetActiveActors)
 	g.GET("/inventory", inventory.GetInventoryByPlayerID)
+	g.GET("/cell", cells.GetDetailedByID)
+	g.GET("/cells-board", cells.GetAllBoard)
 
 	ga := g.Group("")
 	ga.Bind(apis.RequireAuth())

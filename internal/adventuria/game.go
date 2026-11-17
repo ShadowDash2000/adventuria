@@ -4,7 +4,7 @@ import (
 	"adventuria/internal/adventuria/actions"
 	"adventuria/internal/adventuria/board"
 	"adventuria/internal/adventuria/board/actors/player"
-	"adventuria/internal/adventuria/cells"
+	cellsService "adventuria/internal/adventuria/cells/service"
 	"adventuria/internal/adventuria/effects"
 	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/inventories"
@@ -15,7 +15,7 @@ import (
 	"adventuria/internal/adventuria/players"
 	"adventuria/internal/adventuria/scope"
 	"adventuria/internal/adventuria/settings"
-	"adventuria/internal/adventuria/worlds"
+	worldsService "adventuria/internal/adventuria/worlds/service"
 	"adventuria/pkg/event"
 	"adventuria/pkg/locker"
 	"adventuria/pkg/pbtransaction"
@@ -33,12 +33,12 @@ type Game struct {
 	settings         *settings.Settings
 	players          *players.Players
 	playerProgress   *player_progress.PlayerProgress
-	cells            *cells.Cells
+	cells            *cellsService.Cells
 	npc              *npcs.NPCs
 	actions          *actions.Actions
 	inventories      *inventories.Inventories
 	effects          *effects.Effects
-	worlds           *worlds.Worlds
+	worlds           *worldsService.Worlds
 	board            *board.Board
 	playersLocker    *locker.Locker[string]
 	playerFactory    *player.Factory

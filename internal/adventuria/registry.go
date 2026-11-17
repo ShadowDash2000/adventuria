@@ -16,8 +16,10 @@ import (
 	"adventuria/internal/adventuria/board/actors/player"
 	actorsRepo "adventuria/internal/adventuria/board/actors/repository"
 	boardRepo "adventuria/internal/adventuria/board/repository"
-	"adventuria/internal/adventuria/cells"
 	cellsRepo "adventuria/internal/adventuria/cells/repository"
+	cellsViewRepo "adventuria/internal/adventuria/cells/repository/view"
+	cellsService "adventuria/internal/adventuria/cells/service"
+	cellsView "adventuria/internal/adventuria/cells/service/view"
 	"adventuria/internal/adventuria/companies"
 	companiesRepo "adventuria/internal/adventuria/companies/repository"
 	"adventuria/internal/adventuria/completed_activities"
@@ -76,8 +78,10 @@ import (
 	tagsRepo "adventuria/internal/adventuria/tags/repository"
 	"adventuria/internal/adventuria/themes"
 	themesRepo "adventuria/internal/adventuria/themes/repository"
-	"adventuria/internal/adventuria/worlds"
 	worldsRepo "adventuria/internal/adventuria/worlds/repository"
+	worldsViewRepo "adventuria/internal/adventuria/worlds/repository/view"
+	worldsService "adventuria/internal/adventuria/worlds/service"
+	worldsView "adventuria/internal/adventuria/worlds/service/view"
 	"adventuria/pkg/locker"
 	"log/slog"
 	"os"
@@ -94,7 +98,9 @@ type Registry struct {
 	seasonsRepo             *seasonsRepo.Repository
 	settingsRepo            *settingsRepo.Repository
 	cellsRepo               *cellsRepo.Repository
+	cellsViewRepo           *cellsViewRepo.Repository
 	worldsRepo              *worldsRepo.Repository
+	worldsViewRepo          *worldsViewRepo.Repository
 	actionsRepo             *actionsRepo.Repository
 	progressRepo            *progressRepo.Repository
 	progressNotifyRepo      *progressRepo.Notify
@@ -140,8 +146,10 @@ type Registry struct {
 	// services
 	seasons              *seasons.Seasons
 	settings             *settings.Settings
-	worlds               *worlds.Worlds
-	cells                *cells.Cells
+	worlds               *worldsService.Worlds
+	worldsView           *worldsView.Worlds
+	cells                *cellsService.Cells
+	cellsView            *cellsView.Cells
 	actions              *actions.Actions
 	progress             *player_progress.PlayerProgress
 	progressNotify       *player_progress.PlayerProgressNotify
@@ -218,11 +226,25 @@ func (r *Registry) CellsRepo() *cellsRepo.Repository {
 	return r.cellsRepo
 }
 
+func (r *Registry) CellsViewRepo() *cellsViewRepo.Repository {
+	if r.cellsViewRepo == nil {
+		r.cellsViewRepo = cellsViewRepo.NewRepository(r.pb)
+	}
+	return r.cellsViewRepo
+}
+
 func (r *Registry) WorldsRepo() *worldsRepo.Repository {
 	if r.worldsRepo == nil {
 		r.worldsRepo = worldsRepo.NewRepository(r.pb)
 	}
 	return r.worldsRepo
+}
+
+func (r *Registry) WorldsViewRepo() *worldsViewRepo.Repository {
+	if r.worldsViewRepo == nil {
+		r.worldsViewRepo = worldsViewRepo.NewRepository(r.pb)
+	}
+	return r.worldsViewRepo
 }
 
 func (r *Registry) ActionsRepo() *actionsRepo.Repository {
@@ -529,18 +551,32 @@ func (r *Registry) Settings() *settings.Settings {
 	return r.settings
 }
 
-func (r *Registry) Worlds() *worlds.Worlds {
+func (r *Registry) Worlds() *worldsService.Worlds {
 	if r.worlds == nil {
-		r.worlds = worlds.NewWorlds(r.WorldsRepo(), r.Effects())
+		r.worlds = worldsService.NewWorlds(r.WorldsRepo(), r.Effects())
 	}
 	return r.worlds
 }
 
-func (r *Registry) Cells() *cells.Cells {
+func (r *Registry) WorldsView() *worldsView.Worlds {
+	if r.worldsView == nil {
+		r.worldsView = worldsView.NewWorlds(r.WorldsViewRepo())
+	}
+	return r.worldsView
+}
+
+func (r *Registry) Cells() *cellsService.Cells {
 	if r.cells == nil {
-		r.cells = cells.NewCells(r.CellsRepo(), r.ActivityFilters(), r.Activities())
+		r.cells = cellsService.NewCells(r.CellsRepo(), r.ActivityFilters(), r.Activities())
 	}
 	return r.cells
+}
+
+func (r *Registry) CellsView() *cellsView.Cells {
+	if r.cellsView == nil {
+		r.cellsView = cellsView.NewCells(r.CellsViewRepo())
+	}
+	return r.cellsView
 }
 
 func (r *Registry) Actions() *actions.Actions {

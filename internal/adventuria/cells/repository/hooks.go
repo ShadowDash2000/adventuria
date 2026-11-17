@@ -1,7 +1,7 @@
-package cells
+package repository
 
 import (
-	repo "adventuria/internal/adventuria/cells/repository"
+	"adventuria/internal/adventuria/cells"
 	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
 	"adventuria/internal/adventuria/schema"
@@ -13,7 +13,7 @@ import (
 
 func BindHooks(pb core.App) {
 	pb.OnRecordValidate(schema.CollectionCells).BindFunc(func(e *core.RecordEvent) error {
-		err := verify(e.Context, repo.RecordToCell(e.Record))
+		err := verify(e.Context, RecordToCell(e.Record))
 		if err != nil {
 			return err
 		}
@@ -22,12 +22,12 @@ func BindHooks(pb core.App) {
 }
 
 func verify(ctx context.Context, cellInfo *model.CellInfo) error {
-	cellDef, ok := Get(cellInfo.Type())
+	cellDef, ok := cells.Get(cellInfo.Type())
 	if !ok {
 		return fmt.Errorf("%w: %s", errs.ErrUnknownCellType, cellInfo.Type())
 	}
 
-	cell, err := cellDef.new(*cellInfo)
+	cell, err := cellDef.New(*cellInfo)
 	if err != nil {
 		return err
 	}

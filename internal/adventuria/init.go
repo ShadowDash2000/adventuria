@@ -5,8 +5,8 @@ import (
 	customActionEvents "adventuria/internal/adventuria/action_events/custom"
 	customActions "adventuria/internal/adventuria/actions/custom"
 	"adventuria/internal/adventuria/activities"
-	"adventuria/internal/adventuria/cells"
 	customCells "adventuria/internal/adventuria/cells/custom"
+	cellRepo "adventuria/internal/adventuria/cells/repository"
 	"adventuria/internal/adventuria/effects"
 	customEffects "adventuria/internal/adventuria/effects/custom"
 	customBehaviors "adventuria/internal/adventuria/npcs/behaviors/custom"
@@ -113,7 +113,7 @@ func (g *Game) init(ctx context.Context, pb core.App) (*Registry, error) {
 
 	// hooks
 	g.bindHooks(ctx, pb)
-	cells.BindHooks(pb)
+	cellRepo.BindHooks(pb)
 	effects.BindHooks(pb)
 	action_events.BindHooks(pb)
 	activities.BindHooks(pb, registry.RelationRepo())

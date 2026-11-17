@@ -61,17 +61,12 @@ func (c *CellActivity) OnPlayerReached(ctx context.Context, actor *player.Actor,
 		return err
 	}
 
-	dropEnergyConsume := c.DropEnergyConsume()
-	if dropEnergyConsume == 0 && !c.IsSafeDrop() {
-		dropEnergyConsume = c.DoneEnergyConsume() / 2
-	}
-
 	state := actor.Player().LastAction().State()
 	state.ActivityFilter = new(filter.Filter())
 	state.ActivityCompletion = &model.ActionActivityCompletionState{
 		Points:                  c.Points(),
 		DoneEnergyConsume:       c.DoneEnergyConsume(),
-		DropEnergyConsume:       dropEnergyConsume,
+		DropEnergyConsume:       c.DropEnergyConsume(),
 		Coins:                   c.Coins(),
 		CanDrop:                 !c.CantDrop(),
 		CanReroll:               !c.CantReroll(),
