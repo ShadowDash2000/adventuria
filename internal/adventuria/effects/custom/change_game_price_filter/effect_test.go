@@ -17,9 +17,8 @@ func TestChangeGamePriceFilter_CanUse(t *testing.T) {
 	ctx := t.Context()
 	factory := player.NewFactory(nil, nil)
 
-	setup := func() (*ChangeGamePriceFilter, *actionsMocks.Actions, *cellsMocks.Cells, *activitiesMocks.Activities) {
+	setup := func() (*ChangeGamePriceFilter, *actionsMocks.Actions, *activitiesMocks.Activities) {
 		mActions := &actionsMocks.Actions{}
-		mCells := &cellsMocks.Cells{}
 		mActivities := &activitiesMocks.Activities{}
 
 		eff := &ChangeGamePriceFilter{
@@ -30,17 +29,19 @@ func TestChangeGamePriceFilter_CanUse(t *testing.T) {
 				}),
 			),
 			actions:    mActions,
-			cells:      mCells,
 			activities: mActivities,
 		}
 
-		return eff, mActions, mCells, mActivities
+		return eff, mActions, mActivities
 	}
 
 	t.Run("success", func(t *testing.T) {
-		eff, mActions, mCells, _ := setup()
+		eff, mActions, _ := setup()
 		lastAction := model.RestoreAction(model.ActionData{
 			State: model.ActionState{
+				ActivityCompletion: &model.ActionActivityCompletionState{
+					IsCustomFilterAllowed: true,
+				},
 				ActivityFilter: &model.ActivityFilter{
 					Type: model.ActivityTypeGame,
 				},
@@ -52,19 +53,13 @@ func TestChangeGamePriceFilter_CanUse(t *testing.T) {
 			return t == actions.ActionTypeRollWheel
 		}
 
-		mCells.GetByPlayerFunc = func(ctx context.Context, player *model.Player) (*model.CellInfo, error) {
-			return model.RestoreCellInfo(model.CellData{
-				Type: cells.CellTypeGame,
-			}), nil
-		}
-
 		if !eff.CanUse(ctx, actor) {
 			t.Error("CanUse should return true")
 		}
 	})
 
 	t.Run("cannot roll wheel", func(t *testing.T) {
-		eff, mActions, _, _ := setup()
+		eff, mActions, _ := setup()
 		actor := factory.New(model.NewEvents(), model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, nil, nil))
 
 		mActions.CanDoFunc = func(ctx context.Context, actor *player.Actor, t model.ActionType) bool {
@@ -77,7 +72,7 @@ func TestChangeGamePriceFilter_CanUse(t *testing.T) {
 	})
 
 	t.Run("wrong activity filter type", func(t *testing.T) {
-		eff, mActions, mCells, _ := setup()
+		eff, mActions, _ := setup()
 		lastAction := model.RestoreAction(model.ActionData{
 			State: model.ActionState{
 				ActivityFilter: &model.ActivityFilter{
@@ -91,30 +86,24 @@ func TestChangeGamePriceFilter_CanUse(t *testing.T) {
 			return true
 		}
 
-		mCells.GetByPlayerFunc = func(ctx context.Context, player *model.Player) (*model.CellInfo, error) {
-			return model.RestoreCellInfo(model.CellData{
-				Type: cells.CellTypeStart,
-			}), nil
-		}
-
 		if eff.CanUse(ctx, actor) {
 			t.Error("CanUse should return false")
 		}
 	})
 
 	t.Run("custom filter not allowed", func(t *testing.T) {
-		eff, mActions, mCells, _ := setup()
-		actor := factory.New(model.NewEvents(), model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, nil, nil))
+		eff, mActions, _ := setup()
+		lastAction := model.RestoreAction(model.ActionData{
+			State: model.ActionState{
+				ActivityCompletion: &model.ActionActivityCompletionState{
+					IsCustomFilterAllowed: false,
+				},
+			},
+		})
+		actor := factory.New(model.NewEvents(), model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, lastAction, nil))
 
 		mActions.CanDoFunc = func(ctx context.Context, actor *player.Actor, t model.ActionType) bool {
 			return true
-		}
-
-		mCells.GetByPlayerFunc = func(ctx context.Context, player *model.Player) (*model.CellInfo, error) {
-			return model.RestoreCellInfo(model.CellData{
-				Type:                     cells.CellTypeGame,
-				IsCustomFilterNotAllowed: true,
-			}), nil
 		}
 
 		if eff.CanUse(ctx, actor) {
@@ -123,7 +112,7 @@ func TestChangeGamePriceFilter_CanUse(t *testing.T) {
 	})
 
 	t.Run("filter has activities", func(t *testing.T) {
-		eff, mActions, mCells, mActivities := setup()
+		eff, mActions, mActivities := setup()
 		lastAction := model.RestoreAction(model.ActionData{
 			State: model.ActionState{
 				ActivityFilter: &model.ActivityFilter{
@@ -135,13 +124,6 @@ func TestChangeGamePriceFilter_CanUse(t *testing.T) {
 
 		mActions.CanDoFunc = func(ctx context.Context, actor *player.Actor, t model.ActionType) bool {
 			return true
-		}
-
-		mCells.GetByPlayerFunc = func(ctx context.Context, player *model.Player) (*model.CellInfo, error) {
-			return model.RestoreCellInfo(model.CellData{
-				Type:   cells.CellTypeGame,
-				Filter: "filter1",
-			}), nil
 		}
 
 		mActivities.GetRandomIDsByFilterFunc = func(ctx context.Context, filter model.ActivityFilter) ([]string, error) {
@@ -179,13 +161,15 @@ func TestChangeGamePriceFilter_Subscribe(t *testing.T) {
 				}),
 			),
 			actions:    mActions,
-			cells:      mCells,
 			activities: mActivities,
 		}
 
 		events := model.NewEvents()
 		action := model.RestoreAction(model.ActionData{
 			State: model.ActionState{
+				ActivityCompletion: &model.ActionActivityCompletionState{
+					IsCustomFilterAllowed: true,
+				},
 				ActivityFilter: &model.ActivityFilter{
 					Type: model.ActivityTypeGame,
 				},
