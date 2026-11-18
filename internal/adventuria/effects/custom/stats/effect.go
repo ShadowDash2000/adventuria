@@ -51,7 +51,7 @@ func (s *Stats) Subscribe(_ context.Context, actor *player.Actor) ([]event.Unsub
 
 			return e.Next()
 		}),
-		actor.Events().OnAfterMove().BindFunc(func(ctx context.Context, e *model.OnAfterMoveEvent) error {
+		actor.Events().OnAfterApplyMovement().BindFunc(func(ctx context.Context, e *model.OnAfterApplyMovementEvent) error {
 			actor.Player().Stats().CellsPassedChange(mathhelper.Abs(e.Steps))
 			return e.Next()
 		}),

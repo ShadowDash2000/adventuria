@@ -3,27 +3,31 @@ package coins_for_item
 import (
 	"adventuria/internal/adventuria/actions"
 	"adventuria/internal/adventuria/board/actors/player"
+	"adventuria/internal/adventuria/errs"
+	"adventuria/internal/adventuria/player_actions/custom/deals/coins_for_item"
 	"adventuria/internal/adventuria/schema"
+	"adventuria/pkg/pbhelper"
 	"context"
 )
 
 var _ actions.View = (*CoinsForItem)(nil)
 
 type itemView struct {
-	Id             string `json:"id"`
-	CollectionName string `json:"collectionName"`
-	Name           string `json:"name"`
-	Description    string `json:"description"`
-	Icon           string `json:"icon"`
+	Id          string `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Icon        string `json:"icon"`
 }
 
 func (c *CoinsForItem) GetView(ctx context.Context, actor *player.Actor) (any, error) {
-	deal, err := actor.Player().LastAction().State().Dealer.AsCoinsForItemDeal()
-	if err != nil {
-		return nil, err
+	dealEntry, ok := actor.Player().Actions().Get[*coins_for_item.CoinsForItem](coins_for_item.PlayerActionType)
+	if !ok {
+		return nil, errs.ErrNoActiveCoinsForItemDeal
 	}
 
-	item, err := c.items.GetByID(ctx, deal.ItemId)
+	dealAction := dealEntry.Action()
+
+	item, err := c.items.GetByID(ctx, dealAction.ItemID())
 	if err != nil {
 		return nil, err
 	}
@@ -33,12 +37,11 @@ func (c *CoinsForItem) GetView(ctx context.Context, actor *player.Actor) (any, e
 		Coins int      `json:"coins"`
 	}{
 		Item: itemView{
-			Id:             item.ID(),
-			CollectionName: schema.CollectionItems,
-			Name:           item.Name(),
-			Description:    item.Description(),
-			Icon:           item.Icon(),
+			Id:          item.ID(),
+			Name:        item.Name(),
+			Description: item.Description(),
+			Icon:        pbhelper.BuildFilePath(schema.CollectionItems, item.ID(), item.Icon()),
 		},
-		Coins: deal.Coins,
+		Coins: dealAction.Coins(),
 	}, nil
 }

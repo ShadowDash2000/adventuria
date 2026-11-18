@@ -26,11 +26,16 @@ type playerStats interface {
 	GetOrCreate(ctx context.Context, playerId, seasonId string) (*model.PlayerStats, error)
 }
 
+type playerActions interface {
+	GetPlayerActions(ctx context.Context, playerId, actionId string) (*model.PlayerActions, error)
+}
+
 type Players struct {
-	repository repository
-	actions    actions
-	progress   playerProgress
-	stats      playerStats
+	repository    repository
+	actions       actions
+	progress      playerProgress
+	stats         playerStats
+	playerActions playerActions
 }
 
 func NewPlayers(
@@ -38,12 +43,14 @@ func NewPlayers(
 	actions actions,
 	progress playerProgress,
 	stats playerStats,
+	playerActions playerActions,
 ) *Players {
 	return &Players{
-		repository: repository,
-		actions:    actions,
-		progress:   progress,
-		stats:      stats,
+		repository:    repository,
+		actions:       actions,
+		progress:      progress,
+		stats:         stats,
+		playerActions: playerActions,
 	}
 }
 
@@ -71,11 +78,17 @@ func (p *Players) GetByID(ctx context.Context, playerId, seasonId string) (*mode
 		return nil, err
 	}
 
+	playerActions, err := p.playerActions.GetPlayerActions(ctx, playerId, action.ActionChainID())
+	if err != nil {
+		return nil, err
+	}
+
 	player := model.RestorePlayer(
 		model.PlayerData{Id: playerId},
 		progress,
 		action,
 		stats,
+		playerActions,
 	)
 
 	return player, nil
@@ -101,11 +114,17 @@ func (p *Players) GetAllBySeasonID(ctx context.Context, seasonId string) ([]*mod
 			return nil, err
 		}
 
+		playerActions, err := p.playerActions.GetPlayerActions(ctx, playerId, action.ActionChainID())
+		if err != nil {
+			return nil, err
+		}
+
 		players[i] = model.RestorePlayer(
 			model.PlayerData{Id: playerId},
 			progress,
 			action,
 			stats,
+			playerActions,
 		)
 	}
 

@@ -5,6 +5,7 @@ import (
 	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
+	"adventuria/internal/adventuria/player_actions/custom/shop"
 	"adventuria/internal/adventuria/schema"
 	"context"
 )
@@ -21,19 +22,22 @@ type itemView struct {
 }
 
 func (b *Buy) GetView(ctx context.Context, actor *player.Actor) (any, error) {
-	shopState := actor.Player().LastAction().State().Shop
-	if shopState == nil {
+	shopEntry, ok := actor.Player().Actions().Get[*shop.Shop](shop.PlayerActionType)
+	if !ok {
 		return nil, errs.ErrNoActiveShop
 	}
 
-	items, err := b.items.GetByIDs(ctx, shopState.Ids)
+	shopAction := shopEntry.Action()
+
+	shopIds := shopAction.IDs()
+	items, err := b.items.GetByIDs(ctx, shopIds)
 	if err != nil {
 		return nil, err
 	}
 
 	itemsViewMap := make(map[string]*itemView, len(items))
 	for _, item := range items {
-		buyResult, err := calculatePrice(ctx, actor.Events(), item, shopState, model.EffectRunModePreview)
+		buyResult, err := calculatePrice(ctx, actor.Events(), item, shopAction, model.EffectRunModePreview)
 		if err != nil {
 			return nil, err
 		}
@@ -43,18 +47,18 @@ func (b *Buy) GetView(ctx context.Context, actor *player.Actor) (any, error) {
 		itemsViewMap[item.ID()] = itemView
 	}
 
-	result := make([]*itemView, len(shopState.Ids))
-	for i, id := range shopState.Ids {
+	result := make([]*itemView, len(shopIds))
+	for i, id := range shopIds {
 		if itemView, ok := itemsViewMap[id]; ok {
 			result[i] = itemView
 		}
 	}
 
 	return struct {
-		ShopType model.ShopType `json:"shop_type"`
-		Items    []*itemView    `json:"items"`
+		ShopType shop.Type   `json:"shop_type"`
+		Items    []*itemView `json:"items"`
 	}{
-		ShopType: shopState.Type,
+		ShopType: shopAction.ShopType(),
 		Items:    result,
 	}, nil
 }

@@ -21,7 +21,13 @@ func TestBalanceChange_CanUse(t *testing.T) {
 	}
 
 	t.Run("success", func(t *testing.T) {
-		actor := factory.New(model.NewEvents(), model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, nil, nil))
+		actor := factory.New(model.NewEvents(), model.RestorePlayer(
+			model.PlayerData{},
+			&model.PlayerProgress{},
+			nil,
+			nil,
+			nil,
+		))
 
 		if !eff.CanUse(ctx, actor) {
 			t.Error("CanUse should return true")
@@ -41,6 +47,7 @@ func TestBalanceChange_Subscribe(t *testing.T) {
 		player := model.RestorePlayer(
 			model.PlayerData{Id: "p1"},
 			progress,
+			nil,
 			nil,
 			nil,
 		)

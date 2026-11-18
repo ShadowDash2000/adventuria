@@ -42,7 +42,13 @@ func TestChooseActivity_CanUse(t *testing.T) {
 				},
 			},
 		})
-		actor := factory.New(model.NewEvents(), model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, lastAction, nil))
+		actor := factory.New(model.NewEvents(), model.RestorePlayer(
+			model.PlayerData{},
+			&model.PlayerProgress{},
+			lastAction,
+			nil,
+			nil,
+		))
 
 		mActions.CanDoFunc = func(ctx context.Context, actor *player.Actor, t model.ActionType) bool {
 			return t == actions.ActionTypeCompleteActivity
@@ -55,7 +61,13 @@ func TestChooseActivity_CanUse(t *testing.T) {
 
 	t.Run("failure", func(t *testing.T) {
 		eff, _ := setup()
-		actor := factory.New(model.NewEvents(), model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, &model.ActionInfo{}, nil))
+		actor := factory.New(model.NewEvents(), model.RestorePlayer(
+			model.PlayerData{},
+			&model.PlayerProgress{},
+			&model.ActionInfo{},
+			nil,
+			nil,
+		))
 
 		if eff.CanUse(ctx, actor) {
 			t.Error("CanUse should return false")
@@ -88,7 +100,13 @@ func TestChooseActivity_Subscribe(t *testing.T) {
 				},
 			},
 		})
-		player := model.RestorePlayer(model.PlayerData{Id: "p1"}, &model.PlayerProgress{}, action, nil)
+		player := model.RestorePlayer(
+			model.PlayerData{Id: "p1"},
+			&model.PlayerProgress{},
+			action,
+			nil,
+			nil,
+		)
 
 		var callbackCalled bool
 		callback := func(ctx context.Context) {

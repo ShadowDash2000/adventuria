@@ -48,8 +48,8 @@ func (a *Actor) Ref() actors.ActorRef {
 	}
 }
 
-func (a *Actor) Position() actors.Position {
-	return actors.Position{
+func (a *Actor) Position() model.ActorPosition {
+	return model.ActorPosition{
 		WorldId:     a.player.Progress().CurrentWorld(),
 		CellId:      a.player.LastAction().Cell(),
 		CellsPassed: a.player.Progress().CellsPassed(),
@@ -92,7 +92,7 @@ func (a *Actor) ApplyMovement(ctx context.Context, move *model.MoveResult) error
 	a.player.SetLastAction(newAction)
 	progress.SetCanMove(false)
 
-	return a.events.OnAfterMove().Trigger(ctx, &model.OnAfterMoveEvent{
+	return a.events.OnAfterApplyMovement().Trigger(ctx, &model.OnAfterApplyMovementEvent{
 		Steps:          move.Steps,
 		TotalSteps:     move.TotalSteps,
 		PrevTotalSteps: move.PrevTotalSteps,
@@ -137,5 +137,12 @@ func (a *Actor) AfterMovement(ctx context.Context, move *model.MoveResult) error
 }
 
 func (a *Actor) MovementFinished(ctx context.Context, moves []*model.MoveResult) error {
+	err := a.events.OnMovementFinished().Trigger(ctx, &model.OnMovementFinishedEvent{
+		Position: a.Position(),
+	})
+	if err != nil {
+		return err
+	}
+
 	return a.notify.ActorMovedNotify(ctx, a.Ref(), moves)
 }

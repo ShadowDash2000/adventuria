@@ -38,7 +38,13 @@ func TestChangeGameById_CanUse(t *testing.T) {
 				},
 			},
 		})
-		actor := factory.New(model.NewEvents(), model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, lastAction, nil))
+		actor := factory.New(model.NewEvents(), model.RestorePlayer(
+			model.PlayerData{},
+			&model.PlayerProgress{},
+			lastAction,
+			nil,
+			nil,
+		))
 
 		mActions.CanDoFunc = func(ctx context.Context, actor *player.Actor, t model.ActionType) bool {
 			return true
@@ -58,7 +64,13 @@ func TestChangeGameById_CanUse(t *testing.T) {
 				},
 			},
 		})
-		actor := factory.New(model.NewEvents(), model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, lastAction, nil))
+		actor := factory.New(model.NewEvents(), model.RestorePlayer(
+			model.PlayerData{},
+			&model.PlayerProgress{},
+			lastAction,
+			nil,
+			nil,
+		))
 
 		if eff.CanUse(ctx, actor) {
 			t.Error("CanUse should return false when change game is not allowed on cell")
@@ -74,7 +86,13 @@ func TestChangeGameById_CanUse(t *testing.T) {
 				},
 			},
 		})
-		actor := factory.New(model.NewEvents(), model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, lastAction, nil))
+		actor := factory.New(model.NewEvents(), model.RestorePlayer(
+			model.PlayerData{},
+			&model.PlayerProgress{},
+			lastAction,
+			nil,
+			nil,
+		))
 
 		mActions.CanDoFunc = func(ctx context.Context, actor *player.Actor, actionType model.ActionType) bool {
 			if actionType == actions.ActionTypeDrop {
@@ -97,7 +115,13 @@ func TestChangeGameById_CanUse(t *testing.T) {
 				},
 			},
 		})
-		actor := factory.New(model.NewEvents(), model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, lastAction, nil))
+		actor := factory.New(model.NewEvents(), model.RestorePlayer(
+			model.PlayerData{},
+			&model.PlayerProgress{},
+			lastAction,
+			nil,
+			nil,
+		))
 
 		mActions.CanDoFunc = func(ctx context.Context, actor *player.Actor, actionType model.ActionType) bool {
 			if actionType == actions.ActionTypeDone {
@@ -122,6 +146,7 @@ func TestChangeGameById_Subscribe(t *testing.T) {
 			model.PlayerData{Id: "p1"},
 			&model.PlayerProgress{},
 			model.RestoreAction(model.ActionData{}),
+			nil,
 			nil,
 		)
 		var callbackCalled bool
@@ -178,7 +203,7 @@ func TestChangeGameById_Subscribe(t *testing.T) {
 			t.Fatalf("Subscribe failed: %v", err)
 		}
 
-		err = actor.Events().OnAfterMove().Trigger(ctx, &model.OnAfterMoveEvent{})
+		err = actor.Events().OnAfterApplyMovement().Trigger(ctx, &model.OnAfterApplyMovementEvent{})
 		if err != nil {
 			t.Errorf("Trigger failed: %v", err)
 		}

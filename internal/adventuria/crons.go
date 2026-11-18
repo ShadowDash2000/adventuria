@@ -3,6 +3,7 @@ package adventuria
 import (
 	"adventuria/pkg/pbtransaction"
 	"context"
+	"time"
 
 	"ganigeorgiev.com/pocketbase/pocketbase/core"
 )
@@ -120,6 +121,15 @@ func (g *Game) registerCrons(ctx context.Context, pb core.App, registry *Registr
 				pb.Logger().Error("Failed to update average campaign time", "error", err)
 				return
 			}
+		}
+	})
+
+	pb.Cron().MustAdd("cleanup_player_actions", "0 * * * *", func() {
+		err := pbtransaction.RunInTransaction(ctx, pb, func(ctx context.Context, txApp core.App) error {
+			return g.playerActions.Cleanup(ctx, time.Now().Add(-time.Hour))
+		})
+		if err != nil {
+			pb.Logger().Error("Failed to cleanup player actions", "error", err)
 		}
 	})
 }

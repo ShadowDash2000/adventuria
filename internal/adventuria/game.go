@@ -10,6 +10,7 @@ import (
 	"adventuria/internal/adventuria/inventories"
 	"adventuria/internal/adventuria/model"
 	"adventuria/internal/adventuria/npcs"
+	"adventuria/internal/adventuria/player_actions"
 	"adventuria/internal/adventuria/player_events/custom/item_received"
 	"adventuria/internal/adventuria/player_progress"
 	"adventuria/internal/adventuria/players"
@@ -42,6 +43,7 @@ type Game struct {
 	board            *board.Board
 	playersLocker    *locker.Locker[string]
 	playerFactory    *player.Factory
+	playerActions    *player_actions.PlayerActions
 
 	onKillParserEvent *event.Hook[*onKillParserEvent]
 }

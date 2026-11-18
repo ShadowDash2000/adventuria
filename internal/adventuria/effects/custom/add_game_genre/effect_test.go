@@ -40,6 +40,7 @@ func TestAddGameGenre_CanUse(t *testing.T) {
 			&model.PlayerProgress{},
 			nil,
 			nil,
+			nil,
 		)
 
 		return eff, factory.New(events, player), mActions, mActivities
@@ -159,6 +160,7 @@ func TestAddGameGenre_Subscribe(t *testing.T) {
 			model.PlayerData{Id: "p1"},
 			&model.PlayerProgress{},
 			action,
+			nil,
 			nil,
 		)
 

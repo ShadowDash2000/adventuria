@@ -21,7 +21,13 @@ func TestChangeDices_CanUse(t *testing.T) {
 	}
 
 	t.Run("success", func(t *testing.T) {
-		player := model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, nil, nil)
+		player := model.RestorePlayer(
+			model.PlayerData{},
+			&model.PlayerProgress{},
+			nil,
+			nil,
+			nil,
+		)
 
 		actor := factory.New(model.NewEvents(), player)
 
@@ -40,6 +46,7 @@ func TestChangeDices_Subscribe(t *testing.T) {
 		player := model.RestorePlayer(
 			model.PlayerData{Id: "p1"},
 			&model.PlayerProgress{},
+			nil,
 			nil,
 			nil,
 		)

@@ -21,6 +21,7 @@ import (
 	cellsSerivce "adventuria/internal/adventuria/cells/service"
 	"adventuria/internal/adventuria/inventories"
 	"adventuria/internal/adventuria/items"
+	"adventuria/internal/adventuria/player_actions"
 	"adventuria/internal/adventuria/player_events"
 	"adventuria/internal/adventuria/player_progress"
 	"adventuria/internal/adventuria/players"
@@ -43,6 +44,7 @@ func RegisterActions(
 	dropResultCalculator *activities.DropResultCalculator,
 	progressNotify *player_progress.PlayerProgressNotify,
 	playerEvents *player_events.PlayerEvents,
+	playerActions *player_actions.PlayerActions,
 ) {
 	actions.Register(
 		start.NewDef(),
@@ -50,13 +52,13 @@ func RegisterActions(
 		done.NewDef(actionsService, cells, doneResultCalculator, reviews, progressNotify, playerEvents),
 		drop.NewDef(dropResultCalculator, actionsService, reviews, players, settings, board),
 		reroll.NewDef(reviews, actionsService, activities),
-		buy.NewDef(items, inventories),
-		refresh_shop.NewActionRefreshShopDef(items),
+		buy.NewDef(items, inventories, playerActions),
+		refresh_shop.NewActionRefreshShopDef(items, playerActions),
 		roll_dice.NewDef(actionsService, board),
 		roll_item.NewDef(actionsService, inventories, items),
 		roll_item_on_cell.NewDef(cells, inventories, items),
 		roll_wheel.NewDef(cells, rollWheelRepo),
 		generate_wheel.NewDef(activities),
-		coins_for_item.NewDef(inventories, items),
+		coins_for_item.NewDef(inventories, items, playerActions),
 	)
 }

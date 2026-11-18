@@ -71,12 +71,7 @@ func (s *StayOnCellAfterDone) Subscribe(
 			newActionState := lastAction.State().Clone()
 			newActionState.UsedItems = nil
 			newAction.SetState(newActionState)
-
-			rootActionId := lastAction.RootAction()
-			if rootActionId == "" {
-				rootActionId = lastAction.ID()
-			}
-			newAction.SetRootAction(rootActionId)
+			newAction.SetRootAction(lastAction.ActionChainID())
 
 			newAction, err = s.actions.Save(ctx, newAction)
 			if err != nil {

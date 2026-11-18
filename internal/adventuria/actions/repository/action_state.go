@@ -2,8 +2,6 @@ package repository
 
 import (
 	"adventuria/internal/adventuria/model"
-	"errors"
-	"fmt"
 	"time"
 )
 
@@ -13,9 +11,6 @@ type actionState struct {
 	UsedItems          usedItemsState           `json:"used_items,omitempty"`
 	ActivityFilter     *activityFilterState     `json:"activity_filter,omitempty"`
 	Items              *itemsState              `json:"items,omitempty"`
-	Shop               *shopState               `json:"shop,omitempty"`
-	ShopFilter         *shopFilterState         `json:"shop_filter,omitempty"`
-	Dealer             *dealerState             `json:"dealer,omitempty"`
 }
 
 type activityCompletionState struct {
@@ -64,61 +59,23 @@ type itemsState struct {
 	Ids []string `json:"ids"`
 }
 
-type shopState struct {
-	Type            model.ShopType `json:"type"`
-	Ids             []string       `json:"ids"`
-	PriceMultiplier float64        `json:"price_multiplier"`
-	RefreshPrice    int            `json:"refresh_price"`
-}
-
-type shopFilterState struct {
-	ItemType model.ItemType `json:"item_type"`
-	Ids      []string       `json:"ids"`
-}
-
-type dealerState struct {
-	Type         string            `json:"type"`
-	CoinsForItem *dealCoinsForItem `json:"coins_for_item"`
-}
-
-type dealCoinsForItem struct {
-	Coins  int    `json:"coins"`
-	ItemId string `json:"item_id"`
-}
-
 func actionStateToDTO(state model.ActionState) (actionState, error) {
-	dealerStateDTO, err := dealerStateToDTO(state.Dealer)
-	if err != nil {
-		return actionState{}, err
-	}
-
 	return actionState{
 		ActivityCompletion: activityCompletionStateToDTO(state.ActivityCompletion),
 		Activities:         activitiesStateToDTO(state.Activities),
 		UsedItems:          usedItemsStateToDTO(state.UsedItems),
 		ActivityFilter:     activityFilterStateToDTO(state.ActivityFilter),
 		Items:              itemsStateToDTO(state.Items),
-		Shop:               shopStateToDTO(state.Shop),
-		ShopFilter:         shopFilterStateToDTO(state.ShopFilter),
-		Dealer:             dealerStateDTO,
 	}, nil
 }
 
 func actionStateFromDTO(dto actionState) (model.ActionState, error) {
-	dealerState, err := dealerStateFromDTO(dto.Dealer)
-	if err != nil {
-		return model.ActionState{}, err
-	}
-
 	return model.ActionState{
 		ActivityCompletion: activityCompletionStateFromDTO(dto.ActivityCompletion),
 		Activities:         activitiesStateFromDTO(dto.Activities),
 		UsedItems:          usedItemsStateFromDTO(dto.UsedItems),
 		ActivityFilter:     activityFilterStateFromDTO(dto.ActivityFilter),
 		Items:              itemsStateFromDTO(dto.Items),
-		Shop:               shopStateFromDTO(dto.Shop),
-		ShopFilter:         shopFilterStateFromDTO(dto.ShopFilter),
-		Dealer:             dealerState,
 	}, nil
 }
 
@@ -286,102 +243,4 @@ func itemsStateFromDTO(dto *itemsState) *model.ActionItemsState {
 	return &model.ActionItemsState{
 		Ids: dto.Ids,
 	}
-}
-
-func shopStateToDTO(state *model.ActionShopState) *shopState {
-	if state == nil {
-		return nil
-	}
-
-	return &shopState{
-		Type:            state.Type,
-		Ids:             state.Ids,
-		PriceMultiplier: state.PriceMultiplier,
-		RefreshPrice:    state.RefreshPrice,
-	}
-}
-
-func shopStateFromDTO(dto *shopState) *model.ActionShopState {
-	if dto == nil {
-		return nil
-	}
-
-	return &model.ActionShopState{
-		Type:            dto.Type,
-		Ids:             dto.Ids,
-		PriceMultiplier: dto.PriceMultiplier,
-		RefreshPrice:    dto.RefreshPrice,
-	}
-}
-
-func shopFilterStateToDTO(state *model.ActionShopFilterState) *shopFilterState {
-	if state == nil {
-		return nil
-	}
-
-	return &shopFilterState{
-		ItemType: state.ItemType,
-		Ids:      state.Ids,
-	}
-}
-
-func shopFilterStateFromDTO(dto *shopFilterState) *model.ActionShopFilterState {
-	if dto == nil {
-		return nil
-	}
-
-	return &model.ActionShopFilterState{
-		ItemType: dto.ItemType,
-		Ids:      dto.Ids,
-	}
-}
-
-func dealerStateToDTO(state *model.ActionDealerState) (*dealerState, error) {
-	if state == nil {
-		return nil, nil
-	}
-
-	dto := &dealerState{
-		Type: string(state.Type),
-	}
-	switch state.Type {
-	case model.DealTypeCoinsForItem:
-		if state.CoinsForItem == nil {
-			return nil, errors.New("deal data is nil")
-		}
-
-		dto.CoinsForItem = &dealCoinsForItem{
-			Coins:  state.CoinsForItem.Coins,
-			ItemId: state.CoinsForItem.ItemId,
-		}
-	default:
-		return nil, fmt.Errorf("unknown deal type: %s", state.Type)
-	}
-
-	return dto, nil
-}
-
-func dealerStateFromDTO(dto *dealerState) (*model.ActionDealerState, error) {
-	if dto == nil {
-		return nil, nil
-	}
-
-	state := &model.ActionDealerState{
-		Type: model.DealType(dto.Type),
-	}
-	switch state.Type {
-	case model.DealTypeCoinsForItem:
-		if dto.CoinsForItem == nil {
-			return nil, errors.New("deal data is nil")
-		}
-
-		state.CoinsForItem = &model.DealCoinsForItem{
-			Coins:  dto.CoinsForItem.Coins,
-			ItemId: dto.CoinsForItem.ItemId,
-		}
-	default:
-		return nil, fmt.Errorf("unknown deal type: %s", state.Type)
-	}
-
-	return state, nil
 }

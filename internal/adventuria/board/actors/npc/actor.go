@@ -32,8 +32,8 @@ func (a *Actor) Ref() actors.ActorRef {
 	}
 }
 
-func (a *Actor) Position() actors.Position {
-	return actors.Position{
+func (a *Actor) Position() model.ActorPosition {
+	return model.ActorPosition{
 		WorldId:     a.npc.CurrentWorld(),
 		CellId:      a.npc.CurrentCell(),
 		CellsPassed: a.npc.CellsPassed(),

@@ -53,6 +53,8 @@ import (
 	outboxesRepo "adventuria/internal/adventuria/outboxes/repository"
 	"adventuria/internal/adventuria/platforms"
 	platformsRepo "adventuria/internal/adventuria/platforms/repository"
+	"adventuria/internal/adventuria/player_actions"
+	playerActionsRepo "adventuria/internal/adventuria/player_actions/repository"
 	"adventuria/internal/adventuria/player_events"
 	playerEventsRepo "adventuria/internal/adventuria/player_events/repository"
 	"adventuria/internal/adventuria/player_info"
@@ -142,6 +144,7 @@ type Registry struct {
 	playerInfoRepo          *playerInfoRepo.Repository
 	boardNotifyRepo         *boardRepo.Notify
 	actorsRepo              *actorsRepo.Repository
+	playerActionsRepo       *playerActionsRepo.Repository
 
 	// services
 	seasons              *seasons.Seasons
@@ -191,6 +194,7 @@ type Registry struct {
 	npcFactory           *npc.Factory
 	actors               *actors.Actors
 	behaviors            *behaviors.Behaviors
+	playerActions        *player_actions.PlayerActions
 }
 
 func NewRegistry(pb core.App, logger *slog.Logger) *Registry {
@@ -537,6 +541,13 @@ func (r *Registry) ActorsRepo() *actorsRepo.Repository {
 	return r.actorsRepo
 }
 
+func (r *Registry) PlayerActionsRepo() *playerActionsRepo.Repository {
+	if r.playerActionsRepo == nil {
+		r.playerActionsRepo = playerActionsRepo.NewRepository(r.pb)
+	}
+	return r.playerActionsRepo
+}
+
 func (r *Registry) Seasons() *seasons.Seasons {
 	if r.seasons == nil {
 		r.seasons = seasons.NewSeasons(r.SeasonsRepo())
@@ -613,6 +624,7 @@ func (r *Registry) Players() *players.Players {
 			r.Actions(),
 			r.PlayerProgress(),
 			r.PlayerStats(),
+			r.PlayerActions(),
 		)
 	}
 	return r.players
@@ -913,4 +925,15 @@ func (r *Registry) Behaviors() *behaviors.Behaviors {
 		r.behaviors = behaviors.NewBehaviors(r.NPCFactory())
 	}
 	return r.behaviors
+}
+
+func (r *Registry) PlayerActions() *player_actions.PlayerActions {
+	if r.playerActions == nil {
+		r.playerActions = player_actions.NewPlayerActions(
+			r.PlayerActionsRepo(),
+			r.Settings(),
+			r.Actions(),
+		)
+	}
+	return r.playerActions
 }

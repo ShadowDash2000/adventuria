@@ -110,6 +110,35 @@ func (r *Repository) GetLastPlayerActionBySeasonID(ctx context.Context, playerId
 	return action, nil
 }
 
+func (r *Repository) GetLastPlayerActionsBySeasonID(ctx context.Context, seasonId string) ([]*model.ActionInfo, error) {
+	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
+
+	var records []*core.Record
+	err := pb.RecordQuery(schema.CollectionActions).
+		WithContext(ctx).
+		Select(pbhelper.DotExpand(schema.CollectionActions, "*")).
+		InnerJoin(
+			schema.CollectionPlayersProgress,
+			dbx.NewExp(pbhelper.Eq(
+				pbhelper.DotExpand(schema.CollectionActions, schema.ActionSchema.Id),
+				pbhelper.DotExpand(schema.CollectionPlayersProgress, schema.PlayerProgressSchema.LastAction),
+			)),
+		).
+		Where(dbx.HashExp{
+			pbhelper.DotExpand(schema.CollectionPlayersProgress, schema.PlayerProgressSchema.Season): seasonId,
+		}).
+		All(&records)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(records) == 0 {
+		return nil, nil
+	}
+
+	return RecordsToActions(records)
+}
+
 func (r *Repository) GetByID(ctx context.Context, id string) (*model.ActionInfo, error) {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 

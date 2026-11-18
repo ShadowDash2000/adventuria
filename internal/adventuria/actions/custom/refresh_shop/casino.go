@@ -1,10 +1,9 @@
 package refresh_shop
 
 import (
-	"adventuria/internal/adventuria/model"
+	"adventuria/internal/adventuria/player_actions/custom/shop"
 )
 
-func (r *RefreshShop) doCasinoRefresh(player *model.Player) {
-	actionState := player.LastAction().State()
-	actionState.Shop.Ids = actionState.ShopFilter.Ids
+func (r *RefreshShop) doCasinoRefresh(shop *shop.Shop) error {
+	return shop.SetItemIDs(shop.Filter().Ids)
 }

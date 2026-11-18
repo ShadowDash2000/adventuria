@@ -133,11 +133,7 @@ func (r *Reroll) Do(ctx context.Context, actor *player.Actor, actionReq actions.
 	}
 	newAction.SetState(newActionState)
 
-	rootActionId := lastAction.RootAction()
-	if rootActionId == "" {
-		rootActionId = lastAction.ID()
-	}
-	newAction.SetRootAction(rootActionId)
+	newAction.SetRootAction(lastAction.ActionChainID())
 
 	return nil, actor.Events().OnAfterReroll().Trigger(ctx, &model.OnAfterRerollEvent{})
 }

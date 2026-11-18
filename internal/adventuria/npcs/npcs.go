@@ -2,7 +2,6 @@ package npcs
 
 import (
 	"adventuria/internal/adventuria/action_events"
-	"adventuria/internal/adventuria/board/actors"
 	"adventuria/internal/adventuria/board/actors/player"
 	"adventuria/internal/adventuria/effects"
 	"adventuria/internal/adventuria/errs"
@@ -16,7 +15,7 @@ import (
 
 type repository interface {
 	GetActiveNPCs(ctx context.Context) ([]*ActiveNPC, error)
-	UpdateShiftAndPositionByID(ctx context.Context, id string, nextShiftChangeAt time.Time, position actors.Position) error
+	UpdateShiftAndPositionByID(ctx context.Context, id string, nextShiftChangeAt time.Time, position model.ActorPosition) error
 	GetAllDetailedByFilter(ctx context.Context, filter Filter) ([]*NPCDetailed, error)
 }
 
@@ -25,7 +24,7 @@ type npcNotify interface {
 }
 
 type behaviorsService interface {
-	Move(ctx context.Context, npc *model.NPC, behavior *model.NPCBehavior) (actors.Position, error)
+	Move(ctx context.Context, npc *model.NPC, behavior *model.NPCBehavior) (model.ActorPosition, error)
 }
 
 type effectsService interface {
@@ -261,8 +260,8 @@ func (n *NPCs) ListenToCellEvents(ctx context.Context, actor *player.Actor) erro
 }
 
 func (n *NPCs) listenToActionEvents(npcsByCellId map[string][]*NPC, actor *player.Actor) error {
-	actor.Events().OnAfterMove().BindFunc(func(ctx context.Context, e *model.OnAfterMoveEvent) error {
-		npcs, ok := npcsByCellId[e.CurrentCell.ID()]
+	actor.Events().OnMovementFinished().BindFunc(func(ctx context.Context, e *model.OnMovementFinishedEvent) error {
+		npcs, ok := npcsByCellId[e.Position.CellId]
 		if !ok {
 			return e.Next()
 		}
@@ -273,7 +272,7 @@ func (n *NPCs) listenToActionEvents(npcsByCellId map[string][]*NPC, actor *playe
 				continue
 			}
 
-			err := actionEvent.Init(ctx, actor.Player())
+			err := actionEvent.Init(ctx, npc.NPC(), actor.Player())
 			if err != nil {
 				return err
 			}
@@ -291,7 +290,7 @@ func (n *NPCs) listenToCellEventEffects(ctx context.Context, npcsByCellId map[st
 		return err
 	}
 
-	actor.Events().OnAfterMove().BindFunc(func(ctx context.Context, e *model.OnAfterMoveEvent) error {
+	actor.Events().OnMovementFinished().BindFunc(func(ctx context.Context, e *model.OnMovementFinishedEvent) error {
 		if len(unsubKeys) > 0 {
 			for _, unsubKey := range unsubKeys {
 				actor.Events().Unsubscribe(unsubKey)
@@ -360,7 +359,7 @@ func (n *NPCs) initActionEvents(ctx context.Context, npcs []*NPC, playersByCellI
 		}
 
 		for _, player := range players {
-			err := actionEvent.Init(ctx, player)
+			err := actionEvent.Init(ctx, npc.NPC(), player)
 			if err != nil {
 				return err
 			}
@@ -388,7 +387,7 @@ func (n *NPCs) disposeActionEvents(ctx context.Context, npcs []*NPC, playersByCe
 		}
 
 		for _, player := range players {
-			err := actionEvent.Dispose(ctx, player)
+			err := actionEvent.Dispose(ctx, npc.NPC(), player)
 			if err != nil {
 				return err
 			}

@@ -81,6 +81,14 @@ func (a *ActionInfo) SetRootAction(id string) {
 	a.data.RootAction = id
 }
 
+func (a *ActionInfo) ActionChainID() string {
+	if a.data.RootAction != "" {
+		return a.data.RootAction
+	}
+
+	return a.data.Id
+}
+
 func (a *ActionInfo) Status() ActionStatus {
 	return a.data.Status
 }

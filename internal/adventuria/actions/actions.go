@@ -12,6 +12,7 @@ type repository interface {
 	Create(ctx context.Context, action *model.ActionInfo) (*model.ActionInfo, error)
 	Update(ctx context.Context, action *model.ActionInfo) (*model.ActionInfo, error)
 	GetLastPlayerActionBySeasonID(ctx context.Context, playerId, seasonId string) (*model.ActionInfo, error)
+	GetLastPlayerActionsBySeasonID(ctx context.Context, seasonId string) ([]*model.ActionInfo, error)
 	GetByID(ctx context.Context, id string) (*model.ActionInfo, error)
 }
 
@@ -74,6 +75,10 @@ func (a *Actions) GetLastOrDefault(ctx context.Context, playerId, seasonId strin
 
 func (a *Actions) GetLast(ctx context.Context, playerId, seasonId string) (*model.ActionInfo, error) {
 	return a.repository.GetLastPlayerActionBySeasonID(ctx, playerId, seasonId)
+}
+
+func (a *Actions) GetAllLast(ctx context.Context, seasonId string) ([]*model.ActionInfo, error) {
+	return a.repository.GetLastPlayerActionsBySeasonID(ctx, seasonId)
 }
 
 func (a *Actions) canDoAction(ctx context.Context, actor *player.Actor, actionDef ActionDef) bool {

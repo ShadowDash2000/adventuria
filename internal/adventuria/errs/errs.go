@@ -136,6 +136,10 @@ var (
 		Code:    "player_task_not_found",
 		Message: "Player task not found",
 	}
+	ErrPlayerActionNotFound = &AppError{
+		Code:    "player_action_not_found",
+		Message: "Player action not found",
+	}
 
 	ErrReviewCommentTooLong = &AppError{
 		Code:    "review_comment_max_size",
@@ -250,6 +254,10 @@ var (
 	ErrNoActiveDeals = &AppError{
 		Code:    "no_active_deals",
 		Message: "No active deals",
+	}
+	ErrNoActiveCoinsForItemDeal = &AppError{
+		Code:    "no_active_coins_for_item_deal",
+		Message: "No active coins for item deal",
 	}
 
 	ErrInvalidActivityFilter = &AppError{

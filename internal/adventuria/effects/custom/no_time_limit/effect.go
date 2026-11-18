@@ -65,7 +65,7 @@ func (n *NoTimeLimit) Subscribe(
 	callback effects.Callback,
 ) ([]event.Unsubscribe, error) {
 	return []event.Unsubscribe{
-		actor.Events().OnAfterMove().BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterMoveEvent) error {
+		actor.Events().OnAfterApplyMovement().BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterApplyMovementEvent) error {
 			if !n.CanUse(ctx, actor) {
 				return e.Next()
 			}

@@ -47,7 +47,13 @@ func TestChangeGamePriceFilter_CanUse(t *testing.T) {
 				},
 			},
 		})
-		actor := factory.New(model.NewEvents(), model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, lastAction, nil))
+		actor := factory.New(model.NewEvents(), model.RestorePlayer(
+			model.PlayerData{},
+			&model.PlayerProgress{},
+			lastAction,
+			nil,
+			nil,
+		))
 
 		mActions.CanDoFunc = func(ctx context.Context, actor *player.Actor, t model.ActionType) bool {
 			return t == actions.ActionTypeRollWheel
@@ -60,7 +66,13 @@ func TestChangeGamePriceFilter_CanUse(t *testing.T) {
 
 	t.Run("cannot roll wheel", func(t *testing.T) {
 		eff, mActions, _ := setup()
-		actor := factory.New(model.NewEvents(), model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, nil, nil))
+		actor := factory.New(model.NewEvents(), model.RestorePlayer(
+			model.PlayerData{},
+			&model.PlayerProgress{},
+			nil,
+			nil,
+			nil,
+		))
 
 		mActions.CanDoFunc = func(ctx context.Context, actor *player.Actor, t model.ActionType) bool {
 			return false
@@ -80,7 +92,13 @@ func TestChangeGamePriceFilter_CanUse(t *testing.T) {
 				},
 			},
 		})
-		actor := factory.New(model.NewEvents(), model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, lastAction, nil))
+		actor := factory.New(model.NewEvents(), model.RestorePlayer(
+			model.PlayerData{},
+			&model.PlayerProgress{},
+			lastAction,
+			nil,
+			nil,
+		))
 
 		mActions.CanDoFunc = func(ctx context.Context, actor *player.Actor, t model.ActionType) bool {
 			return true
@@ -100,7 +118,13 @@ func TestChangeGamePriceFilter_CanUse(t *testing.T) {
 				},
 			},
 		})
-		actor := factory.New(model.NewEvents(), model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, lastAction, nil))
+		actor := factory.New(model.NewEvents(), model.RestorePlayer(
+			model.PlayerData{},
+			&model.PlayerProgress{},
+			lastAction,
+			nil,
+			nil,
+		))
 
 		mActions.CanDoFunc = func(ctx context.Context, actor *player.Actor, t model.ActionType) bool {
 			return true
@@ -120,7 +144,13 @@ func TestChangeGamePriceFilter_CanUse(t *testing.T) {
 				},
 			},
 		})
-		actor := factory.New(model.NewEvents(), model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, lastAction, nil))
+		actor := factory.New(model.NewEvents(), model.RestorePlayer(
+			model.PlayerData{},
+			&model.PlayerProgress{},
+			lastAction,
+			nil,
+			nil,
+		))
 
 		mActions.CanDoFunc = func(ctx context.Context, actor *player.Actor, t model.ActionType) bool {
 			return true
@@ -179,6 +209,7 @@ func TestChangeGamePriceFilter_Subscribe(t *testing.T) {
 			model.PlayerData{Id: "p1"},
 			&model.PlayerProgress{},
 			action,
+			nil,
 			nil,
 		)
 
@@ -264,7 +295,7 @@ func TestChangeGamePriceFilter_Subscribe(t *testing.T) {
 			t.Fatalf("Subscribe failed: %v", err)
 		}
 
-		err = actor.Events().OnAfterMove().Trigger(ctx, &model.OnAfterMoveEvent{})
+		err = actor.Events().OnAfterApplyMovement().Trigger(ctx, &model.OnAfterApplyMovementEvent{})
 		if err != nil {
 			t.Errorf("Trigger OnAfterMove failed: %v", err)
 		}

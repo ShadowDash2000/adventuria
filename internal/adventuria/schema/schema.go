@@ -20,6 +20,7 @@ const (
 	CollectionNPCBehaviors    = "npc_behaviors"
 	CollectionPlayerEvents    = "player_events"
 	CollectionPlayerTasks     = "player_tasks"
+	CollectionPlayerActions   = "player_actions"
 
 	CollectionActivities     = "activities"
 	CollectionCompanies      = "companies"
@@ -723,4 +724,20 @@ var PlayerTasksSchema = struct {
 	Type:      "type",
 	Trigger:   "trigger",
 	Payload:   "payload",
+}
+
+var PlayerActionsSchema = struct {
+	Id          string
+	Player      string
+	Action      string
+	ActionEvent string
+	Type        string
+	Payload     string
+}{
+	Id:          "id",
+	Player:      "player",
+	Action:      "action",
+	ActionEvent: "action_event",
+	Type:        "type",
+	Payload:     "payload",
 }

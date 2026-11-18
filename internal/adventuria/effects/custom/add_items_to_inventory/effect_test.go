@@ -35,7 +35,13 @@ func TestAddItemsToInventory_CanUse(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		eff, _, _ := setup()
-		actor := factory.New(model.NewEvents(), model.RestorePlayer(model.PlayerData{}, &model.PlayerProgress{}, nil, nil))
+		actor := factory.New(model.NewEvents(), model.RestorePlayer(
+			model.PlayerData{},
+			&model.PlayerProgress{},
+			nil,
+			nil,
+			nil,
+		))
 
 		if !eff.CanUse(ctx, actor) {
 			t.Error("CanUse should return true")
@@ -73,6 +79,7 @@ func TestAddItemsToInventory_Subscribe(t *testing.T) {
 		player := model.RestorePlayer(
 			model.PlayerData{Id: "p1"},
 			&model.PlayerProgress{},
+			nil,
 			nil,
 			nil,
 		)

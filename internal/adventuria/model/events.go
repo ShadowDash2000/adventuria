@@ -24,7 +24,8 @@ type Events struct {
 	onNewLap               *event.Hook[*OnNewLapEvent]
 	onBeforeNextStep       *event.Hook[*OnBeforeNextStepEvent]
 	onAfterAction          *event.Hook[*OnAfterActionEvent]
-	onAfterMove            *event.Hook[*OnAfterMoveEvent]
+	onAfterApplyMovement   *event.Hook[*OnAfterApplyMovementEvent]
+	onMovementFinished     *event.Hook[*OnMovementFinishedEvent]
 	onBeforeCurrentCell    *event.Hook[*OnBeforeCurrentCellEvent]
 	onBeforeItemAdd        *event.Hook[*OnBeforeItemAddEvent]
 	onAfterItemAdd         *event.Hook[*OnAfterItemAddEvent]
@@ -52,7 +53,8 @@ func NewEvents() *Events {
 		onNewLap:               &event.Hook[*OnNewLapEvent]{},
 		onBeforeNextStep:       &event.Hook[*OnBeforeNextStepEvent]{},
 		onAfterAction:          &event.Hook[*OnAfterActionEvent]{},
-		onAfterMove:            &event.Hook[*OnAfterMoveEvent]{},
+		onAfterApplyMovement:   &event.Hook[*OnAfterApplyMovementEvent]{},
+		onMovementFinished:     &event.Hook[*OnMovementFinishedEvent]{},
 		onBeforeCurrentCell:    &event.Hook[*OnBeforeCurrentCellEvent]{},
 		onBeforeItemAdd:        &event.Hook[*OnBeforeItemAddEvent]{},
 		onAfterItemAdd:         &event.Hook[*OnAfterItemAddEvent]{},
@@ -155,8 +157,12 @@ func (e *Events) OnAfterAction() *event.Hook[*OnAfterActionEvent] {
 	return e.onAfterAction
 }
 
-func (e *Events) OnAfterMove() *event.Hook[*OnAfterMoveEvent] {
-	return e.onAfterMove
+func (e *Events) OnAfterApplyMovement() *event.Hook[*OnAfterApplyMovementEvent] {
+	return e.onAfterApplyMovement
+}
+
+func (e *Events) OnMovementFinished() *event.Hook[*OnMovementFinishedEvent] {
+	return e.onMovementFinished
 }
 
 func (e *Events) OnBeforeCurrentCell() *event.Hook[*OnBeforeCurrentCellEvent] {
@@ -270,7 +276,7 @@ type OnAfterActionEvent struct {
 	event.Event
 	ActionType ActionType
 }
-type OnAfterMoveEvent struct {
+type OnAfterApplyMovementEvent struct {
 	event.Event
 	Steps          int
 	TotalSteps     int
@@ -278,6 +284,10 @@ type OnAfterMoveEvent struct {
 	CurrentCell    *CellInfo
 	CurrentWorld   *World
 	Laps           int
+}
+type OnMovementFinishedEvent struct {
+	event.Event
+	Position ActorPosition
 }
 type OnBeforeCurrentCellEvent struct {
 	event.Event

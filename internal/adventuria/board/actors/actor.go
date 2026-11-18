@@ -18,15 +18,9 @@ type ActorRef struct {
 	Kind ActorKind
 }
 
-type Position struct {
-	WorldId     string
-	CellId      string
-	CellsPassed int
-}
-
 type Actor interface {
 	Ref() ActorRef
-	Position() Position
+	Position() model.ActorPosition
 	ChangeWorld(ctx context.Context, worldID string) error
 	ApplyMovement(ctx context.Context, move *model.MoveResult) error
 	LeaveCell(ctx context.Context, cell cells.Cell) error

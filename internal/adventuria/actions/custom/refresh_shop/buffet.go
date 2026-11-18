@@ -1,19 +1,15 @@
 package refresh_shop
 
 import (
-	"adventuria/internal/adventuria/cells/custom/shop"
-	"adventuria/internal/adventuria/model"
+	"adventuria/internal/adventuria/player_actions/custom/shop"
 	"context"
 )
 
-func (r *RefreshShop) doBuffetRefresh(ctx context.Context, player *model.Player) error {
-	actionState := player.LastAction().State()
-	ids, err := r.items.GetAllBuyableIDsByType(ctx, actionState.ShopFilter.ItemType)
+func (r *RefreshShop) doBuffetRefresh(ctx context.Context, shop *shop.Shop) error {
+	ids, err := r.items.GetAllBuyableIDsByType(ctx, shop.Filter().ItemType)
 	if err != nil {
 		return err
 	}
 
-	actionState.Shop.Ids = shop.PickRandomIDs(ids)
-
-	return nil
+	return shop.Refresh(ids)
 }

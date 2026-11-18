@@ -9,14 +9,22 @@ type Player struct {
 	progress   *PlayerProgress
 	lastAction *ActionInfo
 	stats      *PlayerStats
+	actions    *PlayerActions
 }
 
-func RestorePlayer(data PlayerData, progress *PlayerProgress, lastAction *ActionInfo, stats *PlayerStats) *Player {
+func RestorePlayer(
+	data PlayerData,
+	progress *PlayerProgress,
+	lastAction *ActionInfo,
+	stats *PlayerStats,
+	actions *PlayerActions,
+) *Player {
 	return &Player{
 		data:       data,
 		progress:   progress,
 		lastAction: lastAction,
 		stats:      stats,
+		actions:    actions,
 	}
 }
 
@@ -47,4 +55,8 @@ func (p *Player) Stats() *PlayerStats {
 
 func (p *Player) SetStats(stats *PlayerStats) {
 	p.stats = stats
+}
+
+func (p *Player) Actions() *PlayerActions {
+	return p.actions
 }

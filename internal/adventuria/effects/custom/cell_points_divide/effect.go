@@ -52,7 +52,7 @@ func (c *CellPointsDivide) Subscribe(
 
 			return e.Next()
 		}, effectCtx.Priority),
-		actor.Events().OnAfterMove().BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterMoveEvent) error {
+		actor.Events().OnAfterApplyMovement().BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterApplyMovementEvent) error {
 			callback(ctx)
 			return e.Next()
 		}, effectCtx.Priority),

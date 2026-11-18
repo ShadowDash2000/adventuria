@@ -49,3 +49,17 @@ func RecordToAction(record *core.Record) (*model.ActionInfo, error) {
 		State:       state,
 	}), nil
 }
+
+func RecordsToActions(records []*core.Record) ([]*model.ActionInfo, error) {
+	res := make([]*model.ActionInfo, len(records))
+	for i, record := range records {
+		action, err := RecordToAction(record)
+		if err != nil {
+			return nil, err
+		}
+
+		res[i] = action
+	}
+
+	return res, nil
+}

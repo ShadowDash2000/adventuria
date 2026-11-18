@@ -11,6 +11,7 @@ import (
 	customEffects "adventuria/internal/adventuria/effects/custom"
 	customBehaviors "adventuria/internal/adventuria/npcs/behaviors/custom"
 	customOutboxes "adventuria/internal/adventuria/outboxes/custom"
+	customPlayerActions "adventuria/internal/adventuria/player_actions/custom"
 	customPlayerEvents "adventuria/internal/adventuria/player_events/custom"
 	customPlayerTasks "adventuria/internal/adventuria/player_tasks/custom"
 	"adventuria/internal/adventuria/stream_tracker"
@@ -40,6 +41,7 @@ func (g *Game) init(ctx context.Context, pb core.App) (*Registry, error) {
 	g.board = registry.Board()
 	g.playersLocker = registry.PlayersLocker()
 	g.playerFactory = registry.PlayerFactory()
+	g.playerActions = registry.PlayerActions()
 
 	customCells.RegisterCells(
 		registry.ActivityFilters(),
@@ -47,10 +49,12 @@ func (g *Game) init(ctx context.Context, pb core.App) (*Registry, error) {
 		registry.Cells(),
 		registry.Actions(),
 		registry.Board(),
+		registry.PlayerActions(),
 	)
 
 	customActionEvents.RegisterActionEvents(
 		registry.Items(),
+		registry.PlayerActions(),
 	)
 
 	customEffects.RegisterEffects(
@@ -87,6 +91,7 @@ func (g *Game) init(ctx context.Context, pb core.App) (*Registry, error) {
 		registry.DropResultCalculator(),
 		registry.PlayerProgressNotify(),
 		registry.PlayerEvents(),
+		registry.PlayerActions(),
 	)
 
 	customOutboxes.RegisterOutboxes(
@@ -103,6 +108,8 @@ func (g *Game) init(ctx context.Context, pb core.App) (*Registry, error) {
 	customBehaviors.RegisterNPCBehaviors(
 		registry.Board(),
 	)
+
+	customPlayerActions.RegisterPlayerActions()
 
 	// background tasks
 	registry.Outboxes().Start(ctx)

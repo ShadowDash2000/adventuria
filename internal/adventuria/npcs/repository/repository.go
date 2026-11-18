@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"adventuria/internal/adventuria/board/actors"
 	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
 	"adventuria/internal/adventuria/npcs"
@@ -69,7 +68,7 @@ func (r *Repository) GetActiveNPCs(ctx context.Context) ([]*npcs.ActiveNPC, erro
 	return res, nil
 }
 
-func (r *Repository) UpdateShiftAndPositionByID(ctx context.Context, id string, nextShiftChangeAt time.Time, position actors.Position) error {
+func (r *Repository) UpdateShiftAndPositionByID(ctx context.Context, id string, nextShiftChangeAt time.Time, position model.ActorPosition) error {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 
 	nextShiftChangeDate, _ := types.ParseDateTime(nextShiftChangeAt)
