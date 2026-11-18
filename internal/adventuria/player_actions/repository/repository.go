@@ -180,7 +180,7 @@ func (r *Repository) GetAllByPlayerAndActionID(ctx context.Context, playerId, ac
 			schema.PlayerActionsSchema.Player: playerId,
 			schema.PlayerActionsSchema.Action: actionId,
 		}).
-		OrderBy("created ASC, id ASC").
+		OrderBy("created ASC", "id ASC").
 		All(&records)
 	if err != nil {
 		return nil, err
