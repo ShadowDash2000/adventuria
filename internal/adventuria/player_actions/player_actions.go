@@ -12,7 +12,7 @@ type repository interface {
 	Update(ctx context.Context, action *model.PlayerActionInfo) (*model.PlayerActionInfo, error)
 	UpdatePayloadByID(ctx context.Context, id string, payload []byte) error
 	DeleteByID(ctx context.Context, id string) error
-	DeleteByActionEvent(ctx context.Context, playerId, actionId, actionEventId string) error
+	DeleteByNPC(ctx context.Context, playerId, actionId, npcId, actionEventId string) error
 	DeleteOlderThanExceptActionIDs(ctx context.Context, createdBefore time.Time, actionIds []string) error
 	GetAllByPlayerAndActionID(ctx context.Context, playerId, actionId string) ([]*model.PlayerActionInfo, error)
 }
@@ -64,8 +64,8 @@ func (p *PlayerActions) DeleteByID(ctx context.Context, id string) error {
 	return p.repository.DeleteByID(ctx, id)
 }
 
-func (p *PlayerActions) DeleteByNPCActionEvent(ctx context.Context, npc *model.NPC, player *model.Player) error {
-	return p.repository.DeleteByActionEvent(ctx, player.ID(), player.LastAction().ActionChainID(), npc.ActionEvent())
+func (p *PlayerActions) DeleteByNPC(ctx context.Context, npc *model.NPC, player *model.Player) error {
+	return p.repository.DeleteByNPC(ctx, player.ID(), player.LastAction().ActionChainID(), npc.ID(), npc.ActionEvent())
 }
 
 func (p *PlayerActions) GetPlayerActions(ctx context.Context, playerId, actionId string) (*model.PlayerActions, error) {

@@ -114,7 +114,7 @@ func (r *Repository) DeleteByID(ctx context.Context, id string) error {
 	return nil
 }
 
-func (r *Repository) DeleteByActionEvent(ctx context.Context, playerId, actionId, actionEventId string) error {
+func (r *Repository) DeleteByNPC(ctx context.Context, playerId, actionId, npcId, actionEventId string) error {
 	pb := pbtransaction.GetCtxTransactionOrApp(ctx, r.pb)
 
 	_, err := pb.DB().
@@ -123,6 +123,7 @@ func (r *Repository) DeleteByActionEvent(ctx context.Context, playerId, actionId
 			dbx.HashExp{
 				schema.PlayerActionsSchema.Player:      playerId,
 				schema.PlayerActionsSchema.Action:      actionId,
+				schema.PlayerActionsSchema.NPC:         npcId,
 				schema.PlayerActionsSchema.ActionEvent: actionEventId,
 			},
 		).

@@ -730,6 +730,7 @@ var PlayerActionsSchema = struct {
 	Id          string
 	Player      string
 	Action      string
+	NPC         string
 	ActionEvent string
 	Type        string
 	Payload     string
@@ -737,6 +738,7 @@ var PlayerActionsSchema = struct {
 	Id:          "id",
 	Player:      "player",
 	Action:      "action",
+	NPC:         "npc",
 	ActionEvent: "action_event",
 	Type:        "type",
 	Payload:     "payload",

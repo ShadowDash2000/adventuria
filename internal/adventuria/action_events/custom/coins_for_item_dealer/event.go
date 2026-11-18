@@ -13,7 +13,7 @@ type items interface {
 
 type playerActions interface {
 	Save(ctx context.Context, action *model.PlayerActionInfo) (*model.PlayerActionInfo, error)
-	DeleteByNPCActionEvent(ctx context.Context, npc *model.NPC, player *model.Player) error
+	DeleteByNPC(ctx context.Context, npc *model.NPC, player *model.Player) error
 }
 
 var _ action_events.ActionEvent = (*CoinsForItemDealer)(nil)
@@ -60,6 +60,7 @@ func (c *CoinsForItemDealer) Init(ctx context.Context, npc *model.NPC, player *m
 	action, err := model.NewPlayerAction(model.PlayerActionCreate{
 		PlayerId:      player.ID(),
 		ActionId:      player.LastAction().ActionChainID(),
+		NPCId:         npc.ID(),
 		ActionEventId: npc.ActionEvent(),
 		PlayerAction:  dealAction,
 	})
@@ -80,5 +81,5 @@ func (c *CoinsForItemDealer) Dispose(ctx context.Context, npc *model.NPC, player
 		return nil
 	}
 
-	return c.playerActions.DeleteByNPCActionEvent(ctx, npc, player)
+	return c.playerActions.DeleteByNPC(ctx, npc, player)
 }

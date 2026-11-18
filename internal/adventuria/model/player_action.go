@@ -13,6 +13,7 @@ type PlayerActionData struct {
 	Id          string
 	Player      string
 	Action      string
+	NPC         string
 	ActionEvent string
 	Type        PlayerActionType
 	Payload     []byte
@@ -26,6 +27,7 @@ type PlayerActionInfo struct {
 type PlayerActionCreate struct {
 	PlayerId      string
 	ActionId      string
+	NPCId         string
 	ActionEventId string
 	PlayerAction  PlayerAction
 }
@@ -45,6 +47,7 @@ func NewPlayerAction(data PlayerActionCreate) (*PlayerActionInfo, error) {
 		data: PlayerActionData{
 			Player:      data.PlayerId,
 			Action:      data.ActionId,
+			NPC:         data.NPCId,
 			ActionEvent: data.ActionEventId,
 			Type:        data.PlayerAction.Type(),
 			Payload:     data.PlayerAction.Payload(),
@@ -74,6 +77,10 @@ func (p *PlayerActionInfo) Player() string {
 
 func (p *PlayerActionInfo) Action() string {
 	return p.data.Action
+}
+
+func (p *PlayerActionInfo) NPC() string {
+	return p.data.NPC
 }
 
 func (p *PlayerActionInfo) ActionEvent() string {
