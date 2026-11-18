@@ -13,6 +13,7 @@ func RecordToPlayerAction(record *core.Record) *model.PlayerActionInfo {
 		Id:          record.Id,
 		Player:      record.GetString(schema.PlayerActionsSchema.Player),
 		Action:      record.GetString(schema.PlayerActionsSchema.Action),
+		NPC:         record.GetString(schema.PlayerActionsSchema.NPC),
 		ActionEvent: record.GetString(schema.PlayerActionsSchema.ActionEvent),
 		Type:        model.PlayerActionType(record.GetString(schema.PlayerActionsSchema.Type)),
 		Payload:     record.Get(schema.PlayerActionsSchema.Payload).(types.JSONRaw),
@@ -31,6 +32,7 @@ func PlayerActionToRecord(action *model.PlayerActionInfo, record *core.Record) {
 	record.Id = action.ID()
 	record.Set(schema.PlayerActionsSchema.Player, action.Player())
 	record.Set(schema.PlayerActionsSchema.Action, action.Action())
+	record.Set(schema.PlayerActionsSchema.NPC, action.NPC())
 	record.Set(schema.PlayerActionsSchema.ActionEvent, action.ActionEvent())
 	record.Set(schema.PlayerActionsSchema.Type, action.Type())
 	record.Set(schema.PlayerActionsSchema.Payload, action.Payload())
