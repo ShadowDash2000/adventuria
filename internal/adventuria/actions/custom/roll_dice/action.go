@@ -14,7 +14,7 @@ type actionsService interface {
 }
 
 type boardService interface {
-	Move(ctx context.Context, actor actors.Actor, steps int, moveType model.MoveType) ([]*model.MoveResult, error)
+	MovePath(ctx context.Context, actor actors.Actor, steps int) ([]*model.MoveResult, error)
 }
 
 var _ actions.Action = (*RollDice)(nil)
@@ -51,13 +51,11 @@ type rollDiceResult struct {
 }
 
 type move struct {
-	Type            model.MoveType `json:"type"`
-	WorldId         string         `json:"world_id"`
-	CellLocalOrder  int            `json:"cell_local_order"`
-	CellGlobalOrder int            `json:"cell_global_order"`
-	Steps           int            `json:"steps"`
-	TotalSteps      int            `json:"total_steps"`
-	PrevTotalSteps  int            `json:"prev_total_steps"`
+	Type           model.MoveType `json:"type"`
+	WorldId        string         `json:"world_id"`
+	CellLocalOrder int            `json:"cell_local_order"`
+	TotalSteps     int            `json:"total_steps"`
+	PrevTotalSteps int            `json:"prev_total_steps"`
 }
 
 type diceRoll struct {
@@ -97,7 +95,7 @@ func (r *RollDice) Do(ctx context.Context, actor *player.Actor, _ actions.Reques
 	}
 	actor.Player().SetLastAction(newAction)
 
-	moves, err := r.board.Move(ctx, actor, onBeforeRollMoveEvent.N, model.MoveTypePath)
+	moves, err := r.board.MovePath(ctx, actor, onBeforeRollMoveEvent.N)
 	if err != nil {
 		return nil, err
 	}
@@ -105,13 +103,11 @@ func (r *RollDice) Do(ctx context.Context, actor *player.Actor, _ actions.Reques
 	movesRes := make([]move, len(moves))
 	for i, m := range moves {
 		movesRes[i] = move{
-			Type:            m.Type,
-			WorldId:         m.CurrentWorld.ID(),
-			CellLocalOrder:  m.CurrentCell.LocalOrder(),
-			CellGlobalOrder: m.CurrentCell.GlobalOrder(),
-			Steps:           m.Steps,
-			TotalSteps:      m.TotalSteps,
-			PrevTotalSteps:  m.PrevTotalSteps,
+			Type:           m.Type,
+			WorldId:        m.World.ID(),
+			CellLocalOrder: m.Cell.LocalOrder(),
+			TotalSteps:     m.TotalSteps,
+			PrevTotalSteps: m.PrevTotalSteps,
 		}
 	}
 

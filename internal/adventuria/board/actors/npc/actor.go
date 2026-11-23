@@ -34,9 +34,9 @@ func (a *Actor) Ref() actors.ActorRef {
 
 func (a *Actor) Position() model.ActorPosition {
 	return model.ActorPosition{
-		WorldId:     a.npc.CurrentWorld(),
-		CellId:      a.npc.CurrentCell(),
-		CellsPassed: a.npc.CellsPassed(),
+		WorldId:        a.npc.CurrentWorld(),
+		CellId:         a.npc.CurrentCell(),
+		CellLocalOrder: a.npc.CellsPassed(),
 	}
 }
 
@@ -46,10 +46,10 @@ func (a *Actor) ChangeWorld(_ context.Context, worldId string) error {
 	return nil
 }
 
-func (a *Actor) ApplyMovement(_ context.Context, move *model.MoveResult) error {
-	a.npc.SetCurrentWorld(move.CurrentWorld.ID())
-	a.npc.SetCurrentCell(move.CurrentCell.ID())
-	a.npc.SetCellsPassed(move.CurrentCell.LocalOrder())
+func (a *Actor) ApplyMovement(_ context.Context, movement model.ActorMovement) error {
+	a.npc.SetCurrentWorld(movement.Position.WorldId)
+	a.npc.SetCurrentCell(movement.Position.CellId)
+	a.npc.SetCellsPassed(movement.Position.CellLocalOrder)
 	return nil
 }
 
@@ -69,7 +69,7 @@ func (a *Actor) ReachCell(ctx context.Context, cell cells.Cell, reached *cells.R
 	return nil
 }
 
-func (a *Actor) AfterMovement(_ context.Context, _ *model.MoveResult) error {
+func (a *Actor) AfterMovement(_ context.Context, _ model.ActorMovement) error {
 	return nil
 }
 

@@ -20,26 +20,22 @@ func NewRepositoryNotify(pb core.App) *Notify {
 }
 
 type moveNotification struct {
-	Type            model.MoveType `json:"type"`
-	WorldId         string         `json:"world_id"`
-	CellLocalOrder  int            `json:"cell_local_order"`
-	CellGlobalOrder int            `json:"cell_global_order"`
-	Steps           int            `json:"steps"`
-	TotalSteps      int            `json:"total_steps"`
-	PrevTotalSteps  int            `json:"prev_total_steps"`
+	Type           model.MoveType `json:"type"`
+	WorldId        string         `json:"world_id"`
+	CellLocalOrder int            `json:"cell_local_order"`
+	TotalSteps     int            `json:"total_steps"`
+	PrevTotalSteps int            `json:"prev_total_steps"`
 }
 
 func (n *Notify) ActorMovedNotify(ctx context.Context, actorRef actors.ActorRef, moves []*model.MoveResult) error {
 	var data []moveNotification
 	for _, move := range moves {
 		data = append(data, moveNotification{
-			Type:            move.Type,
-			WorldId:         move.CurrentWorld.ID(),
-			CellLocalOrder:  move.CurrentCell.LocalOrder(),
-			CellGlobalOrder: move.CurrentCell.GlobalOrder(),
-			Steps:           move.Steps,
-			TotalSteps:      move.TotalSteps,
-			PrevTotalSteps:  move.PrevTotalSteps,
+			Type:           move.Type,
+			WorldId:        move.World.ID(),
+			CellLocalOrder: move.Cell.LocalOrder(),
+			TotalSteps:     move.TotalSteps,
+			PrevTotalSteps: move.PrevTotalSteps,
 		})
 	}
 

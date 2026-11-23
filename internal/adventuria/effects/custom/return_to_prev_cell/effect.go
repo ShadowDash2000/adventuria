@@ -7,7 +7,9 @@ import (
 	"adventuria/internal/adventuria/effects"
 	"adventuria/internal/adventuria/model"
 	"adventuria/pkg/event"
+	"adventuria/pkg/mathhelper"
 	"context"
+	"errors"
 )
 
 type actionsService interface {
@@ -17,7 +19,13 @@ type actionsService interface {
 }
 
 type boardService interface {
-	Move(ctx context.Context, actor actors.Actor, steps int, moveType model.MoveType) ([]*model.MoveResult, error)
+	MoveToCell(ctx context.Context, actor actors.Actor, cell *model.CellInfo) ([]*model.MoveResult, error)
+}
+
+type cellsService interface {
+	GetByID(ctx context.Context, id string) (*model.CellInfo, error)
+	GetByLocalOrder(ctx context.Context, worldId string, order int) (*model.CellInfo, error)
+	CountLocal(ctx context.Context, worldId string) (int, error)
 }
 
 var _ effects.Effect = (*ReturnToPrevCell)(nil)
@@ -28,9 +36,10 @@ type ReturnToPrevCell struct {
 	effects.EffectBase
 	actions actionsService
 	board   boardService
+	cells   cellsService
 }
 
-func NewDef(actions actionsService, board boardService) effects.EffectDef {
+func NewDef(actions actionsService, board boardService, cells cellsService) effects.EffectDef {
 	return effects.NewEffectDef(
 		Type,
 		func(effect model.EffectInfo) effects.Effect {
@@ -38,6 +47,7 @@ func NewDef(actions actionsService, board boardService) effects.EffectDef {
 				EffectBase: effects.NewEffectBase(effect),
 				actions:    actions,
 				board:      board,
+				cells:      cells,
 			}
 		},
 	)
@@ -70,18 +80,42 @@ func (r *ReturnToPrevCell) Subscribe(
 	return []event.Unsubscribe{
 		actor.Events().OnAfterItemUse(effectCtx.InvItemID).BindFuncWithPriority(func(ctx context.Context, e *model.OnAfterItemUseEvent) error {
 			lastAction := actor.Player().LastAction()
-			lastAction.SetStatus(model.ActionStatusEscape)
-			lastAction, err := r.actions.Save(ctx, lastAction)
-			if err != nil {
-				return err
-			}
 
 			rootAction, err := r.getRootAction(ctx, lastAction)
 			if err != nil {
 				return err
 			}
 
-			_, err = r.board.Move(ctx, actor, -rootAction.CellsPassed(), model.MoveTypePath)
+			lastAction.SetStatus(model.ActionStatusEscape)
+			lastAction, err = r.actions.Save(ctx, lastAction)
+			if err != nil {
+				return err
+			}
+
+			actor.Player().SetLastAction(lastAction)
+
+			rootCell, err := r.cells.GetByID(ctx, rootAction.Cell())
+			if err != nil {
+				return err
+			}
+
+			cellsCount, err := r.cells.CountLocal(ctx, rootCell.World())
+			if err != nil {
+				return err
+			}
+
+			if cellsCount == 0 {
+				return errors.New("world has no cells")
+			}
+
+			dstCellOrder := mathhelper.Mod(rootCell.LocalOrder()-rootAction.CellsPassed(), cellsCount)
+
+			dstCell, err := r.cells.GetByLocalOrder(ctx, rootCell.World(), dstCellOrder)
+			if err != nil {
+				return err
+			}
+
+			_, err = r.board.MoveToCell(ctx, actor, dstCell)
 			if err != nil {
 				return err
 			}

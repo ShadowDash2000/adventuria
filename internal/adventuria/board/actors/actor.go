@@ -22,10 +22,10 @@ type Actor interface {
 	Ref() ActorRef
 	Position() model.ActorPosition
 	ChangeWorld(ctx context.Context, worldID string) error
-	ApplyMovement(ctx context.Context, move *model.MoveResult) error
+	ApplyMovement(ctx context.Context, movement model.ActorMovement) error
 	LeaveCell(ctx context.Context, cell cells.Cell) error
 	ReachCell(ctx context.Context, cell cells.Cell, reached *cells.ReachedContext) error
-	AfterMovement(ctx context.Context, move *model.MoveResult) error
+	AfterMovement(ctx context.Context, movement model.ActorMovement) error
 	MovementFinished(ctx context.Context, moves []*model.MoveResult) error
 }
 

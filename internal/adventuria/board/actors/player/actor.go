@@ -50,9 +50,9 @@ func (a *Actor) Ref() actors.ActorRef {
 
 func (a *Actor) Position() model.ActorPosition {
 	return model.ActorPosition{
-		WorldId:     a.player.Progress().CurrentWorld(),
-		CellId:      a.player.LastAction().Cell(),
-		CellsPassed: a.player.Progress().CellsPassed(),
+		WorldId:        a.player.Progress().CurrentWorld(),
+		CellId:         a.player.LastAction().Cell(),
+		CellLocalOrder: a.player.Progress().CellsPassed(),
 	}
 }
 
@@ -69,20 +69,20 @@ func (a *Actor) ChangeWorld(ctx context.Context, worldID string) error {
 	})
 }
 
-func (a *Actor) ApplyMovement(ctx context.Context, move *model.MoveResult) error {
+func (a *Actor) ApplyMovement(ctx context.Context, movement model.ActorMovement) error {
 	progress := a.player.Progress()
-	progress.SetCellsPassed(move.CurrentCell.LocalOrder())
+	progress.SetCellsPassed(movement.Position.CellLocalOrder)
 
 	newAction, err := model.NewAction(model.ActionCreate{
 		Player: a.player.ID(),
-		Cell:   move.CurrentCell.ID(),
+		Cell:   movement.Position.CellId,
 		Status: model.ActionStatusMove,
 	})
 	if err != nil {
 		return err
 	}
 
-	newAction.SetCellsPassed(move.Steps)
+	newAction.SetCellsPassed(movement.Steps)
 
 	newAction, err = a.actions.Save(ctx, newAction)
 	if err != nil {
@@ -93,12 +93,7 @@ func (a *Actor) ApplyMovement(ctx context.Context, move *model.MoveResult) error
 	progress.SetCanMove(false)
 
 	return a.events.OnAfterApplyMovement().Trigger(ctx, &model.OnAfterApplyMovementEvent{
-		Steps:          move.Steps,
-		TotalSteps:     move.TotalSteps,
-		PrevTotalSteps: move.PrevTotalSteps,
-		CurrentCell:    move.CurrentCell,
-		CurrentWorld:   move.CurrentWorld,
-		Laps:           move.Laps,
+		Steps: movement.Steps,
 	})
 }
 
@@ -126,10 +121,10 @@ func (a *Actor) ReachCell(ctx context.Context, cell cells.Cell, reached *cells.R
 	return nil
 }
 
-func (a *Actor) AfterMovement(ctx context.Context, move *model.MoveResult) error {
-	if move.Steps > 0 && move.Laps > 0 {
+func (a *Actor) AfterMovement(ctx context.Context, movement model.ActorMovement) error {
+	if movement.Steps > 0 && movement.Laps > 0 {
 		return a.events.OnNewLap().Trigger(ctx, &model.OnNewLapEvent{
-			Laps: move.Laps,
+			Laps: movement.Laps,
 		})
 	}
 

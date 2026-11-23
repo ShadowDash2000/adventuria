@@ -11,7 +11,7 @@ import (
 )
 
 type board interface {
-	Move(ctx context.Context, actor actors.Actor, steps int, moveType model.MoveType) ([]*model.MoveResult, error)
+	MovePath(ctx context.Context, actor actors.Actor, steps int) ([]*model.MoveResult, error)
 }
 
 var _ behaviors.Behavior = (*Walk)(nil)
@@ -52,7 +52,7 @@ func NewFromJSON(board board, data []byte) (*Walk, error) {
 func (w *Walk) Move(ctx context.Context, actor *npc.Actor) (model.ActorPosition, error) {
 	steps := rand.IntN(w.payload.MaxDistance-w.payload.MinDistance+1) + w.payload.MinDistance
 
-	_, err := w.board.Move(ctx, actor, steps, model.MoveTypePath)
+	_, err := w.board.MovePath(ctx, actor, steps)
 	if err != nil {
 		return model.ActorPosition{}, err
 	}

@@ -52,6 +52,10 @@ func toCell(cell *model.CellInfo) (cells.Cell, error) {
 	return cellDef.New(*cell)
 }
 
+func (c *Cells) Wrap(cell *model.CellInfo) (cells.Cell, error) {
+	return toCell(cell)
+}
+
 func (c *Cells) GetByPlayer(ctx context.Context, player *model.Player) (*model.CellInfo, error) {
 	return c.GetByID(ctx, player.LastAction().Cell())
 }

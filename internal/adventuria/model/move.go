@@ -1,13 +1,12 @@
 package model
 
 type MoveResult struct {
-	Type           MoveType  `json:"type"`
-	Steps          int       `json:"steps"`
-	TotalSteps     int       `json:"total_steps"`
-	PrevTotalSteps int       `json:"prev_total_steps"`
-	CurrentCell    *CellInfo `json:"current_cell"`
-	CurrentWorld   *World    `json:"current_world"`
-	Laps           int       `json:"laps"`
+	Type           MoveType
+	TotalSteps     int
+	PrevTotalSteps int
+	World          *World
+	Cell           *CellInfo
+	Laps           int
 }
 
 type MoveType string

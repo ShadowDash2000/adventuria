@@ -3,18 +3,18 @@ package board
 import (
 	"adventuria/internal/adventuria/board/actors"
 	"adventuria/internal/adventuria/cells"
-	"adventuria/internal/adventuria/errs"
 	"adventuria/internal/adventuria/model"
 	"adventuria/pkg/mathhelper"
 	"context"
+	"errors"
 	"fmt"
 )
 
 type cellsService interface {
+	Wrap(cell *model.CellInfo) (cells.Cell, error)
 	GetByID(ctx context.Context, id string) (*model.CellInfo, error)
 	GetByIDWrapped(ctx context.Context, id string) (cells.Cell, error)
-	GetByLocalOrderWrapped(ctx context.Context, worldId string, order int) (cells.Cell, error)
-	GetByGlobalOrder(ctx context.Context, order int) (*model.CellInfo, error)
+	GetByLocalOrder(ctx context.Context, worldId string, order int) (*model.CellInfo, error)
 	GetAllGlobalByType(ctx context.Context, t model.CellType) ([]*model.CellInfo, error)
 	CountLocal(ctx context.Context, worldId string) (int, error)
 }
@@ -47,13 +47,22 @@ func isMovementStarted(ctx context.Context) bool {
 	return ok
 }
 
-func (b *Board) Move(ctx context.Context, actor actors.Actor, steps int, moveType model.MoveType) ([]*model.MoveResult, error) {
+type moveResult struct {
+	ActorMovement model.ActorMovement
+	Moves         []*model.MoveResult
+}
+
+type movementHandler interface {
+	Move(ctx context.Context, actor actors.Actor) (*moveResult, error)
+}
+
+func (b *Board) Move(ctx context.Context, actor actors.Actor, handler movementHandler) ([]*model.MoveResult, error) {
 	if isMovementStarted(ctx) {
-		return b.move(ctx, actor, steps, moveType)
+		return b.move(ctx, actor, handler)
 	}
 
 	ctx = withMovementStarted(ctx)
-	moves, err := b.move(ctx, actor, steps, moveType)
+	moves, err := b.move(ctx, actor, handler)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +75,7 @@ func (b *Board) Move(ctx context.Context, actor actors.Actor, steps int, moveTyp
 	return moves, nil
 }
 
-func (b *Board) move(ctx context.Context, actor actors.Actor, steps int, moveType model.MoveType) ([]*model.MoveResult, error) {
+func (b *Board) move(ctx context.Context, actor actors.Actor, handler movementHandler) ([]*model.MoveResult, error) {
 	prevCell, err := b.cells.GetByIDWrapped(ctx, actor.Position().CellId)
 	if err != nil {
 		return nil, err
@@ -77,102 +86,56 @@ func (b *Board) move(ctx context.Context, actor actors.Actor, steps int, moveTyp
 		return nil, err
 	}
 
-	currentWorldId := actor.Position().WorldId
-	world, err := b.worlds.GetByID(ctx, currentWorldId)
+	res, err := handler.Move(ctx, actor)
 	if err != nil {
 		return nil, err
 	}
 
-	cellsPassed := actor.Position().CellsPassed
-	cellsCount, err := b.cells.CountLocal(ctx, currentWorldId)
+	err = actor.ApplyMovement(ctx, res.ActorMovement)
 	if err != nil {
 		return nil, err
 	}
 
-	totalSteps := cellsPassed + steps
-
-	if !world.IsLoop() && totalSteps >= cellsCount {
-		var nextWorld *model.World
-		if world.TransitionToWorld() != "" {
-			nextWorld, err = b.worlds.GetByID(ctx, world.TransitionToWorld())
-			if err != nil {
-				return nil, err
-			}
-		} else {
-			nextWorld, err = b.worlds.GetDefault(ctx)
-			if err != nil {
-				return nil, err
-			}
-		}
-
-		err = actor.ChangeWorld(ctx, nextWorld.ID())
-		if err != nil {
-			return nil, err
-		}
-
-		return b.Move(ctx, actor, 0, model.MoveTypeWorldTransition)
+	if len(res.Moves) == 0 {
+		return nil, errors.New("no moves")
 	}
 
-	currentCellNum := mathhelper.Mod(totalSteps, cellsCount)
-	lapsPassed := mathhelper.FloorDiv(totalSteps, cellsCount) - mathhelper.FloorDiv(cellsPassed, cellsCount)
+	finalMove := res.Moves[len(res.Moves)-1]
 
-	currentCell, err := b.cells.GetByLocalOrderWrapped(ctx, currentWorldId, currentCellNum)
+	finalCell, err := b.cells.Wrap(finalMove.Cell)
 	if err != nil {
 		return nil, err
 	}
 
-	move := &model.MoveResult{
-		Type:           moveType,
-		Steps:          steps,
-		TotalSteps:     totalSteps,
-		PrevTotalSteps: cellsPassed,
-		CurrentCell:    currentCell.Data(),
-		CurrentWorld:   world,
-		Laps:           lapsPassed,
+	reachedCtx := cells.ReachedContext{
+		Moves: res.Moves,
 	}
-	err = actor.ApplyMovement(ctx, move)
+	err = actor.ReachCell(ctx, finalCell, &reachedCtx)
 	if err != nil {
 		return nil, err
 	}
 
-	cellReachedCtx := cells.ReachedContext{
-		Moves: []*model.MoveResult{move},
-	}
-	err = actor.ReachCell(ctx, currentCell, &cellReachedCtx)
+	err = actor.AfterMovement(ctx, res.ActorMovement)
 	if err != nil {
 		return nil, err
 	}
 
-	err = actor.AfterMovement(ctx, move)
-	if err != nil {
-		return nil, err
-	}
+	return reachedCtx.Moves, nil
+}
 
-	return cellReachedCtx.Moves, nil
+func (b *Board) MovePath(ctx context.Context, actor actors.Actor, steps int) ([]*model.MoveResult, error) {
+	return b.Move(ctx, actor, newPathMovement(
+		b.worlds,
+		b.cells,
+		steps,
+	))
 }
 
 func (b *Board) MoveToCell(ctx context.Context, actor actors.Actor, cell *model.CellInfo) ([]*model.MoveResult, error) {
-	if cell.Disabled() {
-		return nil, errs.ErrCellIsDisabled
-	}
-
-	cellWorldId := cell.World()
-	currentWorld := actor.Position().WorldId
-	if cellWorldId != currentWorld {
-		err := actor.ChangeWorld(ctx, cellWorldId)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	cellsCount, err := b.cells.CountLocal(ctx, actor.Position().WorldId)
-	if err != nil {
-		return nil, err
-	}
-
-	currentCellOrder := mathhelper.Mod(actor.Position().CellsPassed, cellsCount)
-
-	return b.Move(ctx, actor, cell.LocalOrder()-currentCellOrder, model.MoveTypeTeleport)
+	return b.Move(ctx, actor, newTeleportMovement(
+		b.worlds,
+		cell,
+	))
 }
 
 func (b *Board) MoveToCellId(ctx context.Context, actor actors.Actor, cellId string) ([]*model.MoveResult, error) {

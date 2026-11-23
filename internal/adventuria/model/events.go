@@ -278,12 +278,7 @@ type OnAfterActionEvent struct {
 }
 type OnAfterApplyMovementEvent struct {
 	event.Event
-	Steps          int
-	TotalSteps     int
-	PrevTotalSteps int
-	CurrentCell    *CellInfo
-	CurrentWorld   *World
-	Laps           int
+	Steps int
 }
 type OnMovementFinishedEvent struct {
 	event.Event

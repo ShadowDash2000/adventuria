@@ -86,7 +86,16 @@ func (c *CellTeleport) OnPlayerReached(ctx context.Context, actor *player.Actor,
 
 	actor.Player().SetLastAction(newAction)
 
-	return c.OnActorReached(ctx, actor, reached)
+	moves, err := c.board.MoveToCellId(ctx, actor, c.payload.CellId)
+	if err != nil {
+		return err
+	}
+
+	reached.Moves = append(reached.Moves, moves...)
+
+	actor.Player().LastAction().SetRootAction(newAction.ActionChainID())
+
+	return nil
 }
 
 func (c *CellTeleport) OnActorReached(ctx context.Context, actor actors.Actor, reached *cells.ReachedContext) error {

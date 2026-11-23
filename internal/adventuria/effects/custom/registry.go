@@ -83,7 +83,7 @@ func RegisterEffects(
 		points_change.NewDef(),
 		replace_dice_roll.NewDef(),
 		reroll_block.NewDef(),
-		return_to_prev_cell.NewDef(actions, board),
+		return_to_prev_cell.NewDef(actions, board, cells),
 		roll_reverse.NewDef(),
 		safe_drop.NewDef(),
 		save_from_hole.NewDef(cells),

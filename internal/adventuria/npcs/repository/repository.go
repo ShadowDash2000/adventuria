@@ -80,7 +80,7 @@ func (r *Repository) UpdateShiftAndPositionByID(ctx context.Context, id string, 
 				schema.NPCsSchema.NextShiftChangeAt: nextShiftChangeDate,
 				schema.NPCsSchema.CurrentWorld:      position.WorldId,
 				schema.NPCsSchema.CurrentCell:       position.CellId,
-				schema.NPCsSchema.CellsPassed:       position.CellsPassed,
+				schema.NPCsSchema.CellsPassed:       position.CellLocalOrder,
 			},
 			dbx.HashExp{
 				schema.NPCsSchema.Id: id,
