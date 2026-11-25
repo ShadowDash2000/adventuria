@@ -95,7 +95,39 @@ func (n *NPCs) IsRunning() bool {
 	return n.running.Load()
 }
 
-func (n *NPCs) CheckNPCSchedules(ctx context.Context) (err error) {
+type transactionRunner func(ctx context.Context, fn func(ctx context.Context) error) error
+
+func (n *NPCs) CheckNPCSchedules(ctx context.Context, tr transactionRunner) error {
+	isNotRunning := n.running.CompareAndSwap(false, true)
+	if !isNotRunning {
+		return errs.ErrCellEventSchedulerAlreadyRunning
+	}
+
+	shouldTriggerUpdateEnd := false
+
+	defer func() {
+		if shouldTriggerUpdateEnd {
+			_ = n.OnUpdateEnd().Trigger(ctx, &UpdateEndEvent{})
+		}
+
+		n.running.Store(false)
+	}()
+
+	err := n.waitForPlayersUnlock(ctx)
+	if err != nil {
+		return err
+	}
+
+	return tr(ctx, func(ctx context.Context) error {
+		return n.updateNPCs(ctx, func() {
+			_ = n.OnUpdateStart().Trigger(ctx, &UpdateStartEvent{})
+
+			shouldTriggerUpdateEnd = true
+		})
+	})
+}
+
+func (n *NPCs) updateNPCs(ctx context.Context, onStart func()) error {
 	currentSeason, err := n.settings.CurrentSeason(ctx)
 	if err != nil {
 		return err
@@ -107,29 +139,7 @@ func (n *NPCs) CheckNPCSchedules(ctx context.Context) (err error) {
 	}
 
 	if isSeasonEnded {
-		return
-	}
-
-	isNotRunning := n.running.CompareAndSwap(false, true)
-	if !isNotRunning {
-		return errs.ErrCellEventSchedulerAlreadyRunning
-	}
-
-	shouldTriggerUpdateEnd := false
-	defer func() {
-		n.running.Store(false)
-
-		if shouldTriggerUpdateEnd {
-			eventErr := n.OnUpdateEnd().Trigger(ctx, &UpdateEndEvent{})
-			if eventErr != nil {
-				//err = eventErr
-			}
-		}
-	}()
-
-	err = n.waitForPlayersUnlock(ctx)
-	if err != nil {
-		return err
+		return nil
 	}
 
 	npcs, err := n.GetAllDetailed(ctx)
@@ -148,12 +158,7 @@ func (n *NPCs) CheckNPCSchedules(ctx context.Context) (err error) {
 		return nil
 	}
 
-	err = n.OnUpdateStart().Trigger(ctx, &UpdateStartEvent{})
-	if err != nil {
-		return err
-	}
-
-	shouldTriggerUpdateEnd = true
+	onStart()
 
 	players, err := n.players.GetAllBySeasonID(ctx, currentSeason)
 	if err != nil {
@@ -172,7 +177,7 @@ func (n *NPCs) CheckNPCSchedules(ctx context.Context) (err error) {
 	}
 
 	for _, npc := range npcsToUpdate {
-		err = n.move(ctx, npc)
+		err = n.moveNPC(ctx, npc)
 		if err != nil {
 			return err
 		}
@@ -186,7 +191,7 @@ func (n *NPCs) CheckNPCSchedules(ctx context.Context) (err error) {
 	return nil
 }
 
-func (n *NPCs) move(ctx context.Context, npc *NPC) error {
+func (n *NPCs) moveNPC(ctx context.Context, npc *NPC) error {
 	position, err := n.behaviors.Move(ctx, npc.NPC(), npc.Behavior())
 	if err != nil {
 		return err
@@ -407,7 +412,9 @@ func (n *NPCs) GetActiveNPCs(ctx context.Context) ([]*ActiveNPC, error) {
 }
 
 func (n *NPCs) GetAllDetailed(ctx context.Context) ([]*NPC, error) {
-	npcsDetailed, err := n.repository.GetAllDetailedByFilter(ctx, Filter{})
+	npcsDetailed, err := n.repository.GetAllDetailedByFilter(ctx, Filter{
+		HasCurrentCell: new(true),
+	})
 	if err != nil {
 		return nil, err
 	}

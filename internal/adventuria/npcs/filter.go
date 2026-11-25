@@ -1,5 +1,6 @@
 package npcs
 
 type Filter struct {
-	CurrentCell *string
+	CurrentCell    *string
+	HasCurrentCell *bool
 }

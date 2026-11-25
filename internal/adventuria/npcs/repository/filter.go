@@ -21,4 +21,16 @@ func buildQueryFromFilter(filter npcs.Filter, q *dbx.SelectQuery, columns filter
 			columns.CurrentCell: *filter.CurrentCell,
 		})
 	}
+
+	if filter.HasCurrentCell != nil {
+		if *filter.HasCurrentCell {
+			q.AndWhere(dbx.Not(dbx.HashExp{
+				columns.CurrentCell: "",
+			}))
+		} else {
+			q.AndWhere(dbx.HashExp{
+				columns.CurrentCell: "",
+			})
+		}
+	}
 }
